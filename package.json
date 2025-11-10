@@ -17,7 +17,10 @@
     "lines": "bun src/ci/check_lines.ts",
     "check": "biome check",
     "fix": "biome check --write",
-    "test": "TZ=Greenwich vitest"
+    "test": "TZ=Greenwich vitest",
+    "remotion:dev": "remotion studio templates/index.ts",
+    "remotion:build": "remotion bundle",
+    "remotion:upgrade": "remotion upgrade"
   },
   "packageManager": "bun@1.2.9",
   "type": "module",
@@ -63,7 +66,9 @@
     "vite-plugin-pwa": "^0.21.2",
     "vite-plugin-solid": "^2.11.6",
     "vitest": "^3.1.1",
-    "wrangler": "^4.9.1"
+    "wrangler": "^4.9.1",
+    "@types/react": "19.0.0",
+    "@types/web": "0.0.166"
   },
   "//dependencies": {
     "@mapbox/polyline": "display series of map coordinates as a line",
@@ -87,7 +92,12 @@
     "hls.js": "1.5.20",
     "leaflet": "^1.9.4",
     "qr-scanner": "^1.4.2",
-    "solid-js": "^1.9.5"
+    "solid-js": "^1.9.5",
+    "@remotion/cli": "4.0.373",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.373",
+    "zod": "3.22.3"
   },
   "engines": {
     "node": ">=20.11.0"
