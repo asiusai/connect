@@ -1,45 +1,39 @@
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { refreshAccessToken } from '~/api/auth/client'
 import { Button } from '~/components/material/Button'
 import { Icon } from '~/components/material/Icon'
-import { useCreateSignal } from '~/fix'
-
-type AuthParams = {
-  code: string
-  provider: string
-}
 
 export const Component = () => {
   const navigate = useNavigate()
-  const [params] = useSearchParams<AuthParams>()
-  const [error, setError] = useCreateSignal<string | null>(null)
+  const [params] = useSearchParams()
+  const [error, setError] = useState<string>()
 
-  const { code, provider } = params
-  if (code && provider) {
-    void refreshAccessToken(code, provider)
+  const code = params.get("code")
+  const provider = params.get("provider")
+  if (!code || !provider) return <Navigate to="/login" />
+
+  useEffect(() => {
+    refreshAccessToken(code, provider)
       .then(() => navigate('/'))
       .catch((err) => {
         console.error(err)
-        if (err instanceof Error && err.message) {
-          setError(err.message)
-        } else {
-          setError('Something went wrong')
-        }
+        if (err instanceof Error && err.message) setError(err.message)
+        else setError('Something went wrong')
       })
-  }
 
-  if (!code || !provider) return <Navigate to="/login" />
+  }, [])
   return (
     <div className="flex min-h-screen max-w-lg flex-col gap-8 items-center mx-auto justify-center p-6">
       <div className="flex flex-col gap-4 items-center">
         <img src="/images/logo-connect-light.svg" alt="comma connect" width={96} height={96} />
         <h1 className="text-2xl">comma connect</h1>
       </div>
-      {error() ? (
+      {error ? (
         <>
           <div className="flex gap-4 items-center">
             <Icon className="text-error shrink-0" name="error" size="24" />
-            <span className="text-md">{error()}</span>
+            <span className="text-md">{error}</span>
           </div>
           <Button color="secondary" href="/login">
             Try again

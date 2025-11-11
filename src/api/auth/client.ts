@@ -1,12 +1,11 @@
-import { Accessor, useCreateSignal } from '~/fix'
 import { API_URL } from '../config'
 
 const AUTH_KEY = 'ai.comma.api.authorization'
 
 let initialized = false
-// const [_accessToken, _setAccessToken] = useCreateSignal<string | null>(null)
+let _accessToken: string | null = null
 
-export async function refreshAccessToken(code: string, provider: string): Promise<void> {
+export const refreshAccessToken = async (code: string, provider: string) => {
   try {
     const resp = await fetch(`${API_URL}/v2/auth/`, {
       method: 'POST',
@@ -16,15 +15,11 @@ export async function refreshAccessToken(code: string, provider: string): Promis
       body: new URLSearchParams({ code, provider }),
     })
 
-    if (!resp.ok) {
-      throw new Error(`${resp.status}: ${await resp.text()}`)
-    }
+    if (!resp.ok) throw new Error(`${resp.status}: ${await resp.text()}`)
 
     // TODO: validate response
     const json = (await resp.json()) as Record<string, string>
-    if (!json.access_token) {
-      throw new Error('unknown error')
-    }
+    if (!json.access_token) throw new Error('unknown error')
 
     setAccessToken(json.access_token)
   } catch (e) {
@@ -32,27 +27,20 @@ export async function refreshAccessToken(code: string, provider: string): Promis
   }
 }
 
-export const accessToken: Accessor<string | null> = () => {
+export const accessToken = () => {
   if (!initialized) {
     initialized = true
-    _setAccessToken(localStorage.getItem(AUTH_KEY))
+    _accessToken = localStorage.getItem(AUTH_KEY)
   }
-  return _accessToken()
+  return _accessToken
 }
 
 export function setAccessToken(token: string | null): void {
-  _setAccessToken(token)
-  if (token === null) {
-    localStorage.removeItem(AUTH_KEY)
-  } else {
-    localStorage.setItem(AUTH_KEY, token)
-  }
+  _accessToken = token
+  if (token === null) localStorage.removeItem(AUTH_KEY)
+  else localStorage.setItem(AUTH_KEY, token)
 }
 
-export function isSignedIn(): boolean {
-  return !!accessToken()
-}
+export const isSignedIn = () => !!accessToken()
 
-export function signOut(): void {
-  setAccessToken(null)
-}
+export const signOut = () => setAccessToken(null)
