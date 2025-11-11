@@ -1,17 +1,17 @@
-import { For, createSignal, createEffect, onMount, onCleanup, Suspense } from 'solid-js'
-import type { VoidComponent } from 'solid-js'
 import clsx from 'clsx'
 
 import type { TimelineEvent } from '~/api/derived'
 import type { Route } from '~/api/types'
 import { getRouteDuration } from '~/utils/format'
+import { createSignal } from '~/fix'
+import { Suspense } from 'react'
 
 function renderTimelineEvents(route: Route | undefined, events: TimelineEvent[]) {
   if (!route) return
   const duration = getRouteDuration(route)?.asMilliseconds() ?? 0
   return (
-    <For each={events}>
-      {(event) => {
+    <>
+      {events.map((event) => {
         let left = ''
         let width = ''
         switch (event.type) {
@@ -71,33 +71,23 @@ function renderTimelineEvents(route: Route | undefined, events: TimelineEvent[])
           user_flag: '4',
         }[event.type]
 
-        return (
-          <div
-            title={title}
-            class={clsx('absolute top-0 h-full', classes)}
-            style={{
-              left,
-              width,
-              'z-index': zIndex,
-            }}
-          />
-        )
-      }}
-    </For>
+        return <div title={title} className={clsx('absolute top-0 h-full', classes)} style={{ left, width, zIndex }} />
+      })}
+    </>
   )
 }
 
 const MARKER_WIDTH = 3
 
-interface TimelineProps {
-  class?: string
+type  TimelineProps ={
+  className?: string
   route: Route | undefined
   seekTime: number
   updateTime: (time: number) => void
-  events: TimelineEvent[]
+  events?: TimelineEvent[]
 }
 
-const Timeline: VoidComponent<TimelineProps> = (props) => {
+export const Timeline = (props: TimelineProps) => {
   // TODO: align to first camera frame event
   const [markerOffsetPct, setMarkerOffsetPct] = createSignal(0)
   const duration = () => getRouteDuration(props.route)?.asSeconds() ?? 0
@@ -162,37 +152,35 @@ const Timeline: VoidComponent<TimelineProps> = (props) => {
   })
 
   return (
-    <div class="flex flex-col">
-      <div class="h-1 bg-surface-container-high">
-        <div class="h-full bg-white" style={{ width: `calc(${markerOffsetPct()}% + 1px)` }} />
+    <div className="flex flex-col">
+      <div className="h-1 bg-surface-container-high">
+        <div className="h-full bg-white" style={{ width: `calc(${markerOffsetPct()}% + 1px)` }} />
       </div>
       <div
         ref={ref!}
-        class={clsx(
+        className={clsx(
           'relative isolate flex h-8 cursor-pointer touch-none self-stretch rounded-b-md bg-blue-900',
           'after:absolute after:inset-0 after:rounded-b-md after:bg-gradient-to-b after:from-black/0 after:via-black/10 after:to-black/30',
-          props.class,
+          props.className,
         )}
         title="Disengaged"
       >
-        <div class="absolute inset-0 size-full rounded-b-md overflow-hidden">
-          <Suspense fallback={<div class="skeleton-loader size-full" />}>{renderTimelineEvents(props.route, props.events)}</Suspense>
+        <div className="absolute inset-0 size-full rounded-b-md overflow-hidden">
+          <Suspense fallback={<div className="skeleton-loader size-full" />}>{renderTimelineEvents(props.route, props.events)}</Suspense>
         </div>
         <div
-          class="absolute top-0 z-10 h-full"
+          className="absolute top-0 z-10 h-full"
           style={{
             width: `${MARKER_WIDTH}px`,
             left: `${markerOffsetPct()}%`,
           }}
         >
-          <div class="absolute inset-x-0 h-full w-px bg-white" />
-          <div class="absolute -bottom-1.5 left-1/2 -translate-x-[calc(50%+1px)]">
-            <div class="size-0 border-x-8 border-b-[12px] border-x-transparent border-b-white" />
+          <div className="absolute inset-x-0 h-full w-px bg-white" />
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-[calc(50%+1px)]">
+            <div className="size-0 border-x-8 border-b-[12px] border-x-transparent border-b-white" />
           </div>
         </div>
       </div>
     </div>
   )
 }
-
-export default Timeline

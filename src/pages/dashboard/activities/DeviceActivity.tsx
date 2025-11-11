@@ -1,16 +1,14 @@
-import { createResource, createSignal, For, Show, Suspense, type VoidComponent } from 'solid-js'
-import { createStore } from 'solid-js/store'
 import clsx from 'clsx'
 
 import { takeSnapshot } from '~/api/athena'
 import { getDevice, SHARED_DEVICE } from '~/api/devices'
 import { DrawerToggleButton, useDrawerContext } from '~/components/material/Drawer'
-import Icon from '~/components/material/Icon'
-import IconButton from '~/components/material/IconButton'
-import TopAppBar from '~/components/material/TopAppBar'
-import DeviceLocation from '~/components/DeviceLocation'
-import DeviceStatistics from '~/components/DeviceStatistics'
-import UploadQueue from '~/components/UploadQueue'
+import {Icon} from '~/components/material/Icon'
+import {IconButton} from '~/components/material/IconButton'
+import {TopAppBar} from '~/components/material/TopAppBar'
+import {DeviceLocation} from '~/components/DeviceLocation'
+import {DeviceStatistics} from '~/components/DeviceStatistics'
+import {UploadQueue} from '~/components/UploadQueue'
 import { getDeviceName } from '~/utils/device'
 
 import RouteList from '../components/RouteList'
@@ -19,7 +17,7 @@ type DeviceActivityProps = {
   dongleId: string
 }
 
-const DeviceActivity: VoidComponent<DeviceActivityProps> = (props) => {
+export const DeviceActivity= (props:DeviceActivityProps) => {
   // TODO: device should be passed in from DeviceList
   const [device] = createResource(() => props.dongleId, getDevice)
   // Resource as source of another resource blocks component initialization
@@ -79,35 +77,35 @@ const DeviceActivity: VoidComponent<DeviceActivityProps> = (props) => {
   return (
     <>
       <TopAppBar
-        class="font-bold"
+        className="font-bold"
         leading={
           <Show when={!modal()} fallback={<DrawerToggleButton />}>
-            <img alt="" src="/images/comma-white.png" class="h-8" />
+            <img alt="" src="/images/comma-white.png" className="h-8" />
           </Show>
         }
       >
         connect
       </TopAppBar>
-      <div class="flex flex-col gap-4 px-4 pb-4">
-        <div class="h-min overflow-hidden rounded-lg bg-surface-container-low">
-          <Suspense fallback={<div class="h-[240px] skeleton-loader size-full" />}>
+      <div className="flex flex-col gap-4 px-4 pb-4">
+        <div className="h-min overflow-hidden rounded-lg bg-surface-container-low">
+          <Suspense fallback={<div className="h-[240px] skeleton-loader size-full" />}>
             <DeviceLocation dongleId={props.dongleId} deviceName={deviceName()!} />
           </Suspense>
-          <div class="flex items-center justify-between p-4">
-            <Suspense fallback={<div class="h-[32px] skeleton-loader size-full rounded-xs" />}>
-              <div class="inline-flex items-center gap-2">
+          <div className="flex items-center justify-between p-4">
+            <Suspense fallback={<div className="h-[32px] skeleton-loader size-full rounded-xs" />}>
+              <div className="inline-flex items-center gap-2">
                 <div class={clsx('m-2 size-2 shrink-0 rounded-full', device.latest?.is_online ? 'bg-green-400' : 'bg-gray-400')} />
 
-                {<div class="text-lg font-bold">{deviceName()}</div>}
+                {<div className="text-lg font-bold">{deviceName()}</div>}
               </div>
             </Suspense>
-            <div class="flex gap-4">
+            <div className="flex gap-4">
               <IconButton name="camera" onClick={onClickSnapshot} />
               <IconButton name="settings" href={`/${props.dongleId}/settings`} />
             </div>
           </div>
           <Show when={isDeviceUser()}>
-            <DeviceStatistics dongleId={props.dongleId} class="p-4" />
+            <DeviceStatistics dongleId={props.dongleId} className="p-4" />
             <Show when={queueVisible()}>
               <UploadQueue dongleId={props.dongleId} />
             </Show>
@@ -118,36 +116,36 @@ const DeviceActivity: VoidComponent<DeviceActivityProps> = (props) => {
               )}
               onClick={() => setQueueVisible(!queueVisible())}
             >
-              <p class="mr-2">Upload Queue</p>
-              <Icon class="text-zinc-500" name={queueVisible() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} />
+              <p className="mr-2">Upload Queue</p>
+              <Icon className="text-zinc-500" name={queueVisible() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} />
             </button>
           </Show>
         </div>
-        <div class="flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <For each={snapshot.images}>
             {(image, index) => (
-              <div class="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
-                <div class="relative p-4">
+              <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
+                <div className="relative p-4">
                   <img src={`data:image/jpeg;base64,${image}`} alt={`Device Snapshot ${index() + 1}`} />
-                  <div class="absolute right-4 top-4 p-4">
-                    <IconButton class="text-white" name="download" onClick={() => downloadSnapshot(image, index())} />
-                    <IconButton class="text-white" name="clear" onClick={() => clearImage(index())} />
+                  <div className="absolute right-4 top-4 p-4">
+                    <IconButton className="text-white" name="download" onClick={() => downloadSnapshot(image, index())} />
+                    <IconButton className="text-white" name="clear" onClick={() => clearImage(index())} />
                   </div>
                 </div>
               </div>
             )}
           </For>
           <Show when={snapshot.fetching}>
-            <div class="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
-              <div class="p-4">
+            <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
+              <div className="p-4">
                 <div>Loading snapshots...</div>
               </div>
             </div>
           </Show>
           <Show when={snapshot.error}>
-            <div class="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
-              <div class="flex items-center p-4">
-                <IconButton class="text-white" name="clear" onClick={clearError} />
+            <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
+              <div className="flex items-center p-4">
+                <IconButton className="text-white" name="clear" onClick={clearError} />
                 <span>Error: {snapshot.error}</span>
               </div>
             </div>
@@ -158,5 +156,3 @@ const DeviceActivity: VoidComponent<DeviceActivityProps> = (props) => {
     </>
   )
 }
-
-export default DeviceActivity

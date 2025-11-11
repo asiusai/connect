@@ -1,4 +1,4 @@
-import { createEffect, createResource, createSignal, onCleanup, type Accessor, type ResourceReturn } from 'solid-js'
+import { Accessor, createResource, createSignal } from "~/fix"
 
 export const createQuery = <TSource, TResult>(options: {
   source: Accessor<TSource | null>

@@ -1,4 +1,3 @@
-import { createEffect, createResource, createSignal, For, Index, onCleanup, onMount, Show, Suspense, type VoidComponent } from 'solid-js'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
@@ -7,18 +6,20 @@ dayjs.extend(timezone)
 
 import { fetcher } from '~/api'
 import { getRouteStatistics } from '~/api/derived'
-import Card, { CardContent, CardHeader } from '~/components/material/Card'
-import Icon from '~/components/material/Icon'
-import RouteStatisticsBar from '~/components/RouteStatisticsBar'
+import { Card, CardContent, CardHeader } from '~/components/material/Card'
+import { Icon } from '~/components/material/Icon'
+import { RouteStatisticsBar } from '~/components/RouteStatisticsBar'
 import { getPlaceName } from '~/map/geocode'
 import type { Route } from '~/api/types'
 import { dateTimeToColorBetween } from '~/utils/format'
+import { Suspense } from 'react'
+import { createResource, createSignal } from '~/fix'
 
 interface RouteCardProps {
   route: Route
 }
 
-const RouteCard: VoidComponent<RouteCardProps> = (props) => {
+export const RouteCard = (props: RouteCardProps) => {
   const startTime = () => dayjs.utc(props.route.start_time).local()
   const endTime = () => dayjs.utc(props.route.end_time).local()
   const color = () => dateTimeToColorBetween(startTime().toDate(), endTime().toDate(), [30, 57, 138], [218, 161, 28])
@@ -35,17 +36,15 @@ const RouteCard: VoidComponent<RouteCardProps> = (props) => {
   })
 
   return (
-    <Card class="max-w-none" href={`/${props.route.dongle_id}/${props.route.fullname.slice(17)}`} activeClass="md:before:bg-primary">
+    <Card className="max-w-none" href={`/${props.route.dongle_id}/${props.route.fullname.slice(17)}`} activeClass="md:before:bg-primary">
       <CardHeader
         headline={`${startTime().format('h:mm A')} to ${endTime().format('h:mm A')}`}
-        subhead={<Suspense fallback={<div class="h-[20px] w-auto skeleton-loader rounded-xs" />}>{location()}</Suspense>}
+        subhead={<Suspense fallback={<div className="h-[20px] w-auto skeleton-loader rounded-xs" />}>{location()}</Suspense>}
         trailing={
           <Suspense>
-            <Show when={statistics()?.userFlags}>
-              <div class="flex items-center justify-center rounded-full p-1 border-amber-300 border-2">
-                <Icon class="text-yellow-300" size="24" name="flag" filled />
-              </div>
-            </Show>
+            {statistics()?.userFlags && <div className="flex items-center justify-center rounded-full p-1 border-amber-300 border-2">
+              <Icon className="text-yellow-300" size="24" name="flag" filled />
+            </div>}
           </Suspense>
         }
       />
@@ -53,7 +52,7 @@ const RouteCard: VoidComponent<RouteCardProps> = (props) => {
       <CardContent>
         <RouteStatisticsBar route={props.route} statistics={statistics} />
       </CardContent>
-      <div class="h-2.5 w-full" style={{ background: color() }} />
+      <div className="h-2.5 w-full" style={{ background: color() }} />
     </Card>
   )
 }
@@ -69,12 +68,12 @@ const Sentinel = (props: { onTrigger: () => void }) => {
   )
   onMount(() => observer.observe(sentinel))
   onCleanup(() => observer.disconnect())
-  return <div ref={sentinel} class="h-10 w-full" />
+  return <div ref={sentinel} className="h-10 w-full" />
 }
 
 const PAGE_SIZE = 10
 
-const RouteList: VoidComponent<{ dongleId: string }> = (props) => {
+export const RouteList = (props: { dongleId: string }) => {
   const endpoint = () => `/v1/devices/${props.dongleId}/routes?limit=${PAGE_SIZE}`
   const getKey = (previousPageData?: Route[]): string | undefined => {
     if (!previousPageData) return endpoint()
@@ -126,43 +125,38 @@ const RouteList: VoidComponent<{ dongleId: string }> = (props) => {
   }
 
   return (
-    <div class="flex w-full flex-col justify-items-stretch gap-4">
-      <For each={pageNumbers()}>
-        {(_, i) => {
-          const [routes] = createResource(() => i(), getPage)
-          return (
-            <Suspense
-              fallback={
+    <div className="flex w-full flex-col justify-items-stretch gap-4">
+      {pageNumbers().map((_, i) => {
+        const [routes] = createResource(() => i(), getPage)
+        return (
+          <Suspense
+            fallback={
+              <>
+                <h2 className="skeleton-loader rounded-md min-h-7"></h2>
+                <Index each={new Array(PAGE_SIZE)}>{() => <div className="skeleton-loader flex h-[140px] flex-col rounded-lg" />}</Index>
+              </>
+            }
+          >
+            {routes.data?.map((route) => {
+              const firstHeader = prevDayHeader === null
+              const dayHeader = getDayHeader(route)
+              return (
                 <>
-                  <h2 class="skeleton-loader rounded-md min-h-7"></h2>
-                  <Index each={new Array(PAGE_SIZE)}>{() => <div class="skeleton-loader flex h-[140px] flex-col rounded-lg" />}</Index>
+                  {dayHeader && <>
+                    {!firstHeader && <div className="w-full" />}
+                    <h2 className="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>
+                  </>}
+                  <RouteCard route={route} />
                 </>
-              }
-            >
-              <For each={routes()}>
-                {(route) => {
-                  const firstHeader = prevDayHeader === null
-                  const dayHeader = getDayHeader(route)
-                  return (
-                    <>
-                      <Show when={dayHeader}>
-                        <Show when={!firstHeader}>
-                          <div class="w-full" />
-                        </Show>
-                        <h2 class="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>
-                      </Show>
-                      <RouteCard route={route} />
-                    </>
-                  )
-                }}
-              </For>
-            </Suspense>
-          )
-        }}
-      </For>
+              )
+            })}
+          </Suspense>
+        )
+
+      })
+      }
       <Sentinel onTrigger={() => setSize((size) => size + 1)} />
     </div>
   )
 }
 
-export default RouteList

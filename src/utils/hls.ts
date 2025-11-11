@@ -10,4 +10,4 @@ export function createHls() {
   })
 }
 
-export default Hls
+export { Hls }

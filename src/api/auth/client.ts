@@ -1,6 +1,6 @@
-import { createSignal, type Accessor } from 'solid-js'
-
+import { Accessor, createSignal } from '~/fix'
 import { API_URL } from '../config'
+
 
 const AUTH_KEY = 'ai.comma.api.authorization'
 

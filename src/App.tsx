@@ -1,56 +1,52 @@
-import { createSignal, lazy, onCleanup, Show, type ParentComponent, type VoidComponent } from 'solid-js'
-import { Router, Route } from '@solidjs/router'
-import { QueryClientProvider } from '@tanstack/solid-query'
-import { SolidQueryDevtools } from '@tanstack/solid-query-devtools'
+import { Suspense, useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { getAppQueryClient } from '~/api/query-client'
+import { OfflinePage } from '~/pages/offline'
 
 import 'leaflet/dist/leaflet.css'
 
-const Login = lazy(() => import('./pages/auth/login'))
-const Logout = lazy(() => import('./pages/auth/logout'))
-const Auth = lazy(() => import('./pages/auth/auth'))
+const AppLayout = ({ children }: { children: React.ReactNode }) => {
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
 
-const Dashboard = lazy(() => import('./pages/dashboard'))
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
 
-import OfflinePage from '~/pages/offline'
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
 
-export const Routes = () => (
-  <>
-    <Route path="/login" component={Login} />
-    <Route path="/logout" component={Logout} />
-    <Route path="/auth" component={Auth} />
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
-    <Route path="/*dongleId" component={Dashboard} />
-  </>
-)
+  if (!isOnline) return <OfflinePage />
 
-export const AppLayout: ParentComponent = (props) => {
-  const [isOnline, setIsOnline] = createSignal(navigator.onLine)
-  const handleOnline = () => setIsOnline(true)
-  const handleOffline = () => setIsOnline(false)
-  window.addEventListener('online', handleOnline)
-  window.addEventListener('offline', handleOffline)
-  onCleanup(() => {
-    window.removeEventListener('online', handleOnline)
-    window.removeEventListener('offline', handleOffline)
-  })
-
-  return (
-    <Show when={isOnline()} fallback={<OfflinePage />}>
-      {props.children}
-    </Show>
-  )
+  return <>{children}</>
 }
 
 const queryClient = getAppQueryClient()
 
-const App: VoidComponent = () => (
+export const App = () => (
   <QueryClientProvider client={queryClient}>
-    <SolidQueryDevtools />
-    <Router root={AppLayout}>
-      <Routes />
-    </Router>
+    <ReactQueryDevtools />
+
+    <BrowserRouter>
+      <AppLayout>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/login" loader={() => import('./pages/auth/login')} />
+            <Route path="/logout" loader={() => import('./pages/auth/login')} />
+            <Route path="/auth" loader={() => import('./pages/auth/auth')}/>
+
+            {/* Matches /<anything> and passes as param */}
+            <Route path="/*dongleId" loader={() => import('./pages/dashboard/Dashboard')}/>
+          </Routes>
+        </Suspense>
+      </AppLayout>
+    </BrowserRouter>
   </QueryClientProvider>
 )
-
-export default App

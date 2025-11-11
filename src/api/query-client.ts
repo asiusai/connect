@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/solid-query'
+import { QueryClient } from '@tanstack/react-query'
 import { queries as uploadQueue } from '~/components/UploadQueue'
 
 const pollingConfig = { retry: false, refetchInterval: 1000 }

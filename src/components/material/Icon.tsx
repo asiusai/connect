@@ -1,4 +1,3 @@
-import type { VoidComponent } from 'solid-js'
 import clsx from 'clsx'
 
 // Specify icon names to load only the necessary icons, reducing font payload.
@@ -14,7 +13,7 @@ export const Icons = [
 export type IconName = (typeof Icons)[number]
 
 export type IconProps = {
-  class?: string
+  className?: string
   name: IconName
   filled?: boolean
   size?: '20' | '24' | '40' | '48'
@@ -27,14 +26,18 @@ export type IconProps = {
  *
  * @see https://fonts.google.com/icons
  */
-const Icon: VoidComponent<IconProps> = (props) => {
+export const Icon = (props: IconProps) => {
   // size-20, 24 etc. defined in root.css
-  const size = () => `size-${props.size || '24'}`
   return (
-    <span class={clsx('material-symbols-outlined flex', props.filled ? 'icon-filled' : 'icon-outline', size(), props.class)}>
+    <span
+      className={clsx(
+        'material-symbols-outlined flex',
+        props.filled ? 'icon-filled' : 'icon-outline',
+        `size-${props.size || '24'}`,
+        props.class,
+      )}
+    >
       {props.name}
     </span>
   )
 }
-
-export default Icon

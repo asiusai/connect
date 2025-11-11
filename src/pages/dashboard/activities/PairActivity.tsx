@@ -1,15 +1,14 @@
-import { onCleanup, onMount, type JSX, type VoidComponent } from 'solid-js'
-import { useLocation, useNavigate } from '@solidjs/router'
-import { createMachine } from '@solid-primitives/state-machine'
 import QrScanner from 'qr-scanner'
 
 import { pairDevice } from '~/api/devices'
-import Button from '~/components/material/Button'
-import Icon from '~/components/material/Icon'
-import IconButton from '~/components/material/IconButton'
-import TopAppBar from '~/components/material/TopAppBar'
+import { Button } from '~/components/material/Button'
+import { Icon } from '~/components/material/Icon'
+import { IconButton } from '~/components/material/IconButton'
+import { TopAppBar } from '~/components/material/TopAppBar'
 
 import './PairActivity.css'
+import { ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const toError = (error: unknown): Error => {
   if (error instanceof Error) return error
@@ -17,23 +16,23 @@ const toError = (error: unknown): Error => {
   return new Error('An unknown error occurred', { cause: error })
 }
 
-const PairActivity: VoidComponent<{ onPaired: () => void }> = (props) => {
+export const PairActivity = (props: { onPaired: () => void }) => {
   const { pair } = useLocation().query
   const pairToken: string | undefined = Array.isArray(pair) ? pair[0] : pair
 
   const state = createMachine<{
     scanning: {
-      value: JSX.Element
+      value: ReactNode
       to: 'pairing' | 'error'
     }
     pairing: {
       input: { pairToken: string }
-      value: JSX.Element
+      value: ReactNode
       to: 'error'
     }
     error: {
       input: { error: Error }
-      value: JSX.Element
+      value: ReactNode
       to: 'scanning'
     }
   }>({
@@ -71,11 +70,11 @@ const PairActivity: VoidComponent<{ onPaired: () => void }> = (props) => {
         })
 
         return (
-          <div id="video-container" class="fixed inset-0 bg-black text-white">
-            <video class="absolute inset-0 size-full object-cover" ref={videoRef} />
-            <div class="prose absolute inset-0 flex flex-col justify-between pb-7">
+          <div id="video-container" className="fixed inset-0 bg-black text-white">
+            <video className="absolute inset-0 size-full object-cover" ref={videoRef} />
+            <div className="prose absolute inset-0 flex flex-col justify-between pb-7">
               <TopAppBar trailing={<IconButton name="close" href="/" />}>Add new device</TopAppBar>
-              <h2 class="px-8 text-center text-md">Use the viewfinder to scan the QR code on your device</h2>
+              <h2 className="px-8 text-center text-md">Use the viewfinder to scan the QR code on your device</h2>
             </div>
           </div>
         )
@@ -96,9 +95,9 @@ const PairActivity: VoidComponent<{ onPaired: () => void }> = (props) => {
           <>
             <TopAppBar>Add new device</TopAppBar>
 
-            <div class="flex flex-col items-center gap-4">
-              <Icon name="autorenew" class="animate-spin" size="40" />
-              <span class="text-md">Pairing your device...</span>
+            <div className="flex flex-col items-center gap-4">
+              <Icon name="autorenew" className="animate-spin" size="40" />
+              <span className="text-md">Pairing your device...</span>
             </div>
           </>
         )
@@ -108,7 +107,7 @@ const PairActivity: VoidComponent<{ onPaired: () => void }> = (props) => {
           <>
             <TopAppBar trailing={<IconButton name="close" href="/" />}>Add new device</TopAppBar>
 
-            <div class="flex flex-col items-center gap-4 px-4 max-w-sm mx-auto">
+            <div className="flex flex-col items-center gap-4 px-4 max-w-sm mx-auto">
               An error occurred: {input.error.message}
               <Button color="primary" onClick={() => to.scanning()}>
                 Retry
@@ -122,5 +121,3 @@ const PairActivity: VoidComponent<{ onPaired: () => void }> = (props) => {
 
   return <div>{state.value}</div>
 }
-
-export default PairActivity

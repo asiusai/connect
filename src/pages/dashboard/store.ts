@@ -1,8 +1,7 @@
-import { createMemo, createResource, createSignal } from 'solid-js'
-
 import { accessToken } from '~/api/auth/client'
 import { getDevice, getDevices } from '~/api/devices'
 import { getProfile } from '~/api/profile'
+import { createResource, createSignal } from '~/fix'
 import { getDeviceName } from '~/utils/device'
 import { resolved } from '~/utils/reactivity'
 

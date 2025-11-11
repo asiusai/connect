@@ -1,13 +1,17 @@
-import { splitProps, type Component, type JSX } from 'solid-js'
-import { Dynamic } from 'solid-js/web'
-import { A, type AnchorProps } from '@solidjs/router'
 import clsx from 'clsx'
+import { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
-export type ButtonBaseProps = { class?: string } & (AnchorProps | JSX.ButtonHTMLAttributes<HTMLButtonElement>)
-
-const ButtonBase: Component<ButtonBaseProps> = (props) => {
-  const [, rest] = splitProps(props, ['class'])
-  return <Dynamic component={'href' in props ? A : 'button'} class={clsx('relative isolate overflow-hidden', props.class)} {...rest} />
+export type ButtonBaseProps = {
+  className?: string
+  disabled?: boolean
+  href?: string
+  children?: ReactNode
+  onClick?: () => void
+  activeClass?: string
 }
 
-export default ButtonBase
+export const ButtonBase = (props: ButtonBaseProps) => {
+  const className = clsx('relative isolate overflow-hidden', props.className)
+  return props.href ? <Link {...props} to={props.href} className={className} /> : <button {...props} className={className} />
+}

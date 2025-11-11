@@ -1,10 +1,8 @@
-import { createResource, createSignal, onMount, onCleanup, Show, type VoidComponent } from 'solid-js'
-import { render } from 'solid-js/web'
 import clsx from 'clsx'
 import L from 'leaflet'
 
-import Icon from './material/Icon'
-import Button from './material/Button'
+import { Icon } from './material/Icon'
+import { Button } from './material/Button'
 
 import { getDeviceLocation } from '~/api/devices'
 import Card from '~/components/material/Card'
@@ -27,7 +25,7 @@ type DeviceLocationProps = {
   deviceName: string
 }
 
-const DeviceLocation: VoidComponent<DeviceLocationProps> = (props) => {
+export const DeviceLocation = (props: DeviceLocationProps) => {
   let mapRef!: HTMLDivElement
 
   const [map, setMap] = createSignal<L.Map | null>(null)
@@ -164,36 +162,36 @@ const DeviceLocation: VoidComponent<DeviceLocationProps> = (props) => {
   }
 
   return (
-    <div class="relative">
-      <div ref={mapRef} class="h-[240px] w-full !bg-surface-container-low" />
+    <div className="relative">
+      <div ref={mapRef} className="h-[240px] w-full !bg-surface-container-low" />
 
-      <Show when={!userPosition() && !showSelectedLocation()}>
-        <div class="absolute bottom-2 right-2 z-[9999]">
+      {!userPosition() && !showSelectedLocation() && (
+        <div className="absolute bottom-2 right-2 z-[9999]">
           <Button
             title="Show your current location"
             color="secondary"
-            class="bg-surface-container-low text-on-surface-variant"
+            className="bg-surface-container-low text-on-surface-variant"
             onClick={() => void requestUserLocation()}
             leading={<Icon name="my_location" size="20" />}
           >
             Show my location
           </Button>
         </div>
-      </Show>
+      )}
 
-      <Show when={locationData.loading}>
-        <div class="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-surface-variant px-4 py-2 shadow">
-          <div class="mr-2 size-4 animate-spin rounded-full border-2 border-on-surface-variant border-t-transparent" />
-          <span class="text-sm">Locating...</span>
+      {locationData.loading && (
+        <div className="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-surface-variant px-4 py-2 shadow">
+          <div className="mr-2 size-4 animate-spin rounded-full border-2 border-on-surface-variant border-t-transparent" />
+          <span className="text-sm">Locating...</span>
         </div>
-      </Show>
+      )}
 
-      <Show when={(locationData.error as Error)?.message}>
-        <div class="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-surface-variant px-4 py-2 shadow">
-          <Icon class="mr-2" name="error" size="20" />
-          <span class="text-sm">{(locationData.error as Error).message}</span>
+      {(locationData.error as Error)?.message && (
+        <div className="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-surface-variant px-4 py-2 shadow">
+          <Icon className="mr-2" name="error" size="20" />
+          <span className="text-sm">{(locationData.error as Error).message}</span>
         </div>
-      </Show>
+      )}
 
       <Card
         class={clsx(
@@ -201,12 +199,12 @@ const DeviceLocation: VoidComponent<DeviceLocationProps> = (props) => {
           showSelectedLocation() ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       >
-        <div class="mb-2 flex flex-row items-center justify-between gap-4">
-          <span class="truncate text-md">{selectedLocation()?.label}</span>
+        <div className="mb-2 flex flex-row items-center justify-between gap-4">
+          <span className="truncate text-md">{selectedLocation()?.label}</span>
           <IconButton name="close" onClick={() => setShowSelectedLocation(false)} />
         </div>
-        <div class="flex flex-col items-end gap-3 xs:flex-row">
-          <span class="text-sm text-on-surface-variant">{selectedLocation()?.address}</span>
+        <div className="flex flex-col items-end gap-3 xs:flex-row">
+          <span className="text-sm text-on-surface-variant">{selectedLocation()?.address}</span>
           <Button
             color="secondary"
             onClick={() => window.open(`https://www.google.com/maps?q=${selectedLocation()!.lat},${selectedLocation()!.lng}`, '_blank')}
@@ -219,5 +217,3 @@ const DeviceLocation: VoidComponent<DeviceLocationProps> = (props) => {
     </div>
   )
 }
-
-export default DeviceLocation

@@ -1,9 +1,7 @@
 import { API_URL } from '../config'
 import { getService } from './config'
 
-function stringify(obj: Record<string, string>): string {
-  return new URLSearchParams(obj).toString()
-}
+const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
 const GOOGLE_OAUTH_PARAMS = {
   type: 'web_server',

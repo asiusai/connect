@@ -1,50 +1,49 @@
-import type { JSXElement, ParentComponent, VoidComponent } from 'solid-js'
 import clsx from 'clsx'
 
-import ButtonBase from '~/components/material/ButtonBase'
+import { ButtonBase } from '~/components/material/ButtonBase'
+import { ReactNode } from 'react'
 
 type ListItemContentProps = {
-  headline: JSXElement
-  subhead?: JSXElement
+  headline: ReactNode
+  subhead?: ReactNode
 }
 
-export const ListItemContent: VoidComponent<ListItemContentProps> = (props) => {
+export const ListItemContent = (props: ListItemContentProps) => {
   return (
-    <div class="min-w-0">
-      <div class="truncate text-body-lg text-on-surface">{props.headline}</div>
-      {props.subhead && <div class="text-body-md text-on-surface-variant">{props.subhead}</div>}
+    <div className="min-w-0">
+      <div className="truncate text-body-lg text-on-surface">{props.headline}</div>
+      {props.subhead && <div className="text-body-md text-on-surface-variant">{props.subhead}</div>}
     </div>
   )
 }
 
 type ListItemProps = {
-  class?: string
+  className?: string
   variant?: '1-line' | '2-line' | '3-line' | 'nav'
   selected?: boolean
-  leading?: JSXElement
-  trailing?: JSXElement
+  leading?: ReactNode
+  trailing?: ReactNode
   onClick?: () => void
   href?: string
   activeClass?: string
+  children?: ReactNode
 }
 
 // TODO: guess variant from content
-export const ListItem: ParentComponent<ListItemProps> = (props) => {
-  const variant = () => props.variant || '1-line'
-  const variantStyle = () =>
-    ({
-      '1-line': 'h-14',
-      '2-line': 'h-20',
-      '3-line': 'h-28',
-      nav: 'h-14 gap-3 before:rounded-full before:duration-0',
-    })[variant()]
+export const ListItem = (props: ListItemProps) => {
+  const variantStyle = {
+    '1-line': 'h-14',
+    '2-line': 'h-20',
+    '3-line': 'h-28',
+    nav: 'h-14 gap-3 before:rounded-full before:duration-0',
+  }[props.variant || '1-line']
   return (
     <ButtonBase
-      class={clsx(
+      className={clsx(
         'elevation-0 state-layer flex shrink-0 items-center gap-4 py-2 pl-4 pr-6 transition-colors before:bg-on-surface',
-        variantStyle(),
+        variantStyle,
         props.selected && 'before:opacity-[.12]',
-        props.class,
+        props.className,
       )}
       onClick={props.onClick}
       href={props.href}
@@ -52,18 +51,17 @@ export const ListItem: ParentComponent<ListItemProps> = (props) => {
     >
       {props.leading}
       {props.children}
-      {props.trailing && <span class="ml-auto">{props.trailing}</span>}
+      {props.trailing && <span className="ml-auto">{props.trailing}</span>}
     </ButtonBase>
   )
 }
 
 type ListProps = {
-  class?: string
+  className?: string
   variant?: 'nav'
+  children?: ReactNode
 }
 
-const List: ParentComponent<ListProps> = (props) => {
-  return <div class={clsx('flex flex-col', props.variant === 'nav' ? 'gap-0' : 'gap-2', props.class)}>{props.children}</div>
+export const List = (props: ListProps) => {
+  return <div className={clsx('flex flex-col', props.variant === 'nav' ? 'gap-0' : 'gap-2', props.className)}>{props.children}</div>
 }
-
-export default List

@@ -38,9 +38,6 @@
         "noUnknownAtRules": "off"
       }
     },
-    "domains": {
-      "solid": "recommended"
-    }
   },
   "javascript": {
     "formatter": {

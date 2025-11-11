@@ -1,9 +1,8 @@
-import type { Resource, VoidComponent } from 'solid-js'
-
 import type { RouteStatistics } from '~/api/derived'
 import type { Route } from '~/api/types'
 import { formatDistance, formatDuration, formatRouteDuration } from '~/utils/format'
-import StatisticBar from './StatisticBar'
+import { StatisticBar } from './StatisticBar'
+import { Resource } from '~/fix'
 
 const formatEngagement = (statistics: RouteStatistics | undefined): string | undefined => {
   if (!statistics || statistics.routeDurationMs === 0) return undefined
@@ -11,10 +10,10 @@ const formatEngagement = (statistics: RouteStatistics | undefined): string | und
   return `${(100 * (engagedDurationMs / routeDurationMs)).toFixed(0)}%`
 }
 
-const RouteStatisticsBar: VoidComponent<{ class?: string; route: Route | undefined; statistics: Resource<RouteStatistics> }> = (props) => {
+export const RouteStatisticsBar = (props: { className?: string; route: Route | undefined; statistics: Resource<RouteStatistics> }) => {
   return (
     <StatisticBar
-      class={props.class}
+      className={props.className}
       statistics={[
         { label: 'Distance', value: () => formatDistance(props.route?.distance) },
         {
@@ -29,5 +28,3 @@ const RouteStatisticsBar: VoidComponent<{ class?: string; route: Route | undefin
     />
   )
 }
-
-export default RouteStatisticsBar

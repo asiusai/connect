@@ -1,24 +1,21 @@
-import { createResource } from 'solid-js'
-import type { VoidComponent } from 'solid-js'
-
 import { getDeviceStats } from '~/api/devices'
 import { formatDistance, formatDuration } from '~/utils/format'
-import StatisticBar from './StatisticBar'
+import { StatisticBar } from './StatisticBar'
+import { createResource } from '~/fix';
 
-const DeviceStatistics: VoidComponent<{ class?: string; dongleId: string }> = (props) => {
-  const [statistics] = createResource(() => props.dongleId, getDeviceStats)
-  const allTime = () => statistics()?.all
+export const DeviceStatistics = (props: { className?: string; dongleId: string }) => {
+  const [statistics] = createResource(props.dongleId, getDeviceStats)
+  const allTime = statistics.data?.all
 
   return (
     <StatisticBar
-      class={props.class}
+      className={props.className}
       statistics={[
-        { label: 'Distance', value: () => formatDistance(allTime()?.distance) },
-        { label: 'Duration', value: () => formatDuration(allTime()?.minutes) },
-        { label: 'Routes', value: () => allTime()?.routes },
+        { label: 'Distance', value: () => formatDistance(allTime?.distance) },
+        { label: 'Duration', value: () => formatDuration(allTime?.minutes) },
+        { label: 'Routes', value: () => allTime?.routes },
       ]}
     />
   )
 }
 
-export default DeviceStatistics

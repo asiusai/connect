@@ -1,53 +1,46 @@
-import type { JSXElement, ParentComponent } from 'solid-js'
-import { Show, splitProps } from 'solid-js'
 import clsx from 'clsx'
 
-import ButtonBase, { type ButtonBaseProps } from './ButtonBase'
-import Icon from './Icon'
+import { ButtonBase, type ButtonBaseProps } from './ButtonBase'
+import {Icon} from './Icon'
+import { ReactNode } from 'react'
 
 type ButtonProps = ButtonBaseProps & {
   color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'text'
   disabled?: boolean
   loading?: boolean
-  leading?: JSXElement
-  trailing?: JSXElement
+  leading?: ReactNode
+  trailing?: ReactNode
 }
 
-const Button: ParentComponent<ButtonProps> = (props) => {
-  const color = () => props.color || 'primary'
-  const colorClasses = () =>
-    ({
+export const Button = ({color,leading,trailing,className,children,disabled,loading,...props}:ButtonProps) => {
+  const colorClasses = {
       text: 'text-primary before:bg-on-primary',
       primary: 'bg-primary before:bg-on-primary text-on-primary hover:elevation-1',
       secondary: 'bg-secondary before:bg-on-secondary text-on-secondary hover:elevation-1',
       tertiary: 'bg-tertiary before:bg-on-tertiary text-on-tertiary hover:elevation-1',
       error: 'bg-error before:bg-on-error text-on-error hover:elevation-1',
-    })[color()]
-  const [, rest] = splitProps(props, ['color', 'leading', 'trailing', 'class', 'children', 'disabled', 'loading'])
-  const disabled = () => props.disabled || props.loading
+    }[color || 'primary']
+    if (!disabled && loading) disabled = true
 
-  return (
+    return (
     <ButtonBase
-      class={clsx(
+      className={clsx(
         'state-layer inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full py-1 contrast-100 transition',
-        colorClasses(),
-        disabled() && 'cursor-not-allowed opacity-50',
-        !disabled() && 'hover:opacity-80',
-        props.leading ? 'pl-4' : 'pl-6',
-        props.trailing ? 'pr-4' : 'pr-6',
-        props.class,
+        colorClasses,
+        disabled && 'cursor-not-allowed opacity-50',
+        !disabled && 'hover:opacity-80',
+        leading ? 'pl-4' : 'pl-6',
+        trailing ? 'pr-4' : 'pr-6',
+        className,
       )}
-      {...rest}
-      disabled={disabled()}
+      {...props}
+      disabled={disabled || loading}
     >
-      {props.leading}
-      <span class={clsx('text-label-lg', props.loading && 'invisible')}>{props.children}</span>
-      <Show when={props.loading}>
-        <Icon name="autorenew" class="absolute left-1/2 top-1/2 ml-[-10px] mt-[-10px] animate-spin" size="20" />
-      </Show>
-      {props.trailing}
+      {leading}
+      <span className={clsx('text-label-lg', loading && 'invisible')}>{children}</span>
+        {loading && <Icon name="autorenew" className="absolute left-1/2 top-1/2 ml-[-10px] mt-[-10px] animate-spin" size="20" />}
+      {trailing}
     </ButtonBase>
   )
 }
 
-export default Button

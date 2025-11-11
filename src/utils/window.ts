@@ -1,5 +1,4 @@
-import { createSignal, onCleanup, onMount } from 'solid-js'
-import type { Accessor } from 'solid-js'
+import { Accessor, createSignal } from '~/fix';
 
 type Dimensions = { width: number; height: number }
 

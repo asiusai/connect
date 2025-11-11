@@ -1,11 +1,10 @@
-import { createEffect, createSignal, on, type VoidComponent } from 'solid-js'
-import { createStore } from 'solid-js/store'
 import clsx from 'clsx'
 
-import Icon, { type IconName } from '~/components/material/Icon'
-import Button from './material/Button'
+import { Icon, type IconName } from '~/components/material/Icon'
+import { Button } from './material/Button'
 import { uploadAllSegments, type FileType } from '~/api/file'
 import type { Route } from '~/api/types'
+import { createSignal } from '~/fix'
 
 const BUTTON_TYPES = ['road', 'driver', 'logs', 'route'] as const
 type ButtonType = (typeof BUTTON_TYPES)[number]
@@ -24,7 +23,7 @@ interface UploadButtonProps {
   text: string
 }
 
-const UploadButton: VoidComponent<UploadButtonProps> = (props) => {
+export const UploadButton = (props: UploadButtonProps) => {
   const icon = () => props.icon
   const state = () => props.state
   const disabled = () => state() === 'loading' || state() === 'success'
@@ -44,12 +43,12 @@ const UploadButton: VoidComponent<UploadButtonProps> = (props) => {
   return (
     <Button
       onClick={() => handleUpload()}
-      class="px-2 md:px-3"
+      className="px-2 md:px-3"
       disabled={disabled()}
-      leading={<Icon class={clsx(state() === 'loading' && 'animate-spin')} name={stateToIcon[state()]} size="20" />}
+      leading={<Icon className={clsx(state() === 'loading' && 'animate-spin')} name={stateToIcon[state()]} size="20" />}
       color="primary"
     >
-      <span class="flex items-center gap-1 font-mono">{props.text}</span>
+      <span className="flex items-center gap-1 font-mono">{props.text}</span>
     </Button>
   )
 }
@@ -58,7 +57,7 @@ interface RouteUploadButtonsProps {
   route: Route | undefined
 }
 
-const RouteUploadButtons: VoidComponent<RouteUploadButtonsProps> = (props) => {
+export const RouteUploadButtons = (props: RouteUploadButtonsProps) => {
   const [uploadStore, setUploadStore] = createStore<Record<ButtonType, ButtonState>>({
     road: 'idle',
     driver: 'idle',
@@ -108,8 +107,8 @@ const RouteUploadButtons: VoidComponent<RouteUploadButtonsProps> = (props) => {
   }
 
   return (
-    <div class="flex flex-col rounded-b-md m-5">
-      <div class="grid grid-cols-2 gap-3 w-full lg:grid-cols-4">
+    <div className="flex flex-col rounded-b-md m-5">
+      <div className="grid grid-cols-2 gap-3 w-full lg:grid-cols-4">
         <UploadButton text="Road" icon="videocam" state={uploadStore.road} onClick={() => handleUpload('road')} />
         <UploadButton text="Driver" icon="person" state={uploadStore.driver} onClick={() => handleUpload('driver')} />
         <UploadButton text="Logs" icon="description" state={uploadStore.logs} onClick={() => handleUpload('logs')} />
@@ -118,5 +117,3 @@ const RouteUploadButtons: VoidComponent<RouteUploadButtonsProps> = (props) => {
     </div>
   )
 }
-
-export default RouteUploadButtons
