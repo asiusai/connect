@@ -279,7 +279,7 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
           Unable to check payment status: {stripeSession.error}
         </div> :
           stripeSession()?.payment_status ?
-            { paymentStatus === 'unpaid' ?
+            <>{paymentStatus === 'unpaid' ?
               <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
                 <Icon name="payments" size="20" />
                 Waiting for confirmed payment...
@@ -298,8 +298,8 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
                       <p className="font-semibold">comma prime activated</p>
                       {subscription()?.is_prime_sim && " Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help."}
                     </div>
-                  </div> : <></>}
-        : <></>}
+                  </div> : <></>}</>
+            : <></>}
 
         {cancelData.state === 'errored' ? <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
           <Icon className="text-error" name="error" size="20" />

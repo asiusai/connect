@@ -11,7 +11,7 @@ import { DeviceStatistics } from '~/components/DeviceStatistics'
 import { UploadQueue } from '~/components/UploadQueue'
 import { getDeviceName } from '~/utils/device'
 
-import RouteList from '../components/RouteList'
+import {RouteList} from '../components/RouteList'
 
 type DeviceActivityProps = {
   dongleId: string

@@ -5,9 +5,9 @@ import { Icon } from './material/Icon'
 import { Button } from './material/Button'
 
 import { getDeviceLocation } from '~/api/devices'
-import Card from '~/components/material/Card'
+import { Card } from '~/components/material/Card'
 import type { IconName } from '~/components/material/Icon'
-import IconButton from '~/components/material/IconButton'
+import { IconButton } from '~/components/material/IconButton'
 import { getTileUrl } from '~/map'
 import { getFullAddress } from '~/map/geocode'
 

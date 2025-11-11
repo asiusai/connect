@@ -1,10 +1,10 @@
 import clsx from 'clsx'
 
 import { getQCameraStreamUrl } from '~/api/route'
-import IconButton from '~/components/material/IconButton'
+import { IconButton } from '~/components/material/IconButton'
 import { createResource, useCreateSignal } from '~/fix'
 import { formatVideoTime } from '~/utils/format'
-import type Hls from '~/utils/hls'
+import { type Hls } from '~/utils/hls'
 
 type RouteVideoPlayerProps = {
   className?: string
