@@ -1,4 +1,4 @@
-import { Accessor, createResource, createSignal } from '~/fix'
+import { Accessor, createResource, useCreateSignal } from '~/fix'
 
 export const createQuery = <TSource, TResult>(options: {
   source: Accessor<TSource | null>
@@ -7,7 +7,7 @@ export const createQuery = <TSource, TResult>(options: {
   stopCondition?: (result?: TResult) => boolean
   retryInterval?: number
 }): ResourceReturn<TResult, TSource> => {
-  const [counter, setCounter] = createSignal(0)
+  const [counter, setCounter] = useCreateSignal(0)
   const invalidate = () => setCounter(counter() + 1)
 
   const [data, actions] = createResource(

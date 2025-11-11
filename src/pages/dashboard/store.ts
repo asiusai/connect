@@ -1,7 +1,7 @@
 import { accessToken } from '~/api/auth/client'
 import { getDevice, getDevices } from '~/api/devices'
 import { getProfile } from '~/api/profile'
-import { createResource, createSignal } from '~/fix'
+import { createResource, useCreateSignal } from '~/fix'
 import { getDeviceName } from '~/utils/device'
 import { resolved } from '~/utils/reactivity'
 
@@ -9,7 +9,7 @@ export const [profile] = createResource(accessToken, getProfile)
 
 export const [devices, { refetch: refetchDevices }] = createResource(accessToken, getDevices)
 
-export const [currentDongleId, setCurrentDongleId] = createSignal<string>()
+export const [currentDongleId, setCurrentDongleId] = useCreateSignal<string>()
 
 const [currentDevice, { refetch: _refetchCurrentDevice }] = createResource(
   () => {

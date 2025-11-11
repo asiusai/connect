@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { getAppQueryClient } from '~/api/query-client'
@@ -30,23 +30,34 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
 const queryClient = getAppQueryClient()
 
+const router = createBrowserRouter([
+  {
+    path: "/test",
+    lazy: () => import("./pages/auth/test")
+  }, {
+    path: "/login",
+    lazy: () => import("./pages/auth/login")
+  }, {
+    path: "/logout",
+    lazy: () => import("./pages/auth/logout")
+  }, {
+    path: "/auth",
+    lazy: () => import("./pages/auth/auth")
+  }, {
+    path: "/*dongleId",
+    lazy: () => import("./pages/dashboard/dashboard")
+  },
+]);
+
+
 export const App = () => (
   <QueryClientProvider client={queryClient}>
     <ReactQueryDevtools />
 
-    <BrowserRouter>
-      <AppLayout>
-        <Suspense fallback={null}>
-          <Routes>
-            <Route path="/login" loader={() => import('./pages/auth/login')} />
-            <Route path="/logout" loader={() => import('./pages/auth/login')} />
-            <Route path="/auth" loader={() => import('./pages/auth/auth')} />
-
-            {/* Matches /<anything> and passes as param */}
-            <Route path="/*dongleId" loader={() => import('./pages/dashboard/Dashboard')} />
-          </Routes>
-        </Suspense>
-      </AppLayout>
-    </BrowserRouter>
+    <AppLayout>
+      <Suspense fallback={null}>
+        <RouterProvider router={router} />
+      </Suspense>
+    </AppLayout>
   </QueryClientProvider>
 )

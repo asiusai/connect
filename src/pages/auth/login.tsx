@@ -5,7 +5,7 @@ import * as Demo from '~/api/auth/demo'
 import { Button } from '~/components/material/Button'
 import { Icon } from '~/components/material/Icon'
 
-export default () => {
+export const Component () => {
   const loginAsDemoUser = () => {
     setAccessToken(Demo.ACCESS_TOKEN)
     window.location.href = window.location.origin

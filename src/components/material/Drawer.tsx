@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useContext } from 'react'
 
 import { IconButton } from '~/components/material/IconButton'
-import { Accessor, createSignal, Setter } from '~/fix'
+import { Accessor, useCreateSignal, Setter } from '~/fix'
 import { useDimensions } from '~/utils/window'
 
 type DrawerContext = {
@@ -36,7 +36,7 @@ export const Drawer = (props: DrawerProps) => {
   const modal = () => dimensions().width < 1280
   const contentWidth = () => `calc(100% - ${modal() ? 0 : drawerWidth()}px)`
 
-  const [open, setOpen] = createSignal(false)
+  const [open, setOpen] = useCreateSignal(false)
   const drawerVisible = () => !modal() || open()
 
   return (

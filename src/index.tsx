@@ -1,9 +1,9 @@
 /* @refresh reload */
 import './index.css'
 
-import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import './pwa.ts'
+import { createRoot } from 'react-dom/client'
 
 // TODO: sentry
 // const environment = import.meta.env.VITE_SENTRY_ENVIRONMENT as string | undefined
@@ -13,9 +13,8 @@ import './pwa.ts'
 //   environment,
 // })
 
-const root = document.getElementById('root')
 
-if (!root) throw new Error('No #root element found in the DOM.')
+const rootElement = document.getElementById('root')
+if (!rootElement) throw new Error('No #root element found in the DOM.')
 
-// TODO: check createRoot
-createRoot(() => <App />)
+createRoot(rootElement).render(<App />)

@@ -13,7 +13,7 @@ import { getPlaceName } from '~/map/geocode'
 import type { Route } from '~/api/types'
 import { dateTimeToColorBetween } from '~/utils/format'
 import { Suspense } from 'react'
-import { createResource, createSignal } from '~/fix'
+import { createResource, useCreateSignal } from '~/fix'
 
 interface RouteCardProps {
   route: Route
@@ -94,7 +94,7 @@ export const RouteList = (props: { dongleId: string }) => {
   }
 
   const pages: Promise<Route[]>[] = []
-  const [size, setSize] = createSignal(1)
+  const [size, setSize] = useCreateSignal(1)
   const pageNumbers = () => Array.from({ length: size() })
 
   createEffect(() => {

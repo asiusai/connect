@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { createSignal } from '~/fix'
+import { useCreateSignal } from '~/fix'
 
 type TextFieldProps = {
   className?: string
@@ -38,9 +38,9 @@ const stateColors = {
 }
 
 export const TextField = ({ className, label, helperText, error, value, ...props }: TextFieldProps) => {
-  const [focused, setFocused] = createSignal(false)
-  const [hovered, setHovered] = createSignal(false)
-  const [inputValue, setInputValue] = createSignal(value || '')
+  const [focused, setFocused] = useCreateSignal(false)
+  const [hovered, setHovered] = useCreateSignal(false)
+  const [inputValue, setInputValue] = useCreateSignal(value || '')
 
   // Keep local value in sync with prop value
   createEffect(() => {

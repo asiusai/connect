@@ -110,7 +110,7 @@ const FirstPairActivity = () => {
   )
 }
 
-export default () => {
+export const Component = () => {
   const location = useLocation()
   const urlState = createMemo(() => {
     const parts = location.pathname.split('/').slice(1).filter(Boolean)

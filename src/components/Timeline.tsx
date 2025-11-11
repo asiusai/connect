@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import type { TimelineEvent } from '~/api/derived'
 import type { Route } from '~/api/types'
 import { getRouteDuration } from '~/utils/format'
-import { createSignal } from '~/fix'
+import { useCreateSignal } from '~/fix'
 import { Suspense } from 'react'
 
 function renderTimelineEvents(route: Route | undefined, events: TimelineEvent[]) {
@@ -89,7 +89,7 @@ type TimelineProps = {
 
 export const Timeline = (props: TimelineProps) => {
   // TODO: align to first camera frame event
-  const [markerOffsetPct, setMarkerOffsetPct] = createSignal(0)
+  const [markerOffsetPct, setMarkerOffsetPct] = useCreateSignal(0)
   const duration = () => getRouteDuration(props.route)?.asSeconds() ?? 0
 
   let ref!: HTMLDivElement

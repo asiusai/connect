@@ -1,10 +1,10 @@
-import { Accessor, createSignal } from '~/fix'
+import { Accessor, useCreateSignal } from '~/fix'
 import { API_URL } from '../config'
 
 const AUTH_KEY = 'ai.comma.api.authorization'
 
 let initialized = false
-const [_accessToken, _setAccessToken] = createSignal<string | null>(null)
+// const [_accessToken, _setAccessToken] = useCreateSignal<string | null>(null)
 
 export async function refreshAccessToken(code: string, provider: string): Promise<void> {
   try {

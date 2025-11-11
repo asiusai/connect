@@ -4,7 +4,7 @@ import { USERADMIN_URL } from '~/api/config'
 import { setRoutePublic, setRoutePreserved, getPreservedRoutes, parseRouteName } from '~/api/route'
 import { Icon } from '~/components/material/Icon'
 import type { Route } from '~/api/types'
-import { createResource, createSignal } from '~/fix'
+import { createResource, useCreateSignal } from '~/fix'
 
 const ToggleButton = (props: { label: string; active: boolean | undefined; onToggle: () => void }) => (
   <button
@@ -36,8 +36,8 @@ interface RouteActionsProps {
 export const RouteActions = (props: RouteActionsProps) => {
   const [preservedRoutesResource] = createResource(parseRouteName(props.routeName).dongleId, getPreservedRoutes)
 
-  const [isPublic, setIsPublic] = createSignal<boolean | undefined>(undefined)
-  const [isPreserved, setIsPreserved] = createSignal<boolean | undefined>(undefined)
+  const [isPublic, setIsPublic] = useCreateSignal<boolean | undefined>(undefined)
+  const [isPreserved, setIsPreserved] = useCreateSignal<boolean | undefined>(undefined)
 
   const useradminUrl = () => `${USERADMIN_URL}/?onebox=${currentRouteId()}`
 
@@ -53,8 +53,8 @@ export const RouteActions = (props: RouteActionsProps) => {
     }
   })
 
-  const [error, setError] = createSignal<string | null>(null)
-  const [copied, setCopied] = createSignal(false)
+  const [error, setError] = useCreateSignal<string | null>(null)
+  const [copied, setCopied] = useCreateSignal(false)
 
   const toggleRoute = async (property: 'public' | 'preserved') => {
     setError(null)

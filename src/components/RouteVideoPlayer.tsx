@@ -2,7 +2,7 @@ import clsx from 'clsx'
 
 import { getQCameraStreamUrl } from '~/api/route'
 import IconButton from '~/components/material/IconButton'
-import { createResource, createSignal } from '~/fix'
+import { createResource, useCreateSignal } from '~/fix'
 import { formatVideoTime } from '~/utils/format'
 import type Hls from '~/utils/hls'
 
@@ -19,15 +19,15 @@ const ERROR_UNSUPPORTED_BROWSER = 'This browser does not support Media Source Ex
 
 export const RouteVideoPlayer = (props: RouteVideoPlayerProps) => {
   const [streamUrl] = createResource(props.routeName, getQCameraStreamUrl)
-  const [hls, setHls] = createSignal<Hls | null>()
+  const [hls, setHls] = useCreateSignal<Hls | null>()
   let video!: HTMLVideoElement
   let controls!: HTMLDivElement
 
-  const [isPlaying, setIsPlaying] = createSignal(true)
-  const [currentTime, setCurrentTime] = createSignal(0)
-  const [duration, setDuration] = createSignal(0)
-  const [videoLoading, setVideoLoading] = createSignal(true)
-  const [errorMessage, setErrorMessage] = createSignal<string>('')
+  const [isPlaying, setIsPlaying] = useCreateSignal(true)
+  const [currentTime, setCurrentTime] = useCreateSignal(0)
+  const [duration, setDuration] = useCreateSignal(0)
+  const [videoLoading, setVideoLoading] = useCreateSignal(true)
+  const [errorMessage, setErrorMessage] = useCreateSignal<string>('')
 
   const onLoadedData = () => {
     setVideoLoading(false)

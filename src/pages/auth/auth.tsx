@@ -2,17 +2,17 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { refreshAccessToken } from '~/api/auth/client'
 import { Button } from '~/components/material/Button'
 import { Icon } from '~/components/material/Icon'
-import { createSignal } from '~/fix'
+import { useCreateSignal } from '~/fix'
 
 type AuthParams = {
   code: string
   provider: string
 }
 
-export default () => {
+export const Component = () => {
   const navigate = useNavigate()
   const [params] = useSearchParams<AuthParams>()
-  const [error, setError] = createSignal<string | null>(null)
+  const [error, setError] = useCreateSignal<string | null>(null)
 
   const { code, provider } = params
   if (code && provider) {

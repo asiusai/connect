@@ -1,4 +1,4 @@
-import { Accessor, createSignal } from '~/fix'
+import { Accessor, useCreateSignal } from '~/fix'
 
 type Dimensions = { width: number; height: number }
 
@@ -9,7 +9,7 @@ export const getDimensions = (): Dimensions => {
 }
 
 export const useDimensions = (): Accessor<Dimensions> => {
-  const [dimensions, setDimensions] = createSignal(getDimensions())
+  const [dimensions, setDimensions] = useCreateSignal(getDimensions())
 
   const onResize = () => setDimensions(getDimensions())
   if (typeof window !== 'undefined') {

@@ -20,11 +20,11 @@ import { TopAppBar } from '~/components/material/TopAppBar'
 import { createQuery } from '~/utils/createQuery'
 import { getDeviceName } from '~/utils/device'
 import { ReactNode, Suspense } from 'react'
-import { Accessor, createResource, createSignal, Resource, Setter } from '~/fix'
+import { Accessor, createResource, useCreateSignal, Resource, Setter } from '~/fix'
 import { useLocation } from 'react-router-dom'
 
 const useAction = <T,>(action: () => Promise<T>): [() => void, Resource<T>] => {
-  const [source, setSource] = createSignal(false)
+  const [source, setSource] = useCreateSignal(false)
   const [data] = createResource(source, action)
   const trigger = () => setSource(true)
   return [trigger, data]
@@ -90,7 +90,7 @@ const PlanSelector = (props: {
 }
 
 const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
-  const [selectedPlan, setSelectedPlan] = createSignal<PrimePlan>()
+  const [selectedPlan, setSelectedPlan] = useCreateSignal<PrimePlan>()
 
   const [device] = createResource(dongleId, getDevice)
   const [subscribeInfo] = createResource(dongleId, getSubscribeInfo)
@@ -249,7 +249,7 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
     retryInterval: 10_000,
   })
 
-  const [cancelDialog, setCancelDialog] = createSignal(false)
+  const [cancelDialog, setCancelDialog] = useCreateSignal(false)
   const [cancel, cancelData] = useAction(() => cancelSubscription(dongleId))
   const [update, updateData] = useAction(async () => {
     const { url } = await getStripePortal(dongleId)

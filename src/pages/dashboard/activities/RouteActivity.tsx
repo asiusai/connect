@@ -14,7 +14,7 @@ import { RouteVideoPlayer } from '~/components/RouteVideoPlayer'
 import { RouteUploadButtons } from '~/components/RouteUploadButtons'
 import { Timeline } from '~/components/Timeline'
 import { generateRouteStatistics, getTimelineEvents } from '~/api/derived'
-import { createResource, createSignal } from '~/fix'
+import { createResource, useCreateSignal } from '~/fix'
 import { Suspense } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -26,8 +26,8 @@ type RouteActivityProps = {
 }
 
 export const RouteActivity = (props: RouteActivityProps) => {
-  const [seekTime, setSeekTime] = createSignal(props.startTime)
-  const [videoRef, setVideoRef] = createSignal<HTMLVideoElement>()
+  const [seekTime, setSeekTime] = useCreateSignal(props.startTime)
+  const [videoRef, setVideoRef] = useCreateSignal<HTMLVideoElement>()
 
   const routeName = `${props.dongleId}|${props.dateStr}`
   const [route] = createResource(routeName, getRoute)

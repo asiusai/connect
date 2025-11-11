@@ -4,7 +4,7 @@ import { Icon, type IconName } from '~/components/material/Icon'
 import { Button } from './material/Button'
 import { uploadAllSegments, type FileType } from '~/api/file'
 import type { Route } from '~/api/types'
-import { createSignal } from '~/fix'
+import { useCreateSignal } from '~/fix'
 
 const BUTTON_TYPES = ['road', 'driver', 'logs', 'route'] as const
 type ButtonType = (typeof BUTTON_TYPES)[number]
@@ -64,7 +64,7 @@ export const RouteUploadButtons = (props: RouteUploadButtonsProps) => {
     logs: 'idle',
     route: 'idle',
   })
-  const [abortController, setAbortController] = createSignal(new AbortController())
+  const [abortController, setAbortController] = useCreateSignal(new AbortController())
 
   createEffect(
     on(
