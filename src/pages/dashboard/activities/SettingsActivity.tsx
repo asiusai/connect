@@ -387,7 +387,7 @@ const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: Re
   )
 }
 
-export const SettingsActivity = ({ dongleId }: PrimeActivityProps) => {
+export const Component = () => {
   const [device] = createResource(dongleId, getDevice)
 
   return (

@@ -44,9 +44,39 @@ const router = createBrowserRouter([
     lazy: () => import("./pages/auth/auth")
   },
   {
-    path: "/*dongleId",
-    lazy: () => import("./pages/dashboard/dashboard")
-  },
+    path: "",
+    lazy: () => import("./pages/dashboard/authorized-layout"),
+    children: [
+      {
+        path: "/pair",
+        lazy: () => import("./pages/dashboard/activities/PairActivity")
+      },
+      {
+        path: "/*dongleId",
+        lazy: () => import("./pages/dashboard/dashboard-layout"),
+        children: [
+          {
+            path:"/settings",
+            lazy:()=>import("./pages/dashboard/activities/SettingsActivity")
+          },
+          {
+            path:"/prime",
+            lazy:()=>import("./pages/dashboard/activities/SettingsActivity")
+          },
+          {
+            path: "/*date",
+            lazy: () => import("./pages/dashboard/activities/RouteActivity")
+          },
+          {
+            path:"",
+            lazy:()=>import("./pages/dashboard/activities/EmptyActivity")
+          }
+        ]
+      }
+
+    ]
+  }
+
 ]);
 
 

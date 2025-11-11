@@ -18,14 +18,7 @@ import { createResource, useCreateSignal } from '~/fix'
 import { Suspense } from 'react'
 import { Link } from 'react-router-dom'
 
-type RouteActivityProps = {
-  dongleId: string
-  dateStr: string
-  startTime: number
-  endTime: number | undefined
-}
-
-export const RouteActivity = (props: RouteActivityProps) => {
+export const Component = () => {
   const [seekTime, setSeekTime] = useCreateSignal(props.startTime)
   const [videoRef, setVideoRef] = useCreateSignal<HTMLVideoElement>()
 

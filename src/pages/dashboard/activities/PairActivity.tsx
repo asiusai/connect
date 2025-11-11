@@ -16,7 +16,10 @@ const toError = (error: unknown): Error => {
   return new Error('An unknown error occurred', { cause: error })
 }
 
-export const PairActivity = (props: { onPaired: () => void }) => {
+export const Component = () => {
+  const onPair = () => {
+    // TODO: onPair refetch devices
+  }
   const { pair } = useLocation().query
   const pairToken: string | undefined = Array.isArray(pair) ? pair[0] : pair
 
@@ -38,9 +41,9 @@ export const PairActivity = (props: { onPaired: () => void }) => {
   }>({
     initial: pairToken
       ? {
-          type: 'pairing',
-          input: { pairToken },
-        }
+        type: 'pairing',
+        input: { pairToken },
+      }
       : 'scanning',
     states: {
       scanning(_input, to) {
@@ -65,7 +68,7 @@ export const PairActivity = (props: { onPaired: () => void }) => {
           onCleanup(() => {
             try {
               qrScanner.destroy()
-            } catch (_) {}
+            } catch (_) { }
           })
         })
 
