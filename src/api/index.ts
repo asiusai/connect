@@ -1,5 +1,8 @@
 import { accessToken } from './auth/client'
 import { API_URL } from './config'
+import { contract } from './contract'
+import { initQueryClient } from '@ts-rest/react-query'
+import { initClient } from '@ts-rest/core'
 
 export async function fetcher<T>(endpoint: string, init?: RequestInit, apiUrl: string = API_URL): Promise<T> {
   const req = new Request(`${apiUrl}${endpoint}`, {
@@ -26,3 +29,18 @@ export async function fetcher<T>(endpoint: string, init?: RequestInit, apiUrl: s
   }
   return json
 }
+
+
+export const api = initQueryClient(contract, {
+  baseUrl: API_URL,
+  baseHeaders:{
+      authorization: `JdWT ${accessToken()}`,
+  }
+})
+
+export const api2 = initClient(contract, {
+  baseUrl: API_URL,
+   baseHeaders:{
+      authorization: `JWT ${accessToken()}`,
+  }
+})
