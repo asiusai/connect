@@ -1,7 +1,6 @@
 import { Accessor, createSignal } from '~/fix'
 import { API_URL } from '../config'
 
-
 const AUTH_KEY = 'ai.comma.api.authorization'
 
 let initialized = false

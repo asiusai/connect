@@ -1,7 +1,7 @@
 import { getDeviceStats } from '~/api/devices'
 import { formatDistance, formatDuration } from '~/utils/format'
 import { StatisticBar } from './StatisticBar'
-import { createResource } from '~/fix';
+import { createResource } from '~/fix'
 
 export const DeviceStatistics = (props: { className?: string; dongleId: string }) => {
   const [statistics] = createResource(props.dongleId, getDeviceStats)
@@ -18,4 +18,3 @@ export const DeviceStatistics = (props: { className?: string; dongleId: string }
     />
   )
 }
-

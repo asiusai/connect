@@ -31,12 +31,9 @@ export const DashboardDrawer = (props: { devices?: Device[] }) => {
 
   return (
     <>
-      <TopAppBar
-        component="h2"
-        leading={modal() ? <IconButton name="arrow_back" onClick={onClose} /> : undefined}
-      >
+      <TopAppBar component="h2" leading={modal() ? <IconButton name="arrow_back" onClick={onClose} /> : undefined}>
         Devices
-      </TopAppBar >
+      </TopAppBar>
       <DeviceList className="overflow-y-auto p-2" devices={props.devices} />
       <div className="grow" />
       <Button className="m-4" leading={<Icon name="add" />} href="/pair" onClick={onClose}>
@@ -65,11 +62,7 @@ export const DashboardDrawer = (props: { devices?: Device[] }) => {
   )
 }
 
-const DashboardLayout = (props: {
-  paneOne: ReactNode
-  paneTwo: ReactNode
-  paneTwoContent: boolean
-}) => {
+const DashboardLayout = (props: { paneOne: ReactNode; paneTwo: ReactNode; paneTwoContent: boolean }) => {
   return (
     <div className="relative size-full overflow-hidden">
       <div
@@ -96,7 +89,7 @@ const FirstPairActivity = () => {
         leading={!modal() ? <img alt="" src="/images/comma-white.png" className="h-8" /> : <DrawerToggleButton />}
       >
         connect
-      </TopAppBar >
+      </TopAppBar>
       <section className="flex flex-col gap-4 py-2 items-center mx-auto max-w-md px-4 mt-4 sm:mt-8 md:mt-16">
         <h2 className="text-xl">Pair your device</h2>
         <p className="text-lg">Scan the QR code on your device</p>
@@ -144,32 +137,40 @@ export default () => {
 
   return (
     <Drawer drawer={<DashboardDrawer devices={devices.data} />}>
-      {!isSignedIn() ?
+      {!isSignedIn() ? (
         <Navigate href="/login" />
-        :
-        (urlState().dongleId === 'pair' || !!location.query.pair) ?
-          <PairActivity onPaired={refetch} />
-          : urlState().dongleId ?
-            <DashboardLayout
-              paneOne={<DeviceActivity dongleId={dongleId} />}
-              paneTwoContent={!!urlState().dateStr}
-              paneTwo={
-                (urlState().dateStr === 'settings' || urlState().dateStr === 'prime') ?
-                  <SettingsActivity dongleId={dongleId} /> :
-                  urlState().dateStr ?
-                    <RouteActivity dongleId={dongleId} dateStr={urlState().dateStr} startTime={urlState().startTime} endTime={urlState().endTime} />
-                    :
-                    <div className="hidden size-full flex-col items-center justify-center gap-4 md:flex">
-                      <Icon name="search" size="48" />
-                      <span className="text-md">Select a route to view</span>
-                      <BuildInfo className="absolute bottom-4" />
-                    </div>
-              }
-            />
-            : getDefaultDongleId() ?
-              <Navigate href={`/${defaultDongleId}`} />
-              : devices.data?.length === 0 ?
-                <FirstPairActivity /> : <></>}
+      ) : urlState().dongleId === 'pair' || !!location.query.pair ? (
+        <PairActivity onPaired={refetch} />
+      ) : urlState().dongleId ? (
+        <DashboardLayout
+          paneOne={<DeviceActivity dongleId={dongleId} />}
+          paneTwoContent={!!urlState().dateStr}
+          paneTwo={
+            urlState().dateStr === 'settings' || urlState().dateStr === 'prime' ? (
+              <SettingsActivity dongleId={dongleId} />
+            ) : urlState().dateStr ? (
+              <RouteActivity
+                dongleId={dongleId}
+                dateStr={urlState().dateStr}
+                startTime={urlState().startTime}
+                endTime={urlState().endTime}
+              />
+            ) : (
+              <div className="hidden size-full flex-col items-center justify-center gap-4 md:flex">
+                <Icon name="search" size="48" />
+                <span className="text-md">Select a route to view</span>
+                <BuildInfo className="absolute bottom-4" />
+              </div>
+            )
+          }
+        />
+      ) : getDefaultDongleId() ? (
+        <Navigate href={`/${defaultDongleId}`} />
+      ) : devices.data?.length === 0 ? (
+        <FirstPairActivity />
+      ) : (
+        <></>
+      )}
     </Drawer>
   )
 }

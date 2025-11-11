@@ -37,7 +37,7 @@
         // Tailwind makes use of custom at-rules
         "noUnknownAtRules": "off"
       }
-    },
+    }
   },
   "javascript": {
     "formatter": {

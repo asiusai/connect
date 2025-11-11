@@ -31,9 +31,9 @@ export const RouteActivity = (props: RouteActivityProps) => {
 
   const routeName = `${props.dongleId}|${props.dateStr}`
   const [route] = createResource(routeName, getRoute)
-  const startTime = (route.data ? dayjs(route.data?.start_time).format('dddd, MMM D, YYYY') : '')
+  const startTime = route.data ? dayjs(route.data?.start_time).format('dddd, MMM D, YYYY') : ''
 
-  const selection = ({ startTime: props.startTime, endTime: props.endTime })
+  const selection = { startTime: props.startTime, endTime: props.endTime }
 
   // FIXME: generateTimelineStatistics is given different versions of TimelineEvents multiple times, leading to stuttering engaged % on switch
   const [events] = createResource(route, getTimelineEvents, { initialValue: [] })
@@ -71,13 +71,16 @@ export const RouteActivity = (props: RouteActivityProps) => {
           <RouteVideoPlayer ref={setVideoRef} routeName={routeName} selection={selection} onProgress={setSeekTime} />
           <Timeline className="mb-1" route={route.data} seekTime={seekTime()} updateTime={onTimelineChange} events={events.data} />
 
-          {selection.startTime || selection.endTime && <Link
-            className="flex items-center justify-center text-center text-label-lg text-gray-500 mt-4"
-            to={`/${props.dongleId}/${props.dateStr}`}
-          >
-            Clear current route selection
-            <IconButton name="close_small" />
-          </Link>}
+          {selection.startTime ||
+            (selection.endTime && (
+              <Link
+                className="flex items-center justify-center text-center text-label-lg text-gray-500 mt-4"
+                to={`/${props.dongleId}/${props.dateStr}`}
+              >
+                Clear current route selection
+                <IconButton name="close_small" />
+              </Link>
+            ))}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -108,4 +111,3 @@ export const RouteActivity = (props: RouteActivityProps) => {
     </>
   )
 }
-

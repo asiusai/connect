@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 
 export type Accessor<T> = () => T
 export type Setter<T> = React.Dispatch<React.SetStateAction<T>>
-export type Resource <T>=any | T
+export type Resource<T> = any | T
 
-export const createSignal = <T=undefined,>(initial?: T): [Accessor<T>, Setter<T | undefined>] => {
+export const createSignal = <T = undefined>(initial?: T): [Accessor<T>, Setter<T | undefined>] => {
   const [state, setState] = useState<T | undefined>(initial)
   return [() => state as T, setState]
 }

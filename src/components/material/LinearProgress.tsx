@@ -42,4 +42,3 @@ export const LinearProgress = (props: LinearProgressProps) => {
     </div>
   )
 }
-

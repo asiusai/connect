@@ -79,7 +79,7 @@ function renderTimelineEvents(route: Route | undefined, events: TimelineEvent[])
 
 const MARKER_WIDTH = 3
 
-type  TimelineProps ={
+type TimelineProps = {
   className?: string
   route: Route | undefined
   seekTime: number

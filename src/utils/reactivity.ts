@@ -1,7 +1,6 @@
-
 // these types aren't exported
 
-import { Resource } from "~/fix"
+import { Resource } from '~/fix'
 
 // from https://github.com/solidjs/solid/blob/v1.9.5/packages/solid/src/reactive/signal.ts#L483
 interface Ready<T> {

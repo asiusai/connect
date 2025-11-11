@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 
 type TopAppBarProps = {
   className?: string
-  component?: "h1" | "h2"
+  component?: 'h1' | 'h2'
   leading?: ReactNode
   trailing?: ReactNode
   children?: ReactNode
@@ -19,4 +19,3 @@ export const TopAppBar = (props: TopAppBarProps) => {
     </header>
   )
 }
-

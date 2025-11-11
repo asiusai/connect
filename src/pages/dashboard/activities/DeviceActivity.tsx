@@ -3,12 +3,12 @@ import clsx from 'clsx'
 import { takeSnapshot } from '~/api/athena'
 import { getDevice, SHARED_DEVICE } from '~/api/devices'
 import { DrawerToggleButton, useDrawerContext } from '~/components/material/Drawer'
-import {Icon} from '~/components/material/Icon'
-import {IconButton} from '~/components/material/IconButton'
-import {TopAppBar} from '~/components/material/TopAppBar'
-import {DeviceLocation} from '~/components/DeviceLocation'
-import {DeviceStatistics} from '~/components/DeviceStatistics'
-import {UploadQueue} from '~/components/UploadQueue'
+import { Icon } from '~/components/material/Icon'
+import { IconButton } from '~/components/material/IconButton'
+import { TopAppBar } from '~/components/material/TopAppBar'
+import { DeviceLocation } from '~/components/DeviceLocation'
+import { DeviceStatistics } from '~/components/DeviceStatistics'
+import { UploadQueue } from '~/components/UploadQueue'
 import { getDeviceName } from '~/utils/device'
 
 import RouteList from '../components/RouteList'
@@ -17,7 +17,7 @@ type DeviceActivityProps = {
   dongleId: string
 }
 
-export const DeviceActivity= (props:DeviceActivityProps) => {
+export const DeviceActivity = (props: DeviceActivityProps) => {
   // TODO: device should be passed in from DeviceList
   const [device] = createResource(() => props.dongleId, getDevice)
   // Resource as source of another resource blocks component initialization

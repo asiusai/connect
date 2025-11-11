@@ -1,4 +1,4 @@
-import { Accessor, createSignal } from '~/fix';
+import { Accessor, createSignal } from '~/fix'
 
 type Dimensions = { width: number; height: number }
 

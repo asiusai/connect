@@ -42,9 +42,11 @@ export const RouteCard = (props: RouteCardProps) => {
         subhead={<Suspense fallback={<div className="h-[20px] w-auto skeleton-loader rounded-xs" />}>{location()}</Suspense>}
         trailing={
           <Suspense>
-            {statistics()?.userFlags && <div className="flex items-center justify-center rounded-full p-1 border-amber-300 border-2">
-              <Icon className="text-yellow-300" size="24" name="flag" filled />
-            </div>}
+            {statistics()?.userFlags && (
+              <div className="flex items-center justify-center rounded-full p-1 border-amber-300 border-2">
+                <Icon className="text-yellow-300" size="24" name="flag" filled />
+              </div>
+            )}
           </Suspense>
         }
       />
@@ -142,21 +144,20 @@ export const RouteList = (props: { dongleId: string }) => {
               const dayHeader = getDayHeader(route)
               return (
                 <>
-                  {dayHeader && <>
-                    {!firstHeader && <div className="w-full" />}
-                    <h2 className="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>
-                  </>}
+                  {dayHeader && (
+                    <>
+                      {!firstHeader && <div className="w-full" />}
+                      <h2 className="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>
+                    </>
+                  )}
                   <RouteCard route={route} />
                 </>
               )
             })}
           </Suspense>
         )
-
-      })
-      }
+      })}
       <Sentinel onTrigger={() => setSize((size) => size + 1)} />
     </div>
   )
 }
-

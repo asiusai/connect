@@ -40,10 +40,10 @@ export const App = () => (
           <Routes>
             <Route path="/login" loader={() => import('./pages/auth/login')} />
             <Route path="/logout" loader={() => import('./pages/auth/login')} />
-            <Route path="/auth" loader={() => import('./pages/auth/auth')}/>
+            <Route path="/auth" loader={() => import('./pages/auth/auth')} />
 
             {/* Matches /<anything> and passes as param */}
-            <Route path="/*dongleId" loader={() => import('./pages/dashboard/Dashboard')}/>
+            <Route path="/*dongleId" loader={() => import('./pages/dashboard/Dashboard')} />
           </Routes>
         </Suspense>
       </AppLayout>
