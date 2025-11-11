@@ -5,14 +5,14 @@ import * as Demo from '~/api/auth/demo'
 import { Button } from '~/components/material/Button'
 import { Icon } from '~/components/material/Icon'
 
-export const Component () => {
+export const Component = () => {
   const loginAsDemoUser = () => {
     setAccessToken(Demo.ACCESS_TOKEN)
     window.location.href = window.location.origin
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center p-6">
       <div className="flex max-w-sm flex-col items-center gap-8">
         <img src="/images/logo-connect-light.svg" alt="comma connect" width={96} height={96} />
 
@@ -34,7 +34,7 @@ export const Component () => {
             href={getAppleAuthUrl()}
             leading={<img src="/images/logo-apple.svg" alt="" width={32} height={32} />}
           >
-            Sign in with Apple&nbsp&nbsp
+            Sign in with Apple
           </Button>
           <Button
             className="h-14 gap-4 xs:h-16"
