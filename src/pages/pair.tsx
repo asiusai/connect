@@ -6,7 +6,6 @@ import { Icon } from '~/components/material/Icon'
 import { IconButton } from '~/components/material/IconButton'
 import { TopAppBar } from '~/components/material/TopAppBar'
 
-import './PairActivity.css'
 import { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 

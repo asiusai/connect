@@ -11,13 +11,13 @@ import { DeviceStatistics } from '~/components/DeviceStatistics'
 import { UploadQueue } from '~/components/UploadQueue'
 import { getDeviceName } from '~/utils/device'
 
-import {RouteList} from '../components/RouteList'
+import {RouteList} from './RouteList'
 
 type DeviceActivityProps = {
   dongleId: string
 }
 
-export const DeviceActivity = (props: DeviceActivityProps) => {
+export const DeviceInfo = (props: DeviceActivityProps) => {
   // TODO: device should be passed in from DeviceList
   const [device] = createResource(() => props.dongleId, getDevice)
   // Resource as source of another resource blocks component initialization

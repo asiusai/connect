@@ -32,44 +32,44 @@ const queryClient = getAppQueryClient()
 
 const router = createBrowserRouter([
   {
-    path: "/login",
+    path: "login",
     lazy: () => import("./pages/auth/login")
   },
   {
-    path: "/logout",
+    path: "logout",
     lazy: () => import("./pages/auth/logout")
   },
   {
-    path: "/auth",
+    path: "auth",
     lazy: () => import("./pages/auth/auth")
   },
   {
     path: "",
-    lazy: () => import("./pages/dashboard/authorized-layout"),
+    lazy: () => import("./layouts/authorized"),
     children: [
       {
-        path: "/pair",
-        lazy: () => import("./pages/dashboard/activities/PairActivity")
+        path: "pair",
+        lazy: () => import("./pages/pair")
       },
       {
-        path: "/*dongleId",
-        lazy: () => import("./pages/dashboard/dashboard-layout"),
+        path: "*dongleId",
+        lazy: () => import("./layouts/dashboard"),
         children: [
           {
-            path:"/settings",
-            lazy:()=>import("./pages/dashboard/activities/SettingsActivity")
+            path: "settings",
+            lazy: () => import("./pages/settings")
           },
           {
-            path:"/prime",
-            lazy:()=>import("./pages/dashboard/activities/SettingsActivity")
+            path: "prime",
+            lazy: () => import("./pages/settings")
           },
           {
-            path: "/*date",
-            lazy: () => import("./pages/dashboard/activities/RouteActivity")
+            path: "*date",
+            lazy: () => import("./pages/route")
           },
           {
-            path:"",
-            lazy:()=>import("./pages/dashboard/activities/EmptyActivity")
+            path: "",
+            lazy: () => import("./pages/empty")
           }
         ]
       }

@@ -1,6 +1,6 @@
 import clsx from "clsx"
 import { Navigate, Outlet } from "react-router-dom"
-import { DeviceActivity } from "./activities/DeviceActivity"
+import { DeviceInfo } from "~/components/DeviceInfo"
 
 export const parseRouteId = (pathname: string) => {
   const parts = pathname.split('/').slice(1).filter(Boolean)
@@ -36,7 +36,7 @@ export const Component = () => {
         !!urlState().dateStr ? '-translate-x-full md:translate-x-0' : 'translate-x-0',
       )}
     >
-      <div className="min-w-full overflow-y-scroll"><DeviceActivity dongleId={dongleId} /></div>
+      <div className="min-w-full overflow-y-scroll"><DeviceInfo dongleId={dongleId} /></div>
       <div className="min-w-full overflow-y-scroll"><Outlet /></div>
     </div>
   </div>
