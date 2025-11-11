@@ -32,18 +32,18 @@ const queryClient = getAppQueryClient()
 
 const router = createBrowserRouter([
   {
-    path: "/test",
-    lazy: () => import("./pages/auth/test")
-  }, {
     path: "/login",
     lazy: () => import("./pages/auth/login")
-  }, {
+  },
+  {
     path: "/logout",
     lazy: () => import("./pages/auth/logout")
-  }, {
+  },
+  {
     path: "/auth",
     lazy: () => import("./pages/auth/auth")
-  }, {
+  },
+  {
     path: "/*dongleId",
     lazy: () => import("./pages/dashboard/dashboard")
   },
