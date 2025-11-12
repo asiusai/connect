@@ -33,6 +33,7 @@ interface RouteActionsProps {
 }
 
 export const RouteActions = (props: RouteActionsProps) => {
+  return null
   const [preservedRoutesResource] = createResource(parseRouteName(props.routeName).dongleId, getPreservedRoutes)
 
   const [isPublic, setIsPublic] = useCreateSignal<boolean | undefined>(undefined)

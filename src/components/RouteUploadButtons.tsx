@@ -58,6 +58,7 @@ interface RouteUploadButtonsProps {
 }
 
 export const RouteUploadButtons = (props: RouteUploadButtonsProps) => {
+  return null
   const [uploadStore, setUploadStore] = createStore<Record<ButtonType, ButtonState>>({
     road: 'idle',
     driver: 'idle',

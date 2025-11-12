@@ -6,8 +6,7 @@ import { getThemeId } from '~/theme'
 import type { Route } from '~/api/types'
 
 import { Icon } from '~/components/material/Icon'
-import { ReactNode } from 'react'
-import { createResource } from '~/fix'
+import { ReactNode, useEffect, useState } from 'react'
 
 const loadImage = (url: string | undefined): Promise<string | undefined> => {
   if (!url) {
@@ -42,27 +41,29 @@ const State = (props: { children: ReactNode; trailing?: ReactNode; opaque?: bool
   )
 }
 
-type RouteStaticMapProps = {
-  className?: string
-  route: Route | undefined
-}
-
-export const RouteStaticMap = (props: RouteStaticMapProps) => {
-  const [coords] = createResource(props.route, getCoords)
-  const [url] = createResource(coords.data, getStaticMapUrl)
-  const [loadedUrl] = createResource(url.data, loadImage)
+export const RouteStaticMap = ({ route, className }: { className?: string; route?: Route }) => {
+  const [coords, setCoords] = useState<GPSPathPoint[]>()
+  const [image, setImage] = useState<string>()
+  useEffect(() => {
+    if (route)
+      getCoords(route).then((coords) => {
+        setCoords(coords)
+        const url = getStaticMapUrl(coords)
+        loadImage(url).then((image) => {
+          setImage(image)
+        })
+      })
+  }, [route])
 
   return (
-    <div className={clsx('relative isolate flex h-full flex-col justify-end self-stretch bg-surface text-on-surface', props.className)}>
-      {!!coords.error || !!url.error || !!loadedUrl.error ? (
+    <div className={clsx('relative isolate flex h-full flex-col justify-end self-stretch bg-surface text-on-surface', className)}>
+      {!coords || !image ? (
         <State trailing={<Icon name="error" filled />}>Problem loading map</State>
-      ) : coords.data?.length === 0 ? (
+      ) : coords?.length === 0 ? (
         <State trailing={<Icon name="satellite_alt" filled />}>No GPS data</State>
-      ) : url.data && loadedUrl.data ? (
-        <img className="pointer-events-none size-full object-cover" src={loadedUrl.data} alt="" />
-      ) : (
-        <></>
-      )}
+      ) : image && image ? (
+        <img className="pointer-events-none size-full object-cover" src={image} alt="" />
+      ) : null}
     </div>
   )
 }
