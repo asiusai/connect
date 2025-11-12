@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 export const RouteActions = ({ routeName, route }: { routeName: string; route: Route | undefined }) => {
   const { dongleId } = useParams()
   if (!dongleId) throw new Error('No dongleId!')
-  const preserved = api.routes.preserved.useQuery(['preserved', dongleId], { params: { dongleId } })
+  const preserved = api.routes.preserved.useQuery({ queryKey: ['preserved', dongleId], queryData: { params: { dongleId } } })
 
   const [isPublic, setIsPublic] = useState<boolean | undefined>(route?.is_public)
   const [isPreserved, setIsPreserved] = useState<boolean>()
@@ -29,7 +29,7 @@ export const RouteActions = ({ routeName, route }: { routeName: string; route: R
   const togglePublic = async () => {
     setError(null)
     if (isPublic === undefined) return
-    const res = await api.routes.setPublic.mutation({ body: { is_public: !isPublic }, params: { routeName } })
+    const res = await api.routes.setPublic.mutate({ body: { is_public: !isPublic }, params: { routeName } })
 
     if (res.status === 200) setIsPublic(!isPublic)
     else setError('Failed to make route public')
@@ -38,8 +38,8 @@ export const RouteActions = ({ routeName, route }: { routeName: string; route: R
   const togglePreserved = async () => {
     if (isPreserved === undefined) return
     const res = !isPreserved
-      ? await api.routes.preserve.mutation({ body: {}, params: { routeName } })
-      : await api.routes.unPreserve.mutation({ body: {}, params: { routeName } })
+      ? await api.routes.preserve.mutate({ body: {}, params: { routeName } })
+      : await api.routes.unPreserve.mutate({ body: {}, params: { routeName } })
 
     if (res.status === 200) setIsPreserved(!isPublic)
     else setError('Failed to preserve route')

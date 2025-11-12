@@ -1,11 +1,4 @@
-import {
-  CancelUploadResponse,
-  RouteInfo,
-  UploadFile,
-  UploadFileMetadata,
-  UploadFilesToUrlsResponse,
-  UploadQueueItem,
-} from '~/api/types'
+import { CancelUploadResponse, RouteInfo, UploadFile, UploadFileMetadata, UploadFilesToUrlsResponse, UploadQueueItem } from '~/api/types'
 import { parseRouteName } from '~/api/route'
 import { api } from '.'
 

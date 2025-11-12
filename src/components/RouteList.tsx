@@ -68,7 +68,10 @@ const getDayHeader = (route: Route) => {
 }
 
 export const RouteList = ({ dongleId }: { dongleId: string }) => {
-  const routes = api.routes.allRoutes.useQuery(['allRoutes', dongleId], { params: { dongleId }, query: { limit: PAGE_SIZE } })
+  const routes = api.routes.allRoutes.useQuery({
+    queryKey: ['allRoutes', dongleId],
+    queryData: { params: { dongleId }, query: { limit: PAGE_SIZE } },
+  })
 
   let prevDayHeader: string | null = null
 

@@ -66,8 +66,11 @@ const PlanSelector = ({
 const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
   const [selectedPlan, setSelectedPlan] = useState<PrimePlan | undefined>()
 
-  const device = api.devices.get.useQuery(['device', dongleId], { params: { dongleId } })
-  const subscribeInfo = api.prime.info.useQuery(['subscribe-info', dongleId], { query: { dongle_id: dongleId } })
+  const device = api.devices.get.useQuery({
+    queryKey: ['device', dongleId],
+    queryData: { params: { dongleId } },
+  })
+  const subscribeInfo = api.prime.info.useQuery({ queryKey: ['subscribe-info', dongleId], queryData: { query: { dongle_id: dongleId } } })
 
   const search = useLocation().search
   const stripeCancelled = new URLSearchParams(search).has('stripe_cancelled')
@@ -204,22 +207,24 @@ const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
 const PrimeManage = ({ dongleId }: { dongleId: string }) => {
   const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
 
-  const stripeSession = api.prime.getSession.useQuery(
-    ['session'],
-    { query: { dongle_id: dongleId, session_id: stripeSessionId } },
-    { enabled: session.payment_status !== 'paid', refetchInterval: 10_000 },
-  )
+  const stripeSession = api.prime.getSession.useQuery({
+    queryKey: ['session'],
+    queryData: { query: { dongle_id: dongleId, session_id: stripeSessionId } },
+    enabled: (x) => x.state.data?.body.payment_status !== 'paid',
+    refetchInterval: 10_000,
+  })
 
   // TODO: we should wait for the session to be paid before fetching subscription
-  const subscription = api.prime.status.useQuery(['subscription-status'], { query: { dongle_id: dongleId } }, { refetchInterval: 10_000 })
+  const subscription = api.prime.status.useQuery({
+    queryKey: ['subscription-status'],
+    queryData: { query: { dongle_id: dongleId } },
+    refetchInterval: 10_000,
+  })
   const [cancelDialog, setCancelDialog] = useState(false)
 
   const cancel = api.prime.cancel.useMutation()
-  const update = api.prime.getPortal.useMutation({
-    onSuccess: (res) => {
-      if (res.body.url) window.location.href = res.body.url
-    },
-  })
+  const update = api.prime.getPortal.useQuery({ queryKey: ['get-portal', dongleId], queryData: { query: { dongle_id: dongleId } } })
+
   const loading = subscription.isLoading || cancel.isPending || update.isLoading || stripeSession.isLoading
   const paymentStatus = stripeSession.data?.body.payment_status
   return (
@@ -235,7 +240,7 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
         {stripeSession.isError ? (
           <div className="flex gap-2 rounded-sm bg-on-error-container p-2 text-sm font-semibold text-error-container">
             <Icon name="error" size="20" />
-            Unable to check payment status: {stripeSession.error.body as string}
+            Unable to check payment status: {stripeSession.error as any}
           </div>
         ) : paymentStatus === 'unpaid' ? (
           <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
@@ -261,7 +266,7 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
         {cancel.isError ? (
           <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
             <Icon className="text-error" name="error" size="20" />
-            Failed to cancel subscription: {cancel.error.body as string}
+            Failed to cancel subscription: {cancel.error as any}
           </div>
         ) : cancel.isSuccess ? (
           <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
@@ -282,10 +287,10 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
             </div>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button color="error" disabled={loading()} loading={cancel.isPending} onClick={() => setCancelDialog(true)}>
+              <Button color="error" disabled={loading} loading={cancel.isPending} onClick={() => setCancelDialog(true)}>
                 Cancel subscription
               </Button>
-              <Button color="secondary" disabled={loading()} loading={update.isLoading} onClick={() => update.mutate()}>
+              <Button color="secondary" disabled={loading} loading={update.isLoading} href={update.data?.body.url}>
                 Update payment method
               </Button>
             </div>
@@ -304,7 +309,7 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
             <div className="mt-4 flex flex-wrap justify-stretch gap-4">
               <Button
                 color="error"
-                disabled={loading()}
+                disabled={loading}
                 loading={cancel.isPending}
                 onClick={() => {
                   cancel.mutate({ body: { dongle_id: dongleId } })
@@ -313,7 +318,7 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
               >
                 Yes, cancel subscription
               </Button>
-              <Button color="secondary" disabled={loading()} onClick={() => setCancelDialog(false)}>
+              <Button color="secondary" disabled={loading} onClick={() => setCancelDialog(false)}>
                 No, keep subscription
               </Button>
             </div>
@@ -337,7 +342,7 @@ const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: De
       {unpair.error && (
         <div className="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
           <Icon className="text-error" name="error" size="20" />
-          {(unpair.error.body as string) || 'Unknown error'}
+          {(unpair.error as any) || 'Unknown error'}
         </div>
       )}
       <Button
@@ -354,7 +359,7 @@ const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: De
 
 export const Component = () => {
   const dongleId = useParams().dongleId!
-  const res = api.devices.get.useQuery(['device', dongleId], { params: { dongleId } })
+  const res = api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } })
   const device = res.data?.body
 
   if (!device) return null

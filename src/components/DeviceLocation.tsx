@@ -67,7 +67,7 @@ export const DeviceLocation = ({ dongleId, deviceName }: { dongleId: string; dev
   const { position, requestPosition } = usePosition()
   const [markers, setMarkers] = useState<Location[]>([])
 
-  const deviceLocation = api.devices.location.useQuery(['location', dongleId], { params: { dongleId } })
+  const deviceLocation = api.devices.location.useQuery({ queryKey: ['location', dongleId], queryData: { params: { dongleId } } })
   const location = deviceLocation.data?.body
 
   useEffect(() => {

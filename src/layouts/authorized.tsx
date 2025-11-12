@@ -19,7 +19,7 @@ import { Loading } from '~/components/material/Loading'
 const DeviceList = () => {
   const location = useLocation()
   const { setOpen } = useDrawerContext()
-  const devices = api.devices.devices.useQuery(['devices'])
+  const devices = api.devices.devices.useQuery({ queryKey: ['devices'] })
 
   const isSelected = (device: Device) => location.pathname.includes(device.dongle_id)
   const onClick = (device: Device) => () => {
@@ -88,7 +88,7 @@ const FirstPair = () => {
 export const DashboardDrawer = () => {
   const { modal, setOpen } = useDrawerContext()
   const onClose = () => setOpen(false)
-  const profile = api.profile.me.useQuery(['me'])
+  const profile = api.profile.me.useQuery({ queryKey: ['me'] })
 
   return (
     <>
@@ -129,7 +129,7 @@ export const DashboardDrawer = () => {
 
 export const Component = () => {
   const params = useParams()
-  const devices = api.devices.devices.useQuery(['devices'])
+  const devices = api.devices.devices.useQuery({ queryKey: ['devices'] })
 
   const getDefaultDongleId = () => {
     // Do not redirect if dongle ID already selected

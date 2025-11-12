@@ -13,9 +13,12 @@ import { api } from '~/api'
 import { useState } from 'react'
 import { Loading } from './material/Loading'
 
+export const useDevice = (dongleId: string) =>
+  api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } })
+
 export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
-  const res = api.devices.get.useQuery(['device', dongleId], { params: { dongleId } })
-  const device = res.data?.status === 200 ? res.data.body : undefined
+  const res = useDevice(dongleId)
+  const device = res.data?.body
   // TODO: remove this. if we're listing the routes for a device you should always be a user, this is for viewing public routes which are being removed
   const isDeviceUser = res.isLoading ? true : device?.is_owner || device?.alias !== SHARED_DEVICE
   const [queueVisible, setQueueVisible] = useState(false)
@@ -105,7 +108,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
             <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
               <div className="flex items-center p-4">
                 <IconButton className="text-white" name="clear" onClick={() => snapshot.reset()} />
-                <span>Error: {snapshot.error.body as any}</span>
+                <span>Error: {snapshot.error as any}</span>
               </div>
             </div>
           )}

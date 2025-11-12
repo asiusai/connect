@@ -13,27 +13,27 @@ import { api } from '~/api'
 
 // TODO: get start and end time from URL
 export const Component = () => {
-  const {dongleId,date} = useParams()
-
+  const { dongleId, date } = useParams()
 
   const routeName = `${dongleId}|${date}`
-  const routeReq = api.routes.get.useQuery(["route",routeName],{params:{routeName}});
+  const routeReq = api.routes.get.useQuery({ queryKey: ['route', routeName], queryData: { params: { routeName } } })
   const route = routeReq.data?.body
   const startTime = route ? dayjs(route.start_time).format('dddd, MMM D, YYYY') : ''
 
   const selection = { startTime: 0, endTime: undefined }
 
   // FIXME: generateTimelineStatistics is given different versions of TimelineEvents multiple times, leading to stuttering engaged % on switch
-  const [events,setEvents] = useState<TimelineEvent[]>([])
+  const [events, setEvents] = useState<TimelineEvent[]>([])
   console.log(events)
-  const [stats,setStats ] = useState<RouteStatistics>()
+  const [stats, setStats] = useState<RouteStatistics>()
 
-  useEffect(()=>{
-    if (route) getTimelineEvents(route).then(x=>{
-      setEvents(x)
-      setStats(generateRouteStatistics(route,x))
-    })
-  },[route])
+  useEffect(() => {
+    if (route)
+      getTimelineEvents(route).then((x) => {
+        setEvents(x)
+        setStats(generateRouteStatistics(route, x))
+      })
+  }, [route])
 
   // TODO: set route viewed?
   return (
@@ -49,10 +49,7 @@ export const Component = () => {
 
           {selection.startTime ||
             (selection.endTime && (
-              <Link
-                className="flex items-center justify-center text-center text-label-lg text-gray-500 mt-4"
-                to={`/${dongleId}/${date}`}
-              >
+              <Link className="flex items-center justify-center text-center text-label-lg text-gray-500 mt-4" to={`/${dongleId}/${date}`}>
                 Clear current route selection
                 <IconButton name="close_small" />
               </Link>

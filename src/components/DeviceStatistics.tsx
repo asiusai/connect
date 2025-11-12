@@ -3,7 +3,7 @@ import { StatisticBar } from './StatisticBar'
 import { api } from '~/api'
 
 export const DeviceStatistics = ({ dongleId, className }: { className?: string; dongleId: string }) => {
-  const stats = api.devices.stats.useQuery(['stats', dongleId], { params: { dongleId } })
+  const stats = api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } })
   const allTime = stats.data?.body.all
 
   return (

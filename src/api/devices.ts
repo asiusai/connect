@@ -1,4 +1,4 @@
-import type { Device, AthenaOfflineQueueResponse, DeviceLocation, DrivingStatistics } from '~/api/types'
+import type { Device } from '~/api/types'
 
 export const sortDevices = (devices: Device[]) => {
   return devices.toSorted((a, b) => {
@@ -10,7 +10,7 @@ export const sortDevices = (devices: Device[]) => {
 }
 export const SHARED_DEVICE = 'Shared Device'
 
-const createSharedDevice = (dongleId: string): Device => ({
+export const createSharedDevice = (dongleId: string): Device => ({
   dongle_id: dongleId,
   alias: SHARED_DEVICE,
   serial: '',
@@ -71,7 +71,7 @@ export const pairDevice = async (pairToken: string): Promise<string> => {
   const body = new FormData()
   body.append('pair_token', token.token)
   try {
-    await fetcher('/v2/pilotpair/', { method: 'POST', body })
+    // await fetcher('/v2/pilotpair/', { method: 'POST', body })
     return token.identity
   } catch (error) {
     if (!(error instanceof Error) || !(error.cause instanceof Response)) {

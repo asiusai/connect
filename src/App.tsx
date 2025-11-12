@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import 'leaflet/dist/leaflet.css'
 import { Toaster } from 'sonner'
+import { api } from './api'
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -73,15 +74,19 @@ const router = createBrowserRouter([
     ],
   },
 ])
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { queryKeyHashFn: (x) => x.toString() } },
+})
 
 export const App = () => (
   <QueryClientProvider client={queryClient}>
-    <Toaster />
-    <AppLayout>
-      <Suspense fallback={null}>
-        <RouterProvider router={router} />
-      </Suspense>
-    </AppLayout>
+    <api.ReactQueryProvider>
+      <Toaster />
+      <AppLayout>
+        <Suspense fallback={null}>
+          <RouterProvider router={router} />
+        </Suspense>
+      </AppLayout>
+    </api.ReactQueryProvider>
   </QueryClientProvider>
 )

@@ -1,10 +1,10 @@
 import { accessToken } from './auth/client'
 import { API_URL } from './config'
 import { contract } from './contract'
-import { initQueryClient } from '@ts-rest/react-query'
+import { initTsrReactQuery } from '@ts-rest/react-query/v5'
 import { toast } from 'sonner'
 
-export const api = initQueryClient(contract, {
+export const api = initTsrReactQuery(contract, {
   baseUrl: API_URL,
   baseHeaders: {
     authorization: `JWT ${accessToken()}`,

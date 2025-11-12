@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-import {  createQCameraStreamUrl} from '~/api/route'
+import { createQCameraStreamUrl } from '~/api/route'
 import { IconButton } from '~/components/material/IconButton'
 import { createResource, useCreateSignal } from '~/fix'
 import { formatVideoTime } from '~/utils/format'
