@@ -238,7 +238,7 @@ const prime = c.router({
     body: z.object({
       dongle_id: z.string(),
       sim_id: z.string(),
-      plan: z.string(),
+      plan: z.string().optional(),
     }),
     responses: {
       200: z.object({

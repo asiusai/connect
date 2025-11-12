@@ -8,7 +8,6 @@ import { Button } from '~/components/material/Button'
 import { Icon } from '~/components/material/Icon'
 import { IconButton } from '~/components/material/IconButton'
 import { TopAppBar } from '~/components/material/TopAppBar'
-import { createQuery } from '~/utils/createQuery'
 import { ReactNode, Suspense, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { api } from '~/api'
@@ -67,89 +66,78 @@ const PlanSelector = ({
 const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
   const [selectedPlan, setSelectedPlan] = useState<PrimePlan | undefined>()
 
-  const [device] = createResource(dongleId, getDevice)
-  const [subscribeInfo] = createResource(dongleId, getSubscribeInfo)
+  const device = api.devices.get.useQuery(['device', dongleId], { params: { dongleId } })
+  const subscribeInfo = api.prime.info.useQuery(['subscribe-info', dongleId], { query: { dongle_id: dongleId } })
 
   const search = useLocation().search
   const stripeCancelled = new URLSearchParams(search).has('stripe_cancelled')
-
-  const [checkout, checkoutData] = useAction(async () => {
-    const { url } = await getStripeCheckout(dongleId, subscribeInfo.data!.sim_id!, selectedPlan()!)
-    if (url) {
-      window.location.href = url
-    }
+  const checkout = api.prime.getCheckout.useMutation({
+    onSuccess: (res) => {
+      if (res.body.url) window.location.href = res.body.url
+    },
   })
 
-  const isLoading = subscribeInfo.loading || checkoutData.loading
+  const isLoading = subscribeInfo.isLoading || checkout.isPending
+  const source = { device: device.data, subscribeInfo: subscribeInfo.data, selectedPlan: selectedPlan }
 
-  const [uiState] = createResource({ device: device.data, subscribeInfo: subscribeInfo.data, selectedPlan: selectedPlan() }, (source) => {
-    if (!source.device || !source.subscribeInfo) return null
+  if (!source.device || !source.subscribeInfo) return null
 
-    let trialEndDate: number | null, trialClaimable: boolean
-    if (source.selectedPlan === 'data') {
-      trialEndDate = source.subscribeInfo.trial_end_data
-      trialClaimable = !!trialEndDate
-    } else if (source.selectedPlan === 'nodata') {
-      trialEndDate = source.subscribeInfo.trial_end_nodata
-      trialClaimable = !!trialEndDate
-    } else {
-      trialEndDate = null
-      trialClaimable = Boolean(source.subscribeInfo.trial_end_data && source.subscribeInfo.trial_end_nodata)
-    }
+  let trialEndDate: number | null, trialClaimable: boolean
+  if (source.selectedPlan === 'data') {
+    trialEndDate = source.subscribeInfo.body.trial_end_data
+    trialClaimable = !!trialEndDate
+  } else if (source.selectedPlan === 'nodata') {
+    trialEndDate = source.subscribeInfo.body.trial_end_nodata
+    trialClaimable = !!trialEndDate
+  } else {
+    trialEndDate = null
+    trialClaimable = Boolean(source.subscribeInfo.body.trial_end_data && source.subscribeInfo.body.trial_end_nodata)
+  }
 
-    let checkoutText: string
-    if (source.selectedPlan) {
-      checkoutText = trialClaimable ? 'Claim trial' : 'Go to checkout'
-    } else {
-      checkoutText = 'Select a plan'
-      if (trialClaimable) checkoutText += ' to claim trial'
-    }
+  let checkoutText: string
+  if (source.selectedPlan) {
+    checkoutText = trialClaimable ? 'Claim trial' : 'Go to checkout'
+  } else {
+    checkoutText = 'Select a plan'
+    if (trialClaimable) checkoutText += ' to claim trial'
+  }
 
-    let chargeText: string = ''
-    if (source.selectedPlan && trialClaimable) {
-      chargeText = `Your first charge will be on ${formatDate(trialEndDate)}, then monthly thereafter.`
-    }
+  let chargeText: string = ''
+  if (source.selectedPlan && trialClaimable) {
+    chargeText = `Your first charge will be on ${formatDate(trialEndDate)}, then monthly thereafter.`
+  }
 
-    let disabledDataPlanText: ReactNode
-    if (!source.device.eligible_features?.prime_data) {
-      disabledDataPlanText = 'Standard plan is not available for your device.'
-    } else if (!source.subscribeInfo.sim_id && source.subscribeInfo.device_online) {
-      disabledDataPlanText = 'Standard plan not available, no SIM was detected. Ensure SIM is securely inserted and try again.'
-    } else if (!source.subscribeInfo.sim_id) {
-      disabledDataPlanText = 'Standard plan not available, device could not be reached. Connect device to the internet and try again.'
-    } else if (!source.subscribeInfo.is_prime_sim || !source.subscribeInfo.sim_type) {
-      disabledDataPlanText = 'Standard plan not available, detected a third-party SIM.'
-    } else if (!['blue', 'magenta_new', 'webbing'].includes(source.subscribeInfo.sim_type)) {
-      disabledDataPlanText = [
-        'Standard plan not available, old SIM type detected, new SIM cards are available in the ',
-        <a className="text-tertiary underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
-          shop
-        </a>,
-      ]
-    } else if (source.subscribeInfo.sim_usable === false && source.subscribeInfo.sim_type === 'blue') {
-      disabledDataPlanText = [
-        'Standard plan not available, SIM has been canceled and is therefore no longer usable, new SIM cards are available in the ',
-        <a className="text-tertiary underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
-          shop
-        </a>,
-      ]
-    } else if (source.subscribeInfo.sim_usable === false) {
-      disabledDataPlanText = [
-        'Standard plan not available, SIM is no longer usable, new SIM cards are available in the ',
-        <a className="text-tertiary underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
-          shop
-        </a>,
-      ]
-    }
-
-    return {
-      trialEndDate,
-      trialClaimable,
-      chargeText,
-      checkoutText,
-      disabledDataPlanText,
-    }
-  })
+  let disabledDataPlanText: ReactNode
+  if (!source.device.body.eligible_features?.prime_data) {
+    disabledDataPlanText = 'Standard plan is not available for your device.'
+  } else if (!source.subscribeInfo.body.sim_id && source.subscribeInfo.body.device_online) {
+    disabledDataPlanText = 'Standard plan not available, no SIM was detected. Ensure SIM is securely inserted and try again.'
+  } else if (!source.subscribeInfo.body.sim_id) {
+    disabledDataPlanText = 'Standard plan not available, device could not be reached. Connect device to the internet and try again.'
+  } else if (!source.subscribeInfo.body.is_prime_sim || !source.subscribeInfo.body.sim_type) {
+    disabledDataPlanText = 'Standard plan not available, detected a third-party SIM.'
+  } else if (!['blue', 'magenta_new', 'webbing'].includes(source.subscribeInfo.body.sim_type!)) {
+    disabledDataPlanText = [
+      'Standard plan not available, old SIM type detected, new SIM cards are available in the ',
+      <a className="text-tertiary underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+        shop
+      </a>,
+    ]
+  } else if (source.subscribeInfo.body.sim_usable === false && source.subscribeInfo.body.sim_type === 'blue') {
+    disabledDataPlanText = [
+      'Standard plan not available, SIM has been canceled and is therefore no longer usable, new SIM cards are available in the ',
+      <a className="text-tertiary underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+        shop
+      </a>,
+    ]
+  } else if (source.subscribeInfo.body.sim_usable === false) {
+    disabledDataPlanText = [
+      'Standard plan not available, SIM is no longer usable, new SIM cards are available in the ',
+      <a className="text-tertiary underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+        shop
+      </a>,
+    ]
+  }
 
   return (
     <div className="grid gap-4">
@@ -178,72 +166,62 @@ const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
       <PlanSelector
         selectedPlan={selectedPlan}
         setSelectedPlan={setSelectedPlan}
-        disabled={isLoading()}
+        disabled={isLoading}
         plans={[
           { name: 'nodata', amount: 1000, description: 'bring your own sim card' },
           {
             name: 'data',
             amount: 2400,
             description: 'including data plan, only offered in the U.S.',
-            disabled: uiState.data?.disabledDataPlanText,
+            disabled: !!disabledDataPlanText,
           },
         ]}
       />
 
-      {uiState.data?.disabledDataPlanText && (
+      {disabledDataPlanText && (
         <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
           <Icon name="info" size="20" />
-          {uiState.data.disabledDataPlanText}
+          {disabledDataPlanText}
         </div>
       )}
 
-      {uiState.data?.checkoutText && (
-        <Button color="tertiary" disabled={!selectedPlan} loading={checkoutData.loading} onClick={checkout}>
-          {uiState.data.checkoutText}
+      {checkoutText && (
+        <Button
+          color="tertiary"
+          disabled={!selectedPlan}
+          loading={checkout.isPending}
+          onClick={() => checkout.mutate({ body: { dongle_id: dongleId, plan: selectedPlan, sim_id: subscribeInfo.data!.body.sim_id! } })}
+        >
+          {checkoutText}
         </Button>
       )}
 
-      {uiState.data?.chargeText && <p className="text-sm">{uiState.data.chargeText}</p>}
+      {chargeText && <p className="text-sm">{chargeText}</p>}
     </div>
   )
 }
 
 const PrimeManage = ({ dongleId }: { dongleId: string }) => {
-  const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')
+  const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
 
-  const [stripeSession] = createQuery({
-    source: () => {
-      const source = [dongleId, stripeSessionId()]
-      if (source.some((param) => !param)) return null
-      return source as [string, string]
-    },
-    fetcher: ([dongleId, stripeSessionId]) => getStripeSession(dongleId, stripeSessionId),
-    refetchInterval: 10_000,
-    stopCondition: (session) => session?.payment_status === 'paid',
-  })
+  const stripeSession = api.prime.getSession.useQuery(
+    ['session'],
+    { query: { dongle_id: dongleId, session_id: stripeSessionId } },
+    { enabled: session.payment_status !== 'paid', refetchInterval: 10_000 },
+  )
 
   // TODO: we should wait for the session to be paid before fetching subscription
-  const [subscription] = createQuery({
-    source: () => dongleId,
-    fetcher: getSubscriptionStatus,
-    retryInterval: 10_000,
-  })
+  const subscription = api.prime.status.useQuery(['subscription-status'], { query: { dongle_id: dongleId } }, { refetchInterval: 10_000 })
+  const [cancelDialog, setCancelDialog] = useState(false)
 
-  const [cancelDialog, setCancelDialog] = useCreateSignal(false)
-  const [cancel, cancelData] = useAction(() => cancelSubscription(dongleId))
-  const [update, updateData] = useAction(async () => {
-    const { url } = await getStripePortal(dongleId)
-    if (url) {
-      window.location.href = url
-    }
+  const cancel = api.prime.cancel.useMutation()
+  const update = api.prime.getPortal.useMutation({
+    onSuccess: (res) => {
+      if (res.body.url) window.location.href = res.body.url
+    },
   })
-  const loading = () => subscription.loading || cancelData.loading || updateData.loading || stripeSession.loading
-
-  createEffect(() => {
-    if (cancelData.state !== 'ready') return
-    setTimeout(() => window.location.reload(), 5000)
-  })
-
+  const loading = subscription.isLoading || cancel.isPending || update.isLoading || stripeSession.isLoading
+  const paymentStatus = stripeSession.data?.body.payment_status
   return (
     <div className="flex flex-col gap-4">
       <Suspense
@@ -254,80 +232,68 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
           </div>
         }
       >
-        {stripeSession.state === 'errored' ? (
+        {stripeSession.isError ? (
           <div className="flex gap-2 rounded-sm bg-on-error-container p-2 text-sm font-semibold text-error-container">
             <Icon name="error" size="20" />
-            Unable to check payment status: {stripeSession.error}
+            Unable to check payment status: {stripeSession.error.body as string}
           </div>
-        ) : stripeSession()?.payment_status ? (
-          <>
-            {paymentStatus === 'unpaid' ? (
-              <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
-                <Icon name="payments" size="20" />
-                Waiting for confirmed payment...
-              </div>
-            ) : paymentStatus === 'paid' && !subscription() ? (
-              <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
-                <Icon className="animate-spin" name="autorenew" size="20" />
-                Processing subscription...
-              </div>
-            ) : paymentStatus === 'paid' && subscription() ? (
-              <div className="flex gap-2 rounded-sm bg-tertiary-container p-2 text-sm text-on-tertiary-container">
-                <Icon name="check" size="20" />
-                <div className="flex flex-col gap-2">
-                  <p className="font-semibold">comma prime activated</p>
-                  {subscription()?.is_prime_sim &&
-                    ' Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help.'}
-                </div>
-              </div>
-            ) : (
-              <></>
-            )}
-          </>
-        ) : (
-          <></>
-        )}
+        ) : paymentStatus === 'unpaid' ? (
+          <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+            <Icon name="payments" size="20" />
+            Waiting for confirmed payment...
+          </div>
+        ) : paymentStatus === 'paid' && !subscription.data?.body ? (
+          <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+            <Icon className="animate-spin" name="autorenew" size="20" />
+            Processing subscription...
+          </div>
+        ) : paymentStatus === 'paid' && subscription.data?.body ? (
+          <div className="flex gap-2 rounded-sm bg-tertiary-container p-2 text-sm text-on-tertiary-container">
+            <Icon name="check" size="20" />
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold">comma prime activated</p>
+              {subscription.data.body.is_prime_sim &&
+                ' Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help.'}
+            </div>
+          </div>
+        ) : null}
 
-        {cancelData.state === 'errored' ? (
+        {cancel.isError ? (
           <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
             <Icon className="text-error" name="error" size="20" />
-            Failed to cancel subscription: {cancelData.error}
+            Failed to cancel subscription: {cancel.error.body as string}
           </div>
-        ) : cancelData.state === 'ready' ? (
+        ) : cancel.isSuccess ? (
           <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
             <Icon name="check" size="20" />
             Subscription cancelled
           </div>
-        ) : (
-          <></>
-        )}
+        ) : null}
 
-        {subscription.state === 'errored' ? (
+        {subscription.isError ? (
           <>Unable to fetch subscription details: {subscription.error}</>
-        ) : subscription() ? (
+        ) : subscription.data ? (
           <>
             <div className="flex list-none flex-col">
-              <li>Plan: {PrimePlanName[subscription.plan as PrimePlan] ?? 'unknown'}</li>
-              <li>Amount: {formatCurrency(subscription.amount)}</li>
-              <li>Joined: {formatDate(subscription.subscribed_at)}</li>
-              <li>Next payment: {formatDate(subscription.next_charge_at)}</li>
+              <li>Plan: {PrimePlanName[subscription.data.body.plan as PrimePlan] ?? 'unknown'}</li>
+              <li>Amount: {formatCurrency(subscription.data.body.amount)}</li>
+              <li>Joined: {formatDate(subscription.data.body.subscribed_at)}</li>
+              <li>Next payment: {formatDate(subscription.data.body.next_charge_at)}</li>
             </div>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button color="error" disabled={loading()} loading={cancelData.loading} onClick={() => setCancelDialog(true)}>
+              <Button color="error" disabled={loading()} loading={cancel.isPending} onClick={() => setCancelDialog(true)}>
                 Cancel subscription
               </Button>
-              <Button color="secondary" disabled={loading()} loading={updateData.loading} onClick={update}>
+              <Button color="secondary" disabled={loading()} loading={update.isLoading} onClick={() => update.mutate()}>
                 Update payment method
               </Button>
             </div>
           </>
-        ) : (
-          <></>
-        )}
+        ) : null}
       </Suspense>
 
-      {cancelDialog() && (
+      {cancelDialog && (
         <div
           className="bg-scrim/10 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
           onClick={() => setCancelDialog(false)}
@@ -339,9 +305,9 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
               <Button
                 color="error"
                 disabled={loading()}
-                loading={cancelData.loading}
+                loading={cancel.isPending}
                 onClick={() => {
-                  cancel()
+                  cancel.mutate({ body: { dongle_id: dongleId } })
                   setCancelDialog(false)
                 }}
               >
@@ -359,21 +325,27 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
 }
 
 const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: Device }) => {
-  const [unpair, unpairData] = useAction(async () => {
-    const { success } = await unpairDevice(dongleId)
-    if (success) window.location.href = window.location.origin
+  const unpair = api.devices.unpair.useMutation({
+    onSuccess: (res) => {
+      if (res.body.success) window.location.href = window.location.origin
+    },
   })
 
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-lg">{device.name}</h2>
-      {unpairData.error && (
+      {unpair.error && (
         <div className="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
           <Icon className="text-error" name="error" size="20" />
-          {unpairData.error?.message ?? unpairData.error?.cause ?? unpairData.error ?? 'Unknown error'}
+          {(unpair.error.body as string) || 'Unknown error'}
         </div>
       )}
-      <Button color="error" leading={<Icon name="delete" />} onClick={unpair} disabled={unpairData.loading}>
+      <Button
+        color="error"
+        leading={<Icon name="delete" />}
+        onClick={() => unpair.mutate({ body: {}, params: { dongleId } })}
+        disabled={unpair.isPending}
+      >
         Unpair this device
       </Button>
     </div>
