@@ -17,32 +17,45 @@ export const DeviceLocation = z.object({
   bearing: z.number(),
 })
 
-export const ApiDevice = z.object({
-  dongle_id: z.string(),
-  alias: z.string(),
-  serial: z.string(),
-  last_athena_ping: z.number(),
-  ignore_uploads: z.boolean().nullable(),
-  is_paired: z.boolean(),
-  is_owner: z.boolean(),
-  public_key: z.string(),
-  prime: z.boolean(),
-  prime_type: z.number(),
-  trial_claimed: z.boolean(),
-  device_type: z.string(),
-  openpilot_version: z.string(),
-  sim_id: z.string(),
-  sim_type: z.number(),
-  eligible_features: z.object({
+const NAMES: Record<string, string> = {
+  threex: 'comma 3X',
+  neo: 'EON',
+  freon: 'freon',
+  unknown: 'unknown',
+}
+export const Device = z
+  .object({
+    alias: z.string().nullable(),
+    athena_host: z.string().nullable(),
+    device_type: z.string(),
+    dongle_id: z.string(),
+    eligible_features: z.object({
+      prime: z.boolean(),
+      prime_data: z.boolean(),
+      nav: z.boolean().optional(),
+    }),
+    ignore_uploads: z.boolean().nullable(),
+    is_paired: z.boolean(),
+    is_owner: z.boolean(),
+    last_athena_ping: z.number(),
+    // ...
+    openpilot_version: z.string(),
     prime: z.boolean(),
-    prime_data: z.boolean(),
-    nav: z.boolean(),
-  }),
-})
+    prime_type: z.number(),
+    public_key: z.string(),
+    serial: z.string(),
+    sim_id: z.string(),
+    sim_type: z.number(),
+    trial_claimed: z.boolean(),
 
-export const Device = ApiDevice.extend({
-  is_online: z.boolean(),
-})
+    is_online: z.boolean().optional(),
+    name: z.string().optional(),
+  })
+  .transform((x) => ({
+    ...x,
+    is_online: !!x.last_athena_ping && x.last_athena_ping >= Math.floor(Date.now() / 1000) - 120,
+    name: x.name || x.alias || NAMES[x.device_type] || `comma ${x.device_type}`,
+  }))
 
 export const DrivingStatisticsAggregation = z.object({
   distance: z.number(),
@@ -202,3 +215,31 @@ export const SubscribeInfo = z.object({
   trial_end_data: z.number().nullable(),
   trial_end_nodata: z.number().nullable(),
 })
+
+// TYPES
+export type Profile = z.infer<typeof Profile>
+export type DeviceLocation = z.infer<typeof DeviceLocation>
+export type Device = z.infer<typeof Device>
+export type DrivingStatisticsAggregation = z.infer<typeof DrivingStatisticsAggregation>
+export type DrivingStatistics = z.infer<typeof DrivingStatistics>
+export type Route = z.infer<typeof Route>
+export type RouteInfo = z.infer<typeof RouteInfo>
+export type RouteShareSignature = z.infer<typeof RouteShareSignature>
+export type Files = z.infer<typeof Files>
+export type AthenaCallRequest = z.infer<typeof AthenaCallRequest>
+export type AthenaOfflineQueueItem = z.infer<typeof AthenaOfflineQueueItem>
+export type AthenaOfflineQueueResponse = z.infer<typeof AthenaOfflineQueueResponse>
+export type AthenaCallResponse = z.infer<typeof AthenaCallResponse>
+export type BackendAthenaCallResponse = z.infer<typeof BackendAthenaCallResponse>
+export type BackendAthenaCallResponseError = z.infer<typeof BackendAthenaCallResponseError>
+export type DataFile = z.infer<typeof DataFile>
+export type UploadFilesToUrlsRequest = z.infer<typeof UploadFilesToUrlsRequest>
+export type UploadQueueItem = z.infer<typeof UploadQueueItem>
+export type UploadFilesToUrlsResponse = z.infer<typeof UploadFilesToUrlsResponse>
+export type UploadFileMetadata = z.infer<typeof UploadFileMetadata>
+export type UploadFileMetadataResponse = z.infer<typeof UploadFileMetadataResponse>
+export type UploadFile = z.infer<typeof UploadFile>
+export type CancelUploadRequest = z.infer<typeof CancelUploadRequest>
+export type CancelUploadResponse = z.infer<typeof CancelUploadResponse>
+export type SubscriptionStatus = z.infer<typeof SubscriptionStatus>
+export type SubscribeInfo = z.infer<typeof SubscribeInfo>

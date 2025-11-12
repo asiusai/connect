@@ -4,7 +4,6 @@ import L from 'leaflet'
 import { Icon } from './material/Icon'
 import { Button } from './material/Button'
 
-import { getDeviceLocation } from '~/api/devices'
 import { Card } from '~/components/material/Card'
 import type { IconName } from '~/components/material/Icon'
 import { IconButton } from '~/components/material/IconButton'
@@ -26,6 +25,7 @@ type DeviceLocationProps = {
 }
 
 export const DeviceLocation = (props: DeviceLocationProps) => {
+  return null
   let mapRef!: HTMLDivElement
 
   const [map, setMap] = createSignal<L.Map | null>(null)

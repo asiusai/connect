@@ -1,23 +1,13 @@
-import type { ApiDevice, AthenaOfflineQueueResponse, Device, DeviceLocation, DrivingStatistics } from '~/api/types'
+import type { Device, AthenaOfflineQueueResponse, DeviceLocation, DrivingStatistics } from '~/api/types'
 
-const sortDevices = (devices: ApiDevice[]) =>
-  devices.sort((a, b) => {
-    if (a.is_owner !== b.is_owner) {
-      return a.is_owner ? -1 : 1
-    } else if (a.alias && b.alias) {
-      return a.alias.localeCompare(b.alias)
-    } else if (!a.alias && !b.alias) {
-      return a.dongle_id.localeCompare(b.dongle_id)
-    } else {
-      return a.alias ? -1 : 1
-    }
+export const sortDevices = (devices: Device[]) => {
+  return devices.toSorted((a, b) => {
+    if (a.is_owner !== b.is_owner) return a.is_owner ? -1 : 1
+    else if (a.alias && b.alias) return a.alias.localeCompare(b.alias)
+    else if (!a.alias && !b.alias) return a.dongle_id.localeCompare(b.dongle_id)
+    else return a.alias ? -1 : 1
   })
-
-const createDevice = (device: ApiDevice): Device => ({
-  ...device,
-  is_online: !!device.last_athena_ping && device.last_athena_ping >= Math.floor(Date.now() / 1000) - 120,
-})
-
+}
 export const SHARED_DEVICE = 'Shared Device'
 
 const createSharedDevice = (dongleId: string): Device => ({
@@ -42,24 +32,9 @@ const createSharedDevice = (dongleId: string): Device => ({
     nav: false,
   },
   is_online: false,
+  name: '',
+  athena_host:null
 })
-
-export const getDevice = async (dongleId: string): Promise<Device> => {
-  try {
-    const device = await fetcher<ApiDevice>(`/v1.1/devices/${dongleId}/`)
-    return createDevice(device)
-  } catch {
-    return createSharedDevice(dongleId)
-  }
-}
-
-
-export const getDevices = async (): Promise<Device[]> =>
-  fetcher<ApiDevice[]>('/v1/me/devices/')
-    .then(sortDevices)
-    .then((devices) => devices.map(createDevice))
-    .catch(() => [])
-
 
 const validatePairToken = (
   input: string,

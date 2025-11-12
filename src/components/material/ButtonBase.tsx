@@ -11,7 +11,7 @@ export type ButtonBaseProps = {
   activeClass?: string
 }
 
-export const ButtonBase = (props: ButtonBaseProps) => {
+export const ButtonBase = ({ activeClass, ...props }: ButtonBaseProps) => {
   const className = clsx('relative isolate overflow-hidden', props.className)
   return props.href ? <Link {...props} to={props.href} className={className} /> : <button {...props} className={className} />
 }

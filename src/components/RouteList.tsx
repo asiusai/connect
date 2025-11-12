@@ -4,7 +4,6 @@ import timezone from 'dayjs/plugin/timezone.js'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-import { fetcher } from '~/api'
 import { getRouteStatistics } from '~/api/derived'
 import { Card, CardContent, CardHeader } from '~/components/material/Card'
 import { Icon } from '~/components/material/Icon'
@@ -76,6 +75,7 @@ const Sentinel = (props: { onTrigger: () => void }) => {
 const PAGE_SIZE = 10
 
 export const RouteList = (props: { dongleId: string }) => {
+  return null
   const endpoint = () => `/v1/devices/${props.dongleId}/routes?limit=${PAGE_SIZE}`
   const getKey = (previousPageData?: Route[]): string | undefined => {
     if (!previousPageData) return endpoint()

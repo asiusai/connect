@@ -1,15 +1,14 @@
-import { getDeviceStats } from '~/api/devices'
 import { formatDistance, formatDuration } from '~/utils/format'
 import { StatisticBar } from './StatisticBar'
-import { createResource } from '~/fix'
+import { api } from '~/api'
 
-export const DeviceStatistics = (props: { className?: string; dongleId: string }) => {
-  const [statistics] = createResource(props.dongleId, getDeviceStats)
-  const allTime = statistics.data?.all
+export const DeviceStatistics = ({ dongleId, className }: { className?: string; dongleId: string }) => {
+  const stats = api.devices.stats.useQuery([dongleId], { params: { dongleId } })
+  const allTime = stats.data?.body.all
 
   return (
     <StatisticBar
-      className={props.className}
+      className={className}
       statistics={[
         { label: 'Distance', value: () => formatDistance(allTime?.distance) },
         { label: 'Duration', value: () => formatDuration(allTime?.minutes) },

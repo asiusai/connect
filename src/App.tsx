@@ -6,6 +6,7 @@ import { getAppQueryClient } from '~/api/query-client'
 import { OfflinePage } from '~/pages/offline'
 
 import 'leaflet/dist/leaflet.css'
+import { Toaster } from 'sonner'
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -32,58 +33,55 @@ const queryClient = getAppQueryClient()
 
 const router = createBrowserRouter([
   {
-    path: "login",
-    lazy: () => import("./pages/auth/login")
+    path: 'login',
+    lazy: () => import('./pages/auth/login'),
   },
   {
-    path: "logout",
-    lazy: () => import("./pages/auth/logout")
+    path: 'logout',
+    lazy: () => import('./pages/auth/logout'),
   },
   {
-    path: "auth",
-    lazy: () => import("./pages/auth/auth")
+    path: 'auth',
+    lazy: () => import('./pages/auth/auth'),
   },
   {
-    path: "",
-    lazy: () => import("./layouts/authorized"),
+    path: '',
+    lazy: () => import('./layouts/authorized'),
     children: [
       {
-        path: "pair",
-        lazy: () => import("./pages/pair")
+        path: 'pair',
+        lazy: () => import('./pages/pair'),
       },
       {
-        path: "*dongleId",
-        lazy: () => import("./layouts/dashboard"),
+        path: ':dongleId',
+        lazy: () => import('./layouts/dashboard'),
         children: [
           {
-            path: "settings",
-            lazy: () => import("./pages/settings")
+            path: 'settings',
+            lazy: () => import('./pages/settings'),
           },
           {
-            path: "prime",
-            lazy: () => import("./pages/settings")
+            path: 'prime',
+            lazy: () => import('./pages/settings'),
           },
           {
-            path: "*date",
-            lazy: () => import("./pages/route")
+            path: '*date',
+            lazy: () => import('./pages/route'),
           },
           {
-            path: "",
-            lazy: () => import("./pages/empty")
-          }
-        ]
-      }
-
-    ]
-  }
-
-]);
-
+            path: '',
+            lazy: () => import('./pages/empty'),
+          },
+        ],
+      },
+    ],
+  },
+])
 
 export const App = () => (
   <QueryClientProvider client={queryClient}>
     <ReactQueryDevtools />
-
+    <Toaster />
     <AppLayout>
       <Suspense fallback={null}>
         <RouterProvider router={router} />

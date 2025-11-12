@@ -1,12 +1,12 @@
 import { initContract } from '@ts-rest/core'
 import {
-  ApiDevice,
   AthenaCallRequest,
   AthenaOfflineQueueResponse,
   BackendAthenaCallResponse,
   BackendAthenaCallResponseError,
   Device,
   DeviceLocation,
+  DrivingStatistics,
   Files,
   Profile,
   Route,
@@ -94,7 +94,7 @@ const devices = c.router({
     path: '/v1.1/devices/:dongleId',
     pathParams: z.object({ dongleId: z.string() }),
     responses: {
-      200: ApiDevice,
+      200: Device,
     },
   },
   athenaOfflineQueue: {
@@ -118,7 +118,7 @@ const devices = c.router({
     path: '/v1.1/devices/:dongleId/stats',
     pathParams: z.object({ dongleId: z.string() }),
     responses: {
-      200: DeviceLocation,
+      200: DrivingStatistics,
     },
   },
   devices: {
