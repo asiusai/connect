@@ -1,17 +1,13 @@
-import type {
-  CancelUploadRequest,
+import {
   CancelUploadResponse,
-  Files,
-  Route,
   RouteInfo,
   UploadFile,
   UploadFileMetadata,
-  UploadFileMetadataResponse,
-  UploadFilesToUrlsRequest,
   UploadFilesToUrlsResponse,
   UploadQueueItem,
 } from '~/api/types'
 import { parseRouteName } from '~/api/route'
+import { api } from '.'
 
 export const FileTypes = {
   logs: ['rlog.bz2', 'rlog.zst'],
@@ -28,26 +24,57 @@ export const COMMA_CONNECT_PRIORITY = 1
 // Uploads expire after 1 week if device remains offline
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7
 
-export const getUploadQueue = (dongleId: string) => makeAthenaCall<void, UploadQueueItem[]>(dongleId, 'listUploadQueue')
+export const getUploadQueue = async (dongleId: string) => {
+  const res = await api.athena.athena.mutation({
+    body: { id: 0, jsonrpc: '2.0', method: 'listUploadQueue', expiry: undefined },
+    params: { dongleId },
+  })
+  if (res.status !== 200) return null
+  return UploadQueueItem.array().parse(res.body.result)
+}
 
-export const uploadFilesToUrls = (dongleId: string, files: UploadFile[]) =>
-  makeAthenaCall<UploadFilesToUrlsRequest, UploadFilesToUrlsResponse>(
-    dongleId,
-    'uploadFilesToUrls',
-    {
-      files_data: files.map((file) => ({
-        allow_cellular: false,
-        fn: file.filePath,
-        headers: file.headers,
-        priority: COMMA_CONNECT_PRIORITY,
-        url: file.url,
-      })),
+export const uploadFilesToUrls = async (dongleId: string, files: UploadFile[]) => {
+  const res = await api.athena.athena.mutation({
+    params: { dongleId },
+    body: {
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'uploadFilesToUrls',
+      params: {
+        files_data: files.map((file) => ({
+          allow_cellular: false,
+          fn: file.filePath,
+          headers: file.headers,
+          priority: COMMA_CONNECT_PRIORITY,
+          url: file.url,
+        })),
+      },
+      expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
     },
-    Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
-  )
+  })
+  if (res.status !== 200) return null
+  return UploadFilesToUrlsResponse.parse(res.body.result)
+}
 
-export const cancelUpload = (dongleId: string, ids: string[]) =>
-  makeAthenaCall<CancelUploadRequest, CancelUploadResponse>(dongleId, 'cancelUpload', { upload_id: ids })
+export const cancelUpload = async (dongleId: string, ids: string[]) => {
+  const res = await api.athena.athena.mutation({
+    params: { dongleId },
+    body: {
+      id: 0,
+      jsonrpc: '2.0',
+      method: 'cancelUpload',
+      params: { upload_id: ids },
+      expiry: undefined,
+    },
+  })
+  if (res.status !== 200) return null
+  return CancelUploadResponse.parse(res.body.result)
+}
+export const getAlreadyUploadedFiles = async (routeName: string) => {
+  const res = await api.file.files.query({ params: { routeName } })
+  if (res.status !== 200) throw new Error()
+  return res.body
+}
 
 const getFiles = async (routeName: string, types?: FileType[]) => {
   const files = await getAlreadyUploadedFiles(routeName)
@@ -75,17 +102,29 @@ const generateMissingFilePaths = (
   return paths
 }
 
-const prepareUploadRequests = (paths: string[], presignedUrls: UploadFileMetadata[]): UploadFile[] =>
-  paths.map((path, i) => ({ filePath: path, ...presignedUrls[i] }))
+const prepareUploadRequests = (paths: string[], presignedUrls: UploadFileMetadata[]): UploadFile[] => {
+  return paths.map((path, i) => ({ filePath: path, ...presignedUrls[i] }))
+}
+export const uploadAllSegments = (routeName: string, totalSegments: number, types?: FileType[]) => {
+  return uploadSegments(routeName, 0, totalSegments - 1, types)
+}
 
-export const uploadAllSegments = (routeName: string, totalSegments: number, types?: FileType[]) =>
-  uploadSegments(routeName, 0, totalSegments - 1, types)
+export const requestToUploadFiles = async (dongleId: string, paths: string[], expiryDays: number = 7) => {
+  const pathPresignedUrls = await api.file.uploadFiles.mutation({
+    params: { dongleId },
+    body: { expiry_days: expiryDays, paths },
+  })
+  if (pathPresignedUrls.status !== 200) return []
+  return pathPresignedUrls.body
+}
 
 export const uploadSegments = async (routeName: string, segmentStart: number, segmentEnd: number, types?: FileType[]) => {
   const routeInfo = parseRouteName(routeName)
   const alreadyUploadedFiles = await getFiles(routeName, types)
+
   const paths = generateMissingFilePaths(routeInfo, segmentStart, segmentEnd, alreadyUploadedFiles, types)
   const pathPresignedUrls = await requestToUploadFiles(routeInfo.dongleId, paths)
+
   const athenaRequests = prepareUploadRequests(paths, pathPresignedUrls)
   if (athenaRequests.length === 0) return []
   return await uploadFilesToUrls(routeInfo.dongleId, athenaRequests)

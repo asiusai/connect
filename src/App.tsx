@@ -1,9 +1,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
-import { QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { getAppQueryClient } from '~/api/query-client'
 import { OfflinePage } from '~/pages/offline'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import 'leaflet/dist/leaflet.css'
 import { Toaster } from 'sonner'
@@ -28,8 +26,6 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   return <>{children}</>
 }
-
-const queryClient = getAppQueryClient()
 
 const router = createBrowserRouter([
   {
@@ -77,10 +73,10 @@ const router = createBrowserRouter([
     ],
   },
 ])
+const queryClient = new QueryClient()
 
 export const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ReactQueryDevtools />
     <Toaster />
     <AppLayout>
       <Suspense fallback={null}>

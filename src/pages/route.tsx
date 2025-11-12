@@ -5,11 +5,9 @@ import { TopAppBar } from '~/components/material/TopAppBar'
 import { RouteActions } from '~/components/RouteActions'
 import { RouteStaticMap } from '~/components/RouteStaticMap'
 import { RouteStatisticsBar } from '~/components/RouteStatisticsBar'
-import { RouteVideoPlayer } from '~/components/RouteVideoPlayer'
 import { RouteUploadButtons } from '~/components/RouteUploadButtons'
-import { Timeline } from '~/components/Timeline'
 import { generateRouteStatistics, getTimelineEvents, RouteStatistics, TimelineEvent } from '~/api/derived'
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '~/api'
 
@@ -17,8 +15,6 @@ import { api } from '~/api'
 export const Component = () => {
   const {dongleId,date} = useParams()
 
-  const [seekTime, setSeekTime] = useState(0)
-  const videoRef = useRef(null)
 
   const routeName = `${dongleId}|${date}`
   const routeReq = api.routes.get.useQuery(["route",routeName],{params:{routeName}});
@@ -29,6 +25,7 @@ export const Component = () => {
 
   // FIXME: generateTimelineStatistics is given different versions of TimelineEvents multiple times, leading to stuttering engaged % on switch
   const [events,setEvents] = useState<TimelineEvent[]>([])
+  console.log(events)
   const [stats,setStats ] = useState<RouteStatistics>()
 
   useEffect(()=>{
@@ -37,10 +34,6 @@ export const Component = () => {
       setStats(generateRouteStatistics(route,x))
     })
   },[route])
-
-  const onTimelineChange = (time:number)=>{
-    console.log({time})
-  }
 
   // TODO: set route viewed?
   return (

@@ -1,14 +1,5 @@
 import clsx from 'clsx'
 
-import { getDevice, unpairDevice } from '~/api/devices'
-import {
-  cancelSubscription,
-  getStripeCheckout,
-  getStripePortal,
-  getStripeSession,
-  getSubscribeInfo,
-  getSubscriptionStatus,
-} from '~/api/prime'
 import type { Device } from '~/api/types'
 import { formatDate } from '~/utils/format'
 
@@ -18,23 +9,11 @@ import { Icon } from '~/components/material/Icon'
 import { IconButton } from '~/components/material/IconButton'
 import { TopAppBar } from '~/components/material/TopAppBar'
 import { createQuery } from '~/utils/createQuery'
-import { getDeviceName } from '~/utils/device'
-import { ReactNode, Suspense } from 'react'
-import { Accessor, createResource, useCreateSignal, Resource, Setter } from '~/fix'
-import { useLocation } from 'react-router-dom'
-
-const useAction = <T,>(action: () => Promise<T>): [() => void, Resource<T>] => {
-  const [source, setSource] = useCreateSignal(false)
-  const [data] = createResource(source, action)
-  const trigger = () => setSource(true)
-  return [trigger, data]
-}
+import { ReactNode, Suspense, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
+import { api } from '~/api'
 
 const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`
-
-type PrimeActivityProps = {
-  dongleId: string
-}
 
 type PrimePlan = 'nodata' | 'data'
 
@@ -50,34 +29,30 @@ const PrimePlanName: Record<PrimePlan, string> = {
   data: 'Standard',
 }
 
-const Plan = (props: PlanProps) => {
-  return props as unknown as ReactNode
-}
-
-const PlanSelector = (props: {
-  plan: Accessor<PrimePlan | undefined>
-  setPlan: Setter<PrimePlan | undefined>
+const PlanSelector = ({
+  selectedPlan,
+  setSelectedPlan,
+  disabled,
+  plans,
+}: {
+  selectedPlan: PrimePlan | undefined
+  setSelectedPlan: (p: PrimePlan | undefined) => void
   disabled?: boolean
-  children?: ReactNode
+  plans: PlanProps[]
 }) => {
-  const plans = createMemo<PlanProps[]>(() => {
-    const p = props.children
-    return (Array.isArray(p) ? p : [p]) as unknown[] as PlanProps[]
-  })
-
   return (
     <div className="relative">
       <div className="flex w-full gap-2 xs:gap-4">
-        {plans().map((plan) => (
+        {plans.map((plan) => (
           <ButtonBase
             className={clsx(
               'flex grow basis-0 flex-col items-center justify-center gap-2 rounded-lg p-2 text-center xs:p-4',
               'state-layer bg-tertiary text-on-tertiary transition before:bg-on-tertiary',
-              props.plan() === plan.name && 'ring-4 ring-on-tertiary',
+              selectedPlan === plan.name && 'ring-4 ring-on-tertiary',
               plan.disabled && 'cursor-not-allowed opacity-50',
             )}
-            onClick={() => props.setPlan(plan.name)}
-            disabled={plan.disabled || props.disabled}
+            onClick={() => setSelectedPlan(plan.name)}
+            disabled={plan.disabled || disabled}
           >
             <span className="text-md">{PrimePlanName[plan.name].toLowerCase()}</span>
             <span className="text-lg font-bold">{formatCurrency(plan.amount)}/month</span>
@@ -90,13 +65,13 @@ const PlanSelector = (props: {
 }
 
 const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
-  const [selectedPlan, setSelectedPlan] = useCreateSignal<PrimePlan>()
+  const [selectedPlan, setSelectedPlan] = useState<PrimePlan | undefined>()
 
   const [device] = createResource(dongleId, getDevice)
   const [subscribeInfo] = createResource(dongleId, getSubscribeInfo)
 
   const search = useLocation().search
-  const stripeCancelled = () => new URLSearchParams(search).has('stripe_cancelled')
+  const stripeCancelled = new URLSearchParams(search).has('stripe_cancelled')
 
   const [checkout, checkoutData] = useAction(async () => {
     const { url } = await getStripeCheckout(dongleId, subscribeInfo.data!.sim_id!, selectedPlan()!)
@@ -193,22 +168,27 @@ const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
         .
       </p>
 
-      {stripeCancelled() && (
+      {stripeCancelled && (
         <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
           <Icon name="error" className="text-error" size="20" />
           Checkout cancelled
         </div>
       )}
 
-      <PlanSelector plan={selectedPlan} setPlan={setSelectedPlan} disabled={isLoading()}>
-        <Plan name="nodata" amount={1000} description="bring your own sim card" />
-        <Plan
-          name="data"
-          amount={2400}
-          description="including data plan, only offered in the U.S."
-          disabled={uiState.data?.disabledDataPlanText}
-        />
-      </PlanSelector>
+      <PlanSelector
+        selectedPlan={selectedPlan}
+        setSelectedPlan={setSelectedPlan}
+        disabled={isLoading()}
+        plans={[
+          { name: 'nodata', amount: 1000, description: 'bring your own sim card' },
+          {
+            name: 'data',
+            amount: 2400,
+            description: 'including data plan, only offered in the U.S.',
+            disabled: uiState.data?.disabledDataPlanText,
+          },
+        ]}
+      />
 
       {uiState.data?.disabledDataPlanText && (
         <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
@@ -218,7 +198,7 @@ const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
       )}
 
       {uiState.data?.checkoutText && (
-        <Button color="tertiary" disabled={!selectedPlan()} loading={checkoutData.loading} onClick={checkout}>
+        <Button color="tertiary" disabled={!selectedPlan} loading={checkoutData.loading} onClick={checkout}>
           {uiState.data.checkoutText}
         </Button>
       )}
@@ -229,7 +209,7 @@ const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
 }
 
 const PrimeManage = ({ dongleId }: { dongleId: string }) => {
-  const stripeSessionId = () => new URLSearchParams(useLocation().search).get('stripe_success')
+  const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')
 
   const [stripeSession] = createQuery({
     source: () => {
@@ -378,9 +358,7 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: Resource<Device> }) => {
-  const [deviceName] = createResource(device, getDeviceName)
-
+const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: Device }) => {
   const [unpair, unpairData] = useAction(async () => {
     const { success } = await unpairDevice(dongleId)
     if (success) window.location.href = window.location.origin
@@ -388,7 +366,7 @@ const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: Re
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg">{deviceName.data}</h2>
+      <h2 className="text-lg">{device.name}</h2>
       {unpairData.error && (
         <div className="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
           <Icon className="text-error" name="error" size="20" />
@@ -403,8 +381,11 @@ const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: Re
 }
 
 export const Component = () => {
-  const [device] = createResource(dongleId, getDevice)
+  const dongleId = useParams().dongleId!
+  const res = api.devices.get.useQuery(['device', dongleId], { params: { dongleId } })
+  const device = res.data?.body
 
+  if (!device) return null
   return (
     <>
       <TopAppBar component="h2" leading={<IconButton className="md:hidden" name="arrow_back" href={`/${dongleId}`} />}>
@@ -417,13 +398,7 @@ export const Component = () => {
 
         <h2 className="text-lg">comma prime</h2>
         <Suspense fallback={<div className="h-64 skeleton-loader rounded-md" />}>
-          {device.data?.prime === false ? (
-            <PrimeCheckout dongleId={dongleId} />
-          ) : device.data?.prime === true ? (
-            <PrimeManage dongleId={dongleId} />
-          ) : (
-            <></>
-          )}
+          {!device.prime ? <PrimeCheckout dongleId={dongleId} /> : <PrimeManage dongleId={dongleId} />}
         </Suspense>
       </div>
     </>

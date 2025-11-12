@@ -7,7 +7,6 @@ import { IconButton } from '~/components/material/IconButton'
 import { TopAppBar } from '~/components/material/TopAppBar'
 import { DeviceLocation } from '~/components/DeviceLocation'
 import { DeviceStatistics } from '~/components/DeviceStatistics'
-import { UploadQueue } from '~/components/UploadQueue'
 
 import { RouteList } from './RouteList'
 import { api } from '~/api'
@@ -69,7 +68,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           {isDeviceUser && (
             <>
               <DeviceStatistics dongleId={dongleId} className="p-4" />
-              {queueVisible && <UploadQueue dongleId={dongleId} />}
+              {/* {queueVisible && <UploadQueue dongleId={dongleId} />} */}
               <button
                 className={clsx(
                   'flex w-full cursor-pointer justify-center rounded-b-lg bg-surface-container-lowest p-2',

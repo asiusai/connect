@@ -2,11 +2,11 @@ import clsx from 'clsx'
 
 import { Icon, type IconName } from '~/components/material/Icon'
 import { Button } from './material/Button'
-import { uploadAllSegments, type FileType } from '~/api/file'
 import type { Route } from '~/api/types'
-import { useCreateSignal } from '~/fix'
+import { useState } from 'react'
+import { FileType, uploadAllSegments } from '~/api/file'
 
-const BUTTON_TYPES = ['road', 'driver', 'logs', 'route'] as const
+const BUTTON_TYPES = ['road', 'driver', 'logs', 'all'] as const
 type ButtonType = (typeof BUTTON_TYPES)[number]
 type ButtonState = 'idle' | 'loading' | 'success' | 'error'
 
@@ -16,14 +16,7 @@ const BUTTON_TO_FILE_TYPES = {
   logs: ['logs'],
 } as const
 
-interface UploadButtonProps {
-  state: ButtonState
-  onClick: () => void
-  icon: IconName
-  text: string
-}
-
-export const UploadButton = (props: UploadButtonProps) => {
+export const UploadButton = (props: { state: ButtonState; onClick: () => void; icon: IconName; text: string }) => {
   const icon = () => props.icon
   const state = () => props.state
   const disabled = () => state() === 'loading' || state() === 'success'
@@ -53,48 +46,30 @@ export const UploadButton = (props: UploadButtonProps) => {
   )
 }
 
-interface RouteUploadButtonsProps {
-  route: Route | undefined
-}
-
-export const RouteUploadButtons = (props: RouteUploadButtonsProps) => {
-  return null
-  const [uploadStore, setUploadStore] = createStore<Record<ButtonType, ButtonState>>({
+export const RouteUploadButtons = (props: { route: Route | undefined }) => {
+  const [uploadStore, setUploadStore] = useState<Record<ButtonType, ButtonState>>({
     road: 'idle',
     driver: 'idle',
     logs: 'idle',
-    route: 'idle',
+    all: 'idle',
   })
-  const [abortController, setAbortController] = useCreateSignal(new AbortController())
 
-  createEffect(
-    on(
-      () => props.route,
-      () => {
-        abortController().abort()
-        setAbortController(new AbortController())
-        setUploadStore(BUTTON_TYPES, 'idle')
-      },
-    ),
-  )
+  const updateButtonStates = (buttons: ButtonType[], state: ButtonState) => {
+    setUploadStore((store) => ({ ...store, ...Object.fromEntries(buttons.map((x) => [x, state])) }))
+  }
 
   const handleUpload = async (type: ButtonType) => {
     if (!props.route) return
     const { fullname, maxqlog } = props.route
-    const { signal } = abortController()
-
-    const updateButtonStates = (types: readonly ButtonType[], state: ButtonState) => {
-      if (signal.aborted) return
-      setUploadStore(types, state)
-    }
 
     const uploadButtonTypes: ButtonType[] = [type]
     let uploadFileTypes: FileType[] = []
-    for (const check of type === 'route' ? (['road', 'driver', 'logs'] as const) : [type]) {
-      const state = uploadStore[check]
+    const types = type === 'all' ? (['road', 'driver', 'logs'] as const) : [type]
+    for (const type of types) {
+      const state = uploadStore[type]
       if (state === 'loading' || state === 'success') continue
-      uploadButtonTypes.push(check)
-      uploadFileTypes = uploadFileTypes.concat(BUTTON_TO_FILE_TYPES[check])
+      uploadButtonTypes.push(type)
+      uploadFileTypes = uploadFileTypes.concat(BUTTON_TO_FILE_TYPES[type])
     }
 
     updateButtonStates(uploadButtonTypes, 'loading')
@@ -113,7 +88,7 @@ export const RouteUploadButtons = (props: RouteUploadButtonsProps) => {
         <UploadButton text="Road" icon="videocam" state={uploadStore.road} onClick={() => handleUpload('road')} />
         <UploadButton text="Driver" icon="person" state={uploadStore.driver} onClick={() => handleUpload('driver')} />
         <UploadButton text="Logs" icon="description" state={uploadStore.logs} onClick={() => handleUpload('logs')} />
-        <UploadButton text="All" icon="upload" state={uploadStore.route} onClick={() => handleUpload('route')} />
+        <UploadButton text="All" icon="upload" state={uploadStore.all} onClick={() => handleUpload('all')} />
       </div>
     </div>
   )
