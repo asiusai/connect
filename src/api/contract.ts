@@ -86,6 +86,15 @@ const routes = c.router({
       200: Route,
     },
   },
+  allRoutes: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/routes',
+    pathParams: z.object({ dongleId: z.string() }),
+    query: z.object({ limit: z.number(), created_before: z.number().optional() }),
+    responses: {
+      200: Route.array(),
+    },
+  },
 })
 
 const devices = c.router({

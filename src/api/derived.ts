@@ -90,19 +90,21 @@ const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
   return (await Promise.all(results)).filter((it) => it !== undefined)
 }
 
-export const getCoords = (route: Route): Promise<GPSPathPoint[]> =>
-  getDerived<GPSPathPoint[]>(route, 'coords.json').then((coords) => coords.flat())
+export const getCoords = async (route: Route): Promise<GPSPathPoint[]> => {
+  const res = await getDerived<GPSPathPoint[]>(route, 'coords.json')
+  return res.flat()
+}
 
-const getDriveEvents = (route: Route): Promise<DriveEvent[]> =>
-  getDerived<DriveEvent[]>(route, 'events.json').then((events) => events.flat())
+const getDriveEvents = async (route: Route): Promise<DriveEvent[]> => {
+  const res = await getDerived<DriveEvent[]>(route, 'events.json')
+  return res.flat()
+}
 
 const generateTimelineEvents = (route: Route, events: DriveEvent[]): TimelineEvent[] => {
   const routeDuration = getRouteDuration(route)?.asMilliseconds() ?? 0
 
   // sort events by timestamp
-  events.sort((a, b) => {
-    return a.route_offset_millis - b.route_offset_millis
-  })
+  events.sort((a, b) => a.route_offset_millis - b.route_offset_millis)
 
   // convert events to timeline events
   const res: TimelineEvent[] = []
@@ -120,7 +122,7 @@ const generateTimelineEvents = (route: Route, events: DriveEvent[]): TimelineEve
           type: 'engaged',
           route_offset_millis: lastEngaged.route_offset_millis,
           end_route_offset_millis: ev.route_offset_millis,
-        } as EngagedTimelineEvent)
+        } satisfies EngagedTimelineEvent)
         lastEngaged = undefined
       }
       if (!lastEngaged && enabled) {
@@ -133,7 +135,7 @@ const generateTimelineEvents = (route: Route, events: DriveEvent[]): TimelineEve
           route_offset_millis: lastAlert.route_offset_millis,
           end_route_offset_millis: ev.route_offset_millis,
           alertStatus: lastAlert.data.alertStatus,
-        } as AlertTimelineEvent)
+        } satisfies AlertTimelineEvent)
         lastAlert = undefined
       }
       if (!lastAlert && alertStatus !== 0) {
@@ -145,7 +147,7 @@ const generateTimelineEvents = (route: Route, events: DriveEvent[]): TimelineEve
           type: 'overriding',
           route_offset_millis: lastOverride.route_offset_millis,
           end_route_offset_millis: ev.route_offset_millis,
-        } as OverridingTimelineEvent)
+        } satisfies OverridingTimelineEvent)
         lastOverride = undefined
       }
       if (!lastOverride && isOverriding(state)) {
@@ -186,18 +188,17 @@ const generateTimelineEvents = (route: Route, events: DriveEvent[]): TimelineEve
   return res
 }
 
-export const getTimelineEvents = (route: Route): Promise<TimelineEvent[]> =>
-  getDriveEvents(route).then((events) => generateTimelineEvents(route, events))
+export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> => {
+  const events = await getDriveEvents(route)
+  return generateTimelineEvents(route, events)
+}
 
 export const generateRouteStatistics = (route: Route | undefined, timeline: TimelineEvent[]): RouteStatistics => {
   let engagedDurationMs = 0
   let userFlags = 0
   timeline.forEach((ev) => {
-    if (ev.type === 'engaged') {
-      engagedDurationMs += ev.end_route_offset_millis - ev.route_offset_millis
-    } else if (ev.type === 'user_flag') {
-      userFlags += 1
-    }
+    if (ev.type === 'engaged') engagedDurationMs += ev.end_route_offset_millis - ev.route_offset_millis
+    else if (ev.type === 'user_flag') userFlags += 1
   })
 
   return {
@@ -207,5 +208,7 @@ export const generateRouteStatistics = (route: Route | undefined, timeline: Time
   }
 }
 
-export const getRouteStatistics = async (route: Route): Promise<RouteStatistics> =>
-  getTimelineEvents(route).then((timeline) => generateRouteStatistics(route, timeline))
+export const getRouteStatistics = async (route: Route): Promise<RouteStatistics> => {
+  const events = await getTimelineEvents(route)
+  return generateRouteStatistics(route, events)
+}
