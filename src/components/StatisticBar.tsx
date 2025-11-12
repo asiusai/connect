@@ -6,7 +6,7 @@ export const StatisticBar = (props: { className?: string; statistics: { label: s
     <div className="flex flex-col">
       <div className={clsx('flex h-auto w-full justify-between gap-8', props.className)}>
         {props.statistics.map((statistic) => (
-          <div className="flex basis-0 grow flex-col justify-between">
+          <div key={statistic.label} className="flex basis-0 grow flex-col justify-between">
             <span className="text-xs text-on-surface-variant">{statistic.label}</span>
             <Suspense fallback={<div className="h-[20px] w-auto skeleton-loader rounded-xs" />}>
               <span className="font-mono text-sm">{statistic.value()?.toString() ?? '—'}</span>

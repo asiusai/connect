@@ -9,12 +9,13 @@ export const Profile = z.object({
 })
 
 export const DeviceLocation = z.object({
+  dongle_id:z.string(),
   lat: z.number(),
   lng: z.number(),
   time: z.number(),
-  accuracy: z.number(),
-  speed: z.number(),
-  bearing: z.number(),
+  accuracy: z.number().optional(),
+  speed: z.number().optional(),
+  bearing: z.number().optional(),
 })
 
 const NAMES: Record<string, string> = {

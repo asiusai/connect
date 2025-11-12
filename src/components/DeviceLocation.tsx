@@ -1,177 +1,138 @@
 import clsx from 'clsx'
-import L from 'leaflet'
-
 import { Icon } from './material/Icon'
 import { Button } from './material/Button'
-
 import { Card } from '~/components/material/Card'
 import type { IconName } from '~/components/material/Icon'
 import { IconButton } from '~/components/material/IconButton'
 import { getTileUrl } from '~/map'
 import { getFullAddress } from '~/map/geocode'
+import { useEffect, useState } from 'react'
+import { api } from '~/api'
+import L from "leaflet"
+import { MapContainer, Marker, TileLayer, useMap, } from 'react-leaflet'
+
 
 type Location = {
   lat: number
   lng: number
   label: string
   address: string | null
+  iconName:IconName
+  iconClass?:string
 }
 
 const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
 
-type DeviceLocationProps = {
-  dongleId: string
-  deviceName: string
-}
+const usePosition = () => {
+  const [position, setPosition] = useState<GeolocationPosition | null>(null)
 
-export const DeviceLocation = (props: DeviceLocationProps) => {
-  return null
-  let mapRef!: HTMLDivElement
-
-  const [map, setMap] = createSignal<L.Map | null>(null)
-  const [selectedLocation, setSelectedLocation] = createSignal<Location | null>(null)
-  const [showSelectedLocation, setShowSelectedLocation] = createSignal(false)
-  const [userPosition, setUserPosition] = createSignal<GeolocationPosition | null>(null)
-  const [deviceLocation] = createResource(
-    () => props.dongleId,
-    (dongleId) => getDeviceLocation(dongleId),
-  )
-
-  onMount(() => {
+  const requestPosition = () => {
+    navigator.geolocation.getCurrentPosition(setPosition, (err) => {
+      console.log("Error getting user's position", err)
+      setPosition(null)
+    })
+  }
+  useEffect(() => {
     navigator.permissions
       .query({ name: 'geolocation' })
       .then((permission) => {
-        permission.addEventListener('change', requestUserLocation)
+        permission.addEventListener('change', requestPosition)
 
-        if (permission.state === 'granted') {
-          requestUserLocation()
-        }
+        if (permission.state === 'granted') requestPosition()
       })
-      .catch(() => setUserPosition(null))
+      .catch(() => setPosition(null))
+  }, [])
+  return { position, requestPosition }
+}
+function FitBounds({ markers }: { markers: Location[] }) {
+  const map = useMap()
 
-    const tileUrl = getTileUrl()
-    const tileLayer = L.tileLayer(tileUrl)
+  useEffect(() => {
+    if (!markers.length) return
 
-    const m = L.map(mapRef, {
-      attributionControl: false,
-      zoomControl: false,
-      layers: [tileLayer],
-    })
-    m.setView(SAN_DIEGO, 10)
-    m.on('click', () => setShowSelectedLocation(false))
+    if (markers.length === 1) {
+      const { lat, lng } = markers[0]
+      map.setView([lat, lng], 14, { animate: true })
+    } else {
+      const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]))
+      map.fitBounds(bounds, { padding: [50, 50], animate: true })
+    }
+  }, [markers, map])
 
-    setMap(m)
+  return null
+}
 
-    // fix: leaflet sometimes misses resize events
-    // and leaves unrendered gray tiles
-    const observer = new ResizeObserver(() => m.invalidateSize())
-    observer.observe(mapRef)
+export const DeviceLocation = ({ dongleId, deviceName }: { dongleId: string; deviceName: string }) => {
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
+  const [showLocationInfo, setShowLocationInfo] = useState(false)
+  const { position, requestPosition } = usePosition()
+  const [markers,setMarkers] = useState<Location[]>([])
 
-    onCleanup(() => {
-      observer.disconnect()
-      m.remove()
-    })
-  })
-
-  const [locationData] = createResource(
-    () => ({
-      map: map(),
-      deviceName: props.deviceName,
-      deviceLocation: deviceLocation(),
-      userPosition: userPosition(),
-    }),
-    async (args) => {
-      if (!args.map) {
-        return []
-      }
-
-      const foundLocations: Location[] = []
-
-      const location = deviceLocation()
-      if (location) {
-        const address = await getFullAddress([location.lng, location.lat])
-        const deviceLoc: Location = {
-          lat: location.lat,
-          lng: location.lng,
-          label: args.deviceName,
-          address,
-        }
-
-        addMarker(args.map, deviceLoc, 'directions_car')
-        foundLocations.push(deviceLoc)
-      }
-
-      if (args.userPosition) {
-        const { longitude, latitude } = args.userPosition.coords
-        const address = await getFullAddress([longitude, latitude])
-        const userLoc: Location = {
-          lat: latitude,
-          lng: longitude,
-          label: 'You',
-          address,
-        }
-
-        addMarker(args.map, userLoc, 'person', 'bg-primary')
-        foundLocations.push(userLoc)
-      }
-
-      if (foundLocations.length > 1) {
-        args.map.fitBounds(L.latLngBounds(foundLocations.map((l) => [l.lat, l.lng])), { padding: [50, 50] })
-      } else if (foundLocations.length === 1) {
-        args.map.setView([foundLocations[0].lat, foundLocations[0].lng], 15)
-      } else {
-        throw new Error('Offline')
-      }
-
-      return foundLocations
-    },
-  )
-
-  const addMarker = (instance: L.Map, loc: Location, iconName: IconName, iconClass?: string) => {
-    const el = document.createElement('div')
-
-    render(
-      () => (
-        <div class={clsx('flex size-[40px] items-center justify-center rounded-full bg-primary-container', iconClass)}>
-          <Icon name={iconName} />
-        </div>
-      ),
-      el,
-    )
-
-    const icon = L.divIcon({
-      className: 'border-none bg-none',
-      html: el.innerHTML,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-    })
-
-    L.marker([loc.lat, loc.lng], { icon })
-      .addTo(instance)
-      .on('click', () => {
-        setSelectedLocation(loc)
-        setShowSelectedLocation(true)
+  const deviceLocation = api.devices.location.useQuery(["location",dongleId], { params: { dongleId } })
+  const location = deviceLocation.data?.body
+  
+  useEffect(()=>{
+    const effect = async ()=>{
+    const markers:Location[] = []
+    if (location){
+      markers.push({
+        address:await getFullAddress([location.lng,location.lat]),
+        lat:location.lat,
+        lng:location.lng,
+        label:deviceName,
+        iconName:"directions_car",
       })
+    }
+    if (position){
+      markers.push({
+        address:await getFullAddress([position.coords.longitude,position.coords.latitude]),
+        lat:position.coords.latitude,
+        lng:position.coords.longitude,
+        label:"You",
+        iconName:"person",
+        iconClass:"bg-primary"
+      })
+    }
+    setMarkers(markers)
   }
-
-  const requestUserLocation = () => {
-    navigator.geolocation.getCurrentPosition(setUserPosition, (err) => {
-      console.log("Error getting user's position", err)
-      setUserPosition(null)
-    })
-  }
+  effect()
+  },[position,deviceName,location])
 
   return (
     <div className="relative">
-      <div ref={mapRef} className="h-[240px] w-full !bg-surface-container-low" />
+      <MapContainer
+        attributionControl={false}
+        zoomControl={false}
+        center={SAN_DIEGO}
+        zoom={10}
+        
+      className="h-[240px] w-full !bg-surface-container-low" >
+        <TileLayer url={getTileUrl()}/>
 
-      {!userPosition() && !showSelectedLocation() && (
+        {markers.map(x=>
+        <Marker 
+        key={x.iconName} 
+        position={[x.lat,x.lng]} 
+        eventHandlers={{ click:()=>{
+          setSelectedLocation(x)
+          setShowLocationInfo(true)
+        }}}
+        icon={L.divIcon({
+            className: 'border-none bg-none',
+            html: `<div class="flex size-[40px] items-center justify-center rounded-full bg-primary-container ${x.iconClass}"><span class="material-symbols-outlined flex icon-outline">${x.iconName}</span></div>`,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+          })}
+          />)}
+          <FitBounds markers={markers}/>
+      </MapContainer>
+
+      {!position && !showLocationInfo && (
         <div className="absolute bottom-2 right-2 z-[9999]">
           <Button
-            title="Show your current location"
             color="secondary"
             className="bg-surface-container-low text-on-surface-variant"
-            onClick={() => void requestUserLocation()}
+            onClick={() => void requestPosition()}
             leading={<Icon name="my_location" size="20" />}
           >
             Show my location
@@ -179,35 +140,28 @@ export const DeviceLocation = (props: DeviceLocationProps) => {
         </div>
       )}
 
-      {locationData.loading && (
+      {!markers.length && (
         <div className="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-surface-variant px-4 py-2 shadow">
           <div className="mr-2 size-4 animate-spin rounded-full border-2 border-on-surface-variant border-t-transparent" />
           <span className="text-sm">Locating...</span>
         </div>
       )}
 
-      {(locationData.error as Error)?.message && (
-        <div className="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-surface-variant px-4 py-2 shadow">
-          <Icon className="mr-2" name="error" size="20" />
-          <span className="text-sm">{(locationData.error as Error).message}</span>
-        </div>
-      )}
-
       <Card
-        class={clsx(
+        className={clsx(
           'absolute inset-2 top-auto z-[9999] flex !bg-surface-container-high p-4 pt-3 transition-opacity duration-150',
-          showSelectedLocation() ? 'opacity-100' : 'pointer-events-none opacity-0',
+          showLocationInfo ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       >
         <div className="mb-2 flex flex-row items-center justify-between gap-4">
-          <span className="truncate text-md">{selectedLocation()?.label}</span>
-          <IconButton name="close" onClick={() => setShowSelectedLocation(false)} />
+          <span className="truncate text-md">{selectedLocation?.label}</span>
+          <IconButton name="close" onClick={() => setShowLocationInfo(false)} />
         </div>
         <div className="flex flex-col items-end gap-3 xs:flex-row">
-          <span className="text-sm text-on-surface-variant">{selectedLocation()?.address}</span>
+          <span className="text-sm text-on-surface-variant">{selectedLocation?.address}</span>
           <Button
             color="secondary"
-            onClick={() => window.open(`https://www.google.com/maps?q=${selectedLocation()!.lat},${selectedLocation()!.lng}`, '_blank')}
+            onClick={() => window.open(`https://www.google.com/maps?q=${selectedLocation!.lat},${selectedLocation!.lng}`, '_blank')}
             trailing={<Icon name="open_in_new" size="20" />}
           >
             Open in Maps

@@ -25,7 +25,7 @@
     "@biomejs/biome": "2.2.3",
     "@types/bun": "^1.2.9",
     "@types/geojson": "^7946.0.16",
-    "@types/leaflet": "^1.9.17",
+    "@types/leaflet": "^1.9.21",
     "@types/mapbox__polyline": "^1.0.5",
     "@vite-pwa/assets-generator": "^1.0.0",
     "@vitest/browser": "^3.1.1",
@@ -54,6 +54,7 @@
     "hls.js": "1.5.20",
     "leaflet": "^1.9.4",
     "qr-scanner": "^1.4.2",
+    "react-leaflet": "^5.0.0-rc.2",
     "react-router-dom": "^7.9.5",
     "sonner": "^2.0.7"
   },

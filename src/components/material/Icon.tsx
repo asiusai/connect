@@ -34,7 +34,7 @@ export const Icon = (props: IconProps) => {
         'material-symbols-outlined flex',
         props.filled ? 'icon-filled' : 'icon-outline',
         `size-${props.size || '24'}`,
-        props.class,
+        props.className,
       )}
     >
       {props.name}

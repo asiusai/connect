@@ -91,7 +91,7 @@ const routes = c.router({
 const devices = c.router({
   get: {
     method: 'GET',
-    path: '/v1.1/devices/:dongleId',
+    path: '/v1.1/devices/:dongleId/',
     pathParams: z.object({ dongleId: z.string() }),
     responses: {
       200: Device,
@@ -268,7 +268,7 @@ export const contract = c.router(
   },
   {
     commonResponses: {
-      400: c.type(),
+      400: z.string(),
       401: z.string(),
       402: z.string(),
       403: z.string(),
