@@ -2,8 +2,6 @@ import { initContract } from '@ts-rest/core'
 import {
   AthenaRequest,
   AthenaOfflineQueueResponse,
-  BackendAthenaCallResponse,
-  BackendAthenaCallResponseError,
   Device,
   DeviceLocation,
   DrivingStatistics,
@@ -14,8 +12,10 @@ import {
   SubscribeInfo,
   SubscriptionStatus,
   UploadFileMetadataResponse,
+  AthenaResponse,
 } from './types'
 import { z } from 'zod'
+import { ATHENA_URL, BILLING_URL } from './config'
 
 const c = initContract()
 
@@ -149,6 +149,7 @@ const devices = c.router({
 
 const athena = c.router({
   athena: {
+    metadata: { baseUrl: ATHENA_URL },
     method: 'POST',
     path: '/:dongleId',
     pathParams: z.object({
@@ -156,7 +157,7 @@ const athena = c.router({
     }),
     body: AthenaRequest,
     responses: {
-      200: BackendAthenaCallResponse.or(BackendAthenaCallResponseError),
+      200: AthenaResponse,
     },
   },
 })
@@ -184,9 +185,9 @@ const file = c.router({
   },
 })
 
-// with BILLING_URL
 const prime = c.router({
   status: {
+    metadata: { baseUrl: BILLING_URL },
     method: 'GET',
     path: '/v1/prime/subscription',
     query: z.object({
@@ -197,6 +198,7 @@ const prime = c.router({
     },
   },
   info: {
+    metadata: { baseUrl: BILLING_URL },
     method: 'GET',
     path: '/v1/prime/subscribe_info',
     query: z.object({
@@ -207,6 +209,7 @@ const prime = c.router({
     },
   },
   cancel: {
+    metadata: { baseUrl: BILLING_URL },
     method: 'POST',
     path: '/v1/prime/cancel',
     body: z.object({
@@ -219,6 +222,7 @@ const prime = c.router({
     },
   },
   getCheckout: {
+    metadata: { baseUrl: BILLING_URL },
     method: 'POST',
     path: '/v1/prime/stripe_checkout',
     body: z.object({
@@ -233,6 +237,7 @@ const prime = c.router({
     },
   },
   getPortal: {
+    metadata: { baseUrl: BILLING_URL },
     method: 'GET',
     path: '/v1/prime/stripe_portal',
     query: z.object({
@@ -243,6 +248,7 @@ const prime = c.router({
     },
   },
   getSession: {
+    metadata: { baseUrl: BILLING_URL },
     method: 'GET',
     path: '/v1/prime/stripe_session',
     query: z.object({
@@ -257,6 +263,11 @@ const prime = c.router({
   },
 })
 
+const Err = z
+  .object({ error: z.string() })
+  .or(z.string())
+  .transform((x) => (typeof x === 'string' ? x : x.error))
+
 export const contract = c.router(
   {
     profile,
@@ -268,12 +279,12 @@ export const contract = c.router(
   },
   {
     commonResponses: {
-      400: z.string(),
-      401: z.string(),
-      402: z.string(),
-      403: z.string(),
-      404: z.string(),
-      500: z.string(),
+      400: Err,
+      401: Err,
+      402: Err,
+      403: Err,
+      404: Err,
+      500: Err,
     },
   },
 )

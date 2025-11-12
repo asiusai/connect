@@ -10,7 +10,11 @@ export const api = initQueryClient(contract, {
     authorization: `JWT ${accessToken()}`,
   },
   api: async (args) => {
-    const path = args.path
+    let path = args.path
+
+    const baseUrl = (args.route.metadata as any)?.baseUrl
+    if (baseUrl) path = path.replace(API_URL, baseUrl)
+
     const res = await fetch(path, {
       method: args.method,
       body: args.body,
@@ -23,8 +27,9 @@ export const api = initQueryClient(contract, {
     let body = await res.text()
     try {
       body = schema.parse(JSON.parse(body))
-    } catch {
+    } catch (e) {
       toast.error('Invalid body')
+      console.error(e)
       console.log(`Invalid body: ${body}`)
     }
 

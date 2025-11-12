@@ -205,8 +205,8 @@ export const AthenaRequest = z.discriminatedUnion('method', [
 ])
 export const AthenaOfflineQueueResponse = AthenaRequest.array()
 
-export const AthenaCallResponse = z.object({
-  queued: z.boolean(),
+export const AthenaResponse = z.object({
+  queued: z.boolean().optional(),
   error: z.string().optional(),
   result: z
     .union([
@@ -242,7 +242,7 @@ export type RouteShareSignature = z.infer<typeof RouteShareSignature>
 export type Files = z.infer<typeof Files>
 export type AthenaRequest = z.infer<typeof AthenaRequest>
 export type AthenaOfflineQueueResponse = z.infer<typeof AthenaOfflineQueueResponse>
-export type AthenaCallResponse = z.infer<typeof AthenaCallResponse>
+export type AthenaResponse = z.infer<typeof AthenaResponse>
 export type BackendAthenaCallResponse = z.infer<typeof BackendAthenaCallResponse>
 export type BackendAthenaCallResponseError = z.infer<typeof BackendAthenaCallResponseError>
 export type DataFile = z.infer<typeof DataFile>

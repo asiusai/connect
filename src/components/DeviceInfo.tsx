@@ -20,27 +20,14 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   // TODO: remove this. if we're listing the routes for a device you should always be a user, this is for viewing public routes which are being removed
   const isDeviceUser = res.isLoading ? true : device?.is_owner || device?.alias !== SHARED_DEVICE
   const [queueVisible, setQueueVisible] = useState(false)
-  const [snapshot, setSnapshot] = useState({ images: [], isError: false, isLoading: true, error: undefined })
+  const snapshot = api.athena.athena.useMutation({
+    onSuccess: (x: any) => setImages([x.body.result.jpegFront, x.body.result.jpegBack]),
+  })
+  const [images, setImages] = useState<string[]>([])
 
-  const onClickSnapshot = async () => {
-    // setSnapshot({ error: null, fetching: true,images:[] })
-    // try {
-    //   const resp = await takeSnapshot(dongleId)
-    //   const images = [resp.result?.jpegFront, resp.result?.jpegBack].filter((it) => it !== undefined)
-    //   if (images.length > 0) {
-    //     setSnapshot('images', images)
-    //   } else {
-    //     throw new Error('No images found.')
-    //   }
-    // } catch (err) {
-    //   let error = (err as Error).message
-    //   if (error.includes('Device not registered')) {
-    //     error = 'Device offline'
-    //   }
-    //   setSnapshot('error', error)
-    // } finally {
-    //   setSnapshot('fetching', false)
-    // }
+  const onClickSnapshot = () => {
+    setImages([])
+    snapshot.mutate({ body: { id: 0, jsonrpc: '2.0', method: 'takeSnapshot', expiry: undefined }, params: { dongleId } })
   }
 
   const downloadSnapshot = (image: string, index: number) => {
@@ -50,15 +37,6 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  }
-
-  const clearImage = (index: number) => {
-    // const newImages = snapshot.images.filter((_, i) => i !== index)
-    // setSnapshot('images', newImages)
-  }
-
-  const clearError = () => {
-    // setSnapshot('error', null)
   }
 
   const { modal } = useDrawerContext()
@@ -106,18 +84,18 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           )}
         </div>
         <div className="flex flex-col gap-2">
-          {snapshot.images.map((image, i) => (
+          {images.map((image, i) => (
             <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
               <div className="relative p-4">
                 <img src={`data:image/jpeg;base64,${image}`} alt={`Device Snapshot ${i + 1}`} />
                 <div className="absolute right-4 top-4 p-4">
                   <IconButton className="text-white" name="download" onClick={() => downloadSnapshot(image, i)} />
-                  <IconButton className="text-white" name="clear" onClick={() => clearImage(i)} />
+                  <IconButton className="text-white" name="clear" onClick={() => setImages(images.filter((_, j) => j !== i))} />
                 </div>
               </div>
             </div>
           ))}
-          {snapshot.isLoading && (
+          {snapshot.isPending && (
             <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
               <div className="p-4">
                 <div>Loading snapshots...</div>
@@ -127,8 +105,8 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           {snapshot.isError && (
             <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
               <div className="flex items-center p-4">
-                <IconButton className="text-white" name="clear" onClick={clearError} />
-                <span>Error: {snapshot.error}</span>
+                <IconButton className="text-white" name="clear" onClick={() => snapshot.reset()} />
+                <span>Error: {snapshot.error.body as any}</span>
               </div>
             </div>
           )}
