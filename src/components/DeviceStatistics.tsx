@@ -9,10 +9,10 @@ export const DeviceStatistics = ({ dongleId, className }: { className?: string; 
   return (
     <StatisticBar
       className={className}
-      statistics={[
-        { label: 'Distance', value: () => formatDistance(allTime?.distance) },
-        { label: 'Duration', value: () => formatDuration(allTime?.minutes) },
-        { label: 'Routes', value: () => allTime?.routes },
+      stats={[
+        { label: 'Distance', value: formatDistance(allTime?.distance) },
+        { label: 'Duration', value: formatDuration(allTime?.minutes) },
+        { label: 'Routes', value: allTime?.routes },
       ]}
     />
   )

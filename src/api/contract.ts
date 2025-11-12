@@ -81,6 +81,7 @@ const routes = c.router({
   unPreserve: {
     method: 'DELETE',
     path: '/v1/route/:routeName/preserve',
+    body: z.any(),
     pathParams: z.object({ routeName: z.string() }),
     responses: {
       200: Route,

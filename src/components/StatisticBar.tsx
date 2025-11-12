@@ -1,7 +1,13 @@
 import clsx from 'clsx'
 import { Suspense } from 'react'
 
-export const StatisticBar = ({ stats, className }: { className?: string; stats?: { label: string; value: unknown }[] }) => {
+export const StatisticBar = ({
+  stats,
+  className,
+}: {
+  className?: string
+  stats?: { label: string; value: string | number | null | undefined }[]
+}) => {
   return (
     <div className="flex flex-col">
       <div className={clsx('flex h-auto w-full justify-between gap-8', className)}>

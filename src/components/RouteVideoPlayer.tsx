@@ -18,7 +18,6 @@ const ERROR_MISSING_SEGMENT = 'This video segment has not uploaded yet or has be
 const ERROR_UNSUPPORTED_BROWSER = 'This browser does not support Media Source Extensions API.'
 
 export const RouteVideoPlayer = (props: RouteVideoPlayerProps) => {
-  return null
   const [streamUrl] = createResource(props.routeName, createQCameraStreamUrl)
   const [hls, setHls] = useCreateSignal<Hls | null>()
   let video!: HTMLVideoElement

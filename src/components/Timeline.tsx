@@ -88,7 +88,6 @@ type TimelineProps = {
 }
 
 export const Timeline = (props: TimelineProps) => {
-  return null
   // TODO: align to first camera frame event
   const [markerOffsetPct, setMarkerOffsetPct] = useCreateSignal(0)
   const duration = () => getRouteDuration(props.route)?.asSeconds() ?? 0

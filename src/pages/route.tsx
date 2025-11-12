@@ -51,8 +51,8 @@ export const Component = () => {
 
       <div className="flex flex-col gap-6 px-4 pb-4">
         <div className="flex flex-col">
-          <RouteVideoPlayer ref={videoRef} routeName={routeName} selection={selection} onProgress={setSeekTime} />
-          <Timeline className="mb-1" route={route} seekTime={seekTime} updateTime={onTimelineChange} events={events} />
+          {/* <RouteVideoPlayer ref={videoRef} routeName={routeName} selection={selection} onProgress={setSeekTime} /> */}
+          {/* <Timeline className="mb-1" route={route} seekTime={seekTime} updateTime={onTimelineChange} events={events} /> */}
 
           {selection.startTime ||
             (selection.endTime && (
