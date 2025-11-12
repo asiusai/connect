@@ -16,6 +16,7 @@ const toError = (error: unknown): Error => {
 }
 
 export const Component = () => {
+  return null
   const onPair = () => {
     // TODO: onPair refetch devices
   }

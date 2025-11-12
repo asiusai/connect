@@ -1,5 +1,5 @@
 import clsx from "clsx"
-import { Navigate, Outlet } from "react-router-dom"
+import { Navigate, Outlet, useParams } from "react-router-dom"
 import { DeviceInfo } from "~/components/DeviceInfo"
 
 export const parseRouteId = (pathname: string) => {
@@ -15,6 +15,8 @@ export const parseRouteId = (pathname: string) => {
 }
 
 export const Component = () => {
+  const params = useParams()
+  console.log({params})
 
   const getDefaultDongleId = () => {
     // Do not redirect if dongle ID already selected

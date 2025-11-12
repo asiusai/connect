@@ -1,12 +1,12 @@
-import { createContext, ReactNode, useContext } from 'react'
+import { createContext, ReactNode, useContext, useState } from 'react'
 
 import { IconButton } from '~/components/material/IconButton'
-import { Accessor, useCreateSignal, Setter } from '~/fix'
+import { Setter } from '~/fix'
 import { useDimensions } from '~/utils/window'
 
 type DrawerContext = {
-  modal: Accessor<boolean>
-  open: Accessor<boolean>
+  modal: boolean
+  open: boolean
   setOpen: Setter<boolean>
 }
 
@@ -20,7 +20,7 @@ export function useDrawerContext() {
 
 export const DrawerToggleButton = () => {
   const { modal, setOpen } = useDrawerContext()
-  return <>{modal() && <IconButton name="menu" onClick={() => setOpen((prev) => !prev)} />}</>
+  return <>{modal && <IconButton name="menu" onClick={() => setOpen((prev) => !prev)} />}</>
 }
 
 const PEEK = 56
@@ -32,21 +32,20 @@ interface DrawerProps {
 
 export const Drawer = (props: DrawerProps) => {
   const dimensions = useDimensions()
-  const drawerWidth = () => Math.min(dimensions().width - PEEK, 320)
-  const modal = () => dimensions().width < 1280
-  const contentWidth = () => `calc(100% - ${modal() ? 0 : drawerWidth()}px)`
+  const drawerWidth = Math.min(dimensions.width - PEEK, 320)
+  const modal = dimensions.width < 1280
 
-  const [open, setOpen] = useCreateSignal(false)
-  const drawerVisible = () => !modal() || open()
+  const [open, setOpen] = useState(false)
+  const drawerVisible = !modal || open
 
   return (
     <DrawerContext.Provider value={{ modal, open, setOpen }}>
       <nav
         className="hide-scrollbar fixed inset-y-0 left-0 h-full touch-pan-y overflow-y-auto overscroll-y-contain transition-drawer ease-in-out duration-300"
         style={{
-          left: drawerVisible() ? 0 : `${-PEEK}px`,
-          opacity: drawerVisible() ? 1 : 0.5,
-          width: `${drawerWidth()}px`,
+          left: drawerVisible ? 0 : `${-PEEK}px`,
+          opacity: drawerVisible ? 1 : 0.5,
+          width: `${drawerWidth}px`,
         }}
       >
         <div className="flex size-full flex-col rounded-r-lg bg-surface-container-low text-on-surface-variant sm:rounded-r-none">
@@ -57,16 +56,16 @@ export const Drawer = (props: DrawerProps) => {
       <main
         className="absolute inset-y-0 overflow-y-auto bg-background transition-drawer ease-in-out duration-300"
         style={{
-          left: drawerVisible() ? `${drawerWidth()}px` : 0,
-          width: contentWidth(),
+          left: drawerVisible ? `${drawerWidth}px` : 0,
+          width: `calc(100% - ${modal ? 0 : drawerWidth}px)`,
         }}
       >
         {props.children}
         <div
           className="absolute inset-0 z-[9999] bg-background transition-drawer ease-in-out duration-300"
           style={{
-            pointerEvents: modal() && open() ? 'auto' : 'none',
-            opacity: modal() && open() ? 0.5 : 0,
+            pointerEvents: modal && open ? 'auto' : 'none',
+            opacity: modal && open ? 0.5 : 0,
           }}
           onClick={() => setOpen(false)}
         />

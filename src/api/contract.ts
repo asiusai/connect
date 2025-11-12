@@ -257,11 +257,23 @@ const prime = c.router({
   },
 })
 
-export const contract = c.router({
-  profile,
-  routes,
-  devices,
-  athena,
-  file,
-  prime,
-})
+export const contract = c.router(
+  {
+    profile,
+    routes,
+    devices,
+    athena,
+    file,
+    prime,
+  },
+  {
+    commonResponses: {
+      400: c.type(),
+      401: z.string(),
+      402: z.string(),
+      403: z.string(),
+      404: z.string(),
+      500: z.string(),
+    },
+  },
+)

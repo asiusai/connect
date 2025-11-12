@@ -11,6 +11,8 @@ import { Icon } from "~/components/material/Icon"
 import { USERADMIN_URL } from "~/api/config"
 import { Device } from "~/api/types"
 import { DrawerToggleButton } from "~/components/material/Drawer"
+import { api } from "~/api"
+import { Loading } from "~/components/material/Loading"
 
 const FirstPair = () => {
   const { modal } = useDrawerContext()
@@ -18,7 +20,7 @@ const FirstPair = () => {
     <>
       <TopAppBar
         className="font-bold"
-        leading={!modal() ? <img alt="" src="/images/comma-white.png" className="h-8" /> : <DrawerToggleButton />}
+        leading={!modal ? <img alt="" src="/images/comma-white.png" className="h-8" /> : <DrawerToggleButton />}
       >
         connect
       </TopAppBar>
@@ -45,12 +47,11 @@ const FirstPair = () => {
 export const DashboardDrawer = (props: { devices?: Device[] }) => {
   const { modal, setOpen } = useDrawerContext()
   const onClose = () => setOpen(false)
-
-  const [profile] = createResource({}, getProfile)
+  const profile = api.profile.me.useQuery(["me"])
 
   return (
     <>
-      <TopAppBar component="h2" leading={modal() ? <IconButton name="arrow_back" onClick={onClose} /> : undefined}>
+      <TopAppBar component="h2" leading={modal ? <IconButton name="arrow_back" onClick={onClose} /> : undefined}>
         Devices
       </TopAppBar>
       <DeviceList className="overflow-y-auto p-2" devices={props.devices} />
@@ -66,10 +67,10 @@ export const DashboardDrawer = (props: { devices?: Device[] }) => {
                 <Icon name="person" filled />
               </div>
               <div className="min-w-0 mx-3">
-                <ErrorBoundary fallback="Error loading profile">
-                  <div className="truncate text-sm text-on-surface">{profile.data?.email}</div>
-                  <div className="truncate text-xs text-on-surface-variant">{profile.data?.user_id}</div>
-                </ErrorBoundary>
+                {profile.data?.status === 200 ? <>
+                  <div className="truncate text-sm text-on-surface">{profile.data.body.email}</div>
+                  <div className="truncate text-xs text-on-surface-variant">{profile.data.body.user_id}</div>
+                </> : <div>Error loading profile</div>}
               </div>
               <div className="grow" />
               <IconButton name="logout" href="/logout" />
@@ -82,14 +83,12 @@ export const DashboardDrawer = (props: { devices?: Device[] }) => {
 }
 
 
-
 export const Component = () => {
-  // TODO
-  // const [devices, { refetch }] = createResource(getDevices, { initialValue: undefined })
-  const devices = { data: [] }
+  const devices = api.devices.devices.useQuery(["devices"])
 
   if (!isSignedIn()) return <Navigate to="/login" />
-  return <Drawer drawer={<DashboardDrawer devices={devices.data} />}>
-    {devices.data.length !== 0 ? <Outlet /> : <FirstPair />}
+  if (!devices.data) return <Loading/>
+  return <Drawer drawer={<DashboardDrawer devices={devices.data?.body} />}>
+    {devices.data?.body.length !== 0 ? <Outlet /> : <FirstPair />}
   </Drawer>
 }
