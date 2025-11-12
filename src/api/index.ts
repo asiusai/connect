@@ -10,12 +10,13 @@ export const api = initQueryClient(contract, {
     authorization: `JWT ${accessToken()}`,
   },
   api: async (args) => {
-    const res = await fetch(args.path, {
+    const path = args.path
+    const res = await fetch(path, {
       method: args.method,
       body: args.body,
       headers: args.headers,
     })
-    if (res.status > 400) toast.error(`Request to ${args.path} failed, code: ${res.status}`)
+    if (res.status > 400) toast.error(`Request to ${path} failed, code: ${res.status}`)
 
     const schema = args.route.responses[res.status] as any
 

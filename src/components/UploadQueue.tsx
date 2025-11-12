@@ -93,6 +93,7 @@ const StatusMessage = (props: { iconClass?: string; icon: IconName; message: str
 )
 
 export const UploadQueue = (props: { dongleId: string }) => {
+  return null
   const onlineQueue = useQuery(() => queries.getOnline(props.dongleId))
   const offlineQueue = useQuery(() => queries.getOffline(props.dongleId))
   const cancel = createMemo(() => queries.cancelUpload(props.dongleId))

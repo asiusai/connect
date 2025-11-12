@@ -114,34 +114,6 @@ export const Files = z.object({
   qcameras: z.string().array(),
   qlogs: z.string().array(),
 })
-
-export const AthenaCallRequest = z.object({
-  expiry: z.number().optional(),
-  id: z.number(),
-  jsonrpc: z.literal('2.0'),
-  method: z.string(),
-  params: z.any(),
-})
-export const AthenaOfflineQueueItem = AthenaCallRequest.extend({
-  expiry: z.number(),
-})
-export const AthenaOfflineQueueResponse = AthenaOfflineQueueItem.array()
-
-export const AthenaCallResponse = z.object({
-  queued: z.boolean(),
-  error: z.string().optional(),
-  result: z.any().optional(),
-})
-
-export const BackendAthenaCallResponse = z.object({
-  id: z.string(),
-  jsonrpc: z.literal('2.0'),
-  result: z.any().or(z.string()),
-})
-
-export const BackendAthenaCallResponseError = z.object({
-  error: z.string(),
-})
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
   fn: z.string(),
@@ -217,6 +189,47 @@ export const SubscribeInfo = z.object({
   trial_end_nodata: z.number().nullable(),
 })
 
+
+const AthenaRequestBase = z.object({
+  id: z.literal(0),
+  jsonrpc: z.literal('2.0'),
+  expiry: z.number().optional(),
+})
+export const AthenaRequest = z.discriminatedUnion('method', [
+  AthenaRequestBase.extend({ method: z.literal('getNetworkMetered') }),
+  AthenaRequestBase.extend({ method: z.literal('setRouteViewed'), params: z.object({ route: z.string() }) }),
+  AthenaRequestBase.extend({ method: z.literal('takeSnapshot') }),
+  AthenaRequestBase.extend({ method: z.literal('listUploadQueue') }),
+  AthenaRequestBase.extend({ method: z.literal('uploadFilesToUrls'), params: UploadFilesToUrlsRequest }),
+  AthenaRequestBase.extend({ method: z.literal('cancelUpload'), params: CancelUploadRequest }),
+])
+export const AthenaOfflineQueueResponse = AthenaRequest.array()
+
+export const AthenaCallResponse = z.object({
+  queued: z.boolean(),
+  error: z.string().optional(),
+  result: z
+    .union([
+      z.boolean(),
+      z.object({ route: z.string() }),
+      z.object({ jpegFront: z.string().optional(), jpegBack: z.string().optional() }),
+      UploadQueueItem.array(),
+      UploadFilesToUrlsResponse,
+      CancelUploadResponse,
+    ])
+    .optional(),
+})
+
+export const BackendAthenaCallResponse = z.object({
+  id: z.string(),
+  jsonrpc: z.literal('2.0'),
+  result: z.any().or(z.string()),
+})
+
+export const BackendAthenaCallResponseError = z.object({
+  error: z.string(),
+})
+
 // TYPES
 export type Profile = z.infer<typeof Profile>
 export type DeviceLocation = z.infer<typeof DeviceLocation>
@@ -227,8 +240,7 @@ export type Route = z.infer<typeof Route>
 export type RouteInfo = z.infer<typeof RouteInfo>
 export type RouteShareSignature = z.infer<typeof RouteShareSignature>
 export type Files = z.infer<typeof Files>
-export type AthenaCallRequest = z.infer<typeof AthenaCallRequest>
-export type AthenaOfflineQueueItem = z.infer<typeof AthenaOfflineQueueItem>
+export type AthenaRequest = z.infer<typeof AthenaRequest>
 export type AthenaOfflineQueueResponse = z.infer<typeof AthenaOfflineQueueResponse>
 export type AthenaCallResponse = z.infer<typeof AthenaCallResponse>
 export type BackendAthenaCallResponse = z.infer<typeof BackendAthenaCallResponse>

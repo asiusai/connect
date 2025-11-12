@@ -1,6 +1,6 @@
 import { initContract } from '@ts-rest/core'
 import {
-  AthenaCallRequest,
+  AthenaRequest,
   AthenaOfflineQueueResponse,
   BackendAthenaCallResponse,
   BackendAthenaCallResponseError,
@@ -154,7 +154,7 @@ const athena = c.router({
     pathParams: z.object({
       dongleId: z.string(),
     }),
-    body: AthenaCallRequest,
+    body: AthenaRequest,
     responses: {
       200: BackendAthenaCallResponse.or(BackendAthenaCallResponseError),
     },

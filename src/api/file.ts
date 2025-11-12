@@ -11,7 +11,6 @@ import type {
   UploadFilesToUrlsResponse,
   UploadQueueItem,
 } from '~/api/types'
-import { makeAthenaCall } from '~/api/athena'
 import { parseRouteName } from '~/api/route'
 
 export const FileTypes = {
