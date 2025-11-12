@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-import { getQCameraStreamUrl } from '~/api/route'
+import {  createQCameraStreamUrl} from '~/api/route'
 import { IconButton } from '~/components/material/IconButton'
 import { createResource, useCreateSignal } from '~/fix'
 import { formatVideoTime } from '~/utils/format'
@@ -18,7 +18,7 @@ const ERROR_MISSING_SEGMENT = 'This video segment has not uploaded yet or has be
 const ERROR_UNSUPPORTED_BROWSER = 'This browser does not support Media Source Extensions API.'
 
 export const RouteVideoPlayer = (props: RouteVideoPlayerProps) => {
-  const [streamUrl] = createResource(props.routeName, getQCameraStreamUrl)
+  const [streamUrl] = createResource(props.routeName, createQCameraStreamUrl)
   const [hls, setHls] = useCreateSignal<Hls | null>()
   let video!: HTMLVideoElement
   let controls!: HTMLDivElement

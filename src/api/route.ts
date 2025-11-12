@@ -1,6 +1,5 @@
 import type { RouteInfo, RouteShareSignature } from '~/api/types'
 
-import { fetcher } from '.'
 import { API_URL } from './config'
 
 export const parseRouteName = (routeName: string): RouteInfo => {

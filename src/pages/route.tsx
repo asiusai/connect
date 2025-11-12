@@ -1,7 +1,3 @@
-import { setRouteViewed } from '~/api/athena'
-import { getDevice } from '~/api/devices'
-import { getProfile } from '~/api/profile'
-import { getRoute } from '~/api/route'
 import { dayjs } from '~/utils/format'
 import { resolved } from '~/utils/reactivity'
 
@@ -19,6 +15,7 @@ import { Suspense } from 'react'
 import { Link } from 'react-router-dom'
 
 export const Component = () => {
+  return null
   const [seekTime, setSeekTime] = useCreateSignal(props.startTime)
   const [videoRef, setVideoRef] = useCreateSignal<HTMLVideoElement>()
 

@@ -11,7 +11,7 @@ import { RouteStatisticsBar } from '~/components/RouteStatisticsBar'
 import { getPlaceName } from '~/map/geocode'
 import type { Route } from '~/api/types'
 import { dateTimeToColorBetween } from '~/utils/format'
-import { Suspense, useEffect, useState } from 'react'
+import { Fragment, Suspense, useEffect, useState } from 'react'
 import { api } from '~/api'
 
 const getLocation = async (route: Route) => {
@@ -84,14 +84,14 @@ export const RouteList = ({ dongleId }: { dongleId: string }) => {
       )}
       {routes.data?.body.map((route) => {
         let dayHeader: string | null = getDayHeader(route)
-        
+
         if (dayHeader === prevDayHeader) dayHeader = null
         else prevDayHeader = dayHeader
         return (
-          <>
+          <Fragment key={route.create_time}>
             {dayHeader && <h2 className="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>}
             <RouteCard route={route} />
-          </>
+          </Fragment>
         )
       })}
     </div>

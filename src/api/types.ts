@@ -78,6 +78,7 @@ export const Route = z.object({
   fullname: z.string(),
   git_branch: z.string().nullable(),
   git_commit: z.string().nullable(),
+  git_commit_date: z.string().nullable(),
   git_dirty: z.boolean().nullable(),
   git_remote: z.string().nullable(),
   is_public: z.boolean(),
@@ -92,6 +93,10 @@ export const Route = z.object({
   user_id: z.string().nullable(),
   version: z.string().nullable(),
   vin: z.string().nullable(),
+  make: z.string().nullable(),
+  id: z.number(),
+  car_id: z.number().nullable(),
+  version_id: z.number().nullable(),
 })
 
 export const RouteInfo = z.object({
@@ -188,7 +193,6 @@ export const SubscribeInfo = z.object({
   trial_end_data: z.number().nullable(),
   trial_end_nodata: z.number().nullable(),
 })
-
 
 const AthenaRequestBase = z.object({
   id: z.literal(0),

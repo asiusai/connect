@@ -65,7 +65,7 @@ const router = createBrowserRouter([
             lazy: () => import('./pages/settings'),
           },
           {
-            path: '*date',
+            path: ':date',
             lazy: () => import('./pages/route'),
           },
           {
