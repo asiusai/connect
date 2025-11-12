@@ -1,5 +1,4 @@
 import type { ApiDevice, AthenaOfflineQueueResponse, Device, DeviceLocation, DrivingStatistics } from '~/api/types'
-import { fetcher } from '.'
 
 const sortDevices = (devices: ApiDevice[]) =>
   devices.sort((a, b) => {
@@ -54,14 +53,6 @@ export const getDevice = async (dongleId: string): Promise<Device> => {
   }
 }
 
-export const getAthenaOfflineQueue = (dongleId: string) =>
-  fetcher<AthenaOfflineQueueResponse>(`/v1/devices/${dongleId}/athena_offline_queue`)
-
-export const getDeviceLocation = async (dongleId: string) =>
-  fetcher<DeviceLocation>(`/v1/devices/${dongleId}/location`).catch(() => undefined)
-
-export const getDeviceStats = async (dongleId: string) =>
-  fetcher<DrivingStatistics>(`/v1.1/devices/${dongleId}/stats`).catch(() => undefined)
 
 export const getDevices = async (): Promise<Device[]> =>
   fetcher<ApiDevice[]>('/v1/me/devices/')
@@ -69,10 +60,6 @@ export const getDevices = async (): Promise<Device[]> =>
     .then((devices) => devices.map(createDevice))
     .catch(() => [])
 
-export const unpairDevice = async (dongleId: string) =>
-  fetcher<{ success: number }>(`/v1/devices/${dongleId}/unpair`, {
-    method: 'POST',
-  })
 
 const validatePairToken = (
   input: string,

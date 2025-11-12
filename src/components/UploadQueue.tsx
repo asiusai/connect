@@ -5,7 +5,6 @@ import { StatisticBar } from './StatisticBar'
 import { Button } from '~/components/material/Button'
 import type { AthenaOfflineQueueResponse, UploadFilesToUrlsRequest, UploadQueueItem } from '~/api/types'
 import { cancelUpload, getUploadQueue } from '~/api/file'
-import { getAthenaOfflineQueue } from '~/api/devices'
 
 export const queries = {
   prefix: ['upload_queue'],

@@ -11,7 +11,6 @@ import type {
   UploadFilesToUrlsResponse,
   UploadQueueItem,
 } from '~/api/types'
-import { fetcher } from '.'
 import { makeAthenaCall } from '~/api/athena'
 import { parseRouteName } from '~/api/route'
 
@@ -30,14 +29,7 @@ export const COMMA_CONNECT_PRIORITY = 1
 // Uploads expire after 1 week if device remains offline
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7
 
-export const getAlreadyUploadedFiles = (routeName: Route['fullname']): Promise<Files> => fetcher<Files>(`/v1/route/${routeName}/files`)
 
-export const requestToUploadFiles = (dongleId: string, paths: string[], expiryDays: number = 7) =>
-  fetcher<UploadFileMetadataResponse>(`/v1/${dongleId}/upload_urls/`, {
-    method: 'POST',
-    body: JSON.stringify({ expiry_days: expiryDays, paths }),
-    headers: { 'Content-Type': 'application/json' },
-  })
 
 export const getUploadQueue = (dongleId: string) => makeAthenaCall<void, UploadQueueItem[]>(dongleId, 'listUploadQueue')
 
