@@ -13,7 +13,6 @@ import { createRoot } from 'react-dom/client'
 //   environment,
 // })
 
-
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('No #root element found in the DOM.')
 

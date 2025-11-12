@@ -274,91 +274,106 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
           </div>
         }
       >
-        {stripeSession.state === 'errored' ? <div className="flex gap-2 rounded-sm bg-on-error-container p-2 text-sm font-semibold text-error-container">
-          <Icon name="error" size="20" />
-          Unable to check payment status: {stripeSession.error}
-        </div> :
-          stripeSession()?.payment_status ?
-            <>{paymentStatus === 'unpaid' ?
+        {stripeSession.state === 'errored' ? (
+          <div className="flex gap-2 rounded-sm bg-on-error-container p-2 text-sm font-semibold text-error-container">
+            <Icon name="error" size="20" />
+            Unable to check payment status: {stripeSession.error}
+          </div>
+        ) : stripeSession()?.payment_status ? (
+          <>
+            {paymentStatus === 'unpaid' ? (
               <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
                 <Icon name="payments" size="20" />
                 Waiting for confirmed payment...
-              </div> :
-
-              (paymentStatus === 'paid' && !subscription()) ?
-                <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
-                  <Icon className="animate-spin" name="autorenew" size="20" />
-                  Processing subscription...
+              </div>
+            ) : paymentStatus === 'paid' && !subscription() ? (
+              <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+                <Icon className="animate-spin" name="autorenew" size="20" />
+                Processing subscription...
+              </div>
+            ) : paymentStatus === 'paid' && subscription() ? (
+              <div className="flex gap-2 rounded-sm bg-tertiary-container p-2 text-sm text-on-tertiary-container">
+                <Icon name="check" size="20" />
+                <div className="flex flex-col gap-2">
+                  <p className="font-semibold">comma prime activated</p>
+                  {subscription()?.is_prime_sim &&
+                    ' Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help.'}
                 </div>
-                :
-                (paymentStatus === 'paid' && subscription()) ?
-                  <div className="flex gap-2 rounded-sm bg-tertiary-container p-2 text-sm text-on-tertiary-container">
-                    <Icon name="check" size="20" />
-                    <div className="flex flex-col gap-2">
-                      <p className="font-semibold">comma prime activated</p>
-                      {subscription()?.is_prime_sim && " Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help."}
-                    </div>
-                  </div> : <></>}</>
-            : <></>}
+              </div>
+            ) : (
+              <></>
+            )}
+          </>
+        ) : (
+          <></>
+        )}
 
-        {cancelData.state === 'errored' ? <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
-          <Icon className="text-error" name="error" size="20" />
-          Failed to cancel subscription: {cancelData.error}
-        </div> : cancelData.state === 'ready' ?
+        {cancelData.state === 'errored' ? (
+          <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+            <Icon className="text-error" name="error" size="20" />
+            Failed to cancel subscription: {cancelData.error}
+          </div>
+        ) : cancelData.state === 'ready' ? (
           <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
             <Icon name="check" size="20" />
             Subscription cancelled
-          </div> : <></>}
+          </div>
+        ) : (
+          <></>
+        )}
 
-        {subscription.state === 'errored' ?
-          <>Unable to fetch subscription details: {subscription.error}</> :
+        {subscription.state === 'errored' ? (
+          <>Unable to fetch subscription details: {subscription.error}</>
+        ) : subscription() ? (
+          <>
+            <div className="flex list-none flex-col">
+              <li>Plan: {PrimePlanName[subscription.plan as PrimePlan] ?? 'unknown'}</li>
+              <li>Amount: {formatCurrency(subscription.amount)}</li>
+              <li>Joined: {formatDate(subscription.subscribed_at)}</li>
+              <li>Next payment: {formatDate(subscription.next_charge_at)}</li>
+            </div>
 
-          subscription() ?
-            <>
-              <div className="flex list-none flex-col">
-                <li>Plan: {PrimePlanName[subscription.plan as PrimePlan] ?? 'unknown'}</li>
-                <li>Amount: {formatCurrency(subscription.amount)}</li>
-                <li>Joined: {formatDate(subscription.subscribed_at)}</li>
-                <li>Next payment: {formatDate(subscription.next_charge_at)}</li>
-              </div>
-
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <Button color="error" disabled={loading()} loading={cancelData.loading} onClick={() => setCancelDialog(true)}>
-                  Cancel subscription
-                </Button>
-                <Button color="secondary" disabled={loading()} loading={updateData.loading} onClick={update}>
-                  Update payment method
-                </Button>
-              </div>
-            </>
-            : <></>}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <Button color="error" disabled={loading()} loading={cancelData.loading} onClick={() => setCancelDialog(true)}>
+                Cancel subscription
+              </Button>
+              <Button color="secondary" disabled={loading()} loading={updateData.loading} onClick={update}>
+                Update payment method
+              </Button>
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
       </Suspense>
 
-      {cancelDialog() && <div
-        className="bg-scrim/10 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
-        onClick={() => setCancelDialog(false)}
-      >
-        <div className="flex size-full flex-col gap-4 bg-surface-container p-6 sm:h-auto sm:max-w-lg sm:rounded-lg sm:shadow-lg">
-          <h2 className="text-lg">Cancel subscription</h2>
-          <p className="text-sm">Are you sure you want to cancel your subscription?</p>
-          <div className="mt-4 flex flex-wrap justify-stretch gap-4">
-            <Button
-              color="error"
-              disabled={loading()}
-              loading={cancelData.loading}
-              onClick={() => {
-                cancel()
-                setCancelDialog(false)
-              }}
-            >
-              Yes, cancel subscription
-            </Button>
-            <Button color="secondary" disabled={loading()} onClick={() => setCancelDialog(false)}>
-              No, keep subscription
-            </Button>
+      {cancelDialog() && (
+        <div
+          className="bg-scrim/10 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+          onClick={() => setCancelDialog(false)}
+        >
+          <div className="flex size-full flex-col gap-4 bg-surface-container p-6 sm:h-auto sm:max-w-lg sm:rounded-lg sm:shadow-lg">
+            <h2 className="text-lg">Cancel subscription</h2>
+            <p className="text-sm">Are you sure you want to cancel your subscription?</p>
+            <div className="mt-4 flex flex-wrap justify-stretch gap-4">
+              <Button
+                color="error"
+                disabled={loading()}
+                loading={cancelData.loading}
+                onClick={() => {
+                  cancel()
+                  setCancelDialog(false)
+                }}
+              >
+                Yes, cancel subscription
+              </Button>
+              <Button color="secondary" disabled={loading()} onClick={() => setCancelDialog(false)}>
+                No, keep subscription
+              </Button>
+            </div>
           </div>
         </div>
-      </div>}
+      )}
     </div>
   )
 }

@@ -9,8 +9,8 @@ export const Component = () => {
   const [params] = useSearchParams()
   const [error, setError] = useState<string>()
 
-  const code = params.get("code")
-  const provider = params.get("provider")
+  const code = params.get('code')
+  const provider = params.get('provider')
   if (!code || !provider) return <Navigate to="/login" />
 
   useEffect(() => {
@@ -21,7 +21,6 @@ export const Component = () => {
         if (err instanceof Error && err.message) setError(err.message)
         else setError('Something went wrong')
       })
-
   }, [])
   return (
     <div className="flex min-h-screen max-w-lg flex-col gap-8 items-center mx-auto justify-center p-6">

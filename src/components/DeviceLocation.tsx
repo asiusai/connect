@@ -8,17 +8,16 @@ import { getTileUrl } from '~/map'
 import { getFullAddress } from '~/map/geocode'
 import { useEffect, useState } from 'react'
 import { api } from '~/api'
-import L from "leaflet"
-import { MapContainer, Marker, TileLayer, useMap, } from 'react-leaflet'
-
+import L from 'leaflet'
+import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
 
 type Location = {
   lat: number
   lng: number
   label: string
   address: string | null
-  iconName:IconName
-  iconClass?:string
+  iconName: IconName
+  iconClass?: string
 }
 
 const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
@@ -54,7 +53,7 @@ function FitBounds({ markers }: { markers: Location[] }) {
       const { lat, lng } = markers[0]
       map.setView([lat, lng], 14, { animate: true })
     } else {
-      const bounds = L.latLngBounds(markers.map(m => [m.lat, m.lng]))
+      const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]))
       map.fitBounds(bounds, { padding: [50, 50], animate: true })
     }
   }, [markers, map])
@@ -66,37 +65,37 @@ export const DeviceLocation = ({ dongleId, deviceName }: { dongleId: string; dev
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
   const [showLocationInfo, setShowLocationInfo] = useState(false)
   const { position, requestPosition } = usePosition()
-  const [markers,setMarkers] = useState<Location[]>([])
+  const [markers, setMarkers] = useState<Location[]>([])
 
-  const deviceLocation = api.devices.location.useQuery(["location",dongleId], { params: { dongleId } })
+  const deviceLocation = api.devices.location.useQuery(['location', dongleId], { params: { dongleId } })
   const location = deviceLocation.data?.body
-  
-  useEffect(()=>{
-    const effect = async ()=>{
-    const markers:Location[] = []
-    if (location){
-      markers.push({
-        address:await getFullAddress([location.lng,location.lat]),
-        lat:location.lat,
-        lng:location.lng,
-        label:deviceName,
-        iconName:"directions_car",
-      })
+
+  useEffect(() => {
+    const effect = async () => {
+      const markers: Location[] = []
+      if (location) {
+        markers.push({
+          address: await getFullAddress([location.lng, location.lat]),
+          lat: location.lat,
+          lng: location.lng,
+          label: deviceName,
+          iconName: 'directions_car',
+        })
+      }
+      if (position) {
+        markers.push({
+          address: await getFullAddress([position.coords.longitude, position.coords.latitude]),
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          label: 'You',
+          iconName: 'person',
+          iconClass: 'bg-primary',
+        })
+      }
+      setMarkers(markers)
     }
-    if (position){
-      markers.push({
-        address:await getFullAddress([position.coords.longitude,position.coords.latitude]),
-        lat:position.coords.latitude,
-        lng:position.coords.longitude,
-        label:"You",
-        iconName:"person",
-        iconClass:"bg-primary"
-      })
-    }
-    setMarkers(markers)
-  }
-  effect()
-  },[position,deviceName,location])
+    effect()
+  }, [position, deviceName, location])
 
   return (
     <div className="relative">
@@ -105,26 +104,29 @@ export const DeviceLocation = ({ dongleId, deviceName }: { dongleId: string; dev
         zoomControl={false}
         center={SAN_DIEGO}
         zoom={10}
-        
-      className="h-[240px] w-full !bg-surface-container-low" >
-        <TileLayer url={getTileUrl()}/>
+        className="h-[240px] w-full !bg-surface-container-low"
+      >
+        <TileLayer url={getTileUrl()} />
 
-        {markers.map(x=>
-        <Marker 
-        key={x.iconName} 
-        position={[x.lat,x.lng]} 
-        eventHandlers={{ click:()=>{
-          setSelectedLocation(x)
-          setShowLocationInfo(true)
-        }}}
-        icon={L.divIcon({
-            className: 'border-none bg-none',
-            html: `<div class="flex size-[40px] items-center justify-center rounded-full bg-primary-container ${x.iconClass}"><span class="material-symbols-outlined flex icon-outline">${x.iconName}</span></div>`,
-            iconSize: [40, 40],
-            iconAnchor: [20, 20],
-          })}
-          />)}
-          <FitBounds markers={markers}/>
+        {markers.map((x) => (
+          <Marker
+            key={x.iconName}
+            position={[x.lat, x.lng]}
+            eventHandlers={{
+              click: () => {
+                setSelectedLocation(x)
+                setShowLocationInfo(true)
+              },
+            }}
+            icon={L.divIcon({
+              className: 'border-none bg-none',
+              html: `<div class="flex size-[40px] items-center justify-center rounded-full bg-primary-container ${x.iconClass}"><span class="material-symbols-outlined flex icon-outline">${x.iconName}</span></div>`,
+              iconSize: [40, 40],
+              iconAnchor: [20, 20],
+            })}
+          />
+        ))}
+        <FitBounds markers={markers} />
       </MapContainer>
 
       {!position && !showLocationInfo && (

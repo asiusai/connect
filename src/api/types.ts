@@ -9,7 +9,7 @@ export const Profile = z.object({
 })
 
 export const DeviceLocation = z.object({
-  dongle_id:z.string(),
+  dongle_id: z.string(),
   lat: z.number(),
   lng: z.number(),
   time: z.number(),

@@ -8,7 +8,7 @@ export const getDimensions = (): Dimensions => {
   return { width, height }
 }
 
-export const useDimensions = ():Dimensions => {
+export const useDimensions = (): Dimensions => {
   const [dimensions, setDimensions] = useState(getDimensions())
 
   const onResize = () => setDimensions(getDimensions())

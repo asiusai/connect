@@ -41,9 +41,9 @@ export const Component = () => {
   }>({
     initial: pairToken
       ? {
-        type: 'pairing',
-        input: { pairToken },
-      }
+          type: 'pairing',
+          input: { pairToken },
+        }
       : 'scanning',
     states: {
       scanning(_input, to) {
@@ -68,7 +68,7 @@ export const Component = () => {
           onCleanup(() => {
             try {
               qrScanner.destroy()
-            } catch (_) { }
+            } catch (_) {}
           })
         })
 

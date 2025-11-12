@@ -29,8 +29,6 @@ export const COMMA_CONNECT_PRIORITY = 1
 // Uploads expire after 1 week if device remains offline
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7
 
-
-
 export const getUploadQueue = (dongleId: string) => makeAthenaCall<void, UploadQueueItem[]>(dongleId, 'listUploadQueue')
 
 export const uploadFilesToUrls = (dongleId: string, files: UploadFile[]) =>

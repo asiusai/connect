@@ -1,5 +1,5 @@
-import clsx from "clsx"
+import clsx from 'clsx'
 
-export const Loading = ({className}:{className?:string}) => {
-  return <div className={clsx("skeleton-loader",className)}></div>
+export const Loading = ({ className }: { className?: string }) => {
+  return <div className={clsx('skeleton-loader', className)}></div>
 }

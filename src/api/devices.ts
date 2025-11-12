@@ -33,7 +33,7 @@ const createSharedDevice = (dongleId: string): Device => ({
   },
   is_online: false,
   name: '',
-  athena_host:null
+  athena_host: null,
 })
 
 const validatePairToken = (
