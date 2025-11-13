@@ -1,4 +1,4 @@
-import { AbsoluteFill, CalculateMetadataFunction, Html5Video, Sequence, Series } from 'remotion'
+import { AbsoluteFill, CalculateMetadataFunction, Html5Video, Sequence, Series, useCurrentFrame } from 'remotion'
 import { z } from 'zod'
 import { api } from '../api'
 import { Files, RouteSegment } from '../api/types'
@@ -6,16 +6,43 @@ import { createQCameraStreamUrl } from '../api/route'
 import { HevcVideo } from './HevcVideo'
 import { FPS } from './consts'
 import { DB } from './indexedDb'
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useEffect } from 'react'
 
 const CameraType = z.enum(['road', 'wide', 'driver'])
 type CameraType = z.infer<typeof CameraType>
+
+const EventUnion = z.object({
+  data: z.object({ event_type: z.string(), value: z.boolean().optional() }),
+  offset_millis: z.number(),
+  route_offset_millis: z.number(),
+  time: z.number(),
+  type: z.literal('event'),
+})
+const StateUnion = z.object({
+  data: z.object({ state: z.string(), enabled: z.boolean(), alertStatus: z.number() }),
+  offset_millis: z.number(),
+  route_offset_millis: z.number(),
+  time: z.number(),
+  type: z.literal('state'),
+})
+const Event = z.discriminatedUnion('type', [EventUnion, StateUnion])
+type Event = z.infer<typeof Event>
+export const Coord = z.object({
+  t: z.number(),
+  lat: z.number(),
+  lng: z.number(),
+  speed: z.number(),
+  dist: z.number(),
+})
+export type Coord = z.infer<typeof Coord>
 const Data = z.object({
   segments: RouteSegment.array(),
   segment: RouteSegment,
   qCamUrl: z.string(),
   files: Files,
   duration: z.number(),
+  events: Event.array(),
+  coords: Coord.array(),
 })
 type Data = z.infer<typeof Data>
 
@@ -64,6 +91,7 @@ export const MainProps = z.object({
   routeName: z.string(),
   style: Style,
   data: Data.optional(),
+  disableCache: z.boolean(),
 })
 export type MainProps = z.infer<typeof MainProps>
 
@@ -77,23 +105,28 @@ const getData = async (routeName: string) => {
   const qCamUrl = createQCameraStreamUrl(routeName.replace('/', '%7C'), { exp: segment.share_exp, sig: segment.share_sig })
   const files = await api.file.files.query({ params: { routeName: routeName.replace('/', '%7C') } })
   if (files.status !== 200) throw new Error('Failed getting files!')
+
+  const events = await Promise.all(segment.segment_numbers.map((i) => fetch(`${segment.url}/${i}/events.json`).then((x) => x.json())))
+  const coords = await Promise.all(segment.segment_numbers.map((i) => fetch(`${segment.url}/${i}/coords.json`).then((x) => x.json())))
   return {
     segments: segments.body,
     segment,
     files: files.body,
     qCamUrl,
     duration,
+    events: events.flat(),
+    coords: coords.flat(),
   }
 }
 export const calculateMetadata: CalculateMetadataFunction<MainProps> = async ({ props }) => {
   const db = await new DB().init()
   const stored = await db.get<string>(props.routeName)
   let data: Data
-  if (stored) data = JSON.parse(stored)
-  else {
+
+  if (!stored || props.disableCache) {
     data = await getData(props.routeName)
     await db.set(props.routeName, JSON.stringify(data))
-  }
+  } else data = JSON.parse(stored)
 
   return {
     durationInFrames: data.duration * FPS,
@@ -145,14 +178,62 @@ const SmallCamera = () => {
     </Series>
   )
 }
+
+const Engaged = () => {
+  const frame = useCurrentFrame()
+  const { data, style } = useVideoContext()
+  const millis = (frame / FPS) * 1000
+  let isEnabled = false
+  for (const event of data.events.filter((x) => x.type === 'state')) {
+    if (millis < event.route_offset_millis) continue
+    isEnabled = event.data.enabled
+  }
+  return <div style={{ background: isEnabled ? 'green' : 'red', height: 100, width: 100, borderRadius: '100%' }}></div>
+}
+
+const CoordsMap = () => {
+  const frame = useCurrentFrame()
+  const { data, style } = useVideoContext()
+
+  let coord: Coord | undefined
+  for (const c of data.coords) {
+    if (frame / FPS < c.t) continue
+    coord = c
+  }
+
+  if (!coord) return null
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: '50%',
+        height: 200,
+        width: 200,
+        borderRadius: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transform: 'translateX(-50%)',
+        fontSize: 100,
+        background: 'blue',
+      }}
+    >
+      {(coord.speed * 1.60934).toFixed()}
+    </div>
+  )
+}
+
 export const Main = ({ data, style }: MainProps) => {
   if (!data) return <p>Loading...</p>
-
   return (
     <VideoContext value={{ data, style }}>
       <AbsoluteFill style={{ backgroundColor: 'red', justifyContent: 'center', alignItems: 'center', fontSize: 50 }}>
         <LargeCamera />
         <SmallCamera />
+        <AbsoluteFill>
+          <Engaged />
+          <CoordsMap />
+        </AbsoluteFill>
       </AbsoluteFill>
     </VideoContext>
   )

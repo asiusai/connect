@@ -13,7 +13,11 @@ export const RemotionRoot = () => {
       height={HEIGHT}
       schema={MainProps}
       calculateMetadata={calculateMetadata}
-      defaultProps={{ routeName: '9748a98e983e0b39/0000002c--d68dde99ca', style: defaultStyle }}
+      defaultProps={{
+        routeName: '9748a98e983e0b39/0000002c--d68dde99ca',
+        style: defaultStyle,
+        disableCache: false,
+      }}
     />
   )
 }
