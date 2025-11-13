@@ -1,5 +1,6 @@
 import { Composition } from 'remotion'
-import { calculateMetadata, Main, MainProps } from './Main'
+import { calculateMetadata, defaultStyle, Main, MainProps } from './Main'
+import { FPS, HEIGHT, WIDTH } from './consts'
 
 export const RemotionRoot = () => {
   return (
@@ -7,12 +8,12 @@ export const RemotionRoot = () => {
       id="Main"
       component={Main}
       durationInFrames={100}
-      fps={30}
-      width={1920}
-      height={1080}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
       schema={MainProps}
       calculateMetadata={calculateMetadata}
-      defaultProps={{ routeName: '9748a98e983e0b39/0000002c--d68dde99ca' }}
+      defaultProps={{ routeName: '9748a98e983e0b39/0000002c--d68dde99ca', style: defaultStyle }}
     />
   )
 }
