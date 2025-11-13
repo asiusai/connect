@@ -8,4 +8,4 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 }
 
 export const createQCameraStreamUrl = (routeName: string, signature: RouteShareSignature): string =>
-  `${API_URL}/v1/route/${routeName}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
+  `${API_URL}/v1/route/${routeName.replace('/', '%7C')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`

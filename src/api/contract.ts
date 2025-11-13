@@ -13,6 +13,7 @@ import {
   SubscriptionStatus,
   UploadFileMetadataResponse,
   AthenaResponse,
+  RouteSegment,
 } from './types'
 import { z } from 'zod'
 import { ATHENA_URL, BILLING_URL } from './config'
@@ -95,6 +96,13 @@ const routes = c.router({
     responses: {
       200: Route.array(),
     },
+  },
+  segments: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/routes_segments',
+    pathParams: z.object({ dongleId: z.string() }),
+    query: z.object({ route_str: z.string() }),
+    responses: { 200: RouteSegment.array() },
   },
 })
 

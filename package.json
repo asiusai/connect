@@ -18,7 +18,7 @@
     "check": "biome check",
     "fix": "biome check --write",
     "test": "TZ=Greenwich vitest",
-    "remotion:dev": "remotion studio templates/index.ts",
+    "remotion:dev": "remotion studio src/templates/index.ts",
     "remotion:build": "remotion bundle",
     "remotion:upgrade": "remotion upgrade"
   },
@@ -61,6 +61,7 @@
     "react-router-dom": "^7.9.5",
     "sonner": "^2.0.7",
     "@remotion/cli": "4.0.373",
+    "@remotion/player": "4.0.373",
     "remotion": "4.0.373"
   },
   "engines": {
