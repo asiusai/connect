@@ -17,7 +17,10 @@
     "lines": "bun src/ci/check_lines.ts",
     "check": "biome check",
     "fix": "biome check --write",
-    "test": "TZ=Greenwich vitest"
+    "test": "TZ=Greenwich vitest",
+    "remotion:dev": "remotion studio templates/index.ts",
+    "remotion:build": "remotion bundle",
+    "remotion:upgrade": "remotion upgrade"
   },
   "packageManager": "bun@1.2.9",
   "type": "module",
@@ -48,7 +51,6 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "@ts-rest/core": "3.53.0-rc.1",
     "@ts-rest/react-query": "3.53.0-rc.1",
-    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
@@ -57,7 +59,9 @@
     "qr-scanner": "^1.4.2",
     "react-leaflet": "^5.0.0-rc.2",
     "react-router-dom": "^7.9.5",
-    "sonner": "^2.0.7"
+    "sonner": "^2.0.7",
+    "@remotion/cli": "4.0.373",
+    "remotion": "4.0.373"
   },
   "engines": {
     "node": ">=20.11.0"
