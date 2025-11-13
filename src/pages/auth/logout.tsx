@@ -1,8 +1,7 @@
-import { Navigate } from '@solidjs/router'
-
+import { Navigate } from 'react-router-dom'
 import { signOut } from '~/api/auth/client'
 
-export default function Logout() {
+export const Component = () => {
   signOut()
-  return <Navigate href="/login" />
+  return <Navigate to="/login" />
 }

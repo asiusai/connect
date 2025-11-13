@@ -22,7 +22,6 @@ async function generateStats(root = 'src') {
   return files
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: it's okay for printing any data
 function printMarkdownTable(data: any[]) {
   const keys = Object.keys(data[0])
   const alignments = keys.map((key) => (typeof data[0][key] === 'number' ? '---:' : ':---'))

@@ -1,100 +1,55 @@
-import { createSignal, Show, type VoidComponent, createEffect, createResource } from 'solid-js'
 import clsx from 'clsx'
 
 import { USERADMIN_URL } from '~/api/config'
-import { setRoutePublic, setRoutePreserved, getPreservedRoutes, parseRouteName } from '~/api/route'
-import Icon from '~/components/material/Icon'
+import { Icon } from '~/components/material/Icon'
 import type { Route } from '~/api/types'
+import { ToggleButton } from './material/ToggleButton'
+import { api } from '~/api'
+import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 
-const ToggleButton: VoidComponent<{
-  label: string
-  active: boolean | undefined
-  onToggle: () => void
-}> = (props) => (
-  <button
-    class="flex w-full items-center justify-between p-2 transition-colors hover:bg-surface-container-low rounded-md"
-    onClick={() => props.onToggle()}
-  >
-    <span class="text-sm text-on-surface-variant">{props.label}</span>
+export const RouteActions = ({ routeName, route }: { routeName: string; route: Route | undefined }) => {
+  const { dongleId } = useParams()
+  if (!dongleId) throw new Error('No dongleId!')
+  const preserved = api.routes.preserved.useQuery({ queryKey: ['preserved', dongleId], queryData: { params: { dongleId } } })
 
-    {/* Toggle Switch */}
-    <div
-      class={`relative h-6 w-10 rounded-full border-2 transition-colors ${
-        props.active ? 'border-green-300 bg-green-300' : 'border-surface-container-highest'
-      }`}
-    >
-      <div
-        class={`absolute top-1 size-3 rounded-full bg-surface-container-highest transition-transform duration-300 ease-in-out ${
-          props.active ? 'translate-x-5' : 'translate-x-1'
-        }`}
-      />
-    </div>
-  </button>
-)
+  const [isPublic, setIsPublic] = useState<boolean | undefined>(route?.is_public)
+  const [isPreserved, setIsPreserved] = useState<boolean>()
+  useEffect(() => {
+    if (preserved.data?.body) setIsPreserved(preserved.data.body.some((p) => p.fullname === route?.fullname))
+    else setIsPreserved(undefined)
+  }, [])
 
-interface RouteActionsProps {
-  routeName: string
-  route: Route | undefined
-}
+  const currentRouteId = routeName.replace('|', '/')
+  const useradminUrl = `${USERADMIN_URL}/?onebox=${currentRouteId}`
 
-const RouteActions: VoidComponent<RouteActionsProps> = (props) => {
-  const [preservedRoutesResource] = createResource(() => parseRouteName(props.routeName).dongleId, getPreservedRoutes)
+  const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
-  const [isPublic, setIsPublic] = createSignal<boolean | undefined>(undefined)
-  const [isPreserved, setIsPreserved] = createSignal<boolean | undefined>(undefined)
-
-  const useradminUrl = () => `${USERADMIN_URL}/?onebox=${currentRouteId()}`
-
-  createEffect(() => {
-    const preservedRoutes = preservedRoutesResource()
-    if (!props.route) return
-    setIsPublic(props.route.is_public)
-    if (preservedRoutes) {
-      const { fullname } = props.route
-      setIsPreserved(preservedRoutes.some((r) => r.fullname === fullname))
-    } else {
-      setIsPreserved(undefined)
-    }
-  })
-
-  const [error, setError] = createSignal<string | null>(null)
-  const [copied, setCopied] = createSignal(false)
-
-  const toggleRoute = async (property: 'public' | 'preserved') => {
+  const togglePublic = async () => {
     setError(null)
-    if (property === 'public') {
-      const currentValue = isPublic()
-      if (currentValue === undefined) return
-      try {
-        const newValue = !currentValue
-        await setRoutePublic(props.routeName, newValue)
-        setIsPublic(newValue)
-      } catch (err) {
-        console.error('Failed to update public toggle', err)
-        setError('Failed to update toggle')
-      }
-    } else {
-      const currentValue = isPreserved()
-      if (currentValue === undefined) return
+    if (isPublic === undefined) return
+    const res = await api.routes.setPublic.mutate({ body: { is_public: !isPublic }, params: { routeName } })
 
-      try {
-        const newValue = !currentValue
-        await setRoutePreserved(props.routeName, newValue)
-        setIsPreserved(newValue)
-      } catch (err) {
-        console.error('Failed to update preserved toggle', err)
-        setError('Failed to update toggle')
-      }
-    }
+    if (res.status === 200) setIsPublic(!isPublic)
+    else setError('Failed to make route public')
   }
 
-  const currentRouteId = () => props.routeName.replace('|', '/')
+  const togglePreserved = async () => {
+    if (isPreserved === undefined) return
+    const res = !isPreserved
+      ? await api.routes.preserve.mutate({ body: {}, params: { routeName } })
+      : await api.routes.unPreserve.mutate({ body: {}, params: { routeName } })
+
+    if (res.status === 200) setIsPreserved(!isPublic)
+    else setError('Failed to preserve route')
+  }
 
   const copyCurrentRouteId = async () => {
-    if (!props.routeName || !navigator.clipboard) return
+    if (!routeName || !navigator.clipboard) return
 
     try {
-      await navigator.clipboard.writeText(currentRouteId())
+      await navigator.clipboard.writeText(currentRouteId)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
@@ -103,39 +58,37 @@ const RouteActions: VoidComponent<RouteActionsProps> = (props) => {
   }
 
   return (
-    <div class="flex flex-col rounded-b-md gap-4 mx-5 mb-4">
-      <div class="font-mono text-xs text-zinc-500">
-        <div class="flex justify-between">
-          <span class="mb-2 text-on-surface-variant">Route ID:</span>
-          <a href={useradminUrl()} class="text-blue-400 hover:text-blue-500 duration-200" target="_blank" rel="noopener noreferrer">
+    <div className="flex flex-col rounded-b-md gap-4 mx-5 mb-4">
+      <div className="font-mono text-xs text-zinc-500">
+        <div className="flex justify-between">
+          <span className="mb-2 text-on-surface-variant">Route ID:</span>
+          <a href={useradminUrl} className="text-blue-400 hover:text-blue-500 duration-200" target="_blank" rel="noopener noreferrer">
             View in useradmin
           </a>
         </div>
         <button
           onClick={() => void copyCurrentRouteId()}
-          class="flex w-full cursor-pointer items-center justify-between rounded-lg border-2 border-surface-container-high bg-surface-container-lowest p-3 hover:bg-surface-container-low"
+          className="flex w-full cursor-pointer items-center justify-between rounded-lg border-2 border-surface-container-high bg-surface-container-lowest p-3 hover:bg-surface-container-low"
         >
-          <div class="lg:text-sm">
-            <span class="break-keep inline-block">{currentRouteId().split('/')[0] || ''}/</span>
-            <span class="break-keep inline-block">{currentRouteId().split('/')[1] || ''}</span>
+          <div className="lg:text-sm">
+            <span className="break-keep inline-block">{currentRouteId.split('/')[0] || ''}/</span>
+            <span className="break-keep inline-block">{currentRouteId.split('/')[1] || ''}</span>
           </div>
-          <Icon class={clsx('mx-2', copied() && 'text-green-300')} name={copied() ? 'check' : 'file_copy'} size="20" />
+          <Icon className={clsx('mx-2', copied && 'text-green-300')} name={copied ? 'check' : 'file_copy'} size="20" />
         </button>
       </div>
 
-      <div class="flex flex-col gap-2">
-        <ToggleButton label="Preserve Route" active={isPreserved()} onToggle={() => void toggleRoute('preserved')} />
-        <ToggleButton label="Public Access" active={isPublic()} onToggle={() => void toggleRoute('public')} />
+      <div className="flex flex-col gap-2">
+        <ToggleButton label="Preserve Route" active={isPreserved} onToggle={togglePreserved} />
+        <ToggleButton label="Public Access" active={isPublic} onToggle={togglePublic} />
       </div>
 
-      <Show when={error()}>
-        <div class="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
-          <Icon class="text-error" name="error" size="20" />
-          {error()}
+      {error && (
+        <div className="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
+          <Icon className="text-error" name="error" size="20" />
+          {error}
         </div>
-      </Show>
+      )}
     </div>
   )
 }
-
-export default RouteActions

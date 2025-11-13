@@ -1,23 +1,23 @@
-import { type JSXElement, type ParentComponent, Show, type VoidComponent } from 'solid-js'
 import clsx from 'clsx'
+import { ReactNode } from 'react'
 
-import ButtonBase from '~/components/material/ButtonBase'
+import { ButtonBase } from '~/components/material/ButtonBase'
 
 type CardHeaderProps = {
-  class?: string
-  headline?: JSXElement
-  subhead?: JSXElement
-  leading?: JSXElement
-  trailing?: JSXElement
+  className?: string
+  headline?: ReactNode
+  subhead?: ReactNode
+  leading?: ReactNode
+  trailing?: ReactNode
 }
 
-export const CardHeader: VoidComponent<CardHeaderProps> = (props) => {
+export const CardHeader = (props: CardHeaderProps) => {
   return (
-    <div class={clsx('flex min-h-[72px] items-center gap-4 px-4 py-3', props.class)}>
+    <div className={clsx('flex min-h-[72px] items-center gap-4 px-4 py-3', props.className)}>
       {props.leading}
-      <div class="flex min-h-12 grow flex-col justify-between">
-        {props.headline && <span class="text-title-md">{props.headline}</span>}
-        {props.subhead && <span class="text-body-md">{props.subhead}</span>}
+      <div className="flex min-h-12 grow flex-col justify-between">
+        {props.headline && <span className="text-title-md">{props.headline}</span>}
+        {props.subhead && <span className="text-body-md">{props.subhead}</span>}
       </div>
       {props.trailing}
     </div>
@@ -25,54 +25,60 @@ export const CardHeader: VoidComponent<CardHeaderProps> = (props) => {
 }
 
 type CardContentProps = {
-  class?: string
+  className?: string
+  children?: ReactNode
 }
 
-export const CardContent: ParentComponent<CardContentProps> = (props) => {
-  return <div class={clsx('flex flex-col gap-4 p-4', props.class)}>{props.children}</div>
+export const CardContent = (props: CardContentProps) => {
+  return <div className={clsx('flex flex-col gap-4 p-4', props.className)}>{props.children}</div>
 }
 
 type CardTextContentProps = {
-  class?: string
+  className?: string
+  children?: ReactNode
 }
 
-export const CardTextContent: ParentComponent<CardTextContentProps> = (props) => {
+export const CardTextContent = (props: CardTextContentProps) => {
   return (
-    <div class={clsx('flex', props.class)}>
-      <span class="text-body-md text-on-surface-variant">{props.children}</span>
+    <div className={clsx('flex', props.className)}>
+      <span className="text-body-md text-on-surface-variant">{props.children}</span>
     </div>
   )
 }
 
 type CardActionsProps = {
-  class?: string
+  className?: string
+  children?: ReactNode
 }
 
-export const CardActions: ParentComponent<CardActionsProps> = (props) => {
-  return <div class={clsx('flex justify-end gap-4', props.class)}>{props.children}</div>
+export const CardActions = (props: CardActionsProps) => {
+  return <div className={clsx('flex justify-end gap-4', props.className)}>{props.children}</div>
 }
 
 type CardProps = {
-  class?: string
+  className?: string
   onClick?: () => void
   href?: string
   activeClass?: string
+  children?: ReactNode
 }
 
-const Card: ParentComponent<CardProps> = (props) => {
+export const Card = (props: CardProps) => {
   const cardStyle = 'flex max-w-md flex-col rounded-lg bg-surface-container text-on-surface before:bg-on-surface'
   return (
-    <Show when={props.onClick || props.href} fallback={<div class={clsx(cardStyle, props.class)}>{props.children}</div>}>
-      <ButtonBase
-        class={clsx(cardStyle, (props.href || props.onClick) && 'state-layer', props.class)}
-        onClick={props.onClick}
-        href={props.href}
-        activeClass={clsx('before:opacity-[.12]', props.activeClass)}
-      >
-        {props.children}
-      </ButtonBase>
-    </Show>
+    <>
+      {props.onClick || props.href ? (
+        <ButtonBase
+          className={clsx(cardStyle, (props.href || props.onClick) && 'state-layer', props.className)}
+          onClick={props.onClick}
+          href={props.href}
+          activeClass={clsx('before:opacity-[.12]', props.activeClass)}
+        >
+          {props.children}
+        </ButtonBase>
+      ) : (
+        <div className={clsx(cardStyle, props.className)}>{props.children}</div>
+      )}
+    </>
   )
 }
-
-export default Card

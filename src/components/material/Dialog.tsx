@@ -1,13 +1,14 @@
-import { type ParentComponent, createEffect } from 'solid-js'
 import clsx from 'clsx'
+import { ReactNode } from 'react'
 
 type DialogProps = {
-  class?: string
+  className?: string
   open: boolean
   onClose?: () => void
+  children?: ReactNode
 }
 
-const Dialog: ParentComponent<DialogProps> = (props) => {
+export const Dialog = (props: DialogProps) => {
   let dialogRef: HTMLDialogElement | undefined
 
   createEffect(() => {
@@ -26,16 +27,16 @@ const Dialog: ParentComponent<DialogProps> = (props) => {
   return (
     <dialog
       ref={dialogRef}
-      class="fixed inset-0 max-w-[unset] z-50 bg-transparent backdrop:bg-scrim/[.32] size-full max-h-[unset]"
+      className="fixed inset-0 max-w-[unset] z-50 bg-transparent backdrop:bg-scrim/[.32] size-full max-h-[unset]"
       onClick={() => dialogRef?.close()}
       onClose={handleDialogClose}
     >
-      <div class="flex flex-col size-full items-center">
+      <div className="flex flex-col size-full items-center">
         <div
-          class={clsx(
+          className={clsx(
             'flex w-full flex-col justify-center gap-4 bg-surface-container text-on-surface p-6 m-auto',
             'sm:max-w-lg sm:rounded-lg sm:shadow-lg',
-            props.class,
+            props.className,
           )}
           onClick={(ev) => ev.stopPropagation()}
         >
@@ -45,5 +46,3 @@ const Dialog: ParentComponent<DialogProps> = (props) => {
     </dialog>
   )
 }
-
-export default Dialog

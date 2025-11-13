@@ -34,12 +34,10 @@
       },
       "style": "off",
       "suspicious": {
+        "noExplicitAny": "off",
         // Tailwind makes use of custom at-rules
         "noUnknownAtRules": "off"
       }
-    },
-    "domains": {
-      "solid": "recommended"
     }
   },
   "javascript": {

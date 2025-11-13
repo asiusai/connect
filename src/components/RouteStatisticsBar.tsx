@@ -1,33 +1,30 @@
-import type { Resource, VoidComponent } from 'solid-js'
-
 import type { RouteStatistics } from '~/api/derived'
 import type { Route } from '~/api/types'
 import { formatDistance, formatDuration, formatRouteDuration } from '~/utils/format'
-import StatisticBar from './StatisticBar'
+import { StatisticBar } from './StatisticBar'
 
-const formatEngagement = (statistics: RouteStatistics | undefined): string | undefined => {
-  if (!statistics || statistics.routeDurationMs === 0) return undefined
-  const { engagedDurationMs, routeDurationMs } = statistics
-  return `${(100 * (engagedDurationMs / routeDurationMs)).toFixed(0)}%`
+const formatEngagement = (stats: RouteStatistics | undefined): string | undefined => {
+  if (!stats || stats.routeDurationMs === 0) return undefined
+  return `${(100 * (stats.engagedDurationMs / stats.routeDurationMs)).toFixed(0)}%`
 }
 
-const RouteStatisticsBar: VoidComponent<{ class?: string; route: Route | undefined; statistics: Resource<RouteStatistics> }> = (props) => {
+export const RouteStatisticsBar = ({
+  stats,
+  className,
+  route,
+}: {
+  className?: string
+  route: Route | undefined
+  stats: RouteStatistics | undefined
+}) => {
   return (
     <StatisticBar
-      class={props.class}
-      statistics={[
-        { label: 'Distance', value: () => formatDistance(props.route?.distance) },
-        {
-          label: 'Duration',
-          value: () =>
-            props.statistics.state === 'ready' || props.statistics.state === 'refreshing'
-              ? formatDuration(props.statistics().routeDurationMs / (60 * 1000))
-              : formatRouteDuration(props.route),
-        },
-        { label: 'Engaged', value: () => formatEngagement(props.statistics()) },
+      className={className}
+      stats={[
+        { label: 'Distance', value: formatDistance(route?.distance) },
+        { label: 'Duration', value: stats ? formatDuration(stats.routeDurationMs / (60 * 1000)) : formatRouteDuration(route) },
+        { label: 'Engaged', value: formatEngagement(stats) },
       ]}
     />
   )
 }
-
-export default RouteStatisticsBar

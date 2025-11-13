@@ -1,16 +1,16 @@
-import { createContext, createSignal, Show, useContext } from 'solid-js'
-import type { Accessor, JSXElement, ParentComponent, Setter, VoidComponent } from 'solid-js'
+import { createContext, ReactNode, useContext, useState } from 'react'
 
-import IconButton from '~/components/material/IconButton'
+import { IconButton } from '~/components/material/IconButton'
+import { Setter } from '~/fix'
 import { useDimensions } from '~/utils/window'
 
-interface DrawerContext {
-  modal: Accessor<boolean>
-  open: Accessor<boolean>
+type DrawerContext = {
+  modal: boolean
+  open: boolean
   setOpen: Setter<boolean>
 }
 
-const DrawerContext = createContext<DrawerContext>()
+const DrawerContext = createContext<DrawerContext | null>(null)
 
 export function useDrawerContext() {
   const context = useContext(DrawerContext)
@@ -18,58 +18,54 @@ export function useDrawerContext() {
   return context
 }
 
-export const DrawerToggleButton: VoidComponent = () => {
+export const DrawerToggleButton = () => {
   const { modal, setOpen } = useDrawerContext()
-  return (
-    <Show when={modal()}>
-      <IconButton name="menu" onClick={() => setOpen((prev) => !prev)} />
-    </Show>
-  )
+  return <>{modal && <IconButton name="menu" onClick={() => setOpen((prev) => !prev)} />}</>
 }
 
 const PEEK = 56
 
 interface DrawerProps {
-  drawer: JSXElement
+  drawer: ReactNode
+  children?: ReactNode
 }
 
-const Drawer: ParentComponent<DrawerProps> = (props) => {
+export const Drawer = (props: DrawerProps) => {
   const dimensions = useDimensions()
-  const drawerWidth = () => Math.min(dimensions().width - PEEK, 320)
-  const modal = () => dimensions().width < 1280
-  const contentWidth = () => `calc(100% - ${modal() ? 0 : drawerWidth()}px)`
+  const drawerWidth = Math.min(dimensions.width - PEEK, 320)
+  const modal = dimensions.width < 1280
 
-  const [open, setOpen] = createSignal(false)
-  const drawerVisible = () => !modal() || open()
+  const [open, setOpen] = useState(false)
+  const drawerVisible = !modal || open
 
   return (
     <DrawerContext.Provider value={{ modal, open, setOpen }}>
       <nav
-        class="hide-scrollbar fixed inset-y-0 left-0 h-full touch-pan-y overflow-y-auto overscroll-y-contain transition-drawer ease-in-out duration-300"
+        className="hide-scrollbar fixed inset-y-0 left-0 h-full touch-pan-y overflow-y-auto overscroll-y-contain transition-drawer ease-in-out duration-300"
         style={{
-          left: drawerVisible() ? 0 : `${-PEEK}px`,
-          opacity: drawerVisible() ? 1 : 0.5,
-          width: `${drawerWidth()}px`,
+          left: drawerVisible ? 0 : `${-PEEK}px`,
+          opacity: drawerVisible ? 1 : 0.5,
+          width: `${drawerWidth}px`,
         }}
       >
-        <div class="flex size-full flex-col rounded-r-lg bg-surface-container-low text-on-surface-variant sm:rounded-r-none">
+        <div className="flex size-full flex-col rounded-r-lg bg-surface-container-low text-on-surface-variant sm:rounded-r-none">
           {props.drawer}
         </div>
       </nav>
 
       <main
-        class="absolute inset-y-0 overflow-y-auto bg-background transition-drawer ease-in-out duration-300"
+        className="absolute inset-y-0 overflow-y-auto bg-background transition-drawer ease-in-out duration-300"
         style={{
-          left: drawerVisible() ? `${drawerWidth()}px` : 0,
-          width: contentWidth(),
+          left: drawerVisible ? `${drawerWidth}px` : 0,
+          width: `calc(100% - ${modal ? 0 : drawerWidth}px)`,
         }}
       >
         {props.children}
         <div
-          class="absolute inset-0 z-[9999] bg-background transition-drawer ease-in-out duration-300"
+          className="absolute inset-0 z-[9999] bg-background transition-drawer ease-in-out duration-300"
           style={{
-            'pointer-events': modal() && open() ? 'auto' : 'none',
-            opacity: modal() && open() ? 0.5 : 0,
+            pointerEvents: modal && open ? 'auto' : 'none',
+            opacity: modal && open ? 0.5 : 0,
           }}
           onClick={() => setOpen(false)}
         />
@@ -77,5 +73,3 @@ const Drawer: ParentComponent<DrawerProps> = (props) => {
     </DrawerContext.Provider>
   )
 }
-
-export default Drawer

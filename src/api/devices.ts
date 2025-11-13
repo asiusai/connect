@@ -1,27 +1,16 @@
-import type { ApiDevice, AthenaOfflineQueueResponse, Device, DeviceLocation, DrivingStatistics } from '~/api/types'
-import { fetcher } from '.'
+import type { Device } from '~/api/types'
 
-const sortDevices = (devices: ApiDevice[]) =>
-  devices.sort((a, b) => {
-    if (a.is_owner !== b.is_owner) {
-      return a.is_owner ? -1 : 1
-    } else if (a.alias && b.alias) {
-      return a.alias.localeCompare(b.alias)
-    } else if (!a.alias && !b.alias) {
-      return a.dongle_id.localeCompare(b.dongle_id)
-    } else {
-      return a.alias ? -1 : 1
-    }
+export const sortDevices = (devices: Device[]) => {
+  return devices.toSorted((a, b) => {
+    if (a.is_owner !== b.is_owner) return a.is_owner ? -1 : 1
+    else if (a.alias && b.alias) return a.alias.localeCompare(b.alias)
+    else if (!a.alias && !b.alias) return a.dongle_id.localeCompare(b.dongle_id)
+    else return a.alias ? -1 : 1
   })
-
-const createDevice = (device: ApiDevice): Device => ({
-  ...device,
-  is_online: !!device.last_athena_ping && device.last_athena_ping >= Math.floor(Date.now() / 1000) - 120,
-})
-
+}
 export const SHARED_DEVICE = 'Shared Device'
 
-const createSharedDevice = (dongleId: string): Device => ({
+export const createSharedDevice = (dongleId: string): Device => ({
   dongle_id: dongleId,
   alias: SHARED_DEVICE,
   serial: '',
@@ -43,36 +32,9 @@ const createSharedDevice = (dongleId: string): Device => ({
     nav: false,
   },
   is_online: false,
+  name: '',
+  athena_host: null,
 })
-
-export const getDevice = async (dongleId: string): Promise<Device> => {
-  try {
-    const device = await fetcher<ApiDevice>(`/v1.1/devices/${dongleId}/`)
-    return createDevice(device)
-  } catch {
-    return createSharedDevice(dongleId)
-  }
-}
-
-export const getAthenaOfflineQueue = (dongleId: string) =>
-  fetcher<AthenaOfflineQueueResponse>(`/v1/devices/${dongleId}/athena_offline_queue`)
-
-export const getDeviceLocation = async (dongleId: string) =>
-  fetcher<DeviceLocation>(`/v1/devices/${dongleId}/location`).catch(() => undefined)
-
-export const getDeviceStats = async (dongleId: string) =>
-  fetcher<DrivingStatistics>(`/v1.1/devices/${dongleId}/stats`).catch(() => undefined)
-
-export const getDevices = async (): Promise<Device[]> =>
-  fetcher<ApiDevice[]>('/v1/me/devices/')
-    .then(sortDevices)
-    .then((devices) => devices.map(createDevice))
-    .catch(() => [])
-
-export const unpairDevice = async (dongleId: string) =>
-  fetcher<{ success: number }>(`/v1/devices/${dongleId}/unpair`, {
-    method: 'POST',
-  })
 
 const validatePairToken = (
   input: string,
@@ -109,7 +71,7 @@ export const pairDevice = async (pairToken: string): Promise<string> => {
   const body = new FormData()
   body.append('pair_token', token.token)
   try {
-    await fetcher('/v2/pilotpair/', { method: 'POST', body })
+    // await fetcher('/v2/pilotpair/', { method: 'POST', body })
     return token.identity
   } catch (error) {
     if (!(error instanceof Error) || !(error.cause instanceof Response)) {

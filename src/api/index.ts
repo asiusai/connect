@@ -1,28 +1,36 @@
 import { accessToken } from './auth/client'
 import { API_URL } from './config'
+import { contract } from './contract'
+import { initTsrReactQuery } from '@ts-rest/react-query/v5'
+import { toast } from 'sonner'
 
-export async function fetcher<T>(endpoint: string, init?: RequestInit, apiUrl: string = API_URL): Promise<T> {
-  const req = new Request(`${apiUrl}${endpoint}`, {
-    ...init,
-    headers: {
-      ...init?.headers,
-      Authorization: `JWT ${accessToken()}`,
-    },
-  })
-  const res = await fetch(req)
-  const text = await res.text()
-  if (!res.ok) {
-    throw new Error(`${req.method} ${req.url} ${res.status}`, { cause: res })
-  }
-  // biome-ignore lint/suspicious/noImplicitAnyLet: TODO: validate server response
-  let json
-  try {
-    json = await JSON.parse(text)
-  } catch (err) {
-    throw new Error('Failed to parse response from server', { cause: err })
-  }
-  if (json.error) {
-    throw new Error(`Server error: ${json.description}`, { cause: json })
-  }
-  return json
-}
+export const api = initTsrReactQuery(contract, {
+  baseUrl: API_URL,
+  api: async (args) => {
+    let path = args.path
+
+    const baseUrl = (args.route.metadata as any)?.baseUrl
+    if (baseUrl) path = path.replace(API_URL, baseUrl)
+
+    const res = await fetch(path, {
+      method: args.method,
+      body: args.body,
+      headers: { ...args.headers, authorization: `JWT ${accessToken()}` },
+    })
+    if (res.status > 400) toast.error(`Request to ${path} failed, code: ${res.status}`)
+
+    const schema = args.route.responses[res.status] as any
+
+    let body = await res.text()
+    try {
+      body = schema.parse(JSON.parse(body))
+    } catch (e) {
+      toast.error('Invalid body')
+      console.error(e)
+      console.log(`Invalid body: ${body}`)
+    }
+
+    return { status: res.status, headers: res.headers, body }
+  },
+  validateResponse: true,
+})

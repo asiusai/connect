@@ -1,13 +1,12 @@
-import { createEffect, createSignal, on, type VoidComponent } from 'solid-js'
-import { createStore } from 'solid-js/store'
 import clsx from 'clsx'
 
-import Icon, { type IconName } from '~/components/material/Icon'
-import Button from './material/Button'
-import { uploadAllSegments, type FileType } from '~/api/file'
+import { Icon, type IconName } from '~/components/material/Icon'
+import { Button } from './material/Button'
 import type { Route } from '~/api/types'
+import { useState } from 'react'
+import { FileType, uploadAllSegments } from '~/api/file'
 
-const BUTTON_TYPES = ['road', 'driver', 'logs', 'route'] as const
+const BUTTON_TYPES = ['road', 'driver', 'logs', 'all'] as const
 type ButtonType = (typeof BUTTON_TYPES)[number]
 type ButtonState = 'idle' | 'loading' | 'success' | 'error'
 
@@ -17,14 +16,7 @@ const BUTTON_TO_FILE_TYPES = {
   logs: ['logs'],
 } as const
 
-interface UploadButtonProps {
-  state: ButtonState
-  onClick: () => void
-  icon: IconName
-  text: string
-}
-
-const UploadButton: VoidComponent<UploadButtonProps> = (props) => {
+export const UploadButton = (props: { state: ButtonState; onClick: () => void; icon: IconName; text: string }) => {
   const icon = () => props.icon
   const state = () => props.state
   const disabled = () => state() === 'loading' || state() === 'success'
@@ -44,57 +36,40 @@ const UploadButton: VoidComponent<UploadButtonProps> = (props) => {
   return (
     <Button
       onClick={() => handleUpload()}
-      class="px-2 md:px-3"
+      className="px-2 md:px-3"
       disabled={disabled()}
-      leading={<Icon class={clsx(state() === 'loading' && 'animate-spin')} name={stateToIcon[state()]} size="20" />}
+      leading={<Icon className={clsx(state() === 'loading' && 'animate-spin')} name={stateToIcon[state()]} size="20" />}
       color="primary"
     >
-      <span class="flex items-center gap-1 font-mono">{props.text}</span>
+      <span className="flex items-center gap-1 font-mono">{props.text}</span>
     </Button>
   )
 }
 
-interface RouteUploadButtonsProps {
-  route: Route | undefined
-}
-
-const RouteUploadButtons: VoidComponent<RouteUploadButtonsProps> = (props) => {
-  const [uploadStore, setUploadStore] = createStore<Record<ButtonType, ButtonState>>({
+export const RouteUploadButtons = (props: { route: Route | undefined }) => {
+  const [uploadStore, setUploadStore] = useState<Record<ButtonType, ButtonState>>({
     road: 'idle',
     driver: 'idle',
     logs: 'idle',
-    route: 'idle',
+    all: 'idle',
   })
-  const [abortController, setAbortController] = createSignal(new AbortController())
 
-  createEffect(
-    on(
-      () => props.route,
-      () => {
-        abortController().abort()
-        setAbortController(new AbortController())
-        setUploadStore(BUTTON_TYPES, 'idle')
-      },
-    ),
-  )
+  const updateButtonStates = (buttons: ButtonType[], state: ButtonState) => {
+    setUploadStore((store) => ({ ...store, ...Object.fromEntries(buttons.map((x) => [x, state])) }))
+  }
 
   const handleUpload = async (type: ButtonType) => {
     if (!props.route) return
     const { fullname, maxqlog } = props.route
-    const { signal } = abortController()
-
-    const updateButtonStates = (types: readonly ButtonType[], state: ButtonState) => {
-      if (signal.aborted) return
-      setUploadStore(types, state)
-    }
 
     const uploadButtonTypes: ButtonType[] = [type]
     let uploadFileTypes: FileType[] = []
-    for (const check of type === 'route' ? (['road', 'driver', 'logs'] as const) : [type]) {
-      const state = uploadStore[check]
+    const types = type === 'all' ? (['road', 'driver', 'logs'] as const) : [type]
+    for (const type of types) {
+      const state = uploadStore[type]
       if (state === 'loading' || state === 'success') continue
-      uploadButtonTypes.push(check)
-      uploadFileTypes = uploadFileTypes.concat(BUTTON_TO_FILE_TYPES[check])
+      uploadButtonTypes.push(type)
+      uploadFileTypes = uploadFileTypes.concat(BUTTON_TO_FILE_TYPES[type])
     }
 
     updateButtonStates(uploadButtonTypes, 'loading')
@@ -108,15 +83,13 @@ const RouteUploadButtons: VoidComponent<RouteUploadButtonsProps> = (props) => {
   }
 
   return (
-    <div class="flex flex-col rounded-b-md m-5">
-      <div class="grid grid-cols-2 gap-3 w-full lg:grid-cols-4">
+    <div className="flex flex-col rounded-b-md m-5">
+      <div className="grid grid-cols-2 gap-3 w-full lg:grid-cols-4">
         <UploadButton text="Road" icon="videocam" state={uploadStore.road} onClick={() => handleUpload('road')} />
         <UploadButton text="Driver" icon="person" state={uploadStore.driver} onClick={() => handleUpload('driver')} />
         <UploadButton text="Logs" icon="description" state={uploadStore.logs} onClick={() => handleUpload('logs')} />
-        <UploadButton text="All" icon="upload" state={uploadStore.route} onClick={() => handleUpload('route')} />
+        <UploadButton text="All" icon="upload" state={uploadStore.all} onClick={() => handleUpload('all')} />
       </div>
     </div>
   )
 }
-
-export default RouteUploadButtons

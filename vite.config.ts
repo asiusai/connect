@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
-import solid from 'vite-plugin-solid'
-import devtools from 'solid-devtools/vite'
+import react from '@vitejs/plugin-react'
+
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -9,10 +9,7 @@ import { Icons } from './src/components/material/Icon'
 
 export default defineConfig({
   plugins: [
-    devtools(),
-    solid({
-      ssr: false,
-    }),
+    react(),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {

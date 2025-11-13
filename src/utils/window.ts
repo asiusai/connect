@@ -1,5 +1,4 @@
-import { createSignal, onCleanup, onMount } from 'solid-js'
-import type { Accessor } from 'solid-js'
+import { useEffect, useState } from 'react'
 
 type Dimensions = { width: number; height: number }
 
@@ -9,14 +8,14 @@ export const getDimensions = (): Dimensions => {
   return { width, height }
 }
 
-export const useDimensions = (): Accessor<Dimensions> => {
-  const [dimensions, setDimensions] = createSignal(getDimensions())
+export const useDimensions = (): Dimensions => {
+  const [dimensions, setDimensions] = useState(getDimensions())
 
   const onResize = () => setDimensions(getDimensions())
-  if (typeof window !== 'undefined') {
-    onMount(() => window.addEventListener('resize', onResize))
-    onCleanup(() => window.removeEventListener('resize', onResize))
-  }
+  useEffect(() => {
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   return dimensions
 }

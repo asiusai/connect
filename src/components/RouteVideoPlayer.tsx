@@ -1,13 +1,13 @@
-import { Show, createEffect, createResource, createSignal, on, onCleanup, onMount, type VoidComponent } from 'solid-js'
 import clsx from 'clsx'
 
-import { getQCameraStreamUrl } from '~/api/route'
-import IconButton from '~/components/material/IconButton'
+import { createQCameraStreamUrl } from '~/api/route'
+import { IconButton } from '~/components/material/IconButton'
+import { createResource, useCreateSignal } from '~/fix'
 import { formatVideoTime } from '~/utils/format'
-import type Hls from '~/utils/hls'
+import { type Hls } from '~/utils/hls'
 
 type RouteVideoPlayerProps = {
-  class?: string
+  className?: string
   routeName: string
   selection: { startTime: number; endTime: number | undefined }
   onProgress: (seekTime: number) => void
@@ -17,18 +17,17 @@ type RouteVideoPlayerProps = {
 const ERROR_MISSING_SEGMENT = 'This video segment has not uploaded yet or has been deleted.'
 const ERROR_UNSUPPORTED_BROWSER = 'This browser does not support Media Source Extensions API.'
 
-const RouteVideoPlayer: VoidComponent<RouteVideoPlayerProps> = (props) => {
-  const routeName = () => props.routeName
-  const [streamUrl] = createResource(routeName, getQCameraStreamUrl)
-  const [hls, setHls] = createSignal<Hls | null>()
+export const RouteVideoPlayer = (props: RouteVideoPlayerProps) => {
+  const [streamUrl] = createResource(props.routeName, createQCameraStreamUrl)
+  const [hls, setHls] = useCreateSignal<Hls | null>()
   let video!: HTMLVideoElement
   let controls!: HTMLDivElement
 
-  const [isPlaying, setIsPlaying] = createSignal(true)
-  const [currentTime, setCurrentTime] = createSignal(0)
-  const [duration, setDuration] = createSignal(0)
-  const [videoLoading, setVideoLoading] = createSignal(true)
-  const [errorMessage, setErrorMessage] = createSignal<string>('')
+  const [isPlaying, setIsPlaying] = useCreateSignal(true)
+  const [currentTime, setCurrentTime] = useCreateSignal(0)
+  const [duration, setDuration] = useCreateSignal(0)
+  const [videoLoading, setVideoLoading] = useCreateSignal(true)
+  const [errorMessage, setErrorMessage] = useCreateSignal<string>('')
 
   const onLoadedData = () => {
     setVideoLoading(false)
@@ -160,16 +159,16 @@ const RouteVideoPlayer: VoidComponent<RouteVideoPlayerProps> = (props) => {
 
   return (
     <div
-      class={clsx(
+      className={clsx(
         'relative flex aspect-[241/151] items-center justify-center self-stretch overflow-hidden rounded-t-md bg-surface-container-low isolate',
-        props.class,
+        props.className,
       )}
     >
       {/* Video as background */}
-      <div class="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10">
         <video
           ref={video}
-          class="size-full object-cover"
+          className="size-full object-cover"
           data-testid="route-video"
           autoplay
           muted
@@ -181,28 +180,26 @@ const RouteVideoPlayer: VoidComponent<RouteVideoPlayerProps> = (props) => {
       </div>
 
       {/* Loading animation */}
-      <Show when={videoLoading()}>
-        <div class="absolute inset-0 z-0 skeleton-loader" />
-      </Show>
+      {videoLoading() && <div className="absolute inset-0 z-0 skeleton-loader" />}
 
       {/* Error message */}
-      <Show when={errorMessage()}>
-        <div class="absolute inset-0 z-0 flex flex-col items-center justify-center gap-1">
+      {errorMessage() && (
+        <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-1">
           <IconButton name="error" />
-          <span class="w-[90%] text-center text-wrap">{errorMessage()}</span>
+          <span className="w-[90%] text-center text-wrap">{errorMessage()}</span>
         </div>
-      </Show>
+      )}
 
       {/* Controls overlay */}
-      <div class="absolute inset-0 flex items-end" ref={controls}>
+      <div className="absolute inset-0 flex items-end" ref={controls}>
         {/* Controls background gradient */}
-        <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent" />
 
         {/* Controls container */}
-        <div class="relative flex w-full items-center gap-3 pb-3 px-2">
+        <div className="relative flex w-full items-center gap-3 pb-3 px-2">
           <IconButton name={isPlaying() ? 'pause' : 'play_arrow'} filled />
 
-          <div class="font-mono text-sm text-on-surface">
+          <div className="font-mono text-sm text-on-surface">
             {formatVideoTime(currentTime())} / {formatVideoTime(duration())}
           </div>
         </div>
@@ -210,5 +207,3 @@ const RouteVideoPlayer: VoidComponent<RouteVideoPlayerProps> = (props) => {
     </div>
   )
 }
-
-export default RouteVideoPlayer

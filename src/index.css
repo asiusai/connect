@@ -120,7 +120,7 @@
      * fill visible viewport
      * https://developers.google.com/web/updates/2016/12/url-bar-resizing
      */
-    @apply h-full overflow-hidden;
+    @apply h-full overflow-x-hidden overflow-y-auto bg-background text-on-background;
   }
 
   ::-webkit-scrollbar {
@@ -240,5 +240,16 @@
     &::-webkit-scrollbar {
       display: none; /* Safari and Chrome */
     }
+  }
+}
+
+#video-container {
+  .scan-region-highlight {
+    border-radius: 1em;
+    outline: rgba(0, 0, 0, 0.4) solid 50vmax;
+  }
+
+  .scan-region-highlight-svg {
+    display: none;
   }
 }

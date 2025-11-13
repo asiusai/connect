@@ -1,5 +1,4 @@
 import type { Position } from 'geojson'
-import * as Sentry from '@sentry/browser'
 
 import type { ReverseGeocodingResponse, ReverseGeocodingFeature } from '~/map/api-types'
 import { MAPBOX_TOKEN } from '~/map/config'
@@ -22,7 +21,7 @@ export async function reverseGeocode(position: Position): Promise<ReverseGeocodi
     return null
   }
   if (!resp.ok) {
-    Sentry.captureException(new Error(`Reverse geocode lookup failed: ${resp.status} ${resp.statusText}`))
+    console.error(new Error(`Reverse geocode lookup failed: ${resp.status} ${resp.statusText}`))
     return null
   }
   try {
@@ -30,7 +29,7 @@ export async function reverseGeocode(position: Position): Promise<ReverseGeocodi
     const collection = (await resp.json()) as ReverseGeocodingResponse
     return collection?.features?.[0] ?? null
   } catch (error) {
-    Sentry.captureException(new Error('Could not parse reverse geocode response', { cause: error }))
+    console.error(new Error('Could not parse reverse geocode response', { cause: error }))
     return null
   }
 }
