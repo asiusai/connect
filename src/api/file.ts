@@ -18,7 +18,7 @@ export const COMMA_CONNECT_PRIORITY = 1
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7
 
 export const getUploadQueue = async (dongleId: string) => {
-  const res = await api.athena.athena.mutation({
+  const res = await api.athena.athena.mutate({
     body: { id: 0, jsonrpc: '2.0', method: 'listUploadQueue', expiry: undefined },
     params: { dongleId },
   })
@@ -27,7 +27,7 @@ export const getUploadQueue = async (dongleId: string) => {
 }
 
 export const uploadFilesToUrls = async (dongleId: string, files: UploadFile[]) => {
-  const res = await api.athena.athena.mutation({
+  const res = await api.athena.athena.mutate({
     params: { dongleId },
     body: {
       id: 0,
@@ -50,7 +50,7 @@ export const uploadFilesToUrls = async (dongleId: string, files: UploadFile[]) =
 }
 
 export const cancelUpload = async (dongleId: string, ids: string[]) => {
-  const res = await api.athena.athena.mutation({
+  const res = await api.athena.athena.mutate({
     params: { dongleId },
     body: {
       id: 0,
@@ -103,7 +103,7 @@ export const uploadAllSegments = (routeName: string, totalSegments: number, type
 }
 
 export const requestToUploadFiles = async (dongleId: string, paths: string[], expiryDays: number = 7) => {
-  const pathPresignedUrls = await api.file.uploadFiles.mutation({
+  const pathPresignedUrls = await api.file.uploadFiles.mutate({
     params: { dongleId },
     body: { expiry_days: expiryDays, paths },
   })

@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useEffect } from 'react'
 import { useCreateSignal } from '~/fix'
 
 type TextFieldProps = {
@@ -43,9 +44,9 @@ export const TextField = ({ className, label, helperText, error, value, ...props
   const [inputValue, setInputValue] = useCreateSignal(value || '')
 
   // Keep local value in sync with prop value
-  createEffect(() => {
+  useEffect(() => {
     if (value) setInputValue(value)
-  })
+  }, [value])
 
   const labelFloating = () => focused() || inputValue()?.length > 0
 
@@ -67,7 +68,7 @@ export const TextField = ({ className, label, helperText, error, value, ...props
   }
 
   return (
-    <div className={clsx('flex flex-col', props.className)}>
+    <div className={clsx('flex flex-col', className)}>
       <div
         className={clsx(
           'relative flex rounded-t-xs min-h-[56px] bg-surface-container-highest',
@@ -101,7 +102,7 @@ export const TextField = ({ className, label, helperText, error, value, ...props
               label && labelFloating() && 'pt-6 pb-2',
             )}
             value={inputValue()}
-            onInput={(e) => setInputValue(e.target.value)}
+            onInput={(e) => setInputValue(e.currentTarget.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
           />
@@ -115,7 +116,7 @@ export const TextField = ({ className, label, helperText, error, value, ...props
 
       {/* Helper text or error */}
       {(helperText || error) && (
-        <label className={clsx('text-body-sm px-4 pt-1', getStateStyle().helper, props.disabled && 'opacity-40')} for={props.id}>
+        <label className={clsx('text-body-sm px-4 pt-1', getStateStyle().helper, props.disabled && 'opacity-40')} htmlFor={props.id}>
           {error || helperText}
         </label>
       )}

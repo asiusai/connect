@@ -48,6 +48,7 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "@ts-rest/core": "3.53.0-rc.1",
     "@ts-rest/react-query": "3.53.0-rc.1",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
