@@ -6,9 +6,6 @@ import { toast } from 'sonner'
 
 export const api = initTsrReactQuery(contract, {
   baseUrl: API_URL,
-  baseHeaders: {
-    authorization: `JWT ${accessToken()}`,
-  },
   api: async (args) => {
     let path = args.path
 
@@ -18,7 +15,7 @@ export const api = initTsrReactQuery(contract, {
     const res = await fetch(path, {
       method: args.method,
       body: args.body,
-      headers: args.headers,
+      headers: { ...args.headers, authorization: `JWT ${accessToken()}` },
     })
     if (res.status > 400) toast.error(`Request to ${path} failed, code: ${res.status}`)
 
