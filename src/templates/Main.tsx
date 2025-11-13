@@ -6,6 +6,7 @@ import { createQCameraStreamUrl } from '../api/route'
 import { HevcVideo } from './HevcVideo'
 import { FPS } from './consts'
 import { DB } from './indexedDb'
+import { createContext, useContext } from 'react'
 
 const CameraType = z.enum(['road', 'wide', 'driver'])
 type CameraType = z.infer<typeof CameraType>
@@ -18,23 +19,36 @@ const Data = z.object({
 })
 type Data = z.infer<typeof Data>
 
+const Position = z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right', 'none'])
 export const Style = z.object({
-  largeCamera: CameraType,
-  smallCamera: CameraType.optional(),
-  smallCameraPosition: z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right']),
-  smallCameraSize: z.number().min(0).max(100),
   startFrom: z.number().optional(),
   endFrom: z.number().optional(),
   playbackSpeed: z.number(),
+
+  largeCamera: CameraType,
+
+  smallCameraPosition: Position,
+  smallCamera: CameraType,
+  smallCameraSize: z.number().min(0).max(100),
+
+  mapPosition: Position,
+  mapTheme: z.enum(['dark', 'light']),
+
   showSpeed: z.boolean(),
 })
 
 export const defaultStyle: Style = {
-  largeCamera: 'road',
-  smallCamera: 'driver',
-  smallCameraPosition: 'bottom-right',
-  smallCameraSize: 40,
   playbackSpeed: 1,
+
+  largeCamera: 'road',
+
+  smallCameraPosition: 'bottom-right',
+  smallCamera: 'driver',
+  smallCameraSize: 40,
+
+  mapPosition: 'top-right',
+  mapTheme: 'dark',
+
   showSpeed: false,
 }
 const CAMERA_POSITION = {
@@ -42,6 +56,7 @@ const CAMERA_POSITION = {
   'top-right': { top: 0, right: 0 },
   'bottom-left': { bottom: 0, left: 0 },
   'bottom-right': { bottom: 0, right: 0 },
+  none: { display: 'hidden' },
 }
 
 export type Style = z.infer<typeof Style>
@@ -85,46 +100,60 @@ export const calculateMetadata: CalculateMetadataFunction<MainProps> = async ({ 
     props: { ...props, data },
   }
 }
+const CAMERAS = {
+  road: 'cameras',
+  wide: 'ecameras',
+  driver: 'dcameras',
+} as const
 
+const VideoContext = createContext<{ data: Data; style: Style } | null>(null)
+const useVideoContext = () => {
+  const ctx = useContext(VideoContext)
+  if (!ctx) throw new Error()
+  return ctx
+}
+const LargeCamera = () => {
+  const { data, style } = useVideoContext()
+  return (
+    <Series>
+      {data.files[CAMERAS[style.largeCamera]].map((src, i) => (
+        <Series.Sequence key={src} durationInFrames={60 * FPS} premountFor={60 * FPS} name={`Road ${i + 1}/${data.files.cameras.length}`}>
+          <HevcVideo src={src} style={{ width: '100%', background: 'white' }} />
+        </Series.Sequence>
+      ))}
+    </Series>
+  )
+}
+const SmallCamera = () => {
+  const { data, style } = useVideoContext()
+  if (style.smallCameraPosition === 'none') return null
+  return (
+    <Series>
+      {data.files[CAMERAS[style.smallCamera]].map((src, i) => (
+        <Series.Sequence key={src} name={`Driver ${i + 1}/${data.files.cameras.length}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
+          <HevcVideo
+            src={src}
+            style={{
+              position: 'absolute',
+              ...CAMERA_POSITION[style.smallCameraPosition],
+              width: `${style.smallCameraSize}%`,
+              background: 'white',
+            }}
+          />
+        </Series.Sequence>
+      ))}
+    </Series>
+  )
+}
 export const Main = ({ data, style }: MainProps) => {
   if (!data) return <p>Loading...</p>
-  const cameras: Record<CameraType, string[]> = {
-    road: data.files.cameras,
-    wide: data.files.ecameras,
-    driver: data.files.dcameras,
-  }
+
   return (
-    <AbsoluteFill style={{ backgroundColor: 'red', justifyContent: 'center', alignItems: 'center', fontSize: 50 }}>
-      <Series>
-        {cameras[style.largeCamera].map((src, i) => (
-          <Series.Sequence key={src} durationInFrames={60 * FPS} premountFor={60 * FPS} name={`Road ${i + 1}/${data.files.cameras.length}`}>
-            <HevcVideo src={src} style={{ width: '100%', background: 'white' }} />
-          </Series.Sequence>
-        ))}
-      </Series>
-      {style.smallCamera && (
-        <Series>
-          {cameras[style.smallCamera].map((src, i) => (
-            <Series.Sequence
-              layout="absolute-fill"
-              key={src}
-              durationInFrames={60 * FPS}
-              premountFor={60 * FPS}
-              name={`Driver ${i + 1}/${data.files.cameras.length}`}
-            >
-              <HevcVideo
-                src={src}
-                style={{
-                  position: 'absolute',
-                  ...CAMERA_POSITION[style.smallCameraPosition],
-                  width: `${style.smallCameraSize}%`,
-                  background: 'white',
-                }}
-              />
-            </Series.Sequence>
-          ))}
-        </Series>
-      )}
-    </AbsoluteFill>
+    <VideoContext value={{ data, style }}>
+      <AbsoluteFill style={{ backgroundColor: 'red', justifyContent: 'center', alignItems: 'center', fontSize: 50 }}>
+        <LargeCamera />
+        <SmallCamera />
+      </AbsoluteFill>
+    </VideoContext>
   )
 }

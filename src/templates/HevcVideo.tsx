@@ -1,5 +1,5 @@
-import { CSSProperties, useEffect, useRef, useState } from 'react'
-import { Html5Video, RemotionVideoProps, delayRender, continueRender, OffthreadVideo } from 'remotion'
+import { CSSProperties, useEffect, useState } from 'react'
+import { Html5Video, delayRender, continueRender } from 'remotion'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile, toBlobURL } from '@ffmpeg/util'
 import { DB } from './indexedDb'
@@ -54,5 +54,5 @@ export const HevcVideo = ({ src, ...props }: { src: string; className?: string; 
   }, [src])
 
   if (!url) return <div {...props}>Loading video</div>
-  return <OffthreadVideo showInTimeline={false} {...props} src={url} />
+  return <Html5Video showInTimeline={false} {...props} src={url} />
 }
