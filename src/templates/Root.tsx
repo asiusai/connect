@@ -25,9 +25,10 @@ export const RemotionRoot = () => {
         }}
       />
       <Folder name="Examples">
-        {Object.entries(EXAMPLE_ROUTES).map(([k, v]) => (
+        {Object.entries(EXAMPLE_ROUTES).map(([id, routeName]) => (
           <Composition
-            id={k}
+            key={id}
+            id={id}
             component={Main}
             durationInFrames={100}
             fps={FPS}
@@ -36,7 +37,7 @@ export const RemotionRoot = () => {
             schema={MainProps}
             calculateMetadata={calculateMetadata}
             defaultProps={{
-              routeName: v,
+              routeName,
               style: defaultStyle,
               disableCache: false,
             }}
