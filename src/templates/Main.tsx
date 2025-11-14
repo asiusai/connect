@@ -96,6 +96,8 @@ export const MainProps = z.object({
 export type MainProps = z.infer<typeof MainProps>
 
 const getData = async (routeName: string) => {
+  if (!routeName) return undefined
+
   const [dongleId] = routeName.split('/')
   const segments = await api.routes.segments.query({ params: { dongleId }, query: { route_str: routeName } })
   if (segments.status !== 200) throw new Error('Failed getting segments!')
@@ -121,15 +123,16 @@ const getData = async (routeName: string) => {
 export const calculateMetadata: CalculateMetadataFunction<MainProps> = async ({ props }) => {
   const db = await new DB().init()
   const stored = await db.get<string>(props.routeName)
-  let data: Data
+  let data: Data | undefined
 
-  if (!stored || props.disableCache) {
+  if (!props.routeName) data = undefined
+  else if (!stored || props.disableCache) {
     data = await getData(props.routeName)
     await db.set(props.routeName, JSON.stringify(data))
   } else data = JSON.parse(stored)
 
   return {
-    durationInFrames: data.duration * FPS,
+    durationInFrames: data ? data.duration * FPS : 100,
     props: { ...props, data },
   }
 }
@@ -145,36 +148,47 @@ const useVideoContext = () => {
   if (!ctx) throw new Error()
   return ctx
 }
+
 const LargeCamera = () => {
   const { data, style } = useVideoContext()
+  const files = data.files[CAMERAS[style.largeCamera]]
   return (
     <Series>
-      {data.files[CAMERAS[style.largeCamera]].map((src, i) => (
-        <Series.Sequence key={src} durationInFrames={60 * FPS} premountFor={60 * FPS} name={`Road ${i + 1}/${data.files.cameras.length}`}>
-          <HevcVideo src={src} style={{ width: '100%', background: 'white' }} />
-        </Series.Sequence>
-      ))}
+      {files.map((src, i) => {
+        const name = `${style.largeCamera} ${i + 1}/${files.length}`
+        return (
+          <Series.Sequence key={src} durationInFrames={60 * FPS} premountFor={60 * FPS} name={name}>
+            <HevcVideo name={name} src={src} style={{ width: '100%', background: 'white' }} />
+          </Series.Sequence>
+        )
+      })}
     </Series>
   )
 }
+
 const SmallCamera = () => {
   const { data, style } = useVideoContext()
   if (style.smallCameraPosition === 'none') return null
+  const files = data.files[CAMERAS[style.smallCamera]]
   return (
     <Series>
-      {data.files[CAMERAS[style.smallCamera]].map((src, i) => (
-        <Series.Sequence key={src} name={`Driver ${i + 1}/${data.files.cameras.length}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
-          <HevcVideo
-            src={src}
-            style={{
-              position: 'absolute',
-              ...CAMERA_POSITION[style.smallCameraPosition],
-              width: `${style.smallCameraSize}%`,
-              background: 'white',
-            }}
-          />
-        </Series.Sequence>
-      ))}
+      {files.map((src, i) => {
+        const name = `${style.smallCamera} ${i + 1}/${files.length}`
+        return (
+          <Series.Sequence key={src} name={name} durationInFrames={60 * FPS} premountFor={60 * FPS}>
+            <HevcVideo
+              name={name}
+              src={src}
+              style={{
+                position: 'absolute',
+                ...CAMERA_POSITION[style.smallCameraPosition],
+                width: `${style.smallCameraSize}%`,
+                background: 'white',
+              }}
+            />
+          </Series.Sequence>
+        )
+      })}
     </Series>
   )
 }
@@ -218,13 +232,16 @@ const CoordsMap = () => {
         background: 'blue',
       }}
     >
-      {(coord.speed * 1.60934).toFixed()}
+      {(coord.speed * 1.60934 * 2).toFixed()}
     </div>
   )
 }
 
-export const Main = ({ data, style }: MainProps) => {
-  if (!data) return <p>Loading...</p>
+export const Main = ({ data, style, routeName }: MainProps) => {
+  if (!data) {
+    if (routeName) return <p>Loading...</p>
+    else return <p>Please insert routeName!</p>
+  }
   return (
     <VideoContext value={{ data, style }}>
       <AbsoluteFill style={{ backgroundColor: 'red', justifyContent: 'center', alignItems: 'center', fontSize: 50 }}>
