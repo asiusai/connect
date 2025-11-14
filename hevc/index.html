@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HEVC Streamer with mp4box.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
+</head>
+<body>
+    <h1>HEVC Stream (Remuxed in Browser)</h1>
+    <video id="video" style="background:black; height: 400px; width: 600px;" controls autoplay muted></video>
+
+    <script>
+      // Using your local URL
+      const HEVC_URL = "/fcamera.hevc"; 
+      
+      // Use your other comma URL if you're handling CORS
+      // const HEVC_URL = "https://commadata2.blob.core.windows.net/commadata2/9748a98e983e0b39/0000002c--d68dde99ca/0/fcamera.hevc?se=2025-11-14T13%3A21%3A15Z&sp=r&sv=2024-08-04&sr=b&rscd=attachment%3B%20filename%3D9748a98e983e0b39_0000002c--d68dde99ca--0--fcamera.hevc&sig=cwTP575hAmCB4qBnN4b%2BhBauvKyUa6HhCkbQ6MhQM8c%3D";
+
+      const video = document.getElementById("video");
+
+      if (!window.MediaSource) {
+        alert("MediaSource API is not supported in this browser.");
+      }
+
+      const mediaSource = new MediaSource();
+      video.src = URL.createObjectURL(mediaSource);
+
+      mediaSource.addEventListener("sourceopen", () => {
+        // This MIME codec is a guess. 
+        // mp4box.js will give us the *correct* one.
+        const initialMime = 'video/mp4; codecs="hvc1.1.6.L93.B0"';
+        let sourceBuffer;
+
+        // 2. Create the mp4box file instance
+        const mp4boxfile = MP4Box.createFile();
+
+        // 3. Setup the onReady callback
+        // This fires when mp4box has parsed the 'moov' (Init Segment)
+        mp4boxfile.onReady = (info) => {
+          console.log("MP4Box Ready:", info);
+          
+          // Get the *correct* codec string from the file
+          const mime = info.videoTracks[0].codec;
+          console.log("Got correct MIME:", mime);
+
+          if (MediaSource.isTypeSupported(mime)) {
+            sourceBuffer = mediaSource.addSourceBuffer(mime);
+          
+            // 4. Get the Init Segment (the 'moov') and append it
+            sourceBuffer.appendBuffer(info.videoTracks[0].meta.buffer);
+
+            // Set up the segment listener
+            mp4boxfile.onSegment = (id, user, buffer) => {
+              console.log("Got a segment, appending to buffer...");
+              // 5. Append the Media Segments (moof + mdat)
+              sourceBuffer.appendBuffer(buffer);
+            };
+
+            // Start processing the file for segments
+            mp4boxfile.setExtractionOptions(info.videoTracks[0].id, null, { nbSamples: 1000 });
+            mp4boxfile.start();
+
+          } else {
+            console.error("MIME type not supported:", mime);
+          }
+        };
+
+        // 6. Fetch the HEVC file
+        console.log("Fetching HEVC file...");
+        let offset = 0; // Keep track of the byte offset
+
+        fetch(HEVC_URL)
+          .then((response) => {
+            if (!response.ok) throw new Error("Fetch failed");
+            const reader = response.body.getReader();
+
+            function processChunk({ done, value }) {
+              if (done) {
+                console.log("Fetch complete, flushing mp4box...");
+                mp4boxfile.flush(); // Signal the end of the file
+                
+                // We're done, but wait for onSegment to finish
+                // and then end the stream
+                setTimeout(() => {
+                    if (mediaSource.readyState === "open") {
+                        mediaSource.endOfStream();
+                    }
+                }, 1000); // Give it a second
+                return;
+              }
+
+              // 7. This is the magic!
+              // Feed the raw HEVC chunk into mp4box
+              // 'value' is a Uint8Array, we need its ArrayBuffer
+              const buffer = value.buffer;
+              buffer.fileStart = offset;
+              offset += buffer.byteLength;
+              
+              console.log(`Feeding mp4box with chunk at offset ${buffer.fileStart}`);
+              mp4boxfile.appendBuffer(buffer);
+
+              // Read the next chunk
+              reader.read().then(processChunk);
+            }
+
+            reader.read().then(processChunk);
+          })
+          .catch(err => {
+            console.error("Fetch Error:", err);
+          });
+      });
+    </script>
+</body>
+</html>

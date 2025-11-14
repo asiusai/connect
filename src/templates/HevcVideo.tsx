@@ -20,7 +20,7 @@ const files: Record<string, Promise<Blob>> = {}
 type Load = { loaded: number; length: number }
 type OnLoad = (p: Load) => void
 
-const load = async (url: string, onLoad: OnLoad): Promise<Uint8Array> => {
+const download = async (url: string, onLoad: OnLoad): Promise<Uint8Array> => {
   const res = await fetch(url)
   if (!res.ok || !res.body) throw new Error('Failed to fetch')
 
@@ -52,7 +52,7 @@ const load = async (url: string, onLoad: OnLoad): Promise<Uint8Array> => {
 
 const convert = async (file: string, onLoad: OnLoad) => {
   await loaded
-  const bin = await load(file, onLoad)
+  const bin = await download(file, onLoad)
   await ffmpeg.writeFile('input.hevc', new Uint8Array(bin))
   await ffmpeg.exec(['-r', '20', '-i', 'input.hevc', '-c', 'copy', '-map', '0', '-vtag', 'hvc1', 'output.mp4'])
   const data = await ffmpeg.readFile('output.mp4')
