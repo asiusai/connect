@@ -17,18 +17,49 @@ const loaded = init()
 
 const files: Record<string, Promise<Blob>> = {}
 
-const convert = async (file: string) => {
+type Load = { loaded: number; length: number }
+type OnLoad = (p: Load) => void
+
+const load = async (url: string, onLoad: OnLoad): Promise<Uint8Array> => {
+  const res = await fetch(url)
+  if (!res.ok || !res.body) throw new Error('Failed to fetch')
+
+  const length = Number(res.headers.get('content-length')) || 0
+  const reader = res.body.getReader()
+
+  const chunks: Uint8Array[] = []
+  let loaded = 0
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    chunks.push(value)
+    loaded += value.length
+    onLoad({ loaded, length })
+  }
+
+  // merge chunks into a single Uint8Array
+  const result = new Uint8Array(loaded)
+  let offset = 0
+  for (const chunk of chunks) {
+    result.set(chunk, offset)
+    offset += chunk.length
+  }
+
+  return result
+}
+
+const convert = async (file: string, onLoad: OnLoad) => {
   await loaded
-  const res = await fetch(file)
-  console.log(res.headers)
-  const bin = await res.arrayBuffer()
+  const bin = await load(file, onLoad)
   await ffmpeg.writeFile('input.hevc', new Uint8Array(bin))
   await ffmpeg.exec(['-r', '20', '-i', 'input.hevc', '-c', 'copy', '-map', '0', '-vtag', 'hvc1', 'output.mp4'])
   const data = await ffmpeg.readFile('output.mp4')
   return new Blob([(data as any).buffer], { type: 'video/mp4' })
 }
 
-const getBlob = async (file: string) => {
+const getBlob = async (file: string, onLoad: OnLoad) => {
   const key = new URL(file).origin + new URL(file).pathname
 
   const loadFile = async () => {
@@ -36,7 +67,7 @@ const getBlob = async (file: string) => {
     let res = await db.get<Blob>(key)
     if (res) return res
 
-    res = await convert(file)
+    res = await convert(file, onLoad)
     await db.set(key, res)
     return res
   }
@@ -48,15 +79,21 @@ const getBlob = async (file: string) => {
 export const HevcVideo = ({ src, name, ...props }: { src: string; className?: string; style?: CSSProperties; name: string }) => {
   const [handle] = useState(() => delayRender('hevc', { timeoutInMilliseconds: 120_000 }))
   const [url, setUrl] = useState<string>()
-
+  const [load, setLoad] = useState<Load>()
   useEffect(() => {
     if (url) return
-    getBlob(src).then((blob) => {
+    getBlob(src, setLoad).then((blob) => {
       setUrl(URL.createObjectURL(blob))
       continueRender(handle)
     })
   }, [src])
 
-  if (!url) return <div {...props}>Loading {name} </div>
+  const percent = load ? load.loaded / load.length : 0
+  if (!url)
+    return (
+      <div {...props}>
+        Loading {name} {(percent * 100).toFixed()}%
+      </div>
+    )
   return <Html5Video showInTimeline={false} {...props} src={url} />
 }
