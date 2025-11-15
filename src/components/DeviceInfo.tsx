@@ -126,7 +126,7 @@ const ActionBar = () => {
         <div
           key={name}
           onClick={onClick}
-          className="bg-surface-container-low shadow-lg p-2 rounded-full pointer-events-auto cursor-pointer"
+          className="bg-surface-container-low shadow-lg p-3 rounded-full pointer-events-auto cursor-pointer"
         >
           <Icon name={name as any} className="" />
         </div>
@@ -146,7 +146,7 @@ const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: stri
   if (!stats) return null
   return (
     <>
-      <p className="text-2xl font-bold text-title-lg">{getDeviceName(device)}</p>
+      <p className="text-2xl font-bold text-title-lg mt-4">{getDeviceName(device)}</p>
 
       <div className="flex flex-col gap-1">
         {!!route &&
@@ -169,26 +169,26 @@ const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: stri
                 <p className="text-on-surface-variant">{value}</p>
               </div>
             ))}
-        <div className="grid grid-cols-2">
-          {[
-            { title: 'All time', stats: stats.all },
-            { title: 'Weekly', stats: stats.week },
-          ].map(({ title, stats }) => (
-            <div className="flex flex-col">
-              <p className="text-sm">{title}:</p>
-              {[
-                { label: 'Distance', value: formatDistance(stats.distance) },
-                { label: 'Duration', value: formatDuration(stats.minutes) },
-                { label: 'Routes', value: stats.routes },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex gap-2 text-xs text-on-surface-variant">
-                  <p>{label}:</p>
-                  <p>{value}</p>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+      </div>
+      <div className="grid grid-cols-2">
+        {[
+          { title: 'All time', stats: stats.all },
+          { title: 'Weekly', stats: stats.week },
+        ].map(({ title, stats }) => (
+          <div className="flex flex-col">
+            <p className="text-sm">{title}:</p>
+            {[
+              { label: 'Distance', value: formatDistance(stats.distance) },
+              { label: 'Duration', value: formatDuration(stats.minutes) },
+              { label: 'Routes', value: stats.routes },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex gap-2 text-xs text-on-surface-variant">
+                <p>{label}:</p>
+                <p>{value}</p>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </>
   )
