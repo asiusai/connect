@@ -4,13 +4,7 @@ import { IconButton } from '~/components/material/IconButton'
 import { Setter } from '~/fix'
 import { useDimensions } from '~/utils/window'
 
-type DrawerContext = {
-  modal: boolean
-  open: boolean
-  setOpen: Setter<boolean>
-}
-
-const DrawerContext = createContext<DrawerContext | null>(null)
+const DrawerContext = createContext<{ modal: boolean; open: boolean; setOpen: Setter<boolean> } | null>(null)
 
 export function useDrawerContext() {
   const context = useContext(DrawerContext)
@@ -25,12 +19,7 @@ export const DrawerToggleButton = () => {
 
 const PEEK = 56
 
-interface DrawerProps {
-  drawer: ReactNode
-  children?: ReactNode
-}
-
-export const Drawer = (props: DrawerProps) => {
+export const Drawer = (props: { drawer: ReactNode; children?: ReactNode }) => {
   const dimensions = useDimensions()
   const drawerWidth = Math.min(dimensions.width - PEEK, 320)
   const modal = dimensions.width < 1280
