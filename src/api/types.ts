@@ -24,6 +24,7 @@ const NAMES: Record<string, string> = {
   freon: 'freon',
   unknown: 'unknown',
 }
+export const getDeviceName = (device: { device_type: string }) => NAMES[device.device_type] || `comma ${device.device_type}`
 export const Device = z
   .object({
     alias: z.string().nullable(),
@@ -55,7 +56,7 @@ export const Device = z
   .transform((x) => ({
     ...x,
     is_online: !!x.last_athena_ping && x.last_athena_ping >= Math.floor(Date.now() / 1000) - 120,
-    name: x.name || x.alias || NAMES[x.device_type] || `comma ${x.device_type}`,
+    name: x.name || x.alias || getDeviceName(x),
   }))
 
 export const DrivingStatisticsAggregation = z.object({

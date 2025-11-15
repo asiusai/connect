@@ -27,10 +27,10 @@ export const Component = () => {
           params.date ? '-translate-x-full md:translate-x-0' : 'translate-x-0',
         )}
       >
-        <div className="min-w-full overflow-y-scroll">
+        <div className="min-w-full overflow-y-scroll scrollbar-hide relative">
           <DeviceInfo dongleId={params.dongleId!} />
         </div>
-        <div className="min-w-full overflow-y-scroll">
+        <div className="min-w-full overflow-y-scroll ">
           <Outlet />
         </div>
       </div>

@@ -12,7 +12,7 @@ type TopAppBarProps = {
 export const TopAppBar = (props: TopAppBarProps) => {
   // TODO: handle component
   return (
-    <header className={clsx('inset-x-0 top-0 flex h-16 items-center gap-4 px-4 py-5 text-on-surface', props.className)}>
+    <header className={clsx('inset-x-0 top-0 flex items-center gap-4 px-5 py-5 text-on-surface', props.className)}>
       {props.leading}
       <h1 className="grow truncate text-title-lg">{props.children}</h1>
       {props.trailing}

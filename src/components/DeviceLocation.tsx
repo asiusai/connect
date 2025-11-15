@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { api } from '~/api'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
+import { Device } from '~/api/types'
 
 type Location = {
   lat: number
@@ -62,7 +63,7 @@ function FitBounds({ markers }: { markers: Location[] }) {
   return null
 }
 
-export const DeviceLocation = ({ dongleId, deviceName }: { dongleId: string; deviceName: string }) => {
+export const DeviceLocation = ({ dongleId, device, className }: { dongleId: string; device: Device; className?: string }) => {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
   const [showLocationInfo, setShowLocationInfo] = useState(false)
   const { position, requestPosition } = usePosition()
@@ -79,7 +80,7 @@ export const DeviceLocation = ({ dongleId, deviceName }: { dongleId: string; dev
           address: await getFullAddress([location.lng, location.lat]),
           lat: location.lat,
           lng: location.lng,
-          label: deviceName,
+          label: device.name,
           iconName: 'directions_car',
         })
       }
@@ -96,16 +97,16 @@ export const DeviceLocation = ({ dongleId, deviceName }: { dongleId: string; dev
       setMarkers(markers)
     }
     effect()
-  }, [position, deviceName, location])
+  }, [position, device.name, location])
 
   return (
-    <div className="relative">
+    <div className={clsx(className)}>
       <MapContainer
         attributionControl={false}
         zoomControl={false}
         center={SAN_DIEGO}
         zoom={10}
-        className="h-[240px] w-full !bg-surface-container-low"
+        className="h-full w-full !bg-surface-container-low"
       >
         <TileLayer url={getTileUrl()} />
 
@@ -130,18 +131,11 @@ export const DeviceLocation = ({ dongleId, deviceName }: { dongleId: string; dev
         <FitBounds markers={markers} />
       </MapContainer>
 
-      {!position && !showLocationInfo && (
-        <div className="absolute bottom-2 right-2 z-[9999]">
-          <Button
-            color="secondary"
-            className="bg-surface-container-low text-on-surface-variant"
-            onClick={() => void requestPosition()}
-            leading={<Icon name="my_location" size="20" />}
-          >
-            Show my location
-          </Button>
+      {/* {!position && !showLocationInfo && (
+        <div className="absolute bottom-2 right-2 z-[9999] p-2 bg-surface-container-low rounded-full">
+          <Icon name="my_location" size="20" className="text-on-surface-variant text-secondary" onClick={() => void requestPosition()} />
         </div>
-      )}
+      )} */}
 
       {!markers.length && (
         <div className="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-surface-variant px-4 py-2 shadow">

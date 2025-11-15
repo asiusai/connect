@@ -94,7 +94,7 @@ export const HevcVideo = ({ src, name, ...props }: VideoProps) => {
       setUrl(URL.createObjectURL(blob))
       continueRender(handle)
     })
-  }, [src, url, handle])
+  }, [src])
 
   const percent = load ? load.loaded / load.length : 0
   if (!url)

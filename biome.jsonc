@@ -29,7 +29,8 @@
         "noUnusedImports": "off",
         "noUnusedVariables": "off",
         "useUniqueElementIds": "off",
-        "useJsxKeyInIterable": "off"
+        "useJsxKeyInIterable": "off",
+        "useExhaustiveDependencies": "off"
       },
       "performance": {
         "noBarrelFile": "error"

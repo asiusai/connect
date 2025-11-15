@@ -1,119 +1,161 @@
 import clsx from 'clsx'
 
-import { SHARED_DEVICE } from '~/api/devices'
-import { DrawerToggleButton, useDrawerContext } from '~/components/material/Drawer'
+import { useDrawerContext } from '~/components/material/Drawer'
 import { Icon } from '~/components/material/Icon'
 import { IconButton } from '~/components/material/IconButton'
-import { TopAppBar } from '~/components/material/TopAppBar'
 import { DeviceLocation } from '~/components/DeviceLocation'
-import { DeviceStatistics } from '~/components/DeviceStatistics'
 
 import { RouteList } from './RouteList'
 import { api } from '~/api'
-import { useState } from 'react'
 import { Loading } from './material/Loading'
+import { Device, getDeviceName } from '~/api/types'
+import { formatDistance, formatDuration } from '~/utils/format'
 
 export const useDevice = (dongleId: string) =>
   api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } })
 
+const timeAgo = (time: number): string => {
+  const diff = Math.floor(Date.now() / 1000) - time
+
+  if (diff < 120) return 'active now'
+
+  const minutes = Math.floor(diff / 60)
+  if (minutes < 60) return `active ${minutes} minutes ago`
+
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `active ${hours} hours ago`
+
+  const days = Math.floor(hours / 24)
+  return `active ${days} days ago`
+}
+
 export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   const res = useDevice(dongleId)
   const device = res.data?.body
-  // TODO: remove this. if we're listing the routes for a device you should always be a user, this is for viewing public routes which are being removed
-  const isDeviceUser = res.isLoading ? true : device?.is_owner || device?.alias !== SHARED_DEVICE
-  const [queueVisible, setQueueVisible] = useState(false)
-  const snapshot = api.athena.athena.useMutation({
-    onSuccess: (x: any) => setImages([x.body.result.jpegFront, x.body.result.jpegBack]),
-  })
-  const [images, setImages] = useState<string[]>([])
 
-  const onClickSnapshot = () => {
-    setImages([])
-    snapshot.mutate({ body: { id: 0, jsonrpc: '2.0', method: 'takeSnapshot', expiry: undefined }, params: { dongleId } })
-  }
-
-  const downloadSnapshot = (image: string, index: number) => {
-    const link = document.createElement('a')
-    link.href = `data:image/jpeg;base64,${image}`
-    link.download = `snapshot${index + 1}.jpg`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
-  const { modal } = useDrawerContext()
+  if (!device) return <Loading className="h-screen w-screen" />
   return (
     <>
-      <TopAppBar
-        className="font-bold"
-        leading={!modal ? <img alt="" src="/images/comma-white.png" className="h-8" /> : <DrawerToggleButton />}
-      >
-        connect
-      </TopAppBar>
-      <div className="flex flex-col gap-4 px-4 pb-4">
-        <div className="h-min overflow-hidden rounded-lg bg-surface-container-low">
-          {!device ? <Loading className="h-[240px] size-full" /> : <DeviceLocation dongleId={dongleId} deviceName={device.name} />}
-          <div className="flex items-center justify-between p-4">
-            {!device ? (
-              <div className="h-[32px] skeleton-loader size-full rounded-xs" />
-            ) : (
-              <div className="inline-flex items-center gap-2">
-                <div className={clsx('m-2 size-2 shrink-0 rounded-full', device.is_online ? 'bg-green-400' : 'bg-gray-400')} />
-
-                {<div className="text-lg font-bold">{device.name}</div>}
-              </div>
-            )}
-            <div className="flex gap-4">
-              <IconButton name="camera" onClick={onClickSnapshot} />
-              <IconButton name="settings" href={`/${dongleId}/settings`} />
-            </div>
-          </div>
-          {isDeviceUser && (
-            <>
-              <DeviceStatistics dongleId={dongleId} className="p-4" />
-              {/* {queueVisible && <UploadQueue dongleId={dongleId} />} */}
-              <button
-                className={clsx(
-                  'flex w-full cursor-pointer justify-center rounded-b-lg bg-surface-container-lowest p-2',
-                  queueVisible && 'border-t-2 border-t-surface-container-low',
-                )}
-                onClick={() => setQueueVisible(!queueVisible)}
-              >
-                <p className="mr-2">Upload Queue</p>
-                <Icon className="text-zinc-500" name={queueVisible ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} />
-              </button>
-            </>
-          )}
+      <div className="fixed top-0 w-full h-[500px]">
+        <Top device={device} />
+        <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full" />
+      </div>
+      <div className="relative pointer-events-none min-h-screen">
+        <div className="h-[430px]"></div>
+        <ActionBar />
+        <div className="bg-surface-container-low p-4 rounded-t-xl flex flex-col gap-4 pointer-events-auto h-full">
+          <RouteList dongleId={dongleId} />
+          <DeviceStatistics dongleId={dongleId} device={device} />
         </div>
-        <div className="flex flex-col gap-2">
-          {images.map((image, i) => (
-            <div key={image} className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
-              <div className="relative p-4">
-                <img src={`data:image/jpeg;base64,${image}`} alt={`Device Snapshot ${i + 1}`} />
-                <div className="absolute right-4 top-4 p-4">
-                  <IconButton className="text-white" name="download" onClick={() => downloadSnapshot(image, i)} />
-                  <IconButton className="text-white" name="clear" onClick={() => setImages(images.filter((_, j) => j !== i))} />
-                </div>
+      </div>
+    </>
+  )
+}
+
+const Top = ({ device }: { device: Device }) => {
+  const { modal, setOpen } = useDrawerContext()
+  return (
+    <div className="inset-x-0 top-0 flex items-center gap-4 px-5 py-5 text-on-surface fixed z-[999]">
+      <h1 className="grow truncate text-title-lg font-bold">
+        <div onClick={() => setOpen(true)}>
+          <div className="flex items-center gap-2">
+            <p>{device.name || 'connect'}</p>
+            {modal && <Icon name="keyboard_arrow_down" className="" />}
+          </div>
+          <p
+            className={clsx(
+              'text-xs',
+              Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-on-surface-variant',
+            )}
+          >
+            {timeAgo(device.last_athena_ping)}
+          </p>
+        </div>
+      </h1>
+      <div className="flex gap-4">
+        <IconButton name="camera" onClick={() => alert('TODO')} />
+        <IconButton name="settings" href={`/${device.dongle_id}/settings`} />
+      </div>
+    </div>
+  )
+}
+
+const ActionBar = () => {
+  const icons = [
+    { name: 'pause', onClick: () => alert('TODO') },
+    { name: 'add', onClick: () => alert('TODO') },
+    { name: 'camera', onClick: () => alert('TODO') },
+    { name: 'directions_car', onClick: () => alert('TODO') },
+  ]
+  return (
+    <div className="flex justify-around items-center h-[50px]">
+      {icons.map(({ name, onClick }) => (
+        <div
+          key={name}
+          onClick={onClick}
+          className="bg-surface-container-low shadow-lg p-2 rounded-full pointer-events-auto cursor-pointer"
+        >
+          <Icon name={name as any} className="" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: string }) => {
+  const data = api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } })
+  const stats = data.data?.body
+  const routes = api.routes.allRoutes.useQuery({
+    queryKey: ['allRoutes', dongleId],
+    queryData: { params: { dongleId }, query: { limit: 1 } },
+  })
+  const route = routes.data?.body[0]
+  if (!stats) return null
+  return (
+    <>
+      <p className="text-2xl font-bold text-title-lg">{getDeviceName(device)}</p>
+
+      <div className="flex flex-col gap-1">
+        {!!route &&
+          [
+            { label: 'Repo', value: route.git_remote ? <a href={route.git_remote}>{route.git_remote}</a> : undefined },
+            { label: 'Branch', value: route.git_branch },
+            {
+              label: 'Commit',
+              value: route.git_commit ? `${route.git_commit.slice(0, 7)} (${route.git_commit_date!.slice(0, 10)})` : undefined,
+            },
+            { label: 'Version', value: route.version },
+            { label: 'Make', value: route.make },
+            { label: 'Platform', value: route.platform },
+            { label: 'VIN', value: route.vin },
+          ]
+            .filter((x) => x.value)
+            .map(({ label, value }) => (
+              <div key={label} className="flex gap-2 text-sm">
+                <p className="">{label}:</p>
+                <p className="text-on-surface-variant">{value}</p>
               </div>
+            ))}
+        <div className="grid grid-cols-2">
+          {[
+            { title: 'All time', stats: stats.all },
+            { title: 'Weekly', stats: stats.week },
+          ].map(({ title, stats }) => (
+            <div className="flex flex-col">
+              <p className="text-sm">{title}:</p>
+              {[
+                { label: 'Distance', value: formatDistance(stats.distance) },
+                { label: 'Duration', value: formatDuration(stats.minutes) },
+                { label: 'Routes', value: stats.routes },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex gap-2 text-xs text-on-surface-variant">
+                  <p>{label}:</p>
+                  <p>{value}</p>
+                </div>
+              ))}
             </div>
           ))}
-          {snapshot.isPending && (
-            <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
-              <div className="p-4">
-                <div>Loading snapshots...</div>
-              </div>
-            </div>
-          )}
-          {snapshot.isError && (
-            <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
-              <div className="flex items-center p-4">
-                <IconButton className="text-white" name="clear" onClick={() => snapshot.reset()} />
-                <span>Error: {snapshot.error as any}</span>
-              </div>
-            </div>
-          )}
         </div>
-        <RouteList dongleId={dongleId} />
       </div>
     </>
   )
