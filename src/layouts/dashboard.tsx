@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Outlet, useParams } from 'react-router-dom'
+import { Outlet, useLocation, useParams } from 'react-router-dom'
 import { DeviceInfo } from '~/components/DeviceInfo'
 
 export const parseRouteId = (pathname: string) => {
@@ -16,6 +16,9 @@ export const parseRouteId = (pathname: string) => {
 
 export const Component = () => {
   const params = useParams()
+  const location = useLocation()
+  console.log()
+  const paths = location.pathname.split('/').filter(Boolean)
 
   return (
     <div className="relative size-full overflow-hidden">
@@ -24,13 +27,13 @@ export const Component = () => {
           'mx-auto size-full max-w-[1600px] md:grid md:grid-cols-2 lg:gap-2',
           // Flex layout for mobile with horizontal transition
           'flex transition-transform duration-300 ease-in-out',
-          params.date ? '-translate-x-full md:translate-x-0' : 'translate-x-0',
+          paths.length > 1 ? '-translate-x-full md:translate-x-0' : 'translate-x-0',
         )}
       >
-        <div className="min-w-full overflow-y-scroll scrollbar-hide relative">
+        <div id="left" className="min-w-full overflow-y-scroll scrollbar-hide relative">
           <DeviceInfo dongleId={params.dongleId!} />
         </div>
-        <div className="min-w-full overflow-y-scroll ">
+        <div id="right" className="min-w-full overflow-y-scroll ">
           <Outlet />
         </div>
       </div>

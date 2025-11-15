@@ -9,6 +9,8 @@ import { api } from '~/api'
 import { Loading } from './material/Loading'
 import { Device, getDeviceName } from '~/api/types'
 import { formatDistance, formatDuration } from '~/utils/format'
+import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 
 export const useDevice = (dongleId: string) =>
   api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } })
@@ -33,10 +35,24 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   const device = res.data?.body
   const stats = api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } })
 
+  const [fade, setFade] = useState(1)
+
+  useEffect(() => {
+    const el = document.querySelector('#left')!
+    const onScroll = () => {
+      const y = el.scrollTop
+      console.log({ y })
+      const v = Math.max(0, 1 - y / 400)
+      setFade(v)
+    }
+    el.addEventListener('scroll', onScroll)
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [])
+  console.log(fade)
   if (!device) return <Loading className="h-screen w-screen" />
   return (
     <>
-      <div className="fixed top-0 w-full h-[500px]">
+      <div className="fixed top-0 w-full h-[500px]" style={{ opacity: fade }}>
         <Top device={device} />
         <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full" />
       </div>
@@ -48,18 +64,19 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
             {[
               { title: 'Drives', subtitle: `${stats.data?.body.all.routes} drives`, icon: 'directions_car', href: `/${dongleId}/routes` },
               { title: 'Sentry mode', icon: 'photo_camera', href: `/${dongleId}/sentry` },
-              { title: 'Settings', icon: 'settings', href: `/${dongleId}/settings` },
-              { title: 'Teleop', icon: 'robot_2', href: `/${dongleId}/teleop` },
+              { title: 'Actions', icon: 'infrared', href: `/${dongleId}/actions` },
+              { title: 'Teleop', icon: 'gamepad', href: `/${dongleId}/teleop` },
               { title: 'Analyze', icon: 'bar_chart', href: `/${dongleId}/analyze` },
+              { title: 'Settings', icon: 'settings', href: `/${dongleId}/settings` },
             ].map(({ title, href, icon, subtitle }) => (
-              <a key={title} href={href} className="flex items-center gap-4 px-2 text-lg h-14">
+              <Link key={title} to={href} className="flex items-center gap-4 px-2 text-lg h-14">
                 <Icon name={icon as any} className="opacity-50" />
                 <div className="mr-auto flex flex-col gap-0.5">
                   <div className="text-white">{title}</div>
                   {subtitle && <div className="text-xs opacity-50">{subtitle}</div>}
                 </div>
                 <Icon name="keyboard_arrow_down" className="-rotate-90 opacity-20" />
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -105,9 +122,9 @@ const Top = ({ device }: { device: Device }) => {
           </p>
         </div>
       </div>
-      <div className="items-center flex text-sm bg-surface-container shadow-lg px-2 py-1 gap-2 rounded-md">
+      <div className="items-center flex bg-surface-container shadow-lg px-3 py-2 gap-2 rounded-lg">
         <div>Navigate</div>
-        <Icon name="search" size="20" className="" />
+        <Icon name="search" className="" />
       </div>
     </div>
   )
@@ -175,7 +192,7 @@ const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: stri
           { title: 'All time', stats: stats.all },
           { title: 'Weekly', stats: stats.week },
         ].map(({ title, stats }) => (
-          <div className="flex flex-col">
+          <div key={title} className="flex flex-col">
             <p className="text-sm">{title}:</p>
             {[
               { label: 'Distance', value: formatDistance(stats.distance) },
