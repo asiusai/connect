@@ -35,7 +35,7 @@ export const Coord = z.object({
   dist: z.number(),
 })
 export type Coord = z.infer<typeof Coord>
-const Data = z.object({
+export const Data = z.object({
   segments: RouteSegment.array(),
   segment: RouteSegment,
   qCamUrl: z.string(),
@@ -44,7 +44,7 @@ const Data = z.object({
   events: Event.array(),
   coords: Coord.array(),
 })
-type Data = z.infer<typeof Data>
+export type Data = z.infer<typeof Data>
 
 const Position = z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
 export const Style = z.object({

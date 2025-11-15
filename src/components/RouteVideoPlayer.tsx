@@ -1,16 +1,22 @@
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '~/api'
 
 import { createQCameraStreamUrl } from '~/api/route'
 import { IconButton } from '~/components/material/IconButton'
 import { Loading } from './material/Loading'
 import { Player } from '@remotion/player'
-import { Main } from '../templates/Main'
+import { Data, defaultStyle, getData, Main } from '../templates/Main'
+import { FPS, HEIGHT, WIDTH } from '~/templates/consts'
 
 const ERROR_MISSING_SEGMENT = 'This video segment has not uploaded yet or has been deleted.'
 const ERROR_UNSUPPORTED_BROWSER = 'This browser does not support Media Source Extensions API.'
 
+const useData = (routeName: string) => {
+  const [data, setData] = useState<Data>()
+  useEffect(() => void getData(routeName.replace('|', '/')).then(setData), [routeName])
+  return data
+}
 export const RouteVideoPlayer = ({
   routeName,
   className,
@@ -29,9 +35,7 @@ export const RouteVideoPlayer = ({
   const [error, setError] = useState('')
   const [isPlaying, setIsPlaying] = useState(true)
   const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(100)
-
-  console.log(streamUrl)
+  const data = useData(routeName)
   return (
     <div
       className={clsx(
@@ -40,21 +44,23 @@ export const RouteVideoPlayer = ({
       )}
     >
       <div className="absolute inset-0 -z-10">
-        <Player
-          component={Main}
-          compositionHeight={1080}
-          compositionWidth={1920}
-          durationInFrames={duration}
-          fps={30}
-          style={{ width: '100%' }}
-          inputProps={{ routeName }}
-          className="size-full object-cover"
-          data-testid="route-video"
-          autoPlay
-          controls
-          loop
-          allowFullscreen
-        />
+        {data && (
+          <Player
+            component={Main}
+            compositionHeight={HEIGHT}
+            compositionWidth={WIDTH}
+            durationInFrames={data.duration * FPS}
+            fps={FPS}
+            style={{ width: '100%' }}
+            inputProps={{ routeName, style: defaultStyle, disableCache: true, data }}
+            className="size-full object-cover"
+            data-testid="route-video"
+            autoPlay
+            controls
+            loop
+            allowFullscreen
+          />
+        )}
       </div>
 
       {/* Loading animation */}
