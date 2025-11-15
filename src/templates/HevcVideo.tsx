@@ -77,21 +77,24 @@ const getBlob = async (file: string, onLoad: OnLoad) => {
 }
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties; name: string }
+
 export const OPVideo = ({ ...props }: VideoProps) => {
   if (props.src.endsWith('.mp4')) return <OffthreadVideo {...props} />
   return <HevcVideo {...props} />
 }
+
 export const HevcVideo = ({ src, name, ...props }: VideoProps) => {
   const [handle] = useState(() => delayRender('hevc', { timeoutInMilliseconds: 120_000 }))
   const [url, setUrl] = useState<string>()
   const [load, setLoad] = useState<Load>()
+
   useEffect(() => {
     if (url) return
     getBlob(src, setLoad).then((blob) => {
       setUrl(URL.createObjectURL(blob))
       continueRender(handle)
     })
-  }, [src])
+  }, [src, url, handle])
 
   const percent = load ? load.loaded / load.length : 0
   if (!url)

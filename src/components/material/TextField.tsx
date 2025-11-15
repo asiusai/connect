@@ -46,7 +46,7 @@ export const TextField = ({ className, label, helperText, error, value, ...props
   // Keep local value in sync with prop value
   useEffect(() => {
     if (value) setInputValue(value)
-  }, [value])
+  }, [value, setInputValue])
 
   const labelFloating = () => focused() || inputValue()?.length > 0
 

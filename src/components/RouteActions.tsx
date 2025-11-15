@@ -15,10 +15,11 @@ export const RouteActions = ({ routeName, route }: { routeName: string; route: R
 
   const [isPublic, setIsPublic] = useState<boolean | undefined>(route?.is_public)
   const [isPreserved, setIsPreserved] = useState<boolean>()
+
   useEffect(() => {
     if (preserved.data?.body) setIsPreserved(preserved.data.body.some((p) => p.fullname === route?.fullname))
     else setIsPreserved(undefined)
-  }, [])
+  }, [preserved.data, route?.fullname])
 
   const currentRouteId = routeName.replace('|', '/')
   const useradminUrl = `${USERADMIN_URL}/?onebox=${currentRouteId}`

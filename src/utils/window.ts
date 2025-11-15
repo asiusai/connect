@@ -11,8 +11,8 @@ export const getDimensions = (): Dimensions => {
 export const useDimensions = (): Dimensions => {
   const [dimensions, setDimensions] = useState(getDimensions())
 
-  const onResize = () => setDimensions(getDimensions())
   useEffect(() => {
+    const onResize = () => setDimensions(getDimensions())
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])

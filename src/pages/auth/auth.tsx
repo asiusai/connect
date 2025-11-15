@@ -11,9 +11,9 @@ export const Component = () => {
 
   const code = params.get('code')
   const provider = params.get('provider')
-  if (!code || !provider) return <Navigate to="/login" />
 
   useEffect(() => {
+    if (!code || !provider) return
     refreshAccessToken(code, provider)
       .then(() => navigate('/'))
       .catch((err) => {
@@ -21,7 +21,9 @@ export const Component = () => {
         if (err instanceof Error && err.message) setError(err.message)
         else setError('Something went wrong')
       })
-  }, [])
+  }, [code, provider, navigate])
+
+  if (!code || !provider) return <Navigate to="/login" />
   return (
     <div className="flex min-h-screen max-w-lg flex-col gap-8 items-center mx-auto justify-center p-6">
       <div className="flex flex-col gap-4 items-center">

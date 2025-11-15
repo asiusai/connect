@@ -87,7 +87,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
         </div>
         <div className="flex flex-col gap-2">
           {images.map((image, i) => (
-            <div className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
+            <div key={image} className="flex-1 overflow-hidden rounded-lg bg-surface-container-low">
               <div className="relative p-4">
                 <img src={`data:image/jpeg;base64,${image}`} alt={`Device Snapshot ${i + 1}`} />
                 <div className="absolute right-4 top-4 p-4">

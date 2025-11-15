@@ -6,7 +6,7 @@ import type { IconName } from '~/components/material/Icon'
 import { IconButton } from '~/components/material/IconButton'
 import { getTileUrl } from '~/map'
 import { getFullAddress } from '~/map/geocode'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { api } from '~/api'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
@@ -25,12 +25,13 @@ const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
 const usePosition = () => {
   const [position, setPosition] = useState<GeolocationPosition | null>(null)
 
-  const requestPosition = () => {
+  const requestPosition = useCallback(() => {
     navigator.geolocation.getCurrentPosition(setPosition, (err) => {
       console.log("Error getting user's position", err)
       setPosition(null)
     })
-  }
+  }, [])
+
   useEffect(() => {
     navigator.permissions
       .query({ name: 'geolocation' })
@@ -40,7 +41,7 @@ const usePosition = () => {
         if (permission.state === 'granted') requestPosition()
       })
       .catch(() => setPosition(null))
-  }, [])
+  }, [requestPosition])
   return { position, requestPosition }
 }
 function FitBounds({ markers }: { markers: Location[] }) {

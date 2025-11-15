@@ -27,7 +27,9 @@
       },
       "correctness": {
         "noUnusedImports": "off",
-        "noUnusedVariables": "off"
+        "noUnusedVariables": "off",
+        "useUniqueElementIds": "off",
+        "useJsxKeyInIterable": "off"
       },
       "performance": {
         "noBarrelFile": "error"
