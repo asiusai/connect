@@ -10,6 +10,7 @@ import { generateRouteStatistics, getTimelineEvents, RouteStatistics, TimelineEv
 import { Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '~/api'
+import { RouteVideoPlayer } from '~/components/RouteVideoPlayer'
 
 // TODO: get start and end time from URL
 export const Component = () => {
@@ -24,7 +25,7 @@ export const Component = () => {
 
   // FIXME: generateTimelineStatistics is given different versions of TimelineEvents multiple times, leading to stuttering engaged % on switch
   const [events, setEvents] = useState<TimelineEvent[]>([])
-  console.log(events)
+
   const [stats, setStats] = useState<RouteStatistics>()
 
   useEffect(() => {
@@ -44,16 +45,15 @@ export const Component = () => {
 
       <div className="flex flex-col gap-6 px-4 pb-4">
         <div className="flex flex-col">
-          {/* <RouteVideoPlayer ref={videoRef} routeName={routeName} selection={selection} onProgress={setSeekTime} /> */}
+          <RouteVideoPlayer routeName={routeName} selection={selection} />
           {/* <Timeline className="mb-1" route={route} seekTime={seekTime} updateTime={onTimelineChange} events={events} /> */}
 
-          {selection.startTime ||
-            (selection.endTime && (
-              <Link className="flex items-center justify-center text-center text-label-lg text-gray-500 mt-4" to={`/${dongleId}/${date}`}>
-                Clear current route selection
-                <IconButton name="close_small" />
-              </Link>
-            ))}
+          {(selection.startTime || selection.endTime) && (
+            <Link className="flex items-center justify-center text-center text-label-lg text-gray-500 mt-4" to={`/${dongleId}/${date}`}>
+              Clear current route selection
+              <IconButton name="close_small" />
+            </Link>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">

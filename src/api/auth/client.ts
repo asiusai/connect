@@ -28,6 +28,7 @@ export const refreshAccessToken = async (code: string, provider: string) => {
 }
 
 export const accessToken = () => {
+  if (typeof localStorage === 'undefined') return null
   if (!initialized) {
     initialized = true
     _accessToken = localStorage.getItem(AUTH_KEY)
@@ -36,6 +37,7 @@ export const accessToken = () => {
 }
 
 export function setAccessToken(token: string | null): void {
+  if (typeof localStorage === 'undefined') return
   _accessToken = token
   if (token === null) localStorage.removeItem(AUTH_KEY)
   else localStorage.setItem(AUTH_KEY, token)

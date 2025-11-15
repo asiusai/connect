@@ -234,6 +234,44 @@ export const BackendAthenaCallResponseError = z.object({
   error: z.string(),
 })
 
+export const RouteSegment = z.object({
+  car_id: z.number(),
+  create_time: z.number(),
+  distance: z.number(),
+  dongle_id: z.string(),
+  end_lat: z.number(),
+  end_lng: z.number(),
+  end_time: z.string(),
+  end_time_utc_millis: z.number(),
+  fullname: z.string(),
+  git_branch: z.string(),
+  git_commit: z.string(),
+  git_commit_date: z.string(),
+  git_dirty: z.boolean(),
+  git_remote: z.string(),
+  id: z.number(),
+  is_preserved: z.boolean(),
+  is_public: z.boolean(),
+  make: z.string(),
+  maxqlog: z.number(),
+  platform: z.string(),
+  procqlog: z.number(),
+  segment_end_times: z.number().array(),
+  segment_numbers: z.number().array(),
+  segment_start_times: z.number().array(),
+  share_exp: z.string(),
+  share_sig: z.string(),
+  start_lat: z.number(),
+  start_lng: z.number(),
+  start_time: z.string(),
+  start_time_utc_millis: z.number(),
+  url: z.string().url(),
+  user_id: z.string(),
+  version: z.string(),
+  version_id: z.number(),
+  vin: z.string(),
+})
+
 // TYPES
 export type Profile = z.infer<typeof Profile>
 export type DeviceLocation = z.infer<typeof DeviceLocation>
@@ -260,3 +298,4 @@ export type CancelUploadRequest = z.infer<typeof CancelUploadRequest>
 export type CancelUploadResponse = z.infer<typeof CancelUploadResponse>
 export type SubscriptionStatus = z.infer<typeof SubscriptionStatus>
 export type SubscribeInfo = z.infer<typeof SubscribeInfo>
+export type RouteSegment = z.infer<typeof RouteSegment>
