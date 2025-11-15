@@ -14,19 +14,8 @@ export { dayjs }
 const MI_TO_KM = 1.609344
 
 const isImperial = (): boolean => {
-  if (typeof Intl === 'undefined' || !Intl.DateTimeFormat) return false
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const imperialTimezones = [
-    'America/New_York',
-    'America/Chicago',
-    'America/Denver',
-    'America/Los_Angeles',
-    'America/Phoenix',
-    'America/Anchorage',
-    'Pacific/Honolulu',
-  ]
-
-  return imperialTimezones.includes(tz)
+  // TODO: add to user settings
+  return false
 }
 
 export const formatDistance = (miles: number | undefined): string | undefined => {

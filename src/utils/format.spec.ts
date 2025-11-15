@@ -4,8 +4,8 @@ import { dateTimeToColorBetween, formatDate, formatDistance, formatDuration } fr
 
 describe('formatDistance', () => {
   it('should format distance', () => {
-    expect(formatDistance(0)).toBe('0.0 mi')
-    expect(formatDistance(1.234)).toBe('1.2 mi')
+    expect(formatDistance(0)).toBe('0.0 km')
+    expect(formatDistance(1.234)).toBe('1.2 km')
   })
   it('should be undefined for undefined distance', () => {
     expect(formatDistance(undefined)).toBe(undefined)
