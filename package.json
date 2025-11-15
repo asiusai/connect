@@ -19,6 +19,7 @@
     "fix": "biome check --write",
     "test": "TZ=Greenwich vitest",
     "remotion:dev": "remotion studio src/templates/index.ts",
+    "remotion:render": "bun render.ts",
     "remotion:build": "remotion bundle",
     "remotion:upgrade": "remotion upgrade"
   },

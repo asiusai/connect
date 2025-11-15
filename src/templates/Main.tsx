@@ -1,15 +1,15 @@
-import { AbsoluteFill, CalculateMetadataFunction, Html5Video, Sequence, Series, useCurrentFrame } from 'remotion'
+import { AbsoluteFill, CalculateMetadataFunction, Series, useCurrentFrame } from 'remotion'
 import { z } from 'zod'
 import { api } from '../api'
 import { Files, RouteSegment } from '../api/types'
 import { createQCameraStreamUrl } from '../api/route'
-import { HevcVideo } from './HevcVideo'
+import { OPVideo } from './HevcVideo'
 import { FPS } from './consts'
 import { DB } from './indexedDb'
 import { createContext, useContext, useEffect } from 'react'
 
-const CameraType = z.enum(['road', 'wide', 'driver'])
-type CameraType = z.infer<typeof CameraType>
+export const CameraType = z.enum(['road', 'wide', 'driver'])
+export type CameraType = z.infer<typeof CameraType>
 
 const EventUnion = z.object({
   data: z.object({ event_type: z.string(), value: z.boolean().optional() }),
@@ -46,7 +46,7 @@ const Data = z.object({
 })
 type Data = z.infer<typeof Data>
 
-const Position = z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right', 'none'])
+const Position = z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
 export const Style = z.object({
   startFrom: z.number().optional(),
   endFrom: z.number().optional(),
@@ -54,8 +54,8 @@ export const Style = z.object({
 
   largeCamera: CameraType,
 
+  smallCamera: CameraType.optional(),
   smallCameraPosition: Position,
-  smallCamera: CameraType,
   smallCameraSize: z.number().min(0).max(100),
 
   mapPosition: Position,
@@ -95,9 +95,7 @@ export const MainProps = z.object({
 })
 export type MainProps = z.infer<typeof MainProps>
 
-const getData = async (routeName: string) => {
-  if (!routeName) return undefined
-
+export const getData = async (routeName: string) => {
   const [dongleId] = routeName.split('/')
   const segments = await api.routes.segments.query({ params: { dongleId }, query: { route_str: routeName } })
   if (segments.status !== 200) throw new Error('Failed getting segments!')
@@ -110,6 +108,7 @@ const getData = async (routeName: string) => {
 
   const events = await Promise.all(segment.segment_numbers.map((i) => fetch(`${segment.url}/${i}/events.json`).then((x) => x.json())))
   const coords = await Promise.all(segment.segment_numbers.map((i) => fetch(`${segment.url}/${i}/coords.json`).then((x) => x.json())))
+
   return {
     segments: segments.body,
     segment,
@@ -120,23 +119,27 @@ const getData = async (routeName: string) => {
     coords: coords.flat(),
   }
 }
+
 export const calculateMetadata: CalculateMetadataFunction<MainProps> = async ({ props }) => {
   const db = await new DB().init()
-  const stored = await db.get<string>(props.routeName)
+  const cached = await db.get<string>(props.routeName)
   let data: Data | undefined
 
-  if (!props.routeName) data = undefined
-  else if (!stored || props.disableCache) {
+  if (props.data) data = props.data
+  else if (!props.routeName) data = undefined
+  else if (cached && !props.disableCache) data = JSON.parse(cached)
+  else {
     data = await getData(props.routeName)
     await db.set(props.routeName, JSON.stringify(data))
-  } else data = JSON.parse(stored)
+  }
 
   return {
     durationInFrames: data ? data.duration * FPS : 100,
     props: { ...props, data },
   }
 }
-const CAMERAS = {
+
+export const CAMERAS = {
   road: 'cameras',
   wide: 'ecameras',
   driver: 'dcameras',
@@ -158,7 +161,7 @@ const LargeCamera = () => {
         const name = `${style.largeCamera} ${i + 1}/${files.length}`
         return (
           <Series.Sequence key={src} durationInFrames={60 * FPS} premountFor={60 * FPS} name={name}>
-            <HevcVideo name={name} src={src} style={{ width: '100%', background: 'white' }} />
+            <OPVideo name={name} src={src} style={{ width: '100%', background: 'white' }} />
           </Series.Sequence>
         )
       })}
@@ -168,7 +171,8 @@ const LargeCamera = () => {
 
 const SmallCamera = () => {
   const { data, style } = useVideoContext()
-  if (style.smallCameraPosition === 'none') return null
+  if (!style.smallCamera) return null
+
   const files = data.files[CAMERAS[style.smallCamera]]
   return (
     <Series>
@@ -176,7 +180,7 @@ const SmallCamera = () => {
         const name = `${style.smallCamera} ${i + 1}/${files.length}`
         return (
           <Series.Sequence key={src} name={name} durationInFrames={60 * FPS} premountFor={60 * FPS}>
-            <HevcVideo
+            <OPVideo
               name={name}
               src={src}
               style={{

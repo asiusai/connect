@@ -1,19 +1,19 @@
 import { CSSProperties, useEffect, useState } from 'react'
-import { Html5Video, delayRender, continueRender } from 'remotion'
-import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile, toBlobURL } from '@ffmpeg/util'
+import { delayRender, continueRender, OffthreadVideo } from 'remotion'
+import { toBlobURL } from '@ffmpeg/util'
 import { DB } from './indexedDb'
+import { FFmpeg } from '@ffmpeg/ffmpeg'
 
-const ffmpeg = new FFmpeg()
-ffmpeg.on('log', ({ message }) => console.log(message))
-
+let ffmpeg: FFmpeg
 const init = async () => {
+  if (ffmpeg) return
+  ffmpeg = new FFmpeg()
+  ffmpeg.on('log', ({ message }) => console.log(message))
   await ffmpeg.load({
     coreURL: await toBlobURL(`https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js`, 'text/javascript'),
     wasmURL: await toBlobURL(`https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm`, 'application/wasm'),
   })
 }
-const loaded = init()
 
 const files: Record<string, Promise<Blob>> = {}
 
@@ -51,7 +51,7 @@ const load = async (url: string, onLoad: OnLoad): Promise<Uint8Array> => {
 }
 
 const convert = async (file: string, onLoad: OnLoad) => {
-  await loaded
+  await init()
   const bin = await load(file, onLoad)
   await ffmpeg.writeFile('input.hevc', new Uint8Array(bin))
   await ffmpeg.exec(['-r', '20', '-i', 'input.hevc', '-c', 'copy', '-map', '0', '-vtag', 'hvc1', 'output.mp4'])
@@ -76,7 +76,12 @@ const getBlob = async (file: string, onLoad: OnLoad) => {
   return await files[key]
 }
 
-export const HevcVideo = ({ src, name, ...props }: { src: string; className?: string; style?: CSSProperties; name: string }) => {
+type VideoProps = { src: string; className?: string; style?: CSSProperties; name: string }
+export const OPVideo = ({ ...props }: VideoProps) => {
+  if (props.src.endsWith('.mp4')) return <OffthreadVideo {...props} />
+  return <HevcVideo {...props} />
+}
+export const HevcVideo = ({ src, name, ...props }: VideoProps) => {
   const [handle] = useState(() => delayRender('hevc', { timeoutInMilliseconds: 120_000 }))
   const [url, setUrl] = useState<string>()
   const [load, setLoad] = useState<Load>()
@@ -95,5 +100,5 @@ export const HevcVideo = ({ src, name, ...props }: { src: string; className?: st
         Loading {name} {(percent * 100).toFixed()}%
       </div>
     )
-  return <Html5Video showInTimeline={false} {...props} src={url} />
+  return <OffthreadVideo showInTimeline={false} {...props} src={url} />
 }
