@@ -5,7 +5,6 @@ import { Icon } from '~/components/material/Icon'
 import { IconButton } from '~/components/material/IconButton'
 import { DeviceLocation } from '~/components/DeviceLocation'
 
-import { RouteList } from './RouteList'
 import { api } from '~/api'
 import { Loading } from './material/Loading'
 import { Device, getDeviceName } from '~/api/types'
@@ -32,6 +31,7 @@ const timeAgo = (time: number): string => {
 export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   const res = useDevice(dongleId)
   const device = res.data?.body
+  const stats = api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } })
 
   if (!device) return <Loading className="h-screen w-screen" />
   return (
@@ -44,7 +44,26 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
         <div className="h-[430px]"></div>
         <ActionBar />
         <div className="bg-surface-container-low p-4 rounded-t-xl flex flex-col gap-4 pointer-events-auto h-full">
-          <RouteList dongleId={dongleId} />
+          <div className="flex flex-col gap-4">
+            {[
+              { title: 'Drives', subtitle: `${stats.data?.body.all.routes} drives`, icon: 'directions_car', href: `/${dongleId}/routes` },
+              { title: 'Sentry mode', icon: 'photo_camera', href: `/${dongleId}/sentry` },
+              { title: 'Settings', icon: 'settings', href: `/${dongleId}/settings` },
+              { title: 'Teleop', icon: 'robot_2', href: `/${dongleId}/teleop` },
+              { title: 'Analyze', icon: 'bar_chart', href: `/${dongleId}/analyze` },
+            ].map(({ title, href, icon, subtitle }) => (
+              <a key={title} href={href} className="flex items-center gap-4 px-2 text-lg h-14">
+                <Icon name={icon as any} className="opacity-50" />
+                <div className="mr-auto flex flex-col gap-0.5">
+                  <div className="text-white">{title}</div>
+                  {subtitle && <div className="text-xs opacity-50">{subtitle}</div>}
+                </div>
+                <Icon name="keyboard_arrow_down" className="-rotate-90 opacity-20" />
+              </a>
+            ))}
+          </div>
+
+          {/* <RouteList dongleId={dongleId} /> */}
           <DeviceStatistics dongleId={dongleId} device={device} />
         </div>
       </div>
@@ -52,16 +71,30 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
+const getBatteryColor = (value: number) => {
+  if (value < 12.1) return 'text-red-500'
+  if (value < 12.5) return 'text-yellow-500'
+  else 'text-green-500'
+}
+
 const Top = ({ device }: { device: Device }) => {
   const { modal, setOpen } = useDrawerContext()
+  // TODO: get battery
+  const battery = 12.8
   return (
     <div className="inset-x-0 top-0 flex items-center gap-4 px-5 py-5 text-on-surface fixed z-[999]">
-      <h1 className="grow truncate text-title-lg font-bold">
+      <div className="grow truncate text-title-lg font-bold">
         <div onClick={() => setOpen(true)}>
           <div className="flex items-center gap-2">
             <p>{device.name || 'connect'}</p>
-            {modal && <Icon name="keyboard_arrow_down" className="" />}
+            {modal && <Icon name="keyboard_arrow_down" className="-rotate-90" />}
           </div>
+          {battery && (
+            <div className={clsx('flex gap-2 items-center', getBatteryColor(battery))}>
+              <Icon name="battery_5_bar" className="rotate-90" />
+              <p className="text-xs">{battery.toFixed(1)}V</p>
+            </div>
+          )}
           <p
             className={clsx(
               'text-xs',
@@ -71,10 +104,10 @@ const Top = ({ device }: { device: Device }) => {
             {timeAgo(device.last_athena_ping)}
           </p>
         </div>
-      </h1>
-      <div className="flex gap-4">
-        <IconButton name="camera" onClick={() => alert('TODO')} />
-        <IconButton name="settings" href={`/${device.dongle_id}/settings`} />
+      </div>
+      <div className="items-center flex text-sm bg-surface-container shadow-lg px-2 py-1 gap-2 rounded-md">
+        <div>Navigate</div>
+        <Icon name="search" size="20" className="" />
       </div>
     </div>
   )
@@ -82,13 +115,13 @@ const Top = ({ device }: { device: Device }) => {
 
 const ActionBar = () => {
   const icons = [
-    { name: 'pause', onClick: () => alert('TODO') },
-    { name: 'add', onClick: () => alert('TODO') },
-    { name: 'camera', onClick: () => alert('TODO') },
-    { name: 'directions_car', onClick: () => alert('TODO') },
+    { name: 'power_settings_new', onClick: () => alert('Shut down') },
+    { name: 'home', onClick: () => alert('Drive home') },
+    { name: 'work', onClick: () => alert('Drive work') },
+    { name: 'camera', onClick: () => alert('Take a snapshot') },
   ]
   return (
-    <div className="flex justify-around items-center h-[50px]">
+    <div className="flex justify-around items-center h-[50px] px-4">
       {icons.map(({ name, onClick }) => (
         <div
           key={name}
