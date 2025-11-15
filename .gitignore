@@ -49,4 +49,3 @@ Thumbs.db
 .env.sentry-build-plugin
 
 out/
-remotion-temp/

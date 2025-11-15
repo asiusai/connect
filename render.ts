@@ -6,18 +6,19 @@ import { $ } from 'bun'
 
 const routeName = `9748a98e983e0b39/0000002c--d68dde99ca`
 const style: Style = { ...defaultStyle }
-const publicDir = 'remotion-temp'
 
 console.log(`Getting route data`)
 const data = await getData(routeName)
-await $`mkdir -p ${publicDir}`
+
+console.log('Bundling')
+const serveUrl = await bundle({ entryPoint: path.resolve('./src/templates/index.ts') })
 
 const replaceCamFiles = async (cam?: CameraType) => {
   if (!cam) return
   console.log(`Downloading and re-encoding ${cam} cam`)
   const key = CAMERAS[cam]
   const replaceFile = async (url: string, name: string) => {
-    const path = `${publicDir}/${name}`
+    const path = `${serveUrl}/public/${name}`
     await $`curl ${url} > ${path}.hevc`
     await $`ffmpeg -i ${path}.hevc -c copy ${path}.mp4 -y`
     return `/public/${name}.mp4`
@@ -26,12 +27,6 @@ const replaceCamFiles = async (cam?: CameraType) => {
 }
 
 await Promise.all([replaceCamFiles(style.largeCamera), replaceCamFiles(style.smallCamera)])
-
-console.log(`Bundling templates`)
-const serveUrl = await bundle({
-  entryPoint: path.resolve('./src/templates/index.ts'),
-  publicDir,
-})
 
 console.log(`Rendering`)
 const composition = await selectComposition({
