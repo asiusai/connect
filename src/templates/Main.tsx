@@ -1,52 +1,27 @@
 import { AbsoluteFill, CalculateMetadataFunction, Series, useCurrentFrame } from 'remotion'
 import { z } from 'zod'
 import { api } from '../api'
-import { Files, RouteSegment } from '../api/types'
-import { createQCameraStreamUrl } from '../api/route'
-import { OPVideo } from './HevcVideo'
-import { FPS } from './consts'
+import { CameraType, Coord, Files, RouteEvent, RouteSegment } from '../types'
+import { HevcVideo } from './HevcVideo'
 import { DB } from './indexedDb'
-import { createContext, useContext, useEffect } from 'react'
+import { createContext, useContext } from 'react'
+import { VIDEO_FPS } from '~/utils/consts'
+import { createQCameraStreamUrl } from '~/utils/helpers'
 
-export const CameraType = z.enum(['road', 'wide', 'driver'])
-export type CameraType = z.infer<typeof CameraType>
-
-const EventUnion = z.object({
-  data: z.object({ event_type: z.string(), value: z.boolean().optional() }),
-  offset_millis: z.number(),
-  route_offset_millis: z.number(),
-  time: z.number(),
-  type: z.literal('event'),
-})
-const StateUnion = z.object({
-  data: z.object({ state: z.string(), enabled: z.boolean(), alertStatus: z.number() }),
-  offset_millis: z.number(),
-  route_offset_millis: z.number(),
-  time: z.number(),
-  type: z.literal('state'),
-})
-const Event = z.discriminatedUnion('type', [EventUnion, StateUnion])
-type Event = z.infer<typeof Event>
-export const Coord = z.object({
-  t: z.number(),
-  lat: z.number(),
-  lng: z.number(),
-  speed: z.number(),
-  dist: z.number(),
-})
-export type Coord = z.infer<typeof Coord>
 export const Data = z.object({
   segments: RouteSegment.array(),
   segment: RouteSegment,
   qCamUrl: z.string(),
   files: Files,
   duration: z.number(),
-  events: Event.array(),
+  events: RouteEvent.array(),
   coords: Coord.array(),
 })
 export type Data = z.infer<typeof Data>
 
-const Position = z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
+export const Position = z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
+export type Position = z.infer<typeof Position>
+
 export const Style = z.object({
   startFrom: z.number().optional(),
   endFrom: z.number().optional(),
@@ -63,6 +38,15 @@ export const Style = z.object({
 
   showSpeed: z.boolean(),
 })
+export type Style = z.infer<typeof Style>
+
+export const MainProps = z.object({
+  routeName: z.string(),
+  style: Style,
+  data: Data.optional(),
+  disableCache: z.boolean(),
+})
+export type MainProps = z.infer<typeof MainProps>
 
 export const defaultStyle: Style = {
   playbackSpeed: 1,
@@ -78,22 +62,18 @@ export const defaultStyle: Style = {
 
   showSpeed: false,
 }
-const CAMERA_POSITION = {
+export const CAMERA_POSITION = {
   'top-left': { top: 0, left: 0 },
   'top-right': { top: 0, right: 0 },
   'bottom-left': { bottom: 0, left: 0 },
   'bottom-right': { bottom: 0, right: 0 },
   none: { display: 'hidden' },
 }
-
-export type Style = z.infer<typeof Style>
-export const MainProps = z.object({
-  routeName: z.string(),
-  style: Style,
-  data: Data.optional(),
-  disableCache: z.boolean(),
-})
-export type MainProps = z.infer<typeof MainProps>
+export const CAMERAS = {
+  road: 'cameras',
+  wide: 'ecameras',
+  driver: 'dcameras',
+} as const
 
 export const getData = async (routeName: string) => {
   const [dongleId] = routeName.split('/')
@@ -102,7 +82,7 @@ export const getData = async (routeName: string) => {
   const segment = segments.body[0]
 
   const duration = (segment.end_time_utc_millis - segment.start_time_utc_millis) / 1000
-  const qCamUrl = createQCameraStreamUrl(routeName.replace('/', '%7C'), { exp: segment.share_exp, sig: segment.share_sig })
+  const qCamUrl = createQCameraStreamUrl(routeName, { exp: segment.share_exp, sig: segment.share_sig })
   const files = await api.file.files.query({ params: { routeName: routeName.replace('/', '%7C') } })
   if (files.status !== 200) throw new Error('Failed getting files!')
 
@@ -134,16 +114,10 @@ export const calculateMetadata: CalculateMetadataFunction<MainProps> = async ({ 
   }
 
   return {
-    durationInFrames: data ? data.duration * FPS : 100,
+    durationInFrames: data ? data.duration * VIDEO_FPS : 100,
     props: { ...props, data },
   }
 }
-
-export const CAMERAS = {
-  road: 'cameras',
-  wide: 'ecameras',
-  driver: 'dcameras',
-} as const
 
 const VideoContext = createContext<{ data: Data; style: Style } | null>(null)
 const useVideoContext = () => {
@@ -160,8 +134,8 @@ const LargeCamera = () => {
       {files.map((src, i) => {
         const name = `${style.largeCamera} ${i + 1}/${files.length}`
         return (
-          <Series.Sequence key={src} durationInFrames={60 * FPS} premountFor={60 * FPS} name={name}>
-            <OPVideo name={name} src={src} style={{ width: '100%', background: 'white' }} />
+          <Series.Sequence key={src} durationInFrames={60 * VIDEO_FPS} premountFor={60 * VIDEO_FPS} name={name}>
+            <HevcVideo name={name} src={src} style={{ width: '100%', background: 'white' }} />
           </Series.Sequence>
         )
       })}
@@ -179,8 +153,8 @@ const SmallCamera = () => {
       {files.map((src, i) => {
         const name = `${style.smallCamera} ${i + 1}/${files.length}`
         return (
-          <Series.Sequence key={src} name={name} durationInFrames={60 * FPS} premountFor={60 * FPS}>
-            <OPVideo
+          <Series.Sequence key={src} name={name} durationInFrames={60 * VIDEO_FPS} premountFor={60 * VIDEO_FPS}>
+            <HevcVideo
               name={name}
               src={src}
               style={{
@@ -199,8 +173,8 @@ const SmallCamera = () => {
 
 const Engaged = () => {
   const frame = useCurrentFrame()
-  const { data, style } = useVideoContext()
-  const millis = (frame / FPS) * 1000
+  const { data } = useVideoContext()
+  const millis = (frame / VIDEO_FPS) * 1000
   let isEnabled = false
   for (const event of data.events.filter((x) => x.type === 'state')) {
     if (millis < event.route_offset_millis) continue
@@ -215,7 +189,7 @@ const CoordsMap = () => {
 
   let coord: Coord | undefined
   for (const c of data.coords) {
-    if (frame / FPS < c.t) continue
+    if (frame / VIDEO_FPS < c.t) continue
     coord = c
   }
 

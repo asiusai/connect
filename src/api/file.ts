@@ -1,6 +1,6 @@
-import { CancelUploadResponse, RouteInfo, UploadFile, UploadFileMetadata, UploadFilesToUrlsResponse, UploadQueueItem } from '~/api/types'
-import { parseRouteName } from '~/api/route'
+import { CancelUploadResponse, RouteInfo, UploadFile, UploadFileMetadata, UploadFilesToUrlsResponse, UploadQueueItem } from '~/types'
 import { api } from '.'
+import { parseRouteName } from '~/utils/helpers'
 
 export const FileTypes = {
   logs: ['rlog.bz2', 'rlog.zst'],

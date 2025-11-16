@@ -1,5 +1,5 @@
-import { accessToken } from './auth/client'
-import { API_URL } from './config'
+import { accessToken } from '~/utils/helpers'
+import { API_URL } from '../utils/consts'
 import { contract } from './contract'
 import { initTsrReactQuery } from '@ts-rest/react-query/v5'
 import { toast } from 'sonner'

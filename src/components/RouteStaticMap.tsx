@@ -1,9 +1,8 @@
 import clsx from 'clsx'
 
-import { type GPSPathPoint, getCoords } from '~/api/derived'
+import { type GPSPathPoint, getCoords } from '~/utils/derived'
 import { type Coords, getPathStaticMapUrl } from '~/map'
-import { getThemeId } from '~/theme'
-import type { Route } from '~/api/types'
+import type { Route } from '~/types'
 
 import { Icon } from '~/components/material/Icon'
 import { ReactNode, useEffect, useState } from 'react'
@@ -28,8 +27,7 @@ const getStaticMapUrl = (gpsPoints: GPSPathPoint[]): string | undefined => {
   gpsPoints.forEach(({ lng, lat }) => {
     path.push([lng, lat])
   })
-  const themeId = getThemeId()
-  return getPathStaticMapUrl(themeId, path, 512, 512, true)
+  return getPathStaticMapUrl('dark', path, 512, 512, true)
 }
 
 const State = (props: { children: ReactNode; trailing?: ReactNode; opaque?: boolean }) => {
@@ -61,7 +59,7 @@ export const RouteStaticMap = ({ route, className }: { className?: string; route
         <State trailing={<Icon name="error" filled />}>Problem loading map</State>
       ) : coords?.length === 0 ? (
         <State trailing={<Icon name="satellite_alt" filled />}>No GPS data</State>
-      ) : image && image ? (
+      ) : image ? (
         <img className="pointer-events-none size-full object-cover" src={image} alt="" />
       ) : null}
     </div>

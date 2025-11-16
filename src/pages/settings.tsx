@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-import type { Device, PrimePlan } from '~/api/types'
+import type { Device, PrimePlan } from '~/types'
 import { formatDate } from '~/utils/format'
 
 import { ButtonBase } from '~/components/material/ButtonBase'

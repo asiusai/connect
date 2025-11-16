@@ -5,7 +5,7 @@ import { getFullAddress } from '~/map/geocode'
 import { useCallback, useEffect, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
-import { Device } from '~/api/types'
+import { Device } from '~/types'
 import { useDeviceLocation } from '~/api/queries'
 
 type Location = {

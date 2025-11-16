@@ -2,7 +2,7 @@ import clsx from 'clsx'
 
 import { Icon, type IconName } from '~/components/material/Icon'
 import { Button } from './material/Button'
-import type { Route } from '~/api/types'
+import type { Route } from '~/types'
 import { useState } from 'react'
 import { FileType, uploadAllSegments } from '~/api/file'
 

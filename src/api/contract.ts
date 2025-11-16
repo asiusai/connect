@@ -14,9 +14,9 @@ import {
   UploadFileMetadataResponse,
   AthenaResponse,
   RouteSegment,
-} from './types'
+} from '../types'
 import { z } from 'zod'
-import { ATHENA_URL, BILLING_URL } from './config'
+import { ATHENA_URL, BILLING_URL } from '../utils/consts'
 
 const c = initContract()
 

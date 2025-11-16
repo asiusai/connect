@@ -5,7 +5,7 @@ import { Icon } from '~/components/material/Icon'
 import { DeviceLocation } from '~/components/DeviceLocation'
 
 import { Loading } from './material/Loading'
-import { Device, getDeviceName } from '~/api/types'
+import { Device, getDeviceName } from '~/types'
 import { formatDistance, formatDuration } from '~/utils/format'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'

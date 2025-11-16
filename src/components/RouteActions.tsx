@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 
-import { USERADMIN_URL } from '~/api/config'
+import { USERADMIN_URL } from '~/utils/consts'
 import { Icon } from '~/components/material/Icon'
-import type { Route } from '~/api/types'
+import type { Route } from '~/types'
 import { ToggleButton } from './material/ToggleButton'
 import { api } from '~/api'
 import { useEffect, useState } from 'react'

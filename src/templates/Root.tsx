@@ -1,6 +1,6 @@
 import { Composition, Folder } from 'remotion'
 import { calculateMetadata, defaultStyle, Main, MainProps } from './Main'
-import { FPS, HEIGHT, WIDTH } from './consts'
+import { VIDEO_FPS, VIDEO_HEIGHT, VIDEO_WIDTH } from '~/utils/consts'
 
 const EXAMPLE_ROUTES = {
   Short: '9748a98e983e0b39/0000002c--d68dde99ca',
@@ -13,9 +13,9 @@ export const RemotionRoot = () => {
         id="Main"
         component={Main}
         durationInFrames={100}
-        fps={FPS}
-        width={WIDTH}
-        height={HEIGHT}
+        fps={VIDEO_FPS}
+        width={VIDEO_WIDTH}
+        height={VIDEO_HEIGHT}
         schema={MainProps}
         calculateMetadata={calculateMetadata}
         defaultProps={{
@@ -31,9 +31,9 @@ export const RemotionRoot = () => {
             id={id}
             component={Main}
             durationInFrames={100}
-            fps={FPS}
-            width={WIDTH}
-            height={HEIGHT}
+            fps={VIDEO_FPS}
+            width={VIDEO_WIDTH}
+            height={VIDEO_HEIGHT}
             schema={MainProps}
             calculateMetadata={calculateMetadata}
             defaultProps={{

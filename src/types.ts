@@ -75,30 +75,41 @@ export const Route = z.object({
   dongle_id: z.string(),
   end_lat: z.number().default(0),
   end_lng: z.number().default(0),
-  end_time: z.string().nullable(),
+  end_time: z.string(),
   fullname: z.string(),
-  git_branch: z.string().nullable(),
-  git_commit: z.string().nullable(),
-  git_commit_date: z.string().nullable(),
-  git_dirty: z.boolean().nullable(),
-  git_remote: z.string().nullable(),
+  git_branch: z.string(),
+  git_commit: z.string(),
+  git_commit_date: z.string(),
+  git_dirty: z.boolean(),
+  git_remote: z.string(),
   is_public: z.boolean(),
   distance: z.number().default(0),
   maxqlog: z.number(),
-  platform: z.string().nullable(),
+  platform: z.string(),
   procqlog: z.number(),
   start_lat: z.number().default(0),
   start_lng: z.number().default(0),
-  start_time: z.string().nullable(),
+  start_time: z.string(),
   url: z.string(),
-  user_id: z.string().nullable(),
-  version: z.string().nullable(),
-  vin: z.string().nullable(),
-  make: z.string().nullable(),
+  user_id: z.string(),
+  version: z.string(),
+  vin: z.string(),
+  make: z.string(),
   id: z.number(),
-  car_id: z.number().nullable(),
-  version_id: z.number().nullable(),
+  car_id: z.number(),
+  version_id: z.number(),
 })
+
+export const RouteSegment = Route.extend({
+  end_time_utc_millis: z.number(),
+  is_preserved: z.boolean(),
+  segment_end_times: z.number().array(),
+  segment_numbers: z.number().array(),
+  segment_start_times: z.number().array(),
+  share_exp: z.string(),
+  share_sig: z.string(),
+  start_time_utc_millis: z.number(),
+}).strict()
 
 export const RouteInfo = z.object({
   dongleId: z.string(),
@@ -235,44 +246,29 @@ export const BackendAthenaCallResponseError = z.object({
   error: z.string(),
 })
 
-export const RouteSegment = z.object({
-  car_id: z.number(),
-  create_time: z.number(),
-  distance: z.number(),
-  dongle_id: z.string(),
-  end_lat: z.number(),
-  end_lng: z.number(),
-  end_time: z.string(),
-  end_time_utc_millis: z.number(),
-  fullname: z.string(),
-  git_branch: z.string(),
-  git_commit: z.string(),
-  git_commit_date: z.string(),
-  git_dirty: z.boolean(),
-  git_remote: z.string(),
-  id: z.number(),
-  is_preserved: z.boolean(),
-  is_public: z.boolean(),
-  make: z.string(),
-  maxqlog: z.number(),
-  platform: z.string(),
-  procqlog: z.number(),
-  segment_end_times: z.number().array(),
-  segment_numbers: z.number().array(),
-  segment_start_times: z.number().array(),
-  share_exp: z.string(),
-  share_sig: z.string(),
-  start_lat: z.number(),
-  start_lng: z.number(),
-  start_time: z.string(),
-  start_time_utc_millis: z.number(),
-  url: z.string().url(),
-  user_id: z.string(),
-  version: z.string(),
-  version_id: z.number(),
-  vin: z.string(),
+export const CameraType = z.enum(['road', 'wide', 'driver'])
+export const RouteEventEvent = z.object({
+  data: z.object({ event_type: z.string(), value: z.boolean().optional() }),
+  offset_millis: z.number(),
+  route_offset_millis: z.number(),
+  time: z.number(),
+  type: z.literal('event'),
 })
-
+export const RouteEventState = z.object({
+  data: z.object({ state: z.string(), enabled: z.boolean(), alertStatus: z.number() }),
+  offset_millis: z.number(),
+  route_offset_millis: z.number(),
+  time: z.number(),
+  type: z.literal('state'),
+})
+export const RouteEvent = z.discriminatedUnion('type', [RouteEventEvent, RouteEventState])
+export const Coord = z.object({
+  t: z.number(),
+  lat: z.number(),
+  lng: z.number(),
+  speed: z.number(),
+  dist: z.number(),
+})
 // TYPES
 export type Profile = z.infer<typeof Profile>
 export type DeviceLocation = z.infer<typeof DeviceLocation>
@@ -301,3 +297,6 @@ export type SubscriptionStatus = z.infer<typeof SubscriptionStatus>
 export type SubscribeInfo = z.infer<typeof SubscribeInfo>
 export type RouteSegment = z.infer<typeof RouteSegment>
 export type PrimePlan = z.infer<typeof PrimePlan>
+export type CameraType = z.infer<typeof CameraType>
+export type Coord = z.infer<typeof Coord>
+export type RouteEvent = z.infer<typeof RouteEvent>

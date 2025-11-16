@@ -1,13 +1,12 @@
 import { Drawer, useDrawerContext } from '~/components/material/Drawer'
 import { Navigate, Outlet } from 'react-router-dom'
-import { isSignedIn } from '~/api/auth/client'
 import { IconButton } from '~/components/material/IconButton'
 import { TopAppBar } from '~/components/material/TopAppBar'
 import { Button } from '~/components/material/Button'
 import { ButtonBase } from '~/components/material/ButtonBase'
 import { Icon } from '~/components/material/Icon'
-import { USERADMIN_URL } from '~/api/config'
-import { Device } from '~/api/types'
+import { USERADMIN_URL } from '~/utils/consts'
+import { Device } from '~/types'
 import { DrawerToggleButton } from '~/components/material/Drawer'
 import clsx from 'clsx'
 import { List, ListItem, ListItemContent } from '~/components/material/List'
@@ -15,6 +14,7 @@ import storage from '~/utils/storage'
 import { useLocation } from 'react-router-dom'
 import { Loading } from '~/components/material/Loading'
 import { useDevices, useDongleId, useProfile } from '~/api/queries'
+import { isSignedIn } from '~/utils/helpers'
 
 const DeviceList = () => {
   const location = useLocation()

@@ -78,12 +78,7 @@ const getBlob = async (file: string, onLoad: OnLoad) => {
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties; name: string }
 
-export const OPVideo = ({ ...props }: VideoProps) => {
-  if (props.src.endsWith('.mp4')) return <OffthreadVideo {...props} />
-  return <HevcVideo {...props} />
-}
-
-export const HevcVideo = ({ src, name, ...props }: VideoProps) => {
+export const HevcFfmpegVideo = ({ src, name, ...props }: VideoProps) => {
   const [handle] = useState(() => delayRender('hevc', { timeoutInMilliseconds: 120_000 }))
   const [url, setUrl] = useState<string>()
   const [load, setLoad] = useState<Load>()
@@ -104,4 +99,9 @@ export const HevcVideo = ({ src, name, ...props }: VideoProps) => {
       </div>
     )
   return <OffthreadVideo showInTimeline={false} {...props} src={url} />
+}
+
+export const HevcVideo = ({ ...props }: VideoProps) => {
+  if (props.src.endsWith('.mp4')) return <OffthreadVideo {...props} />
+  return <HevcVideo {...props} />
 }

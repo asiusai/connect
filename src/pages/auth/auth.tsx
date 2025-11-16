@@ -1,8 +1,32 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
-import { refreshAccessToken } from '~/api/auth/client'
 import { Button } from '~/components/material/Button'
 import { Icon } from '~/components/material/Icon'
+import { setAccessToken } from '~/utils/helpers'
+import { API_URL } from '../../utils/consts'
+
+// TODO: move this to API contract
+export const refreshAccessToken = async (code: string, provider: string) => {
+  try {
+    const resp = await fetch(`${API_URL}/v2/auth/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({ code, provider }),
+    })
+
+    if (!resp.ok) throw new Error(`${resp.status}: ${await resp.text()}`)
+
+    // TODO: validate response
+    const json = (await resp.json()) as Record<string, string>
+    if (!json.access_token) throw new Error('unknown error')
+
+    setAccessToken(json.access_token)
+  } catch (e) {
+    throw new Error('Could not exchange oauth code for access token', { cause: e })
+  }
+}
 
 export const Component = () => {
   const navigate = useNavigate()

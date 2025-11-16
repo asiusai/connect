@@ -7,7 +7,7 @@ dayjs.extend(timezone)
 import { Card, CardContent, CardHeader } from '~/components/material/Card'
 import { RouteStatisticsBar } from '~/components/RouteStatisticsBar'
 import { getPlaceName } from '~/map/geocode'
-import type { Route } from '~/api/types'
+import type { Route } from '~/types'
 import { dateTimeToColorBetween } from '~/utils/format'
 import { Fragment, Suspense, useEffect, useState } from 'react'
 import { useDongleId } from '~/api/queries'
