@@ -4,17 +4,17 @@ import timezone from 'dayjs/plugin/timezone.js'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-import { getRouteStatistics, RouteStatistics } from '~/api/derived'
 import { Card, CardContent, CardHeader } from '~/components/material/Card'
-import { Icon } from '~/components/material/Icon'
 import { RouteStatisticsBar } from '~/components/RouteStatisticsBar'
 import { getPlaceName } from '~/map/geocode'
 import type { Route } from '~/api/types'
 import { dateTimeToColorBetween } from '~/utils/format'
 import { Fragment, Suspense, useEffect, useState } from 'react'
-import { useDongleId, useRoutes } from '~/api/queries'
+import { useDongleId } from '~/api/queries'
 import { TopAppBar } from '~/components/material/TopAppBar'
 import { IconButton } from '~/components/material/IconButton'
+import { api } from '~/api'
+import { Button } from '~/components/material/Button'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
@@ -61,10 +61,18 @@ const getDayHeader = (route: Route) => {
 
 export const Component = () => {
   const dongleId = useDongleId()
-  const [routes] = useRoutes(dongleId, PAGE_SIZE)
+  const query = api.routes.allRoutes.useInfiniteQuery({
+    queryKey: ['allRoutes', dongleId],
+    queryData: ({ pageParam }) => ({ query: pageParam as any, params: { dongleId } }),
+    initialPageParam: { created_before: undefined, limit: PAGE_SIZE },
+    getNextPageParam: (lastPage: any) => {
+      if (lastPage.body.length !== PAGE_SIZE) return undefined
+      return { created_before: lastPage.body[lastPage.body.length - 1].create_time, limit: PAGE_SIZE }
+    },
+  })
 
   let prevDayHeader: string | null = null
-
+  const routes = query.data?.pages.flatMap((x) => x.body)
   return (
     <>
       <TopAppBar leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}`} />}>Routes</TopAppBar>
@@ -81,6 +89,7 @@ export const Component = () => {
             </Fragment>
           )
         })}
+        <Button onClick={() => query.fetchNextPage()}>Load more</Button>
       </div>
     </>
   )
