@@ -1,10 +1,10 @@
 import clsx from 'clsx'
 
-import { type GPSPathPoint, getCoords } from '~/utils/derived'
-import { type Coords, getPathStaticMapUrl } from '~/map'
-import type { Route } from '~/types'
+import { type GPSPathPoint, getCoords } from '../utils/derived'
+import { type Coords, getPathStaticMapUrl } from '../map'
+import type { Route } from '../types'
 
-import { Icon } from '~/components/material/Icon'
+import { Icon } from '../components/material/Icon'
 import { ReactNode, useEffect, useState } from 'react'
 
 const loadImage = (url: string | undefined): Promise<string | undefined> => {

@@ -1,4 +1,4 @@
-import type { Device } from '~/types'
+import type { Device } from '../types'
 
 export const sortDevices = (devices: Device[]) => {
   return devices.toSorted((a, b) => {

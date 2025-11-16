@@ -3,7 +3,7 @@ import { renderMedia, selectComposition } from '@remotion/renderer'
 import path from 'path'
 import { CAMERAS, defaultStyle, getData, MainProps, Style } from './src/templates/Main'
 import { $ } from 'bun'
-import { CameraType } from '~/types'
+import { CameraType } from './src/types'
 
 const routeName = `9748a98e983e0b39/0000002c--d68dde99ca`
 const style: Style = { ...defaultStyle }

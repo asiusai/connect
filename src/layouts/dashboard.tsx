@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { Outlet, useLocation } from 'react-router-dom'
-import { useDongleId } from '~/api/queries'
-import { DeviceInfo } from '~/components/DeviceInfo'
+import { DeviceInfo } from '../components/DeviceInfo'
+import { useDongleId } from '../utils/hooks'
 
 export const parseRouteId = (pathname: string) => {
   const parts = pathname.split('/').slice(1).filter(Boolean)

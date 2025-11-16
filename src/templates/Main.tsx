@@ -5,8 +5,8 @@ import { CameraType, Coord, Files, RouteEvent, RouteSegment } from '../types'
 import { HevcVideo } from './HevcVideo'
 import { DB } from './indexedDb'
 import { createContext, useContext } from 'react'
-import { VIDEO_FPS } from '~/utils/consts'
-import { createQCameraStreamUrl } from '~/utils/helpers'
+import { VIDEO_FPS } from '../utils/consts'
+import { createQCameraStreamUrl } from '../utils/helpers'
 
 export const Data = z.object({
   segments: RouteSegment.array(),

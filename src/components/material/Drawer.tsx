@@ -1,10 +1,9 @@
 import { createContext, ReactNode, useContext, useState } from 'react'
 
-import { IconButton } from '~/components/material/IconButton'
-import { Setter } from '~/fix'
-import { useDimensions } from '~/utils/window'
+import { IconButton } from './IconButton'
+import { useDimensions } from '../../utils/hooks'
 
-const DrawerContext = createContext<{ modal: boolean; open: boolean; setOpen: Setter<boolean> } | null>(null)
+const DrawerContext = createContext<{ modal: boolean; open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> } | null>(null)
 
 export function useDrawerContext() {
   const context = useContext(DrawerContext)

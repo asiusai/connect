@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
-import { OfflinePage } from '~/pages/offline'
+import { OfflinePage } from './pages/offline'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import 'leaflet/dist/leaflet.css'
@@ -31,15 +31,15 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 const router = createBrowserRouter([
   {
     path: 'login',
-    lazy: () => import('./pages/auth/login'),
+    lazy: () => import('./pages/login'),
   },
   {
     path: 'logout',
-    lazy: () => import('./pages/auth/logout'),
+    lazy: () => import('./pages/logout'),
   },
   {
     path: 'auth',
-    lazy: () => import('./pages/auth/auth'),
+    lazy: () => import('./pages/auth'),
   },
   {
     path: '',

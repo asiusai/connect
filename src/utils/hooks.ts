@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 
 type Dimensions = { width: number; height: number }
-
-export const getDimensions = (): Dimensions => {
-  if (typeof window === 'undefined') return { width: 0, height: 0 }
-  const { innerWidth: width, innerHeight: height } = window
-  return { width, height }
-}
-
+const getDimensions = (): Dimensions =>
+  typeof window === 'undefined' ? { width: 0, height: 0 } : { width: window.innerWidth, height: window.innerHeight }
 export const useDimensions = (): Dimensions => {
   const [dimensions, setDimensions] = useState(getDimensions())
 
@@ -19,3 +15,5 @@ export const useDimensions = (): Dimensions => {
 
   return dimensions
 }
+
+export const useDongleId = () => useParams().dongleId!

@@ -1,12 +1,13 @@
 import clsx from 'clsx'
 
-import { USERADMIN_URL } from '~/utils/consts'
-import { Icon } from '~/components/material/Icon'
-import type { Route } from '~/types'
+import { USERADMIN_URL } from '../utils/consts'
+import { Icon } from '../components/material/Icon'
+import type { Route } from '../types'
 import { ToggleButton } from './material/ToggleButton'
-import { api } from '~/api'
+import { api } from '../api'
 import { useEffect, useState } from 'react'
-import { useDongleId, usePreservedRoutes } from '~/api/queries'
+import { usePreservedRoutes } from '../api/queries'
+import { useDongleId } from '../utils/hooks'
 
 export const RouteActions = ({ routeName, route }: { routeName: string; route: Route | undefined }) => {
   const dongleId = useDongleId()

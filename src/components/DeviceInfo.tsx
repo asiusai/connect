@@ -1,15 +1,15 @@
 import clsx from 'clsx'
 
-import { useDrawerContext } from '~/components/material/Drawer'
-import { Icon } from '~/components/material/Icon'
-import { DeviceLocation } from '~/components/DeviceLocation'
+import { useDrawerContext } from '../components/material/Drawer'
+import { Icon } from '../components/material/Icon'
+import { DeviceLocation } from '../components/DeviceLocation'
 
 import { Loading } from './material/Loading'
-import { Device, getDeviceName } from '~/types'
-import { formatDistance, formatDuration } from '~/utils/format'
+import { Device, getDeviceName } from '../types'
+import { formatDistance, formatDuration } from '../utils/format'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { useDevice, useRoutes, useStats } from '~/api/queries'
+import { useDevice, useRoutes, useStats } from '../api/queries'
 
 const timeAgo = (time: number): string => {
   const diff = Math.floor(Date.now() / 1000) - time

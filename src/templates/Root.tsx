@@ -1,6 +1,6 @@
 import { Composition, Folder } from 'remotion'
 import { calculateMetadata, defaultStyle, Main, MainProps } from './Main'
-import { VIDEO_FPS, VIDEO_HEIGHT, VIDEO_WIDTH } from '~/utils/consts'
+import { VIDEO_FPS, VIDEO_HEIGHT, VIDEO_WIDTH } from '../utils/consts'
 
 const EXAMPLE_ROUTES = {
   Short: '9748a98e983e0b39/0000002c--d68dde99ca',

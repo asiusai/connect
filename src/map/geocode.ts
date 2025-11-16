@@ -1,7 +1,7 @@
 import type { Position } from 'geojson'
 
-import type { ReverseGeocodingResponse, ReverseGeocodingFeature } from '~/map/api-types'
-import { MAPBOX_TOKEN } from '~/map/config'
+import type { ReverseGeocodingResponse, ReverseGeocodingFeature } from '../map/api-types'
+import { MAPBOX_TOKEN } from '../map/config'
 
 export async function reverseGeocode(position: Position): Promise<ReverseGeocodingFeature | null> {
   if (Math.abs(position[0]) < 0.001 && Math.abs(position[1]) < 0.001) {

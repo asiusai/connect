@@ -1,4 +1,4 @@
-import { accessToken } from '~/utils/helpers'
+import { accessToken } from '../utils/helpers'
 import { API_URL } from '../utils/consts'
 import { contract } from './contract'
 import { initTsrReactQuery } from '@ts-rest/react-query/v5'

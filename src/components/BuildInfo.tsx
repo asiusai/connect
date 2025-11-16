@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-import { dayjs } from '~/utils/format'
+import { dayjs } from '../utils/format'
 
 const sha = import.meta.env.VITE_APP_GIT_SHA || 'develop'
 const timestamp = import.meta.env.VITE_APP_GIT_TIMESTAMP

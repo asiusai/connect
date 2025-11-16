@@ -1,6 +1,5 @@
 import clsx from 'clsx'
-import { useEffect } from 'react'
-import { useCreateSignal } from '~/fix'
+import { useEffect, useState } from 'react'
 
 type TextFieldProps = {
   className?: string
@@ -39,30 +38,25 @@ const stateColors = {
 }
 
 export const TextField = ({ className, label, helperText, error, value, ...props }: TextFieldProps) => {
-  const [focused, setFocused] = useCreateSignal(false)
-  const [hovered, setHovered] = useCreateSignal(false)
-  const [inputValue, setInputValue] = useCreateSignal(value || '')
+  const [focused, setFocused] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [inputValue, setInputValue] = useState(value || '')
 
   // Keep local value in sync with prop value
   useEffect(() => {
     if (value) setInputValue(value)
   }, [value, setInputValue])
 
-  const labelFloating = () => focused() || inputValue()?.length > 0
+  const labelFloating = () => focused || inputValue?.length > 0
 
   const getStateStyle = () => {
     const state = { ...stateColors.base }
     if (!props.disabled) {
       if (error) {
         Object.assign(state, stateColors.error)
-        if (hovered()) {
-          Object.assign(state, stateColors.errorHover)
-        }
-      } else if (focused()) {
-        Object.assign(state, stateColors.focus)
-      } else if (hovered()) {
-        Object.assign(state, stateColors.hover)
-      }
+        if (hovered) Object.assign(state, stateColors.errorHover)
+      } else if (focused) Object.assign(state, stateColors.focus)
+      else if (hovered) Object.assign(state, stateColors.hover)
     }
     return state
   }
@@ -72,7 +66,7 @@ export const TextField = ({ className, label, helperText, error, value, ...props
       <div
         className={clsx(
           'relative flex rounded-t-xs min-h-[56px] bg-surface-container-highest',
-          hovered() && !props.disabled && 'after:absolute after:inset-0 after:bg-on-surface after:opacity-[0.08] after:pointer-events-none',
+          hovered && !props.disabled && 'after:absolute after:inset-0 after:bg-on-surface after:opacity-[0.08] after:pointer-events-none',
           props.disabled && 'opacity-40',
         )}
         onMouseEnter={() => setHovered(true)}
@@ -101,7 +95,7 @@ export const TextField = ({ className, label, helperText, error, value, ...props
               getStateStyle().input,
               label && labelFloating() && 'pt-6 pb-2',
             )}
-            value={inputValue()}
+            value={inputValue}
             onInput={(e) => setInputValue(e.currentTarget.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
@@ -110,7 +104,7 @@ export const TextField = ({ className, label, helperText, error, value, ...props
 
         {/* Active indicator line */}
         <div
-          className={clsx('absolute bottom-0 left-0 w-full transition-all', focused() ? 'h-[2px]' : 'h-[1px]', getStateStyle().indicator)}
+          className={clsx('absolute bottom-0 left-0 w-full transition-all', focused ? 'h-[2px]' : 'h-[1px]', getStateStyle().indicator)}
         />
       </div>
 

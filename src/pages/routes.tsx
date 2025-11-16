@@ -4,17 +4,17 @@ import timezone from 'dayjs/plugin/timezone.js'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-import { Card, CardContent, CardHeader } from '~/components/material/Card'
-import { RouteStatisticsBar } from '~/components/RouteStatisticsBar'
-import { getPlaceName } from '~/map/geocode'
-import type { Route } from '~/types'
-import { dateTimeToColorBetween } from '~/utils/format'
+import { Card, CardContent, CardHeader } from '../components/material/Card'
+import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
+import { getPlaceName } from '../map/geocode'
+import type { Route } from '../types'
+import { dateTimeToColorBetween } from '../utils/format'
 import { Fragment, Suspense, useEffect, useState } from 'react'
-import { useDongleId } from '~/api/queries'
-import { TopAppBar } from '~/components/material/TopAppBar'
-import { IconButton } from '~/components/material/IconButton'
-import { api } from '~/api'
-import { Button } from '~/components/material/Button'
+import { TopAppBar } from '../components/material/TopAppBar'
+import { IconButton } from '../components/material/IconButton'
+import { api } from '../api'
+import { Button } from '../components/material/Button'
+import { useDongleId } from '../utils/hooks'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]

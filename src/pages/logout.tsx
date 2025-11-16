@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom'
-import { signOut } from '~/utils/helpers'
+import { signOut } from '../utils/helpers'
 
 export const Component = () => {
   signOut()

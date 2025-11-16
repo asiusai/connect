@@ -1,12 +1,12 @@
 import clsx from 'clsx'
-import type { IconName } from '~/components/material/Icon'
-import { getTileUrl } from '~/map'
-import { getFullAddress } from '~/map/geocode'
+import type { IconName } from '../components/material/Icon'
+import { getTileUrl } from '../map'
+import { getFullAddress } from '../map/geocode'
 import { useCallback, useEffect, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
-import { Device } from '~/types'
-import { useDeviceLocation } from '~/api/queries'
+import { Device } from '../types'
+import { useDeviceLocation } from '../api/queries'
 
 type Location = {
   lat: number

@@ -1,6 +1,6 @@
-import { generateRouteStatistics, getTimelineEvents, TimelineEvent, type RouteStatistics } from '~/utils/derived'
-import type { Route } from '~/types'
-import { formatDistance, formatDuration, formatRouteDuration } from '~/utils/format'
+import { generateRouteStatistics, getTimelineEvents, TimelineEvent, type RouteStatistics } from '../utils/derived'
+import type { Route } from '../types'
+import { formatDistance, formatDuration, formatRouteDuration } from '../utils/format'
 import { StatisticBar } from './StatisticBar'
 import { useState, useEffect } from 'react'
 

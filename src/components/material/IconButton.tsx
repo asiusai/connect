@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 
 import { ButtonBase, type ButtonBaseProps } from './ButtonBase'
-import { Icon, type IconName, type IconProps } from '~/components/material/Icon'
+import { Icon, IconName, IconProps } from './Icon'
 
 type IconButtonProps = ButtonBaseProps & {
   name: IconName

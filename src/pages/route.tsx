@@ -1,15 +1,15 @@
-import { dayjs } from '~/utils/format'
+import { dayjs } from '../utils/format'
 
-import { IconButton } from '~/components/material/IconButton'
-import { TopAppBar } from '~/components/material/TopAppBar'
-import { RouteActions } from '~/components/RouteActions'
-import { RouteStaticMap } from '~/components/RouteStaticMap'
-import { RouteStatisticsBar } from '~/components/RouteStatisticsBar'
-import { RouteUploadButtons } from '~/components/RouteUploadButtons'
+import { IconButton } from '../components/material/IconButton'
+import { TopAppBar } from '../components/material/TopAppBar'
+import { RouteActions } from '../components/RouteActions'
+import { RouteStaticMap } from '../components/RouteStaticMap'
+import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
+import { RouteUploadButtons } from '../components/RouteUploadButtons'
 import { Suspense } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { RouteVideoPlayer } from '~/components/RouteVideoPlayer'
-import { useRoute } from '~/api/queries'
+import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
+import { useRoute } from '../api/queries'
 
 // TODO: get start and end time from URL
 export const Component = () => {

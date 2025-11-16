@@ -1,13 +1,13 @@
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
-import { IconButton } from '~/components/material/IconButton'
+import { IconButton } from '../components/material/IconButton'
 import { Loading } from './material/Loading'
 import { Player } from '@remotion/player'
 import { Data, defaultStyle, getData, Main } from '../templates/Main'
-import { useShareSignature } from '~/api/queries'
-import { createQCameraStreamUrl } from '~/utils/helpers'
-import { VIDEO_FPS, VIDEO_HEIGHT, VIDEO_WIDTH } from '~/utils/consts'
+import { useShareSignature } from '../api/queries'
+import { createQCameraStreamUrl } from '../utils/helpers'
+import { VIDEO_FPS, VIDEO_HEIGHT, VIDEO_WIDTH } from '../utils/consts'
 
 const ERROR_MISSING_SEGMENT = 'This video segment has not uploaded yet or has been deleted.'
 const ERROR_UNSUPPORTED_BROWSER = 'This browser does not support Media Source Extensions API.'

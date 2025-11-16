@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { ReactNode } from 'react'
 
-import { ButtonBase } from '~/components/material/ButtonBase'
+import { ButtonBase } from './ButtonBase'
 
 type CardHeaderProps = {
   className?: string

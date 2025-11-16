@@ -1,17 +1,18 @@
 import clsx from 'clsx'
 
-import type { Device, PrimePlan } from '~/types'
-import { formatDate } from '~/utils/format'
+import type { Device, PrimePlan } from '../types'
+import { formatDate } from '../utils/format'
 
-import { ButtonBase } from '~/components/material/ButtonBase'
-import { Button } from '~/components/material/Button'
-import { Icon } from '~/components/material/Icon'
-import { IconButton } from '~/components/material/IconButton'
-import { TopAppBar } from '~/components/material/TopAppBar'
+import { ButtonBase } from '../components/material/ButtonBase'
+import { Button } from '../components/material/Button'
+import { Icon } from '../components/material/Icon'
+import { IconButton } from '../components/material/IconButton'
+import { TopAppBar } from '../components/material/TopAppBar'
 import { ReactNode, Suspense, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { api } from '~/api'
-import { useDevice, useDongleId, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '~/api/queries'
+import { api } from '../api'
+import { useDevice, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../api/queries'
+import { useDongleId } from '../utils/hooks'
 
 const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`
 

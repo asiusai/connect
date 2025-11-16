@@ -1,10 +1,10 @@
 // import QrScanner from 'qr-scanner'
 
-// import { pairDevice } from '~/api/devices'
-// import { Button } from '~/components/material/Button'
-// import { Icon } from '~/components/material/Icon'
-// import { IconButton } from '~/components/material/IconButton'
-// import { TopAppBar } from '~/components/material/TopAppBar'
+// import { pairDevice } from '../api/devices'
+// import { Button } from '../components/material/Button'
+// import { Icon } from '../components/material/Icon'
+// import { IconButton } from '../components/material/IconButton'
+// import { TopAppBar } from '../components/material/TopAppBar'
 
 // import { ReactNode } from 'react'
 // import { useNavigate } from 'react-router-dom'

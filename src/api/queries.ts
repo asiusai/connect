@@ -1,11 +1,12 @@
 import { useParams } from 'react-router-dom'
 import { api } from '.'
 
-export const useDongleId = () => useParams().dongleId!
-
+// TODO:
+// wrapper
 const w = <Res extends { data?: { status: number; body: any } }>(res: Res): [NonNullable<Res['data']>['body'] | undefined, Res] => {
   return [res.data?.body, res] as any
 }
+
 export const useDevice = (dongleId: string) =>
   w(api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } }))
 

@@ -2,9 +2,9 @@
 // import { Icon, type IconName } from './material/Icon'
 // import { IconButton } from './material/IconButton'
 // import { StatisticBar } from './StatisticBar'
-// import { Button } from '~/components/material/Button'
-// import type { AthenaOfflineQueueResponse, UploadFilesToUrlsRequest, UploadQueueItem } from '~/api/types'
-// import { cancelUpload, getUploadQueue } from '~/api/file'
+// import { Button } from '../components/material/Button'
+// import type { AthenaOfflineQueueResponse, UploadFilesToUrlsRequest, UploadQueueItem } from '../api/types'
+// import { cancelUpload, getUploadQueue } from '../api/file'
 
 // export const queries = {
 //   prefix: ['upload_queue'],

@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 
-import { ButtonBase } from '~/components/material/ButtonBase'
 import { ReactNode } from 'react'
+import { ButtonBase } from './ButtonBase'
 
 type ListItemContentProps = {
   headline: ReactNode

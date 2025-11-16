@@ -1,5 +1,5 @@
-import { BuildInfo } from '~/components/BuildInfo'
-import { Icon } from '~/components/material/Icon'
+import { BuildInfo } from '../components/BuildInfo'
+import { Icon } from '../components/material/Icon'
 
 export const Component = () => {
   return (

@@ -1,9 +1,9 @@
 // import clsx from 'clsx'
 
-// import type { TimelineEvent } from '~/api/derived'
-// import type { Route } from '~/api/types'
-// import { getRouteDuration } from '~/utils/format'
-// import { useCreateSignal } from '~/fix'
+// import type { TimelineEvent } from '../api/derived'
+// import type { Route } from '../api/types'
+// import { getRouteDuration } from '../utils/format'
+// import { useCreateSignal } from '../fix'
 // import { Suspense } from 'react'
 
 // function renderTimelineEvents(route: Route | undefined, events: TimelineEvent[]) {
