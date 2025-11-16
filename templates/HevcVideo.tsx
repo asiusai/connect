@@ -1,7 +1,7 @@
 import { CSSProperties, useEffect, useState } from 'react'
 import { delayRender, continueRender, OffthreadVideo } from 'remotion'
 import { toBlobURL } from '@ffmpeg/util'
-import { DB } from './indexedDb'
+import { DB } from '../src/utils/db'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 
 let ffmpeg: FFmpeg

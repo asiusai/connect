@@ -1,7 +1,7 @@
 import { bundle } from '@remotion/bundler'
 import { renderMedia, selectComposition } from '@remotion/renderer'
 import path from 'path'
-import { CAMERAS, defaultStyle, getData, MainProps, Style } from './src/templates/Main'
+import { CAMERAS, defaultStyle, getData, MainProps, Style } from './templates/Main'
 import { $ } from 'bun'
 import { CameraType } from './src/types'
 
@@ -12,7 +12,7 @@ console.log(`Getting route data`)
 const data = await getData(routeName)
 
 console.log('Bundling')
-const serveUrl = await bundle({ entryPoint: path.resolve('./src/templates/index.ts') })
+const serveUrl = await bundle({ entryPoint: path.resolve('./templates/index.ts') })
 
 const replaceCamFiles = async (cam?: CameraType) => {
   if (!cam) return

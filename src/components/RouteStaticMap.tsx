@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 
 import { type GPSPathPoint, getCoords } from '../utils/derived'
-import { type Coords, getPathStaticMapUrl } from '../map'
+import { Coord, getPathStaticMapUrl } from '../utils/map'
 import type { Route } from '../types'
 
 import { Icon } from '../components/material/Icon'
@@ -23,7 +23,7 @@ const getStaticMapUrl = (gpsPoints: GPSPathPoint[]): string | undefined => {
   if (gpsPoints.length === 0) {
     return undefined
   }
-  const path: Coords = []
+  const path: Coord[] = []
   gpsPoints.forEach(({ lng, lat }) => {
     path.push([lng, lat])
   })

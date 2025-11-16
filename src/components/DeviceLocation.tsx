@@ -1,7 +1,6 @@
 import clsx from 'clsx'
 import type { IconName } from '../components/material/Icon'
-import { getTileUrl } from '../map'
-import { getFullAddress } from '../map/geocode'
+import { getFullAddress, getTileUrl } from '../utils/map'
 import { useCallback, useEffect, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'

@@ -114,7 +114,7 @@ jobs:
           ref: master
 
       - name: take screenshots
-        run: bun src/ci/screenshots.ts https://${{ needs.pr.outputs.number }}.connect-d5y.pages.dev ${{ github.workspace }}/ci-artifacts
+        run: bun scripts/screenshots.ts https://${{ needs.pr.outputs.number }}.connect-d5y.pages.dev ${{ github.workspace }}/ci-artifacts
 
       - name: Push Screenshots
         working-directory: ${{ github.workspace }}/ci-artifacts

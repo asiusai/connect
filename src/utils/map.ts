@@ -1,0 +1,145 @@
+import polyline from '@mapbox/polyline'
+import { MAPBOX_DARK_STYLE_ID, MAPBOX_LIGHT_STYLE_ID, MAPBOX_TOKEN, MAPBOX_USERNAME } from './consts'
+import type { Position, FeatureCollection, Point } from 'geojson'
+
+/**
+ * @see {@link https://docs.mapbox.com/api/search/geocoding/#geocoding-response-object}
+ */
+export interface ReverseGeocodingResponse extends FeatureCollection<Point, ReverseGeocodingFeatureProperties> {
+  attribution: string
+}
+
+export type ReverseGeocodingFeature = ReverseGeocodingResponse['features'][number]
+
+interface ReverseGeocodingFeatureProperties {
+  feature_type: 'country' | 'region' | 'postcode' | 'district' | 'place' | 'locality' | 'neighborhood' | 'street' | 'address'
+  name: string
+  name_preferred: string
+  place_formatted: string
+  full_address: string
+  context: ReverseGeocodingContextObject
+}
+
+/**
+ * @see {@link https://docs.mapbox.com/api/search/geocoding/#the-context-object}
+ */
+interface ReverseGeocodingContextObject<S = ReverseGeocodingContextSubObject> {
+  country?: S & {
+    country_code: string
+    country_code_alpha_3: string
+  }
+  region?: S & {
+    region_code: string
+    region_code_full: string
+  }
+  postcode?: S
+  district?: S
+  place?: S
+  locality?: S
+  neighborhood?: S
+  street?: S
+  address?: S & {
+    address_number: string
+    street_name: string
+  }
+}
+
+interface ReverseGeocodingContextSubObject {
+  name: string
+}
+
+export type Coord = [number, number]
+
+const POLYLINE_SAMPLE_SIZE = 50
+const POLYLINE_PRECISION = 4
+
+const getMapStyleId = (themeId: string): string => (themeId === 'light' ? MAPBOX_LIGHT_STYLE_ID : MAPBOX_DARK_STYLE_ID)
+
+const prepareCoords = (coords: Coord[], sampleSize: number): Coord[] => {
+  const sample: Coord[] = []
+  const step = Math.max(Math.floor(coords.length / sampleSize), 1)
+  for (let i = 0; i < coords.length; i += step) {
+    const point = coords[i]
+    // 1. mapbox uses lng,lat order
+    // 2. polyline output is off by 10x when precision is 4
+    sample.push([point[1] * 10, point[0] * 10] as Coord)
+  }
+  return sample
+}
+
+// TODO: get path colour from theme
+export const getPathStaticMapUrl = (
+  themeId: string,
+  coords: Coord[],
+  width: number,
+  height: number,
+  hidpi: boolean,
+  strokeWidth: number = 4,
+  color: string = 'DFE0FF',
+  opacity: number = 1,
+) => {
+  const styleId = getMapStyleId(themeId)
+  const hidpiStr = hidpi ? '@2x' : ''
+  const encodedPolyline = polyline.encode(prepareCoords(coords, POLYLINE_SAMPLE_SIZE), POLYLINE_PRECISION)
+  const path = `path-${strokeWidth}+${color}-${opacity}(${encodeURIComponent(encodedPolyline)})`
+  return `https://api.mapbox.com/styles/v1/${MAPBOX_USERNAME}/${styleId}/static/${path}/auto/${width}x${height}${hidpiStr}?logo=false&attribution=false&padding=30,30,30,30&access_token=${MAPBOX_TOKEN}`
+}
+
+export const getTileUrl = () =>
+  `https://api.mapbox.com/styles/v1/${MAPBOX_USERNAME}/${getMapStyleId('dark')}/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`
+
+export async function reverseGeocode(position: Position): Promise<ReverseGeocodingFeature | null> {
+  if (Math.abs(position[0]) < 0.001 && Math.abs(position[1]) < 0.001) {
+    return null
+  }
+  const query = new URLSearchParams({
+    // 6dp is ~10cm accuracy
+    longitude: position[0].toFixed(6),
+    latitude: position[1].toFixed(6),
+    access_token: MAPBOX_TOKEN,
+  })
+  let resp: Response
+  try {
+    resp = await fetch(`https://api.mapbox.com/search/geocode/v6/reverse?${query.toString()}`, { cache: 'force-cache' })
+  } catch (error) {
+    console.error('[geocode] Reverse geocode lookup failed', error)
+    return null
+  }
+  if (!resp.ok) {
+    console.error(new Error(`Reverse geocode lookup failed: ${resp.status} ${resp.statusText}`))
+    return null
+  }
+  try {
+    // TODO: validate
+    const collection = (await resp.json()) as ReverseGeocodingResponse
+    return collection?.features?.[0] ?? null
+  } catch (error) {
+    console.error(new Error('Could not parse reverse geocode response', { cause: error }))
+    return null
+  }
+}
+
+export async function getFullAddress(position: Position): Promise<string | null> {
+  const feature = await reverseGeocode(position)
+  if (!feature) return null
+  return feature.properties.full_address
+}
+
+export async function getPlaceName(position: Position): Promise<string | null> {
+  const feature = await reverseGeocode(position)
+  if (!feature) return null
+  const {
+    properties: { context },
+  } = feature
+  return (
+    [
+      // context.street?.name,
+      context.neighborhood?.name,
+      context.place?.name,
+      context.locality?.name,
+      context.district?.name,
+      context.region?.name,
+      context.country?.name,
+    ].find(Boolean) || ''
+  )
+}

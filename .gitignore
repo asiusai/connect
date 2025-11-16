@@ -49,3 +49,6 @@ Thumbs.db
 .env.sentry-build-plugin
 
 out/
+
+output/
+__pycache__/

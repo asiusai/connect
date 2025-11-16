@@ -1,12 +1,12 @@
 import { AbsoluteFill, CalculateMetadataFunction, Series, useCurrentFrame } from 'remotion'
 import { z } from 'zod'
-import { api } from '../api'
-import { CameraType, Coord, Files, RouteEvent, RouteSegment } from '../types'
+import { api } from '../src/api'
+import { CameraType, Coord, Files, RouteEvent, RouteSegment } from '../src/types'
 import { HevcVideo } from './HevcVideo'
-import { DB } from './indexedDb'
+import { DB } from '../src/utils/db'
 import { createContext, useContext } from 'react'
-import { VIDEO_FPS } from '../utils/consts'
-import { createQCameraStreamUrl } from '../utils/helpers'
+import { FPS } from './consts'
+import { createQCameraStreamUrl } from '../src/utils/helpers'
 
 export const Data = z.object({
   segments: RouteSegment.array(),
@@ -114,7 +114,7 @@ export const calculateMetadata: CalculateMetadataFunction<MainProps> = async ({ 
   }
 
   return {
-    durationInFrames: data ? data.duration * VIDEO_FPS : 100,
+    durationInFrames: data ? data.duration * FPS : 100,
     props: { ...props, data },
   }
 }
@@ -134,7 +134,7 @@ const LargeCamera = () => {
       {files.map((src, i) => {
         const name = `${style.largeCamera} ${i + 1}/${files.length}`
         return (
-          <Series.Sequence key={src} durationInFrames={60 * VIDEO_FPS} premountFor={60 * VIDEO_FPS} name={name}>
+          <Series.Sequence key={src} durationInFrames={60 * FPS} premountFor={60 * FPS} name={name}>
             <HevcVideo name={name} src={src} style={{ width: '100%', background: 'white' }} />
           </Series.Sequence>
         )
@@ -153,7 +153,7 @@ const SmallCamera = () => {
       {files.map((src, i) => {
         const name = `${style.smallCamera} ${i + 1}/${files.length}`
         return (
-          <Series.Sequence key={src} name={name} durationInFrames={60 * VIDEO_FPS} premountFor={60 * VIDEO_FPS}>
+          <Series.Sequence key={src} name={name} durationInFrames={60 * FPS} premountFor={60 * FPS}>
             <HevcVideo
               name={name}
               src={src}
@@ -174,7 +174,7 @@ const SmallCamera = () => {
 const Engaged = () => {
   const frame = useCurrentFrame()
   const { data } = useVideoContext()
-  const millis = (frame / VIDEO_FPS) * 1000
+  const millis = (frame / FPS) * 1000
   let isEnabled = false
   for (const event of data.events.filter((x) => x.type === 'state')) {
     if (millis < event.route_offset_millis) continue
@@ -189,7 +189,7 @@ const CoordsMap = () => {
 
   let coord: Coord | undefined
   for (const c of data.coords) {
-    if (frame / VIDEO_FPS < c.t) continue
+    if (frame / FPS < c.t) continue
     coord = c
   }
 

@@ -20,7 +20,7 @@ const fontSize = {
 } as Record<string, [string, { lineHeight: string; fontWeight?: number; letterSpacing: string }]>
 
 export default {
-  content: ['./src/**/*.{ts,tsx}', './index.html'],
+  content: ['./src/**/*.{ts,tsx}', './templates/**/*.{ts,tsx}', './index.html'],
   darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     borderRadius: {

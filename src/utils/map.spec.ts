@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { getFullAddress, getPlaceName, reverseGeocode } from './geocode'
+import { getFullAddress, getPlaceName, reverseGeocode } from './map'
 
 describe('reverseGeocode', () => {
   test('return null if coords are [0, 0]', async () => {
