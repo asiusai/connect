@@ -159,7 +159,7 @@ const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: stri
             { label: 'Branch', value: route.git_branch },
             {
               label: 'Commit',
-              value: route.git_commit ? `${route.git_commit.slice(0, 7)} (${route.git_commit_date!.slice(0, 10)})` : undefined,
+              value: route.git_commit ? `${route.git_commit.slice(0, 7)} (${route.git_commit_date?.slice(0, 10) ?? '-'})` : undefined,
             },
             { label: 'Version', value: route.version },
             { label: 'Make', value: route.make },

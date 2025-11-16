@@ -54,7 +54,7 @@ export const Component = () => {
   const navigate = useNavigate()
   const loginAsDemoUser = () => {
     setAccessToken(DEMO_ACCESS_TOKEN)
-    navigate(window.location.origin)
+    navigate('/')
   }
 
   return (

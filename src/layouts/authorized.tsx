@@ -7,14 +7,12 @@ import { ButtonBase } from '../components/material/ButtonBase'
 import { Icon } from '../components/material/Icon'
 import { USERADMIN_URL } from '../utils/consts'
 import { Device } from '../types'
-import { DrawerToggleButton } from '../components/material/Drawer'
 import clsx from 'clsx'
 import { List, ListItem, ListItemContent } from '../components/material/List'
 import { useLocation } from 'react-router-dom'
 import { Loading } from '../components/material/Loading'
 import { useDevices, useProfile } from '../api/queries'
 import { isSignedIn, storage } from '../utils/helpers'
-import { useDongleId } from '../utils/hooks'
 
 const DeviceList = () => {
   const location = useLocation()
@@ -96,6 +94,9 @@ export const DashboardDrawer = () => {
 const LoggedIn = () => {
   const [devices] = useDevices()
   const isHome = useLocation().pathname.replace('/', '') === ''
+
+  // Wait for the devices to load
+  if (!devices) return null
 
   // We never want them to at /
   if (isHome) {

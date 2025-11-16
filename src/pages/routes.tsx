@@ -80,7 +80,7 @@ export const Component = () => {
           if (dayHeader === prevDayHeader) dayHeader = null
           else prevDayHeader = dayHeader
           return (
-            <Fragment key={route.create_time}>
+            <Fragment key={`${route.id}-${route.start_time}`}>
               {dayHeader && <h2 className="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>}
               <RouteCard route={route} />
             </Fragment>
