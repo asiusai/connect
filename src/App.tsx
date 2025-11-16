@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { OfflinePage } from './pages/offline'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -87,9 +87,7 @@ export const App = () => (
     <api.ReactQueryProvider>
       <Toaster />
       <AppLayout>
-        <Suspense fallback={null}>
-          <RouterProvider router={router} />
-        </Suspense>
+        <RouterProvider router={router} />
       </AppLayout>
     </api.ReactQueryProvider>
   </QueryClientProvider>

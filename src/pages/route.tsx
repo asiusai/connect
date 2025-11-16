@@ -6,7 +6,6 @@ import { RouteActions } from '../components/RouteActions'
 import { RouteStaticMap } from '../components/RouteStaticMap'
 import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import { RouteUploadButtons } from '../components/RouteUploadButtons'
-import { Suspense } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
 import { useRoute } from '../api/queries'
@@ -61,9 +60,7 @@ export const Component = () => {
         <div className="flex flex-col gap-2">
           <span className="text-sm">Route Map</span>
           <div className="aspect-square overflow-hidden rounded-lg">
-            <Suspense fallback={<div className="h-full w-full skeleton-loader bg-surface-container" />}>
-              <RouteStaticMap route={route} />
-            </Suspense>
+            <RouteStaticMap route={route} />
           </div>
         </div>
       </div>

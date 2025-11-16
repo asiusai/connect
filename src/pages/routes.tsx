@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from '../components/material/Card'
 import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import type { Route } from '../types'
 import { dateTimeToColorBetween } from '../utils/format'
-import { Fragment, Suspense, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { TopAppBar } from '../components/material/TopAppBar'
 import { IconButton } from '../components/material/IconButton'
 import { api } from '../api'
@@ -37,10 +37,7 @@ const RouteCard = ({ route }: { route: Route }) => {
 
   return (
     <Card className="max-w-none" href={`/${route.dongle_id}/routes/${route.fullname.slice(17)}`} activeClass="md:before:bg-primary">
-      <CardHeader
-        headline={`${startTime().format('h:mm A')} to ${endTime().format('h:mm A')}`}
-        subhead={<Suspense fallback={<div className="h-[20px] w-auto skeleton-loader rounded-xs" />}>{location}</Suspense>}
-      />
+      <CardHeader headline={`${startTime().format('h:mm A')} to ${endTime().format('h:mm A')}`} subhead={location} />
 
       <CardContent>
         <RouteStatisticsBar route={route} />

@@ -97,3 +97,5 @@ export const dateTimeToColorBetween = (startTime: Date, endTime: Date, startColo
   const blended = startColor.map((c, i) => Math.round(c + (endColor[i] - c) * blendFactor))
   return `rgb(${blended.join(', ')})`
 }
+
+export const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`

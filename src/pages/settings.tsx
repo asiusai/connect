@@ -1,20 +1,18 @@
 import clsx from 'clsx'
 
 import type { Device, PrimePlan } from '../types'
-import { formatDate } from '../utils/format'
+import { formatCurrency, formatDate } from '../utils/format'
 
 import { ButtonBase } from '../components/material/ButtonBase'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
 import { IconButton } from '../components/material/IconButton'
 import { TopAppBar } from '../components/material/TopAppBar'
-import { ReactNode, Suspense, useState } from 'react'
+import { ReactNode, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { api } from '../api'
 import { useDevice, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../api/queries'
 import { useDongleId } from '../utils/hooks'
-
-const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`
 
 type PlanProps = {
   name: PrimePlan
@@ -215,72 +213,63 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
   const paymentStatus = stripeSession?.payment_status
   return (
     <div className="flex flex-col gap-4">
-      <Suspense
-        fallback={
-          <div className="my-2 flex flex-col items-center gap-4">
-            <Icon name="autorenew" className="animate-spin" size="40" />
-            <span className="text-md">Fetching subscription status...</span>
+      {!stripeSession ? (
+        <div className="flex gap-2 rounded-sm bg-on-error-container p-2 text-sm font-semibold text-error-container">
+          <Icon name="error" size="20" />
+          Unable to check payment status
+        </div>
+      ) : paymentStatus === 'unpaid' ? (
+        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+          <Icon name="payments" size="20" />
+          Waiting for confirmed payment...
+        </div>
+      ) : paymentStatus === 'paid' && !subscription ? (
+        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+          <Icon className="animate-spin" name="autorenew" size="20" />
+          Processing subscription...
+        </div>
+      ) : paymentStatus === 'paid' && subscription ? (
+        <div className="flex gap-2 rounded-sm bg-tertiary-container p-2 text-sm text-on-tertiary-container">
+          <Icon name="check" size="20" />
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold">comma prime activated</p>
+            {subscription.is_prime_sim &&
+              ' Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help.'}
           </div>
-        }
-      >
-        {!stripeSession ? (
-          <div className="flex gap-2 rounded-sm bg-on-error-container p-2 text-sm font-semibold text-error-container">
-            <Icon name="error" size="20" />
-            Unable to check payment status
-          </div>
-        ) : paymentStatus === 'unpaid' ? (
-          <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
-            <Icon name="payments" size="20" />
-            Waiting for confirmed payment...
-          </div>
-        ) : paymentStatus === 'paid' && !subscription ? (
-          <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
-            <Icon className="animate-spin" name="autorenew" size="20" />
-            Processing subscription...
-          </div>
-        ) : paymentStatus === 'paid' && subscription ? (
-          <div className="flex gap-2 rounded-sm bg-tertiary-container p-2 text-sm text-on-tertiary-container">
-            <Icon name="check" size="20" />
-            <div className="flex flex-col gap-2">
-              <p className="font-semibold">comma prime activated</p>
-              {subscription.is_prime_sim &&
-                ' Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help.'}
-            </div>
-          </div>
-        ) : null}
+        </div>
+      ) : null}
 
-        {cancel.isError ? (
-          <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
-            <Icon className="text-error" name="error" size="20" />
-            Failed to cancel subscription: {cancel.error as any}
-          </div>
-        ) : cancel.isSuccess ? (
-          <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
-            <Icon name="check" size="20" />
-            Subscription cancelled
-          </div>
-        ) : null}
+      {cancel.isError ? (
+        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+          <Icon className="text-error" name="error" size="20" />
+          Failed to cancel subscription: {cancel.error as any}
+        </div>
+      ) : cancel.isSuccess ? (
+        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+          <Icon name="check" size="20" />
+          Subscription cancelled
+        </div>
+      ) : null}
 
-        {subscription && (
-          <>
-            <div className="flex list-none flex-col">
-              <li>Plan: {subscription.plan ? PrimePlanName[subscription.plan] : 'unknown'}</li>
-              <li>Amount: {formatCurrency(subscription.amount)}</li>
-              <li>Joined: {formatDate(subscription.subscribed_at)}</li>
-              <li>Next payment: {formatDate(subscription.next_charge_at)}</li>
-            </div>
+      {subscription && (
+        <>
+          <div className="flex list-none flex-col">
+            <li>Plan: {subscription.plan ? PrimePlanName[subscription.plan] : 'unknown'}</li>
+            <li>Amount: {formatCurrency(subscription.amount)}</li>
+            <li>Joined: {formatDate(subscription.subscribed_at)}</li>
+            <li>Next payment: {formatDate(subscription.next_charge_at)}</li>
+          </div>
 
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button color="error" disabled={loading} loading={cancel.isPending} onClick={() => setCancelDialog(true)}>
-                Cancel subscription
-              </Button>
-              <Button color="secondary" disabled={loading} loading={!portal} href={portal?.url}>
-                Update payment method
-              </Button>
-            </div>
-          </>
-        )}
-      </Suspense>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <Button color="error" disabled={loading} loading={cancel.isPending} onClick={() => setCancelDialog(true)}>
+              Cancel subscription
+            </Button>
+            <Button color="secondary" disabled={loading} loading={!portal} href={portal?.url}>
+              Update payment method
+            </Button>
+          </div>
+        </>
+      )}
 
       {cancelDialog && (
         <div
@@ -357,9 +346,7 @@ export const Component = () => {
         <hr className="mx-4 opacity-20" />
 
         <h2 className="text-lg">comma prime</h2>
-        <Suspense fallback={<div className="h-64 skeleton-loader rounded-md" />}>
-          {!device.prime ? <PrimeCheckout dongleId={dongleId} /> : <PrimeManage dongleId={dongleId} />}
-        </Suspense>
+        {!device.prime ? <PrimeCheckout dongleId={dongleId} /> : <PrimeManage dongleId={dongleId} />}
       </div>
     </>
   )
