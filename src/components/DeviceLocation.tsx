@@ -64,8 +64,6 @@ function FitBounds({ markers }: { markers: Location[] }) {
 }
 
 export const DeviceLocation = ({ dongleId, device, className }: { dongleId: string; device: Device; className?: string }) => {
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
-  const [showLocationInfo, setShowLocationInfo] = useState(false)
   const { position, requestPosition } = usePosition()
   const [markers, setMarkers] = useState<Location[]>([])
 

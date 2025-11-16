@@ -48,7 +48,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   console.log(fade)
   return (
     <>
-      <div className="fixed top-0 w-full h-[500px]" style={{ opacity: fade }} onClick={(e) => {}}>
+      <div className="fixed top-0 w-full h-[500px]" style={{ opacity: fade }}>
         <Top device={device} />
         <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full relative" />
         {fade !== 1 && (
