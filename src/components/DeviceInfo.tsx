@@ -30,6 +30,7 @@ const timeAgo = (time: number): string => {
   return `active ${days} days ago`
 }
 
+const subtitle = 'Coming soon'
 export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   const res = useDevice(dongleId)
   const device = res.data?.body
@@ -39,22 +40,26 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
 
   useEffect(() => {
     const el = document.querySelector('#left')!
-    const onScroll = () => {
-      const y = el.scrollTop
-      console.log({ y })
-      const v = Math.max(0, 1 - y / 400)
-      setFade(v)
-    }
+    const onScroll = () => setFade(Math.max(0, 1 - el.scrollTop / 400))
     el.addEventListener('scroll', onScroll)
     return () => el.removeEventListener('scroll', onScroll)
   }, [])
-  console.log(fade)
   if (!device) return <Loading className="h-screen w-screen" />
+  console.log(fade)
   return (
     <>
-      <div className="fixed top-0 w-full h-[500px]" style={{ opacity: fade }}>
+      <div className="fixed top-0 w-full h-[500px]" style={{ opacity: fade }} onClick={(e) => {}}>
         <Top device={device} />
-        <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full" />
+        <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full relative" />
+        {fade !== 1 && (
+          <div
+            className="absolute top-0 h-full w-full z-[999999]"
+            onClick={(e) => {
+              e.stopPropagation()
+              document.querySelector('#left')!.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+          ></div>
+        )}
       </div>
       <div className="relative pointer-events-none min-h-screen">
         <div className="h-[430px]"></div>
@@ -63,13 +68,13 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           <div className="flex flex-col gap-4">
             {[
               { title: 'Drives', subtitle: `${stats.data?.body.all.routes} drives`, icon: 'directions_car', href: `/${dongleId}/routes` },
-              { title: 'Sentry mode', icon: 'photo_camera', href: `/${dongleId}/sentry` },
-              { title: 'Actions', icon: 'infrared', href: `/${dongleId}/actions` },
-              { title: 'Teleop', icon: 'gamepad', href: `/${dongleId}/teleop` },
-              { title: 'Analyze', icon: 'bar_chart', href: `/${dongleId}/analyze` },
+              { title: 'Sentry mode', subtitle, icon: 'photo_camera' },
+              { title: 'Actions', subtitle, icon: 'infrared' },
+              { title: 'Teleop', subtitle, icon: 'gamepad' },
+              { title: 'Analyze', subtitle, icon: 'bar_chart' },
               { title: 'Settings', icon: 'settings', href: `/${dongleId}/settings` },
             ].map(({ title, href, icon, subtitle }) => (
-              <Link key={title} to={href} className="flex items-center gap-4 px-2 text-lg h-14">
+              <Link key={title} to={href || ''} className="flex items-center gap-4 px-2 text-lg h-14">
                 <Icon name={icon as any} className="opacity-50" />
                 <div className="mr-auto flex flex-col gap-0.5">
                   <div className="text-white">{title}</div>
@@ -122,7 +127,10 @@ const Top = ({ device }: { device: Device }) => {
           </p>
         </div>
       </div>
-      <div className="items-center flex bg-surface-container shadow-lg px-3 py-2 gap-2 rounded-lg">
+      <div
+        onClick={() => alert('Navigate on OP')}
+        className="items-center flex bg-surface-container shadow-md shadow-white/20 px-3 py-2 gap-3 rounded-lg"
+      >
         <div>Navigate</div>
         <Icon name="search" className="" />
       </div>
@@ -140,12 +148,8 @@ const ActionBar = () => {
   return (
     <div className="flex justify-around items-center h-[50px] px-4">
       {icons.map(({ name, onClick }) => (
-        <div
-          key={name}
-          onClick={onClick}
-          className="bg-surface-container-low shadow-lg p-3 rounded-full pointer-events-auto cursor-pointer"
-        >
-          <Icon name={name as any} className="" />
+        <div key={name} onClick={onClick}>
+          <Icon name={name as any} className="text-white font-bold scale-[1.1]" />
         </div>
       ))}
     </div>

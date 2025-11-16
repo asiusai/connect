@@ -116,8 +116,7 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
             position={[x.lat, x.lng]}
             eventHandlers={{
               click: () => {
-                setSelectedLocation(x)
-                setShowLocationInfo(true)
+                window.open(`https://www.google.com/maps?q=${x!.lat},${x!.lng}`, '_blank')
               },
             }}
             icon={L.divIcon({
@@ -143,28 +142,6 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
           <span className="text-sm">Locating...</span>
         </div>
       )}
-
-      <Card
-        className={clsx(
-          'absolute inset-2 top-auto z-[9999] flex !bg-surface-container-high p-4 pt-3 transition-opacity duration-150',
-          showLocationInfo ? 'opacity-100' : 'pointer-events-none opacity-0',
-        )}
-      >
-        <div className="mb-2 flex flex-row items-center justify-between gap-4">
-          <span className="truncate text-md">{selectedLocation?.label}</span>
-          <IconButton name="close" onClick={() => setShowLocationInfo(false)} />
-        </div>
-        <div className="flex flex-col items-end gap-3 xs:flex-row">
-          <span className="text-sm text-on-surface-variant">{selectedLocation?.address}</span>
-          <Button
-            color="secondary"
-            onClick={() => window.open(`https://www.google.com/maps?q=${selectedLocation!.lat},${selectedLocation!.lng}`, '_blank')}
-            trailing={<Icon name="open_in_new" size="20" />}
-          >
-            Open in Maps
-          </Button>
-        </div>
-      </Card>
     </div>
   )
 }
