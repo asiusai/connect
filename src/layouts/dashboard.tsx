@@ -1,5 +1,6 @@
 import clsx from 'clsx'
-import { Outlet, useLocation, useParams } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
+import { useDongleId } from '~/api/queries'
 import { DeviceInfo } from '~/components/DeviceInfo'
 
 export const parseRouteId = (pathname: string) => {
@@ -15,9 +16,8 @@ export const parseRouteId = (pathname: string) => {
 }
 
 export const Component = () => {
-  const params = useParams()
+  const dongleId = useDongleId()
   const location = useLocation()
-  console.log()
   const paths = location.pathname.split('/').filter(Boolean)
 
   return (
@@ -31,7 +31,7 @@ export const Component = () => {
         )}
       >
         <div id="left" className="min-w-full overflow-y-scroll scrollbar-hide relative">
-          <DeviceInfo dongleId={params.dongleId!} />
+          <DeviceInfo dongleId={dongleId} />
         </div>
         <div id="right" className="min-w-full overflow-y-scroll ">
           <Outlet />

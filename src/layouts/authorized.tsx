@@ -1,5 +1,5 @@
 import { Drawer, useDrawerContext } from '~/components/material/Drawer'
-import { Navigate, Outlet, useParams } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { isSignedIn } from '~/api/auth/client'
 import { IconButton } from '~/components/material/IconButton'
 import { TopAppBar } from '~/components/material/TopAppBar'
@@ -15,11 +15,12 @@ import { List, ListItem, ListItemContent } from '~/components/material/List'
 import storage from '~/utils/storage'
 import { useLocation } from 'react-router-dom'
 import { Loading } from '~/components/material/Loading'
+import { useDevices, useDongleId, useProfile } from '~/api/queries'
 
 const DeviceList = () => {
   const location = useLocation()
   const { setOpen } = useDrawerContext()
-  const devices = api.devices.devices.useQuery({ queryKey: ['devices'] })
+  const devices = useDevices().data?.body
 
   const isSelected = (device: Device) => location.pathname.includes(device.dongle_id)
   const onClick = (device: Device) => () => {
@@ -29,10 +30,10 @@ const DeviceList = () => {
 
   return (
     <List variant="nav" className="overflow-y-auto p-2">
-      {devices.isLoading ? (
+      {!devices ? (
         <Loading className="h-14 rounded-xl" />
-      ) : devices.data?.body.length ? (
-        devices.data.body.map((device) => (
+      ) : devices.length ? (
+        devices.map((device) => (
           <ListItem
             key={device.dongle_id}
             variant="nav"
@@ -88,7 +89,7 @@ const FirstPair = () => {
 export const DashboardDrawer = () => {
   const { modal, setOpen } = useDrawerContext()
   const onClose = () => setOpen(false)
-  const profile = api.profile.me.useQuery({ queryKey: ['me'] })
+  const profile = useProfile().data?.body
 
   return (
     <>
@@ -101,7 +102,7 @@ export const DashboardDrawer = () => {
         Add new device
       </Button>
       <div className="m-4 mt-0">
-        {profile.isLoading ? (
+        {!profile ? (
           <Loading className="min-h-16 rounded-md" />
         ) : (
           <div className="flex max-w-full items-center px-3 rounded-md outline outline-1 outline-outline-variant min-h-16">
@@ -109,14 +110,10 @@ export const DashboardDrawer = () => {
               <Icon name="person" filled />
             </div>
             <div className="min-w-0 mx-3">
-              {profile.data?.status === 200 ? (
-                <ButtonBase href={USERADMIN_URL}>
-                  <div className="truncate text-sm text-on-surface">{profile.data.body.email}</div>
-                  <div className="truncate text-xs text-on-surface-variant">{profile.data.body.user_id}</div>
-                </ButtonBase>
-              ) : (
-                <div>Error loading profile</div>
-              )}
+              <ButtonBase href={USERADMIN_URL}>
+                <div className="truncate text-sm text-on-surface">{profile.email}</div>
+                <div className="truncate text-xs text-on-surface-variant">{profile.user_id}</div>
+              </ButtonBase>
             </div>
             <div className="grow" />
             <IconButton name="logout" href="/logout" />
@@ -128,19 +125,19 @@ export const DashboardDrawer = () => {
 }
 
 export const Component = () => {
-  const params = useParams()
-  const devices = api.devices.devices.useQuery({ queryKey: ['devices'] })
+  const dongleId = useDongleId()
+  const devices = useDevices().data?.body
 
   const getDefaultDongleId = () => {
     // Do not redirect if dongle ID already selected
-    if (params.dongleId) return undefined
+    if (dongleId) return undefined
 
     const lastSelectedDongleId = storage.getItem('lastSelectedDongleId')
-    if (devices.data?.body.some((device) => device.dongle_id === lastSelectedDongleId)) return lastSelectedDongleId
-    return devices.data?.body[0]?.dongle_id
+    if (devices?.some((device) => device.dongle_id === lastSelectedDongleId)) return lastSelectedDongleId
+    return devices?.[0]?.dongle_id
   }
 
   if (!isSignedIn()) return <Navigate to="/login" />
   if (getDefaultDongleId()) return <Navigate to={`/${getDefaultDongleId()}`} />
-  return <Drawer drawer={<DashboardDrawer />}>{devices.data ? devices.data?.body.length !== 0 ? <Outlet /> : <FirstPair /> : null}</Drawer>
+  return <Drawer drawer={<DashboardDrawer />}>{devices ? devices.length !== 0 ? <Outlet /> : <FirstPair /> : null}</Drawer>
 }

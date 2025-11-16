@@ -9,16 +9,16 @@ import { RouteUploadButtons } from '~/components/RouteUploadButtons'
 import { generateRouteStatistics, getTimelineEvents, RouteStatistics, TimelineEvent } from '~/api/derived'
 import { Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { api } from '~/api'
 import { RouteVideoPlayer } from '~/components/RouteVideoPlayer'
+import { useRoute } from '~/api/queries'
 
 // TODO: get start and end time from URL
 export const Component = () => {
   const { dongleId, date } = useParams()
 
   const routeName = `${dongleId}|${date}`
-  const routeReq = api.routes.get.useQuery({ queryKey: ['route', routeName], queryData: { params: { routeName } } })
-  const route = routeReq.data?.body
+  const route = useRoute(routeName).data?.body
+
   const startTime = route ? dayjs(route.start_time).format('dddd, MMM D, YYYY') : ''
 
   const selection = { startTime: 0, endTime: undefined }

@@ -167,13 +167,13 @@ export const CancelUploadRequest = z.object({
 })
 
 export const CancelUploadResponse = z.record(z.string(), z.number().or(z.string()))
-
+export const PrimePlan = z.enum(['data', 'nodata'])
 export const SubscriptionStatus = z.object({
   amount: z.number(),
   cancel_at: z.number().nullable(),
   is_prime_sim: z.boolean(),
   next_charge_at: z.number(),
-  plan: z.string(),
+  plan: PrimePlan.nullable(),
   requires_migration: z.boolean(),
   sim_id: z.string().nullable(),
   subscribed_at: z.number(),
@@ -300,3 +300,4 @@ export type CancelUploadResponse = z.infer<typeof CancelUploadResponse>
 export type SubscriptionStatus = z.infer<typeof SubscriptionStatus>
 export type SubscribeInfo = z.infer<typeof SubscribeInfo>
 export type RouteSegment = z.infer<typeof RouteSegment>
+export type PrimePlan = z.infer<typeof PrimePlan>

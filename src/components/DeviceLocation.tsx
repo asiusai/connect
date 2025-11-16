@@ -11,6 +11,8 @@ import { api } from '~/api'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
 import { Device } from '~/api/types'
+import { useLocation } from 'react-router-dom'
+import { useDeviceLocation } from '~/api/queries'
 
 type Location = {
   lat: number
@@ -67,8 +69,7 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
   const { position, requestPosition } = usePosition()
   const [markers, setMarkers] = useState<Location[]>([])
 
-  const deviceLocation = api.devices.location.useQuery({ queryKey: ['location', dongleId], queryData: { params: { dongleId } } })
-  const location = deviceLocation.data?.body
+  const location = useDeviceLocation(dongleId).data?.body
 
   useEffect(() => {
     const effect = async () => {

@@ -13,6 +13,7 @@ import type { Route } from '~/api/types'
 import { dateTimeToColorBetween } from '~/utils/format'
 import { Fragment, Suspense, useEffect, useState } from 'react'
 import { api } from '~/api'
+import { useRoutes } from '~/api/queries'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
@@ -68,16 +69,13 @@ const getDayHeader = (route: Route) => {
 }
 
 export const RouteList = ({ dongleId }: { dongleId: string }) => {
-  const routes = api.routes.allRoutes.useQuery({
-    queryKey: ['allRoutes', dongleId],
-    queryData: { params: { dongleId }, query: { limit: PAGE_SIZE } },
-  })
+  const routes = useRoutes(dongleId, PAGE_SIZE).data?.body
 
   let prevDayHeader: string | null = null
 
   return (
     <div className="flex w-full flex-col justify-items-stretch gap-4">
-      {!routes.data && (
+      {!routes && (
         <>
           <h2 className="skeleton-loader rounded-md min-h-7"></h2>
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
@@ -85,7 +83,7 @@ export const RouteList = ({ dongleId }: { dongleId: string }) => {
           ))}
         </>
       )}
-      {routes.data?.body.map((route) => {
+      {routes?.map((route) => {
         let dayHeader: string | null = getDayHeader(route)
 
         if (dayHeader === prevDayHeader) dayHeader = null

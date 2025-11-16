@@ -2,7 +2,6 @@ import clsx from 'clsx'
 
 import { useDrawerContext } from '~/components/material/Drawer'
 import { Icon } from '~/components/material/Icon'
-import { IconButton } from '~/components/material/IconButton'
 import { DeviceLocation } from '~/components/DeviceLocation'
 
 import { api } from '~/api'
@@ -11,9 +10,7 @@ import { Device, getDeviceName } from '~/api/types'
 import { formatDistance, formatDuration } from '~/utils/format'
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-
-export const useDevice = (dongleId: string) =>
-  api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } })
+import { useDevice, useRoutes, useStats } from '~/api/queries'
 
 const timeAgo = (time: number): string => {
   const diff = Math.floor(Date.now() / 1000) - time
@@ -32,9 +29,8 @@ const timeAgo = (time: number): string => {
 
 const subtitle = 'Coming soon'
 export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
-  const res = useDevice(dongleId)
-  const device = res.data?.body
-  const stats = api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } })
+  const device = useDevice(dongleId).data?.body
+  const stats = useStats(dongleId).data?.body
 
   const [fade, setFade] = useState(1)
 
@@ -44,8 +40,8 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
     el.addEventListener('scroll', onScroll)
     return () => el.removeEventListener('scroll', onScroll)
   }, [])
+
   if (!device) return <Loading className="h-screen w-screen" />
-  console.log(fade)
   return (
     <>
       <div className="fixed top-0 w-full h-[500px]" style={{ opacity: fade }}>
@@ -67,7 +63,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
         <div className="bg-surface-container-low p-4 rounded-t-xl flex flex-col gap-4 pointer-events-auto h-full">
           <div className="flex flex-col gap-4">
             {[
-              { title: 'Drives', subtitle: `${stats.data?.body.all.routes} drives`, icon: 'directions_car', href: `/${dongleId}/routes` },
+              { title: 'Drives', subtitle: `${stats?.all.routes || 0} drives`, icon: 'directions_car', href: `/${dongleId}/routes` },
               { title: 'Sentry mode', subtitle, icon: 'photo_camera' },
               { title: 'Actions', subtitle, icon: 'infrared' },
               { title: 'Teleop', subtitle, icon: 'gamepad' },
@@ -157,13 +153,8 @@ const ActionBar = () => {
 }
 
 const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: string }) => {
-  const data = api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } })
-  const stats = data.data?.body
-  const routes = api.routes.allRoutes.useQuery({
-    queryKey: ['allRoutes', dongleId],
-    queryData: { params: { dongleId }, query: { limit: 1 } },
-  })
-  const route = routes.data?.body[0]
+  const stats = useStats(dongleId).data?.body
+  const route = useRoutes(dongleId, 1).data?.body[0]
   if (!stats) return null
   return (
     <>

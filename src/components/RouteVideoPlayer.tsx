@@ -8,6 +8,7 @@ import { Loading } from './material/Loading'
 import { Player } from '@remotion/player'
 import { Data, defaultStyle, getData, Main } from '../templates/Main'
 import { FPS, HEIGHT, WIDTH } from '~/templates/consts'
+import { useShareSignature } from '~/api/queries'
 
 const ERROR_MISSING_SEGMENT = 'This video segment has not uploaded yet or has been deleted.'
 const ERROR_UNSUPPORTED_BROWSER = 'This browser does not support Media Source Extensions API.'
@@ -25,11 +26,8 @@ export const RouteVideoPlayer = ({
   routeName: string
   selection: { startTime: number; endTime: number | undefined }
 }) => {
-  const shareSignature = api.routes.shareSignature.useQuery({
-    queryKey: ['shareSignature', routeName],
-    queryData: { params: { routeName } },
-  })
-  const streamUrl = shareSignature.data ? createQCameraStreamUrl(routeName, shareSignature.data.body) : undefined
+  const shareSignature = useShareSignature(routeName).data?.body
+  const streamUrl = shareSignature ? createQCameraStreamUrl(routeName, shareSignature) : undefined
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')

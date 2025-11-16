@@ -5,21 +5,21 @@ import { Icon } from '~/components/material/Icon'
 import type { Route } from '~/api/types'
 import { ToggleButton } from './material/ToggleButton'
 import { api } from '~/api'
-import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useDongleId, usePreservedRoutes } from '~/api/queries'
 
 export const RouteActions = ({ routeName, route }: { routeName: string; route: Route | undefined }) => {
-  const { dongleId } = useParams()
-  if (!dongleId) throw new Error('No dongleId!')
-  const preserved = api.routes.preserved.useQuery({ queryKey: ['preserved', dongleId], queryData: { params: { dongleId } } })
+  const dongleId = useDongleId()
+
+  const preserved = usePreservedRoutes(dongleId).data?.body
 
   const [isPublic, setIsPublic] = useState<boolean | undefined>(route?.is_public)
   const [isPreserved, setIsPreserved] = useState<boolean>()
 
   useEffect(() => {
-    if (preserved.data?.body) setIsPreserved(preserved.data.body.some((p) => p.fullname === route?.fullname))
+    if (preserved) setIsPreserved(preserved.some((p) => p.fullname === route?.fullname))
     else setIsPreserved(undefined)
-  }, [preserved.data, route?.fullname])
+  }, [preserved, route?.fullname])
 
   const currentRouteId = routeName.replace('|', '/')
   const useradminUrl = `${USERADMIN_URL}/?onebox=${currentRouteId}`
