@@ -1,4 +1,4 @@
-# connect
+# new-new-connect
 
 connect is the web and mobile experience for [openpilot](https://github.com/commaai/openpilot).
 
@@ -6,7 +6,7 @@ Try it out at https://612.connect-d5y.pages.dev.
 
 ## Development
 
-## Install bun with
+## Install bun
 
 ```bash
 curl -fsSL https://bun.com/install | bash
@@ -22,12 +22,20 @@ bun install
 bun dev
 ```
 
-## Roadmap
+## Ideas
 
-Once we've shipped v1, next up will be:
-* [Sentry mode](https://www.youtube.com/watch?v=laO0RzsDzfU)
-* SSH console for openpilot developers
-* Replace snapshot with a live stream
-* openpilot clips, like this [community tool](https://github.com/nelsonjchen/op-replay-clipper)
-* Manage the settings on your comma 3X
-* Car mangement: lock doors, EV charge status, etc.
+- Everything working that is in https://connect.comma.ai
+- [Sentry mode](https://www.youtube.com/watch?v=laO0RzsDzfU)
+- Replace snapshot with a live stream
+- Easy download video files as mp4
+- Openpilot video clips
+- Manage comma device settings, change forks, update etc
+- Car mangement: lock doors, EV charge status, and everything else you can do with CAN ()
+- See live CAN messages, show stats and dashboards based on that
+- Teleop your car or comma body (joystick and in VR)
+- Android and iOS apps
+- Control comma device over bluetooth
+- [Buttons](https://www.enhauto.com/products/four-s3xy-buttons-bundle)
+- Navigate with OP
+- Waze? (can't be installed in teslas, so I would like comma to notify on cameras and stuff)
+- Chat and manage future comma bodies
