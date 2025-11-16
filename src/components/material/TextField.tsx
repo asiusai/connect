@@ -1,14 +1,15 @@
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 type TextFieldProps = {
   className?: string
   label?: string
   helperText?: string
   error?: string
-  value?: string
+  value: string
   disabled?: boolean
   id?: string
+  onChange: (value: string) => void
 }
 
 const stateColors = {
@@ -37,28 +38,18 @@ const stateColors = {
   },
 }
 
-export const TextField = ({ className, label, helperText, error, value, ...props }: TextFieldProps) => {
+export const TextField = ({ className, label, helperText, error, value, onChange, ...props }: TextFieldProps) => {
   const [focused, setFocused] = useState(false)
   const [hovered, setHovered] = useState(false)
-  const [inputValue, setInputValue] = useState(value || '')
+  const labelFloating = focused || value.length > 0
 
-  // Keep local value in sync with prop value
-  useEffect(() => {
-    if (value) setInputValue(value)
-  }, [value, setInputValue])
-
-  const labelFloating = () => focused || inputValue?.length > 0
-
-  const getStateStyle = () => {
-    const state = { ...stateColors.base }
-    if (!props.disabled) {
-      if (error) {
-        Object.assign(state, stateColors.error)
-        if (hovered) Object.assign(state, stateColors.errorHover)
-      } else if (focused) Object.assign(state, stateColors.focus)
-      else if (hovered) Object.assign(state, stateColors.hover)
-    }
-    return state
+  const stateStyle = { ...stateColors.base }
+  if (!props.disabled) {
+    if (error) {
+      Object.assign(stateStyle, stateColors.error)
+      if (hovered) Object.assign(stateStyle, stateColors.errorHover)
+    } else if (focused) Object.assign(stateStyle, stateColors.focus)
+    else if (hovered) Object.assign(stateStyle, stateColors.hover)
   }
 
   return (
@@ -78,8 +69,8 @@ export const TextField = ({ className, label, helperText, error, value, ...props
             <label
               className={clsx(
                 'absolute pointer-events-none transition-all text-body-lg left-4',
-                labelFloating() ? 'text-xs top-2' : 'top-1/2 -translate-y-1/2',
-                getStateStyle().label,
+                labelFloating ? 'text-xs top-2' : 'top-1/2 -translate-y-1/2',
+                stateStyle.label,
               )}
               htmlFor={props.id}
             >
@@ -92,25 +83,23 @@ export const TextField = ({ className, label, helperText, error, value, ...props
             className={clsx(
               'w-full bg-transparent outline-none px-4 py-4 text-body-lg z-10',
               'select-text selection:bg-primary-container',
-              getStateStyle().input,
-              label && labelFloating() && 'pt-6 pb-2',
+              stateStyle.input,
+              label && labelFloating && 'pt-6 pb-2',
             )}
-            value={inputValue}
-            onInput={(e) => setInputValue(e.currentTarget.value)}
+            value={value}
+            onInput={(e) => onChange(e.currentTarget.value)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
           />
         </div>
 
         {/* Active indicator line */}
-        <div
-          className={clsx('absolute bottom-0 left-0 w-full transition-all', focused ? 'h-[2px]' : 'h-[1px]', getStateStyle().indicator)}
-        />
+        <div className={clsx('absolute bottom-0 left-0 w-full transition-all', focused ? 'h-[2px]' : 'h-[1px]', stateStyle.indicator)} />
       </div>
 
       {/* Helper text or error */}
       {(helperText || error) && (
-        <label className={clsx('text-body-sm px-4 pt-1', getStateStyle().helper, props.disabled && 'opacity-40')} htmlFor={props.id}>
+        <label className={clsx('text-body-sm px-4 pt-1', stateStyle.helper, props.disabled && 'opacity-40')} htmlFor={props.id}>
           {error || helperText}
         </label>
       )}

@@ -115,6 +115,17 @@ const devices = c.router({
       200: Device,
     },
   },
+  set: {
+    method: 'PATCH',
+    path: '/v1/devices/:dongleId/',
+    pathParams: z.object({ dongleId: z.string() }),
+    body: z.object({
+      alias: z.string(),
+    }),
+    responses: {
+      200: Device,
+    },
+  },
   athenaOfflineQueue: {
     method: 'GET',
     path: '/v1/devices/:dongleId/athena_offline_queue',

@@ -8,11 +8,12 @@ import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
 import { IconButton } from '../components/material/IconButton'
 import { TopAppBar } from '../components/material/TopAppBar'
-import { ReactNode, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { ReactNode, useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { useDevice, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../api/queries'
+import { useDevice, useDevices, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../api/queries'
 import { useDongleId } from '../utils/hooks'
+import { TextField } from '../components/material/TextField'
 
 type PlanProps = {
   name: PrimePlan
@@ -302,16 +303,35 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: Device }) => {
+const DeviceSettingsForm = ({ dongleId }: { dongleId: string }) => {
+  const navigate = useNavigate()
+  const [device, { refetch }] = useDevice(dongleId)
+  const [_, devices] = useDevices()
+  const [alias, setAlias] = useState('')
+  useEffect(() => setAlias(device?.alias || ''), [device?.alias])
+
   const unpair = api.devices.unpair.useMutation({
     onSuccess: (res) => {
-      if (res.body.success) window.location.href = window.location.origin
+      if (res.body.success) navigate(window.location.origin)
+    },
+  })
+  const changeName = api.devices.set.useMutation({
+    onSuccess: () => {
+      refetch()
+      devices.refetch()
     },
   })
 
+  if (!device) return null
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-lg">{device.name}</h2>
+      <div className="flex items-center gap-2">
+        <TextField value={alias} onChange={setAlias} className="w-full" label="Alias" />
+        <Button onClick={() => changeName.mutate({ body: { alias }, params: { dongleId } })} loading={changeName.isPending}>
+          Save
+        </Button>
+      </div>
       {unpair.error && (
         <div className="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
           <Icon className="text-error" name="error" size="20" />
@@ -341,7 +361,7 @@ export const Component = () => {
         Device Settings
       </TopAppBar>
       <div className="flex flex-col gap-4 max-w-lg px-4">
-        <DeviceSettingsForm dongleId={dongleId} device={device} />
+        <DeviceSettingsForm dongleId={dongleId} />
 
         <hr className="mx-4 opacity-20" />
 

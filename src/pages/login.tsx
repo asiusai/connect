@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
 import { API_URL, DEMO_ACCESS_TOKEN } from '../utils/consts'
@@ -50,9 +51,10 @@ export function getGitHubAuthUrl(): string {
 }
 
 export const Component = () => {
+  const navigate = useNavigate()
   const loginAsDemoUser = () => {
     setAccessToken(DEMO_ACCESS_TOKEN)
-    window.location.href = window.location.origin
+    navigate(window.location.origin)
   }
 
   return (
