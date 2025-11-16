@@ -20,7 +20,7 @@ import { useDevices, useDongleId, useProfile } from '~/api/queries'
 const DeviceList = () => {
   const location = useLocation()
   const { setOpen } = useDrawerContext()
-  const devices = useDevices().data?.body
+  const [devices] = useDevices()
 
   const isSelected = (device: Device) => location.pathname.includes(device.dongle_id)
   const onClick = (device: Device) => () => {
@@ -89,7 +89,7 @@ const FirstPair = () => {
 export const DashboardDrawer = () => {
   const { modal, setOpen } = useDrawerContext()
   const onClose = () => setOpen(false)
-  const profile = useProfile().data?.body
+  const [profile] = useProfile()
 
   return (
     <>
@@ -126,7 +126,7 @@ export const DashboardDrawer = () => {
 
 export const Component = () => {
   const dongleId = useDongleId()
-  const devices = useDevices().data?.body
+  const [devices] = useDevices()
 
   const getDefaultDongleId = () => {
     // Do not redirect if dongle ID already selected

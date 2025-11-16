@@ -11,7 +11,7 @@ import { useDongleId, usePreservedRoutes } from '~/api/queries'
 export const RouteActions = ({ routeName, route }: { routeName: string; route: Route | undefined }) => {
   const dongleId = useDongleId()
 
-  const preserved = usePreservedRoutes(dongleId).data?.body
+  const [preserved] = usePreservedRoutes(dongleId)
 
   const [isPublic, setIsPublic] = useState<boolean | undefined>(route?.is_public)
   const [isPreserved, setIsPreserved] = useState<boolean>()

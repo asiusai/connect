@@ -26,7 +26,7 @@ export const RouteVideoPlayer = ({
   routeName: string
   selection: { startTime: number; endTime: number | undefined }
 }) => {
-  const shareSignature = useShareSignature(routeName).data?.body
+  const [shareSignature] = useShareSignature(routeName)
   const streamUrl = shareSignature ? createQCameraStreamUrl(routeName, shareSignature) : undefined
 
   const [isLoading, setIsLoading] = useState(false)

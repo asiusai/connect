@@ -69,7 +69,7 @@ const getDayHeader = (route: Route) => {
 }
 
 export const RouteList = ({ dongleId }: { dongleId: string }) => {
-  const routes = useRoutes(dongleId, PAGE_SIZE).data?.body
+  const [routes] = useRoutes(dongleId, PAGE_SIZE)
 
   let prevDayHeader: string | null = null
 

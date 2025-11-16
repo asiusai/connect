@@ -17,7 +17,7 @@ export const Component = () => {
   const { dongleId, date } = useParams()
 
   const routeName = `${dongleId}|${date}`
-  const route = useRoute(routeName).data?.body
+  const [route] = useRoute(routeName)
 
   const startTime = route ? dayjs(route.start_time).format('dddd, MMM D, YYYY') : ''
 

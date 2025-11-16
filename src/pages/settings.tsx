@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-import type { Device } from '~/api/types'
+import type { Device, PrimePlan } from '~/api/types'
 import { formatDate } from '~/utils/format'
 
 import { ButtonBase } from '~/components/material/ButtonBase'
@@ -14,8 +14,6 @@ import { api } from '~/api'
 import { useDevice, useDongleId, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '~/api/queries'
 
 const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`
-
-type PrimePlan = 'nodata' | 'data'
 
 type PlanProps = {
   name: PrimePlan
@@ -67,9 +65,9 @@ const PlanSelector = ({
 
 const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
   const [selectedPlan, setSelectedPlan] = useState<PrimePlan | undefined>()
-  const device = useDevice(dongleId).data?.body
+  const [device] = useDevice(dongleId)
 
-  const subscribeInfo = useSubscribeInfo(dongleId).data?.body
+  const [subscribeInfo] = useSubscribeInfo(dongleId)
 
   const search = useLocation().search
   const stripeCancelled = new URLSearchParams(search).has('stripe_cancelled')
@@ -203,14 +201,14 @@ const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
 
 const PrimeManage = ({ dongleId }: { dongleId: string }) => {
   const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
-  const stripeSession = useStripeSession(dongleId, stripeSessionId).data?.body
+  const [stripeSession] = useStripeSession(dongleId, stripeSessionId)
 
   // TODO: we should wait for the session to be paid before fetching subscription
-  const subscription = useSubscription(dongleId).data?.body
+  const [subscription] = useSubscription(dongleId)
   const [cancelDialog, setCancelDialog] = useState(false)
 
   const cancel = api.prime.cancel.useMutation()
-  const portal = usePortal(dongleId).data?.body
+  const [portal] = usePortal(dongleId)
 
   const loading = !subscription || cancel.isPending || !portal || !stripeSession
   const paymentStatus = stripeSession?.payment_status
@@ -344,7 +342,7 @@ const DeviceSettingsForm = ({ dongleId, device }: { dongleId: string; device: De
 
 export const Component = () => {
   const dongleId = useDongleId()
-  const device = useDevice(dongleId).data?.body
+  const [device] = useDevice(dongleId)
 
   if (!device) return null
   return (

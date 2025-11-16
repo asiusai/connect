@@ -29,8 +29,8 @@ const timeAgo = (time: number): string => {
 
 const subtitle = 'Coming soon'
 export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
-  const device = useDevice(dongleId).data?.body
-  const stats = useStats(dongleId).data?.body
+  const [device] = useDevice(dongleId)
+  const [stats] = useStats(dongleId)
 
   const [fade, setFade] = useState(1)
 
@@ -153,8 +153,9 @@ const ActionBar = () => {
 }
 
 const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: string }) => {
-  const stats = useStats(dongleId).data?.body
-  const route = useRoutes(dongleId, 1).data?.body[0]
+  const [stats] = useStats(dongleId)
+  const [routes] = useRoutes(dongleId, 1)
+  const route = routes?.[0]
   if (!stats) return null
   return (
     <>

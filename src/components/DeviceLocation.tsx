@@ -69,7 +69,7 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
   const { position, requestPosition } = usePosition()
   const [markers, setMarkers] = useState<Location[]>([])
 
-  const location = useDeviceLocation(dongleId).data?.body
+  const [location] = useDeviceLocation(dongleId)
 
   useEffect(() => {
     const effect = async () => {
