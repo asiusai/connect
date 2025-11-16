@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { api } from '~/api'
 
 import { createQCameraStreamUrl } from '~/api/route'
 import { IconButton } from '~/components/material/IconButton'

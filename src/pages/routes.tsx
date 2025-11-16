@@ -12,8 +12,9 @@ import { getPlaceName } from '~/map/geocode'
 import type { Route } from '~/api/types'
 import { dateTimeToColorBetween } from '~/utils/format'
 import { Fragment, Suspense, useEffect, useState } from 'react'
-import { api } from '~/api'
-import { useRoutes } from '~/api/queries'
+import { useDongleId, useRoutes } from '~/api/queries'
+import { TopAppBar } from '~/components/material/TopAppBar'
+import { IconButton } from '~/components/material/IconButton'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
@@ -26,7 +27,7 @@ const getLocation = async (route: Route) => {
   return `${startPlace} to ${endPlace}`
 }
 
-export const RouteCard = ({ route }: { route: Route }) => {
+const RouteCard = ({ route }: { route: Route }) => {
   const startTime = () => dayjs.utc(route.start_time).local()
   const endTime = () => dayjs.utc(route.end_time).local()
   const color = () => dateTimeToColorBetween(startTime().toDate(), endTime().toDate(), [30, 57, 138], [218, 161, 28])
@@ -34,25 +35,15 @@ export const RouteCard = ({ route }: { route: Route }) => {
   const [location, setLocation] = useState<string | null>(null)
   useEffect(() => void getLocation(route).then(setLocation), [route])
 
-  const [stats, setStats] = useState<RouteStatistics>()
-  useEffect(() => void getRouteStatistics(route).then(setStats), [route])
-
   return (
-    <Card className="max-w-none" href={`/${route.dongle_id}/${route.fullname.slice(17)}`} activeClass="md:before:bg-primary">
+    <Card className="max-w-none" href={`/${route.dongle_id}/routes/${route.fullname.slice(17)}`} activeClass="md:before:bg-primary">
       <CardHeader
         headline={`${startTime().format('h:mm A')} to ${endTime().format('h:mm A')}`}
         subhead={<Suspense fallback={<div className="h-[20px] w-auto skeleton-loader rounded-xs" />}>{location}</Suspense>}
-        trailing={
-          stats?.userFlags ? (
-            <div className="flex items-center justify-center rounded-full p-1 border-amber-300 border-2">
-              <Icon className="text-yellow-300" size="24" name="flag" filled />
-            </div>
-          ) : undefined
-        }
       />
 
       <CardContent>
-        <RouteStatisticsBar route={route} stats={stats} />
+        <RouteStatisticsBar route={route} />
       </CardContent>
       <div className="h-2.5 w-full" style={{ background: color() }} />
     </Card>
@@ -68,33 +59,29 @@ const getDayHeader = (route: Route) => {
   else return date.format('dddd, MMM D, YYYY')
 }
 
-export const RouteList = ({ dongleId }: { dongleId: string }) => {
+export const Component = () => {
+  const dongleId = useDongleId()
   const [routes] = useRoutes(dongleId, PAGE_SIZE)
 
   let prevDayHeader: string | null = null
 
   return (
-    <div className="flex w-full flex-col justify-items-stretch gap-4">
-      {!routes && (
-        <>
-          <h2 className="skeleton-loader rounded-md min-h-7"></h2>
-          {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-            <div key={i as any} className="skeleton-loader flex h-[140px] flex-col rounded-lg" />
-          ))}
-        </>
-      )}
-      {routes?.map((route) => {
-        let dayHeader: string | null = getDayHeader(route)
+    <>
+      <TopAppBar leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}`} />}>Routes</TopAppBar>
+      <div className="flex w-full flex-col justify-items-stretch gap-4 px-4 pb-4">
+        {routes?.map((route) => {
+          let dayHeader: string | null = getDayHeader(route)
 
-        if (dayHeader === prevDayHeader) dayHeader = null
-        else prevDayHeader = dayHeader
-        return (
-          <Fragment key={route.create_time}>
-            {dayHeader && <h2 className="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>}
-            <RouteCard route={route} />
-          </Fragment>
-        )
-      })}
-    </div>
+          if (dayHeader === prevDayHeader) dayHeader = null
+          else prevDayHeader = dayHeader
+          return (
+            <Fragment key={route.create_time}>
+              {dayHeader && <h2 className="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>}
+              <RouteCard route={route} />
+            </Fragment>
+          )
+        })}
+      </div>
+    </>
   )
 }

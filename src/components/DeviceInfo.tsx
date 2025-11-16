@@ -4,7 +4,6 @@ import { useDrawerContext } from '~/components/material/Drawer'
 import { Icon } from '~/components/material/Icon'
 import { DeviceLocation } from '~/components/DeviceLocation'
 
-import { api } from '~/api'
 import { Loading } from './material/Loading'
 import { Device, getDeviceName } from '~/api/types'
 import { formatDistance, formatDuration } from '~/utils/format'
@@ -76,12 +75,10 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
                   <div className="text-white">{title}</div>
                   {subtitle && <div className="text-xs opacity-50">{subtitle}</div>}
                 </div>
-                <Icon name="keyboard_arrow_down" className="-rotate-90 opacity-20" />
+                <Icon name="keyboard_arrow_right" className="opacity-20" />
               </Link>
             ))}
           </div>
-
-          {/* <RouteList dongleId={dongleId} /> */}
           <DeviceStatistics dongleId={dongleId} device={device} />
         </div>
       </div>
@@ -89,11 +86,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-const getBatteryColor = (value: number) => {
-  if (value < 12.1) return 'text-red-500'
-  if (value < 12.5) return 'text-yellow-500'
-  else 'text-green-500'
-}
+const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-500' : value < 12.5 ? 'text-yellow-500' : 'text-green-500')
 
 const Top = ({ device }: { device: Device }) => {
   const { modal, setOpen } = useDrawerContext()
@@ -105,7 +98,7 @@ const Top = ({ device }: { device: Device }) => {
         <div onClick={() => setOpen(true)}>
           <div className="flex items-center gap-2">
             <p>{device.name || 'connect'}</p>
-            {modal && <Icon name="keyboard_arrow_down" className="-rotate-90" />}
+            {modal && <Icon name="keyboard_arrow_right" className="" />}
           </div>
           {battery && (
             <div className={clsx('flex gap-2 items-center', getBatteryColor(battery))}>
@@ -123,13 +116,6 @@ const Top = ({ device }: { device: Device }) => {
           </p>
         </div>
       </div>
-      <div
-        onClick={() => alert('Navigate on OP')}
-        className="items-center flex bg-surface-container shadow-md shadow-white/20 px-3 py-2 gap-3 rounded-lg"
-      >
-        <div>Navigate</div>
-        <Icon name="search" className="" />
-      </div>
     </div>
   )
 }
@@ -144,8 +130,8 @@ const ActionBar = () => {
   return (
     <div className="flex justify-around items-center h-[50px] px-4">
       {icons.map(({ name, onClick }) => (
-        <div key={name} onClick={onClick}>
-          <Icon name={name as any} className="text-white font-bold scale-[1.1]" />
+        <div key={name} onClick={onClick} className="p-2 rounded-full bg-surface-container-low">
+          <Icon name={name as any} className="text-white font-bold pointer-events-auto" />
         </div>
       ))}
     </div>

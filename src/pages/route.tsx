@@ -6,8 +6,7 @@ import { RouteActions } from '~/components/RouteActions'
 import { RouteStaticMap } from '~/components/RouteStaticMap'
 import { RouteStatisticsBar } from '~/components/RouteStatisticsBar'
 import { RouteUploadButtons } from '~/components/RouteUploadButtons'
-import { generateRouteStatistics, getTimelineEvents, RouteStatistics, TimelineEvent } from '~/api/derived'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { RouteVideoPlayer } from '~/components/RouteVideoPlayer'
 import { useRoute } from '~/api/queries'
@@ -23,24 +22,11 @@ export const Component = () => {
 
   const selection = { startTime: 0, endTime: undefined }
 
-  // FIXME: generateTimelineStatistics is given different versions of TimelineEvents multiple times, leading to stuttering engaged % on switch
-  const [events, setEvents] = useState<TimelineEvent[]>([])
-
-  const [stats, setStats] = useState<RouteStatistics>()
-
-  useEffect(() => {
-    if (route)
-      getTimelineEvents(route).then((x) => {
-        setEvents(x)
-        setStats(generateRouteStatistics(route, x))
-      })
-  }, [route])
-
-  // TODO: set route viewed?
+  // TODO: set route viewed
   return (
     <>
-      <TopAppBar component="h2" leading={<IconButton className="md:hidden" name="arrow_back" href={`/${dongleId}`} />}>
-        <Suspense fallback={<div className="skeleton-loader max-w-64 rounded-xs h-[28px]" />}>{startTime}</Suspense>
+      <TopAppBar component="h2" leading={<IconButton className="md:hidden" name="keyboard_arrow_left" href={`/${dongleId}/routes`} />}>
+        {startTime}
       </TopAppBar>
 
       <div className="flex flex-col gap-6 px-4 pb-4">
@@ -59,7 +45,7 @@ export const Component = () => {
         <div className="flex flex-col gap-2">
           <span className="text-sm">Route Info</span>
           <div className="flex flex-col rounded-md overflow-hidden bg-surface-container">
-            <RouteStatisticsBar className="p-5" route={route} stats={stats} />
+            {route && <RouteStatisticsBar className="p-5" route={route} />}
 
             <RouteActions routeName={routeName} route={route} />
           </div>
