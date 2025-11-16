@@ -88,7 +88,7 @@ export const getPathStaticMapUrl = (
 export const getTileUrl = () =>
   `https://api.mapbox.com/styles/v1/${MAPBOX_USERNAME}/${getMapStyleId('dark')}/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`
 
-export async function reverseGeocode(position: Position): Promise<ReverseGeocodingFeature | null> {
+export const reverseGeocode = async (position: Position): Promise<ReverseGeocodingFeature | null> => {
   if (Math.abs(position[0]) < 0.001 && Math.abs(position[1]) < 0.001) {
     return null
   }
@@ -119,13 +119,13 @@ export async function reverseGeocode(position: Position): Promise<ReverseGeocodi
   }
 }
 
-export async function getFullAddress(position: Position): Promise<string | null> {
+export const getFullAddress = async (position: Position): Promise<string | null> => {
   const feature = await reverseGeocode(position)
   if (!feature) return null
   return feature.properties.full_address
 }
 
-export async function getPlaceName(position: Position): Promise<string | null> {
+export const getPlaceName = async (position: Position): Promise<string | null> => {
   const feature = await reverseGeocode(position)
   if (!feature) return null
   const {

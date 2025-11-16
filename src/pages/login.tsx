@@ -14,7 +14,7 @@ const GOOGLE_OAUTH_PARAMS = {
   scope: 'https://www.googleapis.com/auth/userinfo.email',
   prompt: 'select_account',
 }
-export function getGoogleAuthUrl(): string {
+export const getGoogleAuthUrl = () => {
   const params = {
     ...GOOGLE_OAUTH_PARAMS,
     state: 'service,' + getService(),
@@ -29,7 +29,7 @@ const APPLE_OAUTH_PARAMS = {
   response_mode: 'form_post',
   scope: 'name email',
 }
-export function getAppleAuthUrl(): string {
+export const getAppleAuthUrl = () => {
   const params = {
     ...APPLE_OAUTH_PARAMS,
     state: 'service,' + getService(),
@@ -42,7 +42,7 @@ const GITHUB_OAUTH_PARAMS = {
   redirect_uri: `${API_URL}/v2/auth/h/redirect/`,
   scope: 'read:user',
 }
-export function getGitHubAuthUrl(): string {
+export const getGitHubAuthUrl = () => {
   const params = {
     ...GITHUB_OAUTH_PARAMS,
     state: 'service,' + getService(),

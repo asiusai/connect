@@ -34,7 +34,7 @@ export const accessToken = () => {
   return _accessToken
 }
 
-export function setAccessToken(token: string | null): void {
+export const setAccessToken = (token: string | null) => {
   _accessToken = token
   if (token === null) storage.removeItem('auth')
   else storage.setItem('auth', token)

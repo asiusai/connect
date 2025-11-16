@@ -9,7 +9,7 @@ interface FileStatsDiff extends FileStats {
   diff: number
 }
 
-async function generateStats(root = 'src') {
+const generateStats = async (root = 'src') => {
   const files: FileStats[] = []
   for await (const path of $`find . -type f`.cwd(root).lines()) {
     if (!path) continue
@@ -22,7 +22,7 @@ async function generateStats(root = 'src') {
   return files
 }
 
-function printMarkdownTable(data: any[]) {
+const printMarkdownTable = (data: any[]) => {
   const keys = Object.keys(data[0])
   const alignments = keys.map((key) => (typeof data[0][key] === 'number' ? '---:' : ':---'))
   console.log(`| ${keys.join(' | ')} |\n| ${alignments.join(' | ')} |`)
@@ -31,7 +31,7 @@ function printMarkdownTable(data: any[]) {
 
 const formatDiff = (count: number) => (count > 0 ? `+${count}` : count.toString())
 
-function generateDiff(statsOld: FileStats[], statsNew: FileStats[]) {
+const generateDiff = (statsOld: FileStats[], statsNew: FileStats[]) => {
   const results: FileStatsDiff[] = []
   const filesOld = new Set(statsOld.map((file) => file.path))
   const filesNew = new Set(statsNew.map((file) => file.path))

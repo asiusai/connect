@@ -5,7 +5,7 @@ import { useDimensions } from '../../utils/hooks'
 
 const DrawerContext = createContext<{ modal: boolean; open: boolean; setOpen: React.Dispatch<React.SetStateAction<boolean>> } | null>(null)
 
-export function useDrawerContext() {
+export const useDrawerContext = () => {
   const context = useContext(DrawerContext)
   if (!context) throw new Error("can't find DrawerContext")
   return context

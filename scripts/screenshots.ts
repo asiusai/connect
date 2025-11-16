@@ -10,7 +10,7 @@ const endpoints = {
   SettingsActivity: '1d3dc3e03047b0c7/settings',
 }
 
-async function takeScreenshots(deviceType: string, context: BrowserContext) {
+const takeScreenshots = async (deviceType: string, context: BrowserContext) => {
   const page = await context.newPage()
   for (const [route, path] of Object.entries(endpoints)) {
     await page.goto(`${baseUrl}/${path}`, { waitUntil: 'networkidle' })
@@ -27,7 +27,7 @@ async function takeScreenshots(deviceType: string, context: BrowserContext) {
   await page.close()
 }
 
-async function main() {
+const main = async () => {
   let executablePath: string | undefined = '/usr/bin/chromium'
   if (!fs.existsSync(executablePath)) executablePath = undefined
 
@@ -48,4 +48,4 @@ async function main() {
   await browser.close()
 }
 
-void main()
+main()

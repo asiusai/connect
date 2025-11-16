@@ -1,6 +1,6 @@
 import { Button } from '../components/material/Button'
 
-export function OfflinePage() {
+export const OfflinePage = () => {
   return (
     <div className="flex min-h-screen flex-col gap-12 items-center justify-center bg-background p-6">
       <div className="flex max-w-sm flex-col items-center gap-4">
