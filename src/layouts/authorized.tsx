@@ -55,36 +55,6 @@ const DeviceList = () => {
   )
 }
 
-const FirstPair = () => {
-  const { modal } = useDrawerContext()
-  return (
-    <>
-      <TopAppBar
-        className="font-bold"
-        leading={!modal ? <img alt="" src="/images/comma-white.png" className="h-8" /> : <DrawerToggleButton />}
-      >
-        connect
-      </TopAppBar>
-      <section className="flex flex-col gap-4 py-2 items-center mx-auto max-w-md px-4 mt-4 sm:mt-8 md:mt-16">
-        <h2 className="text-xl">Pair your device</h2>
-        <p className="text-lg">Scan the QR code on your device</p>
-        <p className="text-md mt-4">If you cannot see a QR code, check the following:</p>
-        <ul className="text-md list-disc list-inside">
-          <li>Your device is connected to the internet</li>
-          <li>You have installed the latest version of openpilot</li>
-        </ul>
-        <p className="text-md">
-          If you still cannot see a QR code, your device may already be paired to another account. Make sure you have signed in to connect
-          with the same account you may have used previously.
-        </p>
-        <Button className="mt-4" leading={<Icon name="add" />} href="/pair">
-          Add new device
-        </Button>
-      </section>
-    </>
-  )
-}
-
 export const DashboardDrawer = () => {
   const { modal, setOpen } = useDrawerContext()
   const onClose = () => setOpen(false)
@@ -92,7 +62,7 @@ export const DashboardDrawer = () => {
 
   return (
     <>
-      <TopAppBar component="h2" leading={modal ? <IconButton name="arrow_back" onClick={onClose} /> : undefined}>
+      <TopAppBar component="h2" leading={modal ? <IconButton name="close" onClick={onClose} /> : undefined}>
         Devices
       </TopAppBar>
       <DeviceList />
@@ -123,20 +93,29 @@ export const DashboardDrawer = () => {
   )
 }
 
-export const Component = () => {
-  const dongleId = useDongleId()
+const LoggedIn = () => {
   const [devices] = useDevices()
+  const isHome = useLocation().pathname.replace('/', '') === ''
 
-  const getDefaultDongleId = () => {
-    // Do not redirect if dongle ID already selected
-    if (dongleId) return undefined
-
-    const lastSelectedDongleId = storage.getItem('lastSelectedDongleId')
-    if (devices?.some((device) => device.dongle_id === lastSelectedDongleId)) return lastSelectedDongleId
-    return devices?.[0]?.dongle_id
+  // We never want them to at /
+  if (isHome) {
+    const getDefaultDongleId = () => {
+      let lastSelectedDongleId = storage.getItem('lastSelectedDongleId')
+      if (devices?.some((device) => device.dongle_id === lastSelectedDongleId)) return lastSelectedDongleId
+      return devices?.[0]?.dongle_id
+    }
+    if (getDefaultDongleId()) return <Navigate to={`/${getDefaultDongleId()}`} />
+    else return <Navigate to="/pair" />
   }
 
+  return (
+    <Drawer drawer={<DashboardDrawer />}>
+      <Outlet />
+    </Drawer>
+  )
+}
+
+export const Component = () => {
   if (!isSignedIn()) return <Navigate to="/login" />
-  if (getDefaultDongleId()) return <Navigate to={`/${getDefaultDongleId()}`} />
-  return <Drawer drawer={<DashboardDrawer />}>{devices ? devices.length !== 0 ? <Outlet /> : <FirstPair /> : null}</Drawer>
+  return <LoggedIn />
 }

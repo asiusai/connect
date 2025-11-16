@@ -160,7 +160,10 @@ const devices = c.router({
     contentType: 'multipart/form-data',
     body: z.object({ pair_token: z.string() }),
     responses: {
-      200: z.any(),
+      200: z.object({
+        dongle_id: z.string(),
+        first_pair: z.boolean(),
+      }),
     },
   },
 })

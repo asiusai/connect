@@ -1,5 +1,5 @@
-import type { RouteInfo, RouteShareSignature } from '../types'
-import { API_URL } from './consts'
+import type { Device, RouteInfo, RouteShareSignature } from '../types'
+import { API_URL, SHARED_DEVICE } from './consts'
 
 export const parseRouteName = (routeName: string): RouteInfo => {
   const [dongleId, routeId] = routeName.split('|')
@@ -37,9 +37,35 @@ export const accessToken = () => {
 export function setAccessToken(token: string | null): void {
   _accessToken = token
   if (token === null) storage.removeItem('auth')
-  else localStorage.setItem('auth', token)
+  else storage.setItem('auth', token)
 }
 
 export const isSignedIn = () => !!accessToken()
 
 export const signOut = () => setAccessToken(null)
+
+export const createSharedDevice = (dongleId: string): Device => ({
+  dongle_id: dongleId,
+  alias: SHARED_DEVICE,
+  serial: '',
+  last_athena_ping: 0,
+  ignore_uploads: null,
+  is_paired: true,
+  is_owner: false,
+  public_key: '',
+  prime: false,
+  prime_type: 0,
+  trial_claimed: false,
+  device_type: '',
+  openpilot_version: '',
+  sim_id: '',
+  sim_type: 0,
+  eligible_features: {
+    prime: false,
+    prime_data: false,
+    nav: false,
+  },
+  is_online: false,
+  name: '',
+  athena_host: null,
+})
