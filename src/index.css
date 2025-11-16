@@ -109,11 +109,6 @@
     --color-surface-container-highest: rgb(52 52 58);
   }
 
-  html {
-    /* prevent selecting text, transparent highlight */
-    @apply select-none selection:bg-transparent;
-  }
-
   html,
   body {
     /*

@@ -40,19 +40,14 @@ const usePosition = () => {
   }, [requestPosition])
   return { position, requestPosition }
 }
-function FitBounds({ markers }: { markers: Location[] }) {
-  const map = useMap()
 
+const FitBounds = ({ markers }: { markers: Location[] }) => {
+  const map = useMap()
   useEffect(() => {
     if (!markers.length) return
 
-    if (markers.length === 1) {
-      const { lat, lng } = markers[0]
-      map.setView([lat, lng], 14, { animate: true })
-    } else {
-      const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]))
-      map.fitBounds(bounds, { padding: [50, 50], animate: true })
-    }
+    const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]))
+    map.fitBounds(bounds, { padding: [50, 50], animate: true })
   }, [markers, map])
 
   return null
@@ -61,7 +56,6 @@ function FitBounds({ markers }: { markers: Location[] }) {
 export const DeviceLocation = ({ dongleId, device, className }: { dongleId: string; device: Device; className?: string }) => {
   const { position, requestPosition } = usePosition()
   const [markers, setMarkers] = useState<Location[]>([])
-
   const [location] = useDeviceLocation(dongleId)
 
   useEffect(() => {

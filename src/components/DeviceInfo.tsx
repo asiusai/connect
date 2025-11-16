@@ -1,14 +1,14 @@
 import clsx from 'clsx'
 
 import { useDrawerContext } from '../components/material/Drawer'
+import { ButtonBase } from '../components/material/ButtonBase'
 import { Icon } from '../components/material/Icon'
 import { DeviceLocation } from '../components/DeviceLocation'
 
 import { Loading } from './material/Loading'
 import { Device, getDeviceName } from '../types'
 import { formatDistance, formatDuration } from '../utils/format'
-import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDevice, useRoutes, useStats } from '../api/queries'
 
 const timeAgo = (time: number): string => {
@@ -28,39 +28,44 @@ const timeAgo = (time: number): string => {
 
 const subtitle = 'Coming soon'
 export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
+  const scrollRef = useRef<HTMLDivElement>(null)
   const [device] = useDevice(dongleId)
   const [stats] = useStats(dongleId)
 
   const [fade, setFade] = useState(1)
 
   useEffect(() => {
-    const el = document.querySelector('#left')!
+    const el = scrollRef.current
+    if (!el) return
     const onScroll = () => setFade(Math.max(0, 1 - el.scrollTop / 400))
     el.addEventListener('scroll', onScroll)
     return () => el.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [scrollRef.current])
 
   if (!device) return <Loading className="h-screen w-screen" />
   return (
-    <>
-      <div className="fixed top-0 w-full h-[500px]" style={{ opacity: fade }}>
+    <div className="min-w-full h-full relative overflow-hidden">
+      <div className="absolute w-full h-[500px]" style={{ opacity: fade }}>
         <Top device={device} />
-        <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full relative" />
+        <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full absolute" />
         {fade !== 1 && (
           <div
             className="absolute top-0 h-full w-full z-[999999]"
             onClick={(e) => {
               e.stopPropagation()
-              document.querySelector('#left')!.scrollTo({ top: 0, behavior: 'smooth' })
+              scrollRef.current!.scrollTo({ top: 0, behavior: 'smooth' })
             }}
           ></div>
         )}
       </div>
-      <div className="relative pointer-events-none min-h-screen">
-        <div className="h-[430px]"></div>
+
+      <div
+        ref={scrollRef}
+        className="relative pointer-events-none min-h-screen overflow-y-scroll w-full min-h-full h-full z-[9999] flex flex-col pt-[430px]"
+      >
         <ActionBar />
-        <div className="bg-surface-container-low p-4 rounded-t-xl flex flex-col gap-4 pointer-events-auto h-full">
-          <div className="flex flex-col gap-4">
+        <div className="bg-surface-container-low rounded-t-xl  overflow-hidden flex flex-col gap-4 pointer-events-auto min-h-full shrink-0">
+          <div className="flex flex-col">
             {[
               { title: 'Drives', subtitle: `${stats?.all.routes || 0} drives`, icon: 'directions_car', href: `/${dongleId}/routes` },
               { title: 'Sentry mode', subtitle, icon: 'photo_camera' },
@@ -69,20 +74,20 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
               { title: 'Analyze', subtitle, icon: 'bar_chart' },
               { title: 'Settings', icon: 'settings', href: `/${dongleId}/settings` },
             ].map(({ title, href, icon, subtitle }) => (
-              <Link key={title} to={href || ''} className="flex items-center gap-4 px-2 text-lg h-14">
+              <ButtonBase key={title} href={href} className="flex items-center gap-4 text-lg h-14 hover:bg-surface-container px-6 py-10">
                 <Icon name={icon as any} className="opacity-50" />
                 <div className="mr-auto flex flex-col gap-0.5">
                   <div className="text-white">{title}</div>
                   {subtitle && <div className="text-xs opacity-50">{subtitle}</div>}
                 </div>
                 <Icon name="keyboard_arrow_right" className="opacity-20" />
-              </Link>
+              </ButtonBase>
             ))}
           </div>
           <DeviceStatistics dongleId={dongleId} device={device} />
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -93,7 +98,7 @@ const Top = ({ device }: { device: Device }) => {
   // TODO: get battery
   const battery = 12.8
   return (
-    <div className="inset-x-0 top-0 flex items-center gap-4 px-5 py-5 text-on-surface fixed z-[999]">
+    <div className="inset-x-0 top-0 flex items-center gap-4 px-5 py-5 text-on-surface absolute z-[999]">
       <div className="grow truncate text-title-lg font-bold">
         <div onClick={() => setOpen(true)}>
           <div className="flex items-center gap-2">
@@ -130,9 +135,9 @@ const ActionBar = () => {
   return (
     <div className="flex justify-around items-center h-[50px] px-4">
       {icons.map(({ name, onClick }) => (
-        <div key={name} onClick={onClick} className="p-2 rounded-full bg-surface-container-low">
+        <ButtonBase key={name} onClick={onClick} className="p-2 rounded-full bg-surface-container-low hover:bg-surface-container">
           <Icon name={name as any} className="text-white font-bold pointer-events-auto" />
-        </div>
+        </ButtonBase>
       ))}
     </div>
   )
@@ -144,8 +149,8 @@ const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: stri
   const route = routes?.[0]
   if (!stats) return null
   return (
-    <>
-      <p className="text-2xl font-bold text-title-lg mt-4">{getDeviceName(device)}</p>
+    <div className="flex flex-col p-4 gap-4">
+      <p className="text-2xl font-bold text-title-lg">{getDeviceName(device)}</p>
 
       <div className="flex flex-col gap-1">
         {!!route &&
@@ -189,6 +194,6 @@ const DeviceStatistics = ({ dongleId, device }: { device: Device; dongleId: stri
           </div>
         ))}
       </div>
-    </>
+    </div>
   )
 }

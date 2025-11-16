@@ -25,7 +25,7 @@ export const Component = () => {
   // TODO: set route viewed
   return (
     <>
-      <TopAppBar component="h2" leading={<IconButton className="md:hidden" name="keyboard_arrow_left" href={`/${dongleId}/routes`} />}>
+      <TopAppBar component="h2" leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}/routes`} />}>
         {startTime}
       </TopAppBar>
 

@@ -18,24 +18,24 @@ export const parseRouteId = (pathname: string) => {
 export const Component = () => {
   const dongleId = useDongleId()
   const location = useLocation()
-  const paths = location.pathname.split('/').filter(Boolean)
+  const isSubpageOpen = location.pathname.split('/').filter(Boolean).length > 1
 
   return (
     <div className="relative size-full overflow-hidden">
       <div
         className={clsx(
-          'mx-auto size-full max-w-[1600px] md:grid md:grid-cols-2 lg:gap-2',
+          'mx-auto size-full max-w-[1600px] lg:gap-2',
           // Flex layout for mobile with horizontal transition
           'flex transition-transform duration-300 ease-in-out',
-          paths.length > 1 ? '-translate-x-full md:translate-x-0' : 'translate-x-0',
+          isSubpageOpen ? '-translate-x-full md:translate-x-0 md:grid md:grid-cols-2' : 'translate-x-0',
         )}
       >
-        <div id="left" className="min-w-full overflow-y-scroll scrollbar-hide relative">
-          <DeviceInfo dongleId={dongleId} />
-        </div>
-        <div id="right" className="min-w-full overflow-y-scroll ">
-          <Outlet />
-        </div>
+        <DeviceInfo dongleId={dongleId} />
+        {isSubpageOpen && (
+          <div className="min-w-full overflow-y-scroll relative">
+            <Outlet />
+          </div>
+        )}
       </div>
     </div>
   )
