@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useDevice, useRoutes, useStats } from '../api/queries'
 import { useDongleId } from '../utils/hooks'
 import { callAthena } from '../api/athena'
+import { useNavigate } from 'react-router-dom'
 
 const timeAgo = (time: number): string => {
   const diff = Math.floor(Date.now() / 1000) - time
@@ -70,7 +71,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           <div className="flex flex-col">
             {[
               { title: 'Drives', subtitle: `${stats?.all.routes || 0} drives`, icon: 'directions_car', href: `/${dongleId}/routes` },
-              { title: 'Sentry mode', subtitle, icon: 'photo_camera' },
+              { title: 'Sentry mode', subtitle, icon: 'photo_camera', href: `/${dongleId}/sentry` },
               { title: 'Actions', subtitle, icon: 'infrared' },
               { title: 'Teleop', subtitle, icon: 'gamepad' },
               { title: 'Analyze', subtitle, icon: 'bar_chart' },
@@ -133,11 +134,18 @@ const Top = ({ device }: { device: Device }) => {
 }
 
 const ActionBar = () => {
+  const dongleId = useDongleId()
+  const navigate = useNavigate()
   const icons = [
-    { name: 'power_settings_new', onClick: () => alert('Shut down') },
-    { name: 'home', onClick: () => alert('Drive home') },
-    { name: 'work', onClick: () => alert('Drive work') },
-    { name: 'camera', onClick: () => alert('Take a snapshot') },
+    { name: 'power_settings_new', onClick: () => alert('Shut comma down to save battery') },
+    { name: 'home', onClick: () => alert('Navigate to home') },
+    { name: 'work', onClick: () => alert('Navigate to work') },
+    {
+      name: 'camera',
+      onClick: () => {
+        navigate(`/${dongleId}/sentry?instant=1`)
+      },
+    },
   ]
   return (
     <div className="flex justify-around items-center h-[50px] px-4">
