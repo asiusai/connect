@@ -1,18 +1,31 @@
 import clsx from 'clsx'
 
 import { Loading } from './material/Loading'
-import { Player } from '@remotion/player'
+import { Player, PlayerRef } from '@remotion/player'
 import { createQCameraStreamUrl } from '../utils/helpers'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { Preview } from '../../templates/Preview'
 import { useShareSignature } from '../api/queries'
 import { Route } from '../types'
 import { getRouteDuration } from '../utils/format'
+import { RefObject, useEffect } from 'react'
 
-export const RouteVideoPlayer = ({ route, className }: { route: Route; className?: string }) => {
+export const RouteVideoPlayer = ({
+  playerRef,
+  route,
+  className,
+}: {
+  playerRef: RefObject<PlayerRef | null>
+  route: Route
+  className?: string
+}) => {
   const routeName = route.fullname
   const [signature] = useShareSignature(routeName)
   const duration = getRouteDuration(route)!.asSeconds()
+
+  // Removing remotion player timeline
+  useEffect(() => document.querySelector('div[style*="user-select: none"][style*="padding-top: 4px"]')?.remove(), [])
+
   return (
     <div
       className={clsx(
@@ -20,25 +33,23 @@ export const RouteVideoPlayer = ({ route, className }: { route: Route; className
         className,
       )}
     >
-      {signature && (
-        <Player
-          component={Preview}
-          compositionHeight={HEIGHT}
-          compositionWidth={WIDTH}
-          durationInFrames={duration * FPS}
-          fps={FPS}
-          style={{ width: '100%' }}
-          inputProps={{ routeName, qCamUrl: createQCameraStreamUrl(routeName, signature) }}
-          className="size-full object-cover"
-          data-testid="route-video"
-          autoPlay
-          controls
-          loop
-          allowFullscreen
-        />
-      )}
+      <Player
+        ref={playerRef}
+        component={Preview}
+        compositionHeight={HEIGHT}
+        compositionWidth={WIDTH}
+        durationInFrames={duration * FPS}
+        fps={FPS}
+        style={{ width: '100%' }}
+        inputProps={{ routeName, qCamUrl: signature ? createQCameraStreamUrl(routeName, signature) : undefined }}
+        autoPlay
+        initiallyMuted
+        clickToPlay
+        controls
+        allowFullscreen
+      />
 
-      {!signature && <Loading className="absolute inset-0 z-0" />}
+      {!signature && <Loading className="absolute h-full w-full" />}
     </div>
   )
 }

@@ -39,7 +39,8 @@
       "suspicious": {
         "noExplicitAny": "off",
         // Tailwind makes use of custom at-rules
-        "noUnknownAtRules": "off"
+        "noUnknownAtRules": "off",
+        "noArrayIndexKey": "off"
       }
     }
   },
