@@ -86,7 +86,7 @@ export const Component = () => {
             </Fragment>
           )
         })}
-        <Button onClick={() => query.fetchNextPage()}>Load more</Button>
+        {query.hasNextPage && <Button onClick={() => query.fetchNextPage()}>Load more</Button>}
       </div>
     </>
   )

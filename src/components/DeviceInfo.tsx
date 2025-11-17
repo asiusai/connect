@@ -10,6 +10,8 @@ import { Device, getDeviceName } from '../types'
 import { formatDistance, formatDuration } from '../utils/format'
 import { useEffect, useRef, useState } from 'react'
 import { useDevice, useRoutes, useStats } from '../api/queries'
+import { useDongleId } from '../utils/hooks'
+import { callAthena } from '../api/athena'
 
 const timeAgo = (time: number): string => {
   const diff = Math.floor(Date.now() / 1000) - time
@@ -94,9 +96,14 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
 const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-500' : value < 12.5 ? 'text-yellow-500' : 'text-green-500')
 
 const Top = ({ device }: { device: Device }) => {
+  const dongleId = useDongleId()
   const { modal, setOpen } = useDrawerContext()
-  // TODO: get battery
-  const battery = 12.8
+  const [battery, setBattery] = useState<number>()
+  useEffect(() => {
+    callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
+      setBattery(x ? x.peripheralState.voltage / 1000 : undefined),
+    )
+  }, [])
   return (
     <div className="inset-x-0 top-0 flex items-center gap-4 px-5 py-5 text-on-surface absolute z-[999]">
       <div className="grow truncate text-title-lg font-bold">

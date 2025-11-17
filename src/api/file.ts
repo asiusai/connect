@@ -1,6 +1,7 @@
-import { CancelUploadResponse, RouteInfo, UploadFile, UploadFileMetadata, UploadFilesToUrlsResponse, UploadQueueItem } from '../types'
+import { RouteInfo, UploadFile, UploadFileMetadata } from '../types'
 import { api } from '.'
 import { parseRouteName } from '../utils/helpers'
+import { callAthena } from './athena'
 
 export const FileTypes = {
   logs: ['rlog.bz2', 'rlog.zst'],
@@ -17,52 +18,23 @@ export const COMMA_CONNECT_PRIORITY = 1
 // Uploads expire after 1 week if device remains offline
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7
 
-export const getUploadQueue = async (dongleId: string) => {
-  const res = await api.athena.athena.mutate({
-    body: { id: 0, jsonrpc: '2.0', method: 'listUploadQueue', expiry: undefined },
-    params: { dongleId },
-  })
-  if (res.status !== 200) return null
-  return UploadQueueItem.array().parse(res.body.result)
-}
-
 export const uploadFilesToUrls = async (dongleId: string, files: UploadFile[]) => {
-  const res = await api.athena.athena.mutate({
-    params: { dongleId },
-    body: {
-      id: 0,
-      jsonrpc: '2.0',
-      method: 'uploadFilesToUrls',
-      params: {
-        files_data: files.map((file) => ({
-          allow_cellular: false,
-          fn: file.filePath,
-          headers: file.headers,
-          priority: COMMA_CONNECT_PRIORITY,
-          url: file.url,
-        })),
-      },
-      expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
+  return await callAthena({
+    type: 'uploadFilesToUrls',
+    dongleId,
+    params: {
+      files_data: files.map((file) => ({
+        allow_cellular: false,
+        fn: file.filePath,
+        headers: file.headers,
+        priority: COMMA_CONNECT_PRIORITY,
+        url: file.url,
+      })),
     },
+    expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
   })
-  if (res.status !== 200) return null
-  return UploadFilesToUrlsResponse.parse(res.body.result)
 }
 
-export const cancelUpload = async (dongleId: string, ids: string[]) => {
-  const res = await api.athena.athena.mutate({
-    params: { dongleId },
-    body: {
-      id: 0,
-      jsonrpc: '2.0',
-      method: 'cancelUpload',
-      params: { upload_id: ids },
-      expiry: undefined,
-    },
-  })
-  if (res.status !== 200) return null
-  return CancelUploadResponse.parse(res.body.result)
-}
 export const getAlreadyUploadedFiles = async (routeName: string) => {
   const res = await api.file.files.query({ params: { routeName } })
   if (res.status !== 200) throw new Error()

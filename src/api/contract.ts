@@ -1,7 +1,5 @@
 import { initContract } from '@ts-rest/core'
 import {
-  AthenaRequest,
-  AthenaOfflineQueueResponse,
   Device,
   DeviceLocation,
   DrivingStatistics,
@@ -11,12 +9,12 @@ import {
   RouteShareSignature,
   SubscribeInfo,
   SubscriptionStatus,
-  UploadFileMetadataResponse,
-  AthenaResponse,
   RouteSegment,
+  UploadFileMetadata,
 } from '../types'
 import { z } from 'zod'
 import { ATHENA_URL, BILLING_URL } from '../utils/consts'
+import { AthenaRequest, AthenaResponse } from './athena'
 
 const c = initContract()
 
@@ -131,7 +129,7 @@ const devices = c.router({
     path: '/v1/devices/:dongleId/athena_offline_queue',
     pathParams: z.object({ dongleId: z.string() }),
     responses: {
-      200: AthenaOfflineQueueResponse,
+      200: AthenaRequest.array(),
     },
   },
   location: {
@@ -212,7 +210,7 @@ const file = c.router({
       paths: z.string().array(),
     }),
     responses: {
-      200: UploadFileMetadataResponse,
+      200: UploadFileMetadata.array(),
     },
   },
 })

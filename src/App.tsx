@@ -85,7 +85,7 @@ const queryClient = new QueryClient({
 export const App = () => (
   <QueryClientProvider client={queryClient}>
     <api.ReactQueryProvider>
-      <Toaster />
+      <Toaster theme="dark" />
       <AppLayout>
         <RouterProvider router={router} />
       </AppLayout>

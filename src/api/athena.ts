@@ -1,0 +1,111 @@
+import { z } from 'zod'
+import { api } from '.'
+import { DEMO_DONGLE_ID } from '../utils/consts'
+
+export const DataFile = z.object({
+  allow_cellular: z.boolean(),
+  fn: z.string(),
+  headers: z.record(z.string()),
+  priority: z.number(),
+  url: z.string(),
+})
+
+export const UploadQueueItem = z.object({
+  allow_cellular: z.boolean(),
+  created_at: z.number(),
+  current: z.boolean(),
+  headers: z.record(z.string()),
+  id: z.string(),
+  path: z.string(),
+  priority: z.number(),
+  progress: z.number(),
+  retry_count: z.number(),
+  url: z.string(),
+})
+
+export const AthenaRequest = z.object({
+  id: z.literal(0),
+  jsonrpc: z.literal('2.0'),
+  expiry: z.number().optional(),
+  method: z.string(),
+  params: z.any(),
+})
+export const AthenaResponse = z.object({
+  queued: z.boolean().optional(),
+  error: z.string().optional(),
+  result: z.any(),
+})
+
+const REQUESTS = {
+  getNetworkMetered: {
+    params: z.void(),
+    result: z.boolean(),
+  },
+  setRouteViewed: {
+    params: z.object({ route: z.string() }),
+    result: z.void(),
+  },
+  takeSnapshot: {
+    params: z.void(),
+    result: z.object({ jpegFront: z.string().optional(), jpegBack: z.string().optional() }),
+  },
+  listUploadQueue: {
+    params: z.void(),
+    result: UploadQueueItem.array(),
+  },
+  uploadFilesToUrls: {
+    params: z.object({
+      files_data: DataFile.array(),
+    }),
+    result: z.object({
+      enqueued: z.number(),
+      failed: z.string().array(),
+      items: UploadQueueItem.array(),
+    }),
+  },
+  cancelUpload: {
+    params: z.object({
+      upload_id: z.string().or(z.string().array()),
+    }),
+    result: z.record(z.string(), z.number().or(z.string())),
+  },
+  getMessage: {
+    params: z.object({ service: z.enum(['peripheralState']), timeout: z.number() }),
+    result: z.object({
+      logMonoTime: z.number(),
+      peripheralState: z.object({ current: z.number(), fanSpeedRpm: z.number(), pandaType: z.string(), voltage: z.number() }),
+      valid: z.boolean(),
+    }),
+  },
+}
+
+export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends (typeof REQUESTS)[Type]>({
+  type,
+  params,
+  dongleId,
+  expiry,
+}: {
+  type: Type
+  params: z.infer<Req['params']>
+  dongleId: string
+  expiry?: number
+}): Promise<z.infer<Req['result']> | undefined> => {
+  if (dongleId === DEMO_DONGLE_ID) return undefined
+  const req = REQUESTS[type]
+
+  // Check params
+  const res = await api.athena.athena.mutate({
+    body: {
+      id: 0,
+      jsonrpc: '2.0',
+      method: type,
+      params: req.params.parse(params),
+      expiry,
+    },
+    params: { dongleId },
+  })
+  if (res.status !== 200) return undefined
+  if (res.body.error) return undefined
+
+  return req.result.parse(res.body.result)
+}

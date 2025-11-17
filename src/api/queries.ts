@@ -1,5 +1,5 @@
-import { useParams } from 'react-router-dom'
 import { api } from '.'
+import { DEMO_DONGLE_ID } from '../utils/consts'
 
 // TODO:
 // wrapper
@@ -14,7 +14,13 @@ export const useStats = (dongleId: string) =>
   w(api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } }))
 
 export const useDeviceLocation = (dongleId: string) =>
-  w(api.devices.location.useQuery({ queryKey: ['location', dongleId], queryData: { params: { dongleId } } }))
+  w(
+    api.devices.location.useQuery({
+      queryKey: ['location', dongleId],
+      queryData: { params: { dongleId } },
+      enabled: dongleId !== DEMO_DONGLE_ID,
+    }),
+  )
 
 export const usePreservedRoutes = (dongleId: string) =>
   w(api.routes.preserved.useQuery({ queryKey: ['preserved', dongleId], queryData: { params: { dongleId } } }))
