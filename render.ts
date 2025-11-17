@@ -1,15 +1,16 @@
 import { bundle } from '@remotion/bundler'
 import { renderMedia, selectComposition } from '@remotion/renderer'
 import path from 'path'
-import { CAMERAS, defaultStyle, getData, MainProps, Style } from './templates/Main'
+import { defaultOpenpilotStyle, OpenpilotProps, OpenpilotStyle } from './templates/Openpilot'
 import { $ } from 'bun'
 import { CameraType } from './src/types'
+import { CAMERAS, getPublicRouteData } from './templates/shared'
 
 const routeName = `9748a98e983e0b39/0000002c--d68dde99ca`
-const style: Style = { ...defaultStyle }
+const style: OpenpilotStyle = { ...defaultOpenpilotStyle }
 
 console.log(`Getting route data`)
-const data = await getData(routeName)
+const data = await getPublicRouteData(routeName)
 
 console.log('Bundling')
 const serveUrl = await bundle({ entryPoint: path.resolve('./templates/index.ts') })
@@ -38,7 +39,7 @@ const composition = await selectComposition({
     style,
     disableCache: false,
     data,
-  } satisfies MainProps,
+  } satisfies OpenpilotProps,
 })
 
 await renderMedia({

@@ -74,7 +74,7 @@ const routes = c.router({
     }),
     body: z.any(),
     responses: {
-      200: Route,
+      200: z.object({ success: z.number() }),
     },
   },
   unPreserve: {
@@ -83,7 +83,7 @@ const routes = c.router({
     body: z.any(),
     pathParams: z.object({ routeName: z.string() }),
     responses: {
-      200: Route,
+      200: z.object({ success: z.number() }),
     },
   },
   allRoutes: {

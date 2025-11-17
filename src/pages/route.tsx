@@ -6,20 +6,21 @@ import { RouteActions } from '../components/RouteActions'
 import { RouteStaticMap } from '../components/RouteStaticMap'
 import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import { RouteUploadButtons } from '../components/RouteUploadButtons'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
 import { useRoute } from '../api/queries'
 
 // TODO: get start and end time from URL
+
 export const Component = () => {
   const { dongleId, date } = useParams()
 
   const routeName = `${dongleId}|${date}`
   const [route] = useRoute(routeName)
 
-  const startTime = route ? dayjs(route.start_time).format('dddd, MMM D, YYYY') : ''
+  if (!route) return null
 
-  const selection = { startTime: 0, endTime: undefined }
+  const startTime = dayjs(route.start_time).format('dddd, MMM D, YYYY')
 
   // TODO: set route viewed
   return (
@@ -30,15 +31,8 @@ export const Component = () => {
 
       <div className="flex flex-col gap-6 px-4 pb-4">
         <div className="flex flex-col">
-          <RouteVideoPlayer routeName={routeName} selection={selection} />
+          <RouteVideoPlayer route={route} />
           {/* <Timeline className="mb-1" route={route} seekTime={seekTime} updateTime={onTimelineChange} events={events} /> */}
-
-          {(selection.startTime || selection.endTime) && (
-            <Link className="flex items-center justify-center text-center text-label-lg text-gray-500 mt-4" to={`/${dongleId}/${date}`}>
-              Clear current route selection
-              <IconButton name="close_small" />
-            </Link>
-          )}
         </div>
 
         <div className="flex flex-col gap-2">

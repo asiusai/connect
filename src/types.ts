@@ -90,7 +90,7 @@ export const Route = z.object({
   start_lat: z.number().default(0),
   start_lng: z.number().default(0),
   start_time: z.string().nullable(),
-  url: z.string(),
+  url: z.string().nullish(),
   user_id: z.string().nullable(),
   version: z.string().nullable(),
   vin: z.string().nullable(),

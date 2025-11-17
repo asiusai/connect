@@ -1,26 +1,41 @@
 import { Composition, Folder } from 'remotion'
-import { calculateMetadata, defaultStyle, Main, MainProps } from './Main'
-import { FPS, HEIGHT, WIDTH } from './consts'
+import { defaultOpenpilotStyle, Openpilot, openpilotCalculateMetadata, OpenpilotProps } from './Openpilot'
+import { FPS, HEIGHT, WIDTH } from './shared'
+import { Preview, previewCalculateMetadata, PreviewProps } from './Preview'
 
 const EXAMPLE_ROUTES = {
   Short: '9748a98e983e0b39/0000002c--d68dde99ca',
   Long: '9748a98e983e0b39/00000017--7256bd6447',
 }
+
 export const RemotionRoot = () => {
   return (
     <>
       <Composition
-        id="Main"
-        component={Main}
+        id="Preview"
+        component={Preview}
         durationInFrames={100}
         fps={FPS}
         width={WIDTH}
         height={HEIGHT}
-        schema={MainProps}
-        calculateMetadata={calculateMetadata}
+        schema={PreviewProps}
+        calculateMetadata={previewCalculateMetadata}
+        defaultProps={{
+          routeName: '9748a98e983e0b39/0000002c--d68dde99ca',
+        }}
+      />
+      <Composition
+        id="Openpilot"
+        component={Openpilot}
+        durationInFrames={100}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={OpenpilotProps}
+        calculateMetadata={openpilotCalculateMetadata}
         defaultProps={{
           routeName: '',
-          style: defaultStyle,
+          style: defaultOpenpilotStyle,
           disableCache: false,
         }}
       />
@@ -29,16 +44,16 @@ export const RemotionRoot = () => {
           <Composition
             key={id}
             id={id}
-            component={Main}
+            component={Openpilot}
             durationInFrames={100}
             fps={FPS}
             width={WIDTH}
             height={HEIGHT}
-            schema={MainProps}
-            calculateMetadata={calculateMetadata}
+            schema={OpenpilotProps}
+            calculateMetadata={openpilotCalculateMetadata}
             defaultProps={{
               routeName,
-              style: defaultStyle,
+              style: defaultOpenpilotStyle,
               disableCache: false,
             }}
           />

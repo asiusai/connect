@@ -1,28 +1,12 @@
 import { AbsoluteFill, CalculateMetadataFunction, Series, useCurrentFrame } from 'remotion'
-import { z } from 'zod'
-import { api } from '../src/api'
-import { CameraType, Coord, Files, RouteEvent, RouteSegment } from '../src/types'
+import { CameraType, Coord } from '../src/types'
 import { HevcVideo } from './HevcVideo'
-import { DB } from '../src/utils/db'
 import { createContext, useContext } from 'react'
-import { FPS } from './consts'
-import { createQCameraStreamUrl } from '../src/utils/helpers'
+import { CAMERA_POSITION, CAMERAS, getPublicRouteData, Position, RouteData, FPS } from './shared'
+import { z } from 'zod'
+import { DB } from '../src/utils/db'
 
-export const Data = z.object({
-  segments: RouteSegment.array(),
-  segment: RouteSegment,
-  qCamUrl: z.string(),
-  files: Files,
-  duration: z.number(),
-  events: RouteEvent.array(),
-  coords: Coord.array(),
-})
-export type Data = z.infer<typeof Data>
-
-export const Position = z.enum(['top-left', 'top-right', 'bottom-left', 'bottom-right'])
-export type Position = z.infer<typeof Position>
-
-export const Style = z.object({
+export const OpenpilotStyle = z.object({
   startFrom: z.number().optional(),
   endFrom: z.number().optional(),
   playbackSpeed: z.number(),
@@ -38,17 +22,16 @@ export const Style = z.object({
 
   showSpeed: z.boolean(),
 })
-export type Style = z.infer<typeof Style>
-
-export const MainProps = z.object({
+export type OpenpilotStyle = z.infer<typeof OpenpilotStyle>
+export const OpenpilotProps = z.object({
   routeName: z.string(),
-  style: Style,
-  data: Data.optional(),
+  style: OpenpilotStyle,
+  data: RouteData.optional(),
   disableCache: z.boolean(),
 })
-export type MainProps = z.infer<typeof MainProps>
+export type OpenpilotProps = z.infer<typeof OpenpilotProps>
 
-export const defaultStyle: Style = {
+export const defaultOpenpilotStyle: OpenpilotStyle = {
   playbackSpeed: 1,
 
   largeCamera: 'road',
@@ -62,54 +45,17 @@ export const defaultStyle: Style = {
 
   showSpeed: false,
 }
-export const CAMERA_POSITION = {
-  'top-left': { top: 0, left: 0 },
-  'top-right': { top: 0, right: 0 },
-  'bottom-left': { bottom: 0, left: 0 },
-  'bottom-right': { bottom: 0, right: 0 },
-  none: { display: 'hidden' },
-}
-export const CAMERAS = {
-  road: 'cameras',
-  wide: 'ecameras',
-  driver: 'dcameras',
-} as const
 
-export const getData = async (routeName: string) => {
-  const [dongleId] = routeName.split('/')
-  const segments = await api.routes.segments.query({ params: { dongleId }, query: { route_str: routeName } })
-  if (segments.status !== 200) throw new Error('Failed getting segments!')
-  const segment = segments.body[0]
-
-  const duration = (segment.end_time_utc_millis - segment.start_time_utc_millis) / 1000
-  const qCamUrl = createQCameraStreamUrl(routeName, { exp: segment.share_exp, sig: segment.share_sig })
-  const files = await api.file.files.query({ params: { routeName: routeName.replace('/', '%7C') } })
-  if (files.status !== 200) throw new Error('Failed getting files!')
-
-  const events = await Promise.all(segment.segment_numbers.map((i) => fetch(`${segment.url}/${i}/events.json`).then((x) => x.json())))
-  const coords = await Promise.all(segment.segment_numbers.map((i) => fetch(`${segment.url}/${i}/coords.json`).then((x) => x.json())))
-
-  return {
-    segments: segments.body,
-    segment,
-    files: files.body,
-    qCamUrl,
-    duration,
-    events: events.flat(),
-    coords: coords.flat(),
-  }
-}
-
-export const calculateMetadata: CalculateMetadataFunction<MainProps> = async ({ props }) => {
+export const openpilotCalculateMetadata: CalculateMetadataFunction<OpenpilotProps> = async ({ props }) => {
   const db = await new DB().init()
   const cached = await db.get<string>(props.routeName)
-  let data: Data | undefined
+  let data: RouteData | undefined
 
   if (props.data) data = props.data
   else if (!props.routeName) data = undefined
   else if (cached && !props.disableCache) data = JSON.parse(cached)
   else {
-    data = await getData(props.routeName)
+    data = await getPublicRouteData(props.routeName)
     await db.set(props.routeName, JSON.stringify(data))
   }
 
@@ -119,7 +65,7 @@ export const calculateMetadata: CalculateMetadataFunction<MainProps> = async ({ 
   }
 }
 
-const VideoContext = createContext<{ data: Data; style: Style } | null>(null)
+const VideoContext = createContext<{ data: RouteData; style: OpenpilotStyle } | null>(null)
 const useVideoContext = () => {
   const ctx = useContext(VideoContext)
   if (!ctx) throw new Error()
@@ -215,7 +161,7 @@ const CoordsMap = () => {
   )
 }
 
-export const Main = ({ data, style, routeName }: MainProps) => {
+export const Openpilot = ({ data, style, routeName }: OpenpilotProps) => {
   if (!data) {
     if (routeName) return <p>Loading...</p>
     else return <p>Please insert routeName!</p>
