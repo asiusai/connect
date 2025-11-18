@@ -29,7 +29,6 @@ const useIsPreserved = (route: Route) => {
     },
   ] as const
 }
-
 const useIsPublic = (route: Route) => {
   const [isPublic, setIsPublic] = useState(route.is_public)
   return [
