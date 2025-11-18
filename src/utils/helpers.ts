@@ -2,7 +2,7 @@ import type { Device, RouteInfo, RouteShareSignature } from '../types'
 import { API_URL, SHARED_DEVICE } from './consts'
 
 export const parseRouteName = (routeName: string): RouteInfo => {
-  const [dongleId, routeId] = routeName.split('|')
+  const [dongleId, routeId] = routeName.split(/[|/]/)
   return { dongleId, routeId }
 }
 

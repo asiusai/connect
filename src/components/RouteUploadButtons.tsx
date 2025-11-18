@@ -4,7 +4,7 @@ import { Icon, type IconName } from '../components/material/Icon'
 import { Button } from './material/Button'
 import type { Route } from '../types'
 import { useState } from 'react'
-import { FileType, uploadAllSegments } from '../api/file'
+import { FileType, uploadSegments } from '../api/file'
 
 const BUTTON_TYPES = ['road', 'driver', 'logs', 'all'] as const
 type ButtonType = (typeof BUTTON_TYPES)[number]
@@ -74,7 +74,7 @@ export const RouteUploadButtons = (props: { route: Route | undefined }) => {
 
     updateButtonStates(uploadButtonTypes, 'loading')
     try {
-      await uploadAllSegments(fullname, maxqlog + 1, uploadFileTypes)
+      await uploadSegments(fullname, maxqlog + 1, uploadFileTypes)
       updateButtonStates(uploadButtonTypes, 'success')
     } catch (err) {
       console.error('Failed to upload', err)

@@ -1,96 +1,49 @@
-import { RouteInfo, UploadFile, UploadFileMetadata } from '../types'
 import { api } from '.'
 import { parseRouteName } from '../utils/helpers'
 import { callAthena } from './athena'
+import { z } from 'zod'
 
-export const FileTypes = {
-  logs: ['rlog.bz2', 'rlog.zst'],
-  cameras: ['fcamera.hevc'],
-  dcameras: ['dcamera.hevc'],
-  ecameras: ['ecamera.hevc'],
-}
+export const FileType = z.enum(['cameras', 'dcameras', 'ecameras', 'logs'])
+export type FileType = z.infer<typeof FileType>
 
-export type FileType = keyof typeof FileTypes
+const COMMA_CONNECT_PRIORITY = 1 // Higher number is lower priority
+const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
-// Higher number is lower priority
-export const COMMA_CONNECT_PRIORITY = 1
+export const uploadSegments = async (routeName: string, totalSegments: number, types: FileType[] = FileType.options) => {
+  const { dongleId, routeId } = parseRouteName(routeName)
 
-// Uploads expire after 1 week if device remains offline
-const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7
+  // Getting already uploaded files
+  const res = await api.file.files.query({ params: { routeName } })
+  if (res.status !== 200) throw new Error()
+  const files = types.flatMap((type) => res.body[type])
 
-export const uploadFilesToUrls = async (dongleId: string, files: UploadFile[]) => {
+  // Generating all the missing ones
+  const paths: string[] = []
+  for (let i = 0; i < totalSegments; i++) {
+    for (const fileName of types) {
+      const key = [dongleId, routeId, i, fileName].join('/')
+      if (!files.find((path) => path.includes(key))) {
+        paths.push(`${routeId}--${i}/${fileName}`)
+      }
+    }
+  }
+
+  // Generating presigned urls for every one
+  const presignedUrls = await api.file.uploadFiles.mutate({ params: { dongleId }, body: { expiry_days: 7, paths } })
+  if (presignedUrls.status !== 200) throw new Error()
+
+  if (paths.length === 0) return []
   return await callAthena({
     type: 'uploadFilesToUrls',
     dongleId,
     params: {
-      files_data: files.map((file) => ({
+      files_data: paths.map((path, i) => ({
         allow_cellular: false,
-        fn: file.filePath,
-        headers: file.headers,
+        fn: path,
         priority: COMMA_CONNECT_PRIORITY,
-        url: file.url,
+        ...presignedUrls.body[i],
       })),
     },
     expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
   })
-}
-
-export const getAlreadyUploadedFiles = async (routeName: string) => {
-  const res = await api.file.files.query({ params: { routeName } })
-  if (res.status !== 200) throw new Error()
-  return res.body
-}
-
-const getFiles = async (routeName: string, types?: FileType[]) => {
-  const files = await getAlreadyUploadedFiles(routeName)
-  if (!types) return [...files.cameras, ...files.dcameras, ...files.ecameras, ...files.logs]
-  return types.flatMap((type) => files[type])
-}
-
-const generateMissingFilePaths = (
-  routeInfo: RouteInfo,
-  segmentStart: number,
-  segmentEnd: number,
-  uploadedFiles: string[],
-  types?: FileType[],
-): string[] => {
-  const paths: string[] = []
-  for (let i = segmentStart; i <= segmentEnd; i++) {
-    const fileTypes = types ? types.flatMap((type) => FileTypes[type]) : Object.values(FileTypes).flat()
-    for (const fileName of fileTypes) {
-      const key = [routeInfo.dongleId, routeInfo.routeId, i, fileName].join('/')
-      if (!uploadedFiles.find((path) => path.includes(key))) {
-        paths.push(`${routeInfo.routeId}--${i}/${fileName}`)
-      }
-    }
-  }
-  return paths
-}
-
-const prepareUploadRequests = (paths: string[], presignedUrls: UploadFileMetadata[]): UploadFile[] => {
-  return paths.map((path, i) => ({ filePath: path, ...presignedUrls[i] }))
-}
-export const uploadAllSegments = (routeName: string, totalSegments: number, types?: FileType[]) => {
-  return uploadSegments(routeName, 0, totalSegments - 1, types)
-}
-
-export const requestToUploadFiles = async (dongleId: string, paths: string[], expiryDays: number = 7) => {
-  const pathPresignedUrls = await api.file.uploadFiles.mutate({
-    params: { dongleId },
-    body: { expiry_days: expiryDays, paths },
-  })
-  if (pathPresignedUrls.status !== 200) return []
-  return pathPresignedUrls.body
-}
-
-export const uploadSegments = async (routeName: string, segmentStart: number, segmentEnd: number, types?: FileType[]) => {
-  const routeInfo = parseRouteName(routeName)
-  const alreadyUploadedFiles = await getFiles(routeName, types)
-
-  const paths = generateMissingFilePaths(routeInfo, segmentStart, segmentEnd, alreadyUploadedFiles, types)
-  const pathPresignedUrls = await requestToUploadFiles(routeInfo.dongleId, paths)
-
-  const athenaRequests = prepareUploadRequests(paths, pathPresignedUrls)
-  if (athenaRequests.length === 0) return []
-  return await uploadFilesToUrls(routeInfo.dongleId, athenaRequests)
 }
