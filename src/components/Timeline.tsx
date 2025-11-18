@@ -28,72 +28,34 @@ export const useCurrentPlayerFrame = (ref: React.RefObject<PlayerRef | null>) =>
   return data
 }
 
+const getEventInfo = (event: TimelineEvent) => {
+  if (event.type === 'engaged') return ['Engaged', 'bg-green-800 min-w-[1px]', '1']
+  if (event.type === 'overriding') return ['Overriding', 'bg-gray-500 min-w-[1px]', '2']
+  if (event.type === 'user_flag') return ['User flag', 'bg-yellow-500 min-w-[2px]', '4']
+  if (event.type === 'alert') {
+    if (event.alertStatus === 1) return ['User prompt alert', 'bg-amber-600 min-w-[2px]', '3']
+    else return ['Critical alert', 'bg-red-600 min-w-[2px]', '3']
+  }
+  throw new Error(`Invalid event type ${JSON.stringify(event)}`)
+}
 const TimelineEvents = ({ route, events }: { route: Route; events: TimelineEvent[] }) => {
   if (!route) return
   const duration = getRouteDuration(route)?.asMilliseconds() ?? 0
   return (
     <>
       {events.map((event, i) => {
-        let left = ''
-        let width = ''
-        switch (event.type) {
-          case 'engaged':
-          case 'overriding':
-          case 'alert': {
-            const { route_offset_millis, end_route_offset_millis } = event
-            const offsetPct = (route_offset_millis / duration) * 100
-            const endOffsetPct = (end_route_offset_millis / duration) * 100
-            const widthPct = endOffsetPct - offsetPct
+        const left = (event.route_offset_millis / duration) * 100
+        const width = event.type === 'user_flag' ? (1000 / duration) * 100 : (event.end_route_offset_millis / duration) * 100 - left
 
-            left = `${offsetPct}%`
-            width = `${widthPct}%`
-            break
-          }
-          case 'user_flag': {
-            const { route_offset_millis } = event
-            const offsetPct = (route_offset_millis / duration) * 100
-            const widthPct = (1000 / duration) * 100
-
-            left = `${offsetPct}%`
-            width = `${widthPct}%`
-            break
-          }
-        }
-
-        let classes = ''
-        let title = ''
-        switch (event.type) {
-          case 'engaged':
-            title = 'Engaged'
-            classes = 'bg-green-800 min-w-[1px]'
-            break
-          case 'overriding':
-            title = 'Overriding'
-            classes = 'bg-gray-500 min-w-[1px]'
-            break
-          case 'alert':
-            if (event.alertStatus === 1) {
-              title = 'User prompt alert'
-              classes = 'bg-amber-600'
-            } else {
-              title = 'Critical alert'
-              classes = 'bg-red-600'
-            }
-            classes += ' min-w-[2px]'
-            break
-          case 'user_flag':
-            title = 'User flag'
-            classes = 'bg-yellow-500 min-w-[2px]'
-        }
-
-        const zIndex = {
-          engaged: '1',
-          overriding: '2',
-          alert: '3',
-          user_flag: '4',
-        }[event.type]
-
-        return <div key={i} title={title} className={clsx('absolute top-0 h-full', classes)} style={{ left, width, zIndex }} />
+        const [title, classes, zIndex] = getEventInfo(event)
+        return (
+          <div
+            key={i}
+            title={title}
+            className={clsx('absolute top-0 h-full', classes)}
+            style={{ left: `${left}%`, width: `${width}%`, zIndex }}
+          />
+        )
       })}
     </>
   )
