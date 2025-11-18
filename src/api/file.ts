@@ -6,7 +6,7 @@ import { z } from 'zod'
 export const FileType = z.enum(['cameras', 'dcameras', 'ecameras', 'logs'])
 export type FileType = z.infer<typeof FileType>
 
-const COMMA_CONNECT_PRIORITY = 1 // Higher number is lower priority
+const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
 export const uploadSegments = async (routeName: string, totalSegments: number, types: FileType[] = FileType.options) => {
@@ -36,14 +36,7 @@ export const uploadSegments = async (routeName: string, totalSegments: number, t
   return await callAthena({
     type: 'uploadFilesToUrls',
     dongleId,
-    params: {
-      files_data: paths.map((path, i) => ({
-        allow_cellular: false,
-        fn: path,
-        priority: COMMA_CONNECT_PRIORITY,
-        ...presignedUrls.body[i],
-      })),
-    },
+    params: { files_data: paths.map((fn, i) => ({ allow_cellular: false, fn, priority: PRIORITY, ...presignedUrls.body[i] })) },
     expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
   })
 }
