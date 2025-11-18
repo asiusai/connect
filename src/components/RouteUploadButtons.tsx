@@ -13,16 +13,24 @@ type FileType = z.infer<typeof FileType>
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
+export const FileTypes = {
+  logs: ['rlog.bz2', 'rlog.zst'],
+  cameras: ['fcamera.hevc'],
+  dcameras: ['dcamera.hevc'],
+  ecameras: ['ecamera.hevc'],
+}
+
 export const uploadSegments = async (routeName: string, totalSegments: number, types: FileType[], files: Files) => {
   const { dongleId, routeId } = parseRouteName(routeName)
 
   // Generating all the missing ones
   const paths: string[] = []
-  for (let i = 0; i < totalSegments; i++) {
-    for (const fileName of types) {
-      const key = [dongleId, routeId, i, fileName].join('/')
-      if (!files[fileName].find((path) => path.includes(key))) {
-        paths.push(`${routeId}--${i}/${fileName}`)
+  for (let i = 0; i <= totalSegments; i++) {
+    const fileTypes = types.flatMap((type) => ({ name: FileTypes[type], type }))
+    for (const { type, name } of fileTypes) {
+      const key = [dongleId, routeId, i, name].join('/')
+      if (!files[type].find((path) => path.includes(key))) {
+        paths.push(`${routeId}--${i}/${name}`)
       }
     }
   }
