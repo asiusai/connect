@@ -24,7 +24,7 @@ export const Component = () => {
     <div className="relative size-full overflow-hidden">
       <div
         className={clsx(
-          'mx-auto size-full max-w-[1600px] lg:gap-2',
+          'mx-auto size-full lg:gap-2',
           // Flex layout for mobile with horizontal transition
           'flex transition-transform duration-300 ease-in-out',
           isSubpageOpen ? '-translate-x-full md:translate-x-0 md:grid md:grid-cols-2' : 'translate-x-0',
