@@ -1,95 +1,77 @@
-import clsx from 'clsx'
-
-import { Icon, type IconName } from '../components/material/Icon'
 import { Button } from './material/Button'
-import type { Route } from '../types'
+import type { Files, Route } from '../types'
 import { useState } from 'react'
-import { FileType, uploadSegments } from '../api/file'
+import { parseRouteName } from '../utils/helpers'
+import { z } from 'zod'
+import { api } from '../api'
+import { callAthena } from '../api/athena'
+import { useFiles } from '../api/queries'
 
-const BUTTON_TYPES = ['road', 'driver', 'logs', 'all'] as const
-type ButtonType = (typeof BUTTON_TYPES)[number]
-type ButtonState = 'idle' | 'loading' | 'success' | 'error'
+const FileType = z.enum(['cameras', 'dcameras', 'ecameras', 'logs'])
+type FileType = z.infer<typeof FileType>
 
-const BUTTON_TO_FILE_TYPES = {
-  road: ['cameras', 'ecameras'],
-  driver: ['dcameras'],
-  logs: ['logs'],
-} as const
+const PRIORITY = 1 // Higher number is lower priority
+const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
-export const UploadButton = (props: { state: ButtonState; onClick: () => void; icon: IconName; text: string }) => {
-  const icon = () => props.icon
-  const state = () => props.state
-  const disabled = () => state() === 'loading' || state() === 'success'
+export const uploadSegments = async (routeName: string, totalSegments: number, types: FileType[], files: Files) => {
+  const { dongleId, routeId } = parseRouteName(routeName)
 
-  const handleUpload = () => {
-    if (disabled()) return
-    props.onClick?.()
+  // Generating all the missing ones
+  const paths: string[] = []
+  for (let i = 0; i < totalSegments; i++) {
+    for (const fileName of types) {
+      const key = [dongleId, routeId, i, fileName].join('/')
+      if (!files[fileName].find((path) => path.includes(key))) {
+        paths.push(`${routeId}--${i}/${fileName}`)
+      }
+    }
   }
 
-  const stateToIcon: Record<ButtonState, IconName> = {
-    idle: icon(),
-    loading: 'progress_activity',
-    success: 'check',
-    error: 'error',
-  }
+  // Generating presigned urls for every one
+  const presignedUrls = await api.file.uploadFiles.mutate({ params: { dongleId }, body: { expiry_days: 7, paths } })
+  if (presignedUrls.status !== 200) throw new Error()
 
-  return (
-    <Button
-      onClick={() => handleUpload()}
-      className="px-2 md:px-3"
-      disabled={disabled()}
-      leading={<Icon className={clsx(state() === 'loading' && 'animate-spin')} name={stateToIcon[state()]} size="20" />}
-      color="primary"
-    >
-      <span className="flex items-center gap-1 font-mono">{props.text}</span>
-    </Button>
-  )
+  if (paths.length === 0) return []
+  return await callAthena({
+    type: 'uploadFilesToUrls',
+    dongleId,
+    params: { files_data: paths.map((fn, i) => ({ allow_cellular: false, fn, priority: PRIORITY, ...presignedUrls.body[i] })) },
+    expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
+  })
 }
 
-export const RouteUploadButtons = (props: { route: Route | undefined }) => {
-  const [uploadStore, setUploadStore] = useState<Record<ButtonType, ButtonState>>({
-    road: 'idle',
-    driver: 'idle',
-    logs: 'idle',
-    all: 'idle',
-  })
+const FILES: { text: string; type: FileType }[] = [
+  { text: 'Road', type: 'cameras' },
+  { text: 'Wide', type: 'ecameras' },
+  { text: 'Driver', type: 'dcameras' },
+  { text: 'Logs', type: 'logs' },
+]
+export const RouteUploadButtons = ({ route }: { route: Route }) => {
+  const [files] = useFiles(route.fullname)
+  const [loading, setLoading] = useState<FileType[]>([])
 
-  const updateButtonStates = (buttons: ButtonType[], state: ButtonState) => {
-    setUploadStore((store) => ({ ...store, ...Object.fromEntries(buttons.map((x) => [x, state])) }))
-  }
-
-  const handleUpload = async (type: ButtonType) => {
-    if (!props.route) return
-    const { fullname, maxqlog } = props.route
-
-    const uploadButtonTypes: ButtonType[] = [type]
-    let uploadFileTypes: FileType[] = []
-    const types = type === 'all' ? (['road', 'driver', 'logs'] as const) : [type]
-    for (const type of types) {
-      const state = uploadStore[type]
-      if (state === 'loading' || state === 'success') continue
-      uploadButtonTypes.push(type)
-      uploadFileTypes = uploadFileTypes.concat(BUTTON_TO_FILE_TYPES[type])
-    }
-
-    updateButtonStates(uploadButtonTypes, 'loading')
-    try {
-      await uploadSegments(fullname, maxqlog + 1, uploadFileTypes)
-      updateButtonStates(uploadButtonTypes, 'success')
-    } catch (err) {
-      console.error('Failed to upload', err)
-      updateButtonStates(uploadButtonTypes, 'error')
-    }
-  }
+  const totalSegments = route.maxqlog + 1
 
   return (
     <div className="flex flex-col rounded-b-md m-5">
-      <div className="grid grid-cols-2 gap-3 w-full lg:grid-cols-4">
-        <UploadButton text="Road" icon="videocam" state={uploadStore.road} onClick={() => handleUpload('road')} />
-        <UploadButton text="Driver" icon="person" state={uploadStore.driver} onClick={() => handleUpload('driver')} />
-        <UploadButton text="Logs" icon="description" state={uploadStore.logs} onClick={() => handleUpload('logs')} />
-        <UploadButton text="All" icon="upload" state={uploadStore.all} onClick={() => handleUpload('all')} />
-      </div>
+      {files &&
+        FILES.map(({ text, type }) => (
+          <div key={type} className="flex flex-col items-center">
+            <p>
+              Uploaded {files[type].length}/{totalSegments}
+            </p>
+            <Button
+              loading={loading.includes(type)}
+              disabled={files[type].length === totalSegments}
+              onClick={async () => {
+                setLoading((l) => [...l, type])
+                await uploadSegments(route.fullname, totalSegments, [type], files)
+              }}
+            >
+              Upload {text}
+            </Button>
+          </div>
+        ))}
     </div>
   )
 }
