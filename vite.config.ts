@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // noinspection ES6PreferShortImport
@@ -70,19 +69,12 @@ export default defineConfig({
         }
       },
     },
-    // put the Sentry plugin after all other plugins
-    sentryVitePlugin({
-      org: 'commaai',
-      project: 'new-connect',
-      telemetry: false,
-    }),
   ],
   server: {
     port: 3000,
   },
   build: {
     target: 'esnext',
-    sourcemap: true, // must be turned on for Sentry
   },
   resolve: {
     alias: {

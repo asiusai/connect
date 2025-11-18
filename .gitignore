@@ -45,9 +45,6 @@ Thumbs.db
 *.launch
 .settings/
 
-# Sentry Config File
-.env.sentry-build-plugin
-
 out/
 
 output/
