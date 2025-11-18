@@ -29,9 +29,8 @@ export const api = initTsrReactQuery(contract, {
 
     let body = await res.text()
 
-    if (res.status >= 400) {
-      toast.error(`Request to failed with code: ${res.status}`)
-    } else {
+    if (res.status >= 400) console.error(`Request to ${path} failed with code: ${res.status}`)
+    else {
       const schema = args.route.responses[res.status] as any
 
       try {

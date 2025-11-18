@@ -71,7 +71,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           <div className="flex flex-col">
             {[
               { title: 'Drives', subtitle: `${stats?.all.routes || 0} drives`, icon: 'directions_car', href: `/${dongleId}/routes` },
-              { title: 'Sentry mode', subtitle, icon: 'photo_camera', href: `/${dongleId}/sentry` },
+              { title: 'Sentry mode', icon: 'photo_camera', href: `/${dongleId}/sentry` },
               { title: 'Actions', subtitle, icon: 'infrared' },
               { title: 'Teleop', subtitle, icon: 'gamepad' },
               { title: 'Analyze', subtitle, icon: 'bar_chart' },
