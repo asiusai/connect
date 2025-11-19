@@ -348,14 +348,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
             <UserMenu />
           </div>
         </div>
-        {open && (
-          <div className="absolute inset-0 z-[1000] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
-              <DeviceList close={() => setOpen(false)} />
-            </div>
-            <div className="absolute inset-0 z-[-1]" onClick={() => setOpen(false)} />
-          </div>
-        )}
+
         <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full absolute" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
         {fade !== 1 && (
@@ -377,6 +370,14 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           <Info dongleId={dongleId} />
         </div>
       </div>
+      {open && (
+        <div className="absolute inset-0 z-[999999] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
+            <DeviceList close={() => setOpen(false)} />
+          </div>
+          <div className="absolute inset-0" onClick={() => setOpen(false)} />
+        </div>
+      )}
     </div>
   )
 }
