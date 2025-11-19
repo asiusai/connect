@@ -37,7 +37,7 @@ export const api = initTsrReactQuery(contract, {
       const body = JSON.parse(text)
       const parse = schema.safeParse(body)
       if (!parse.success) console.error(`API response parsing failed: ${parse.error}`)
-      return { status: parse.status, headers: parse.headers, body }
+      return { status: res.status, headers: res.headers, body }
     } catch (e) {
       console.error(e)
       console.log(`Parsing body failed: ${text}`)
