@@ -56,6 +56,7 @@ export const Icons = [
   'bookmark_check',
   'public',
   'public_off',
+  'location_on',
 ] as const
 
 export type IconName = (typeof Icons)[number]

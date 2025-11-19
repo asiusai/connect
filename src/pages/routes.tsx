@@ -4,7 +4,6 @@ import timezone from 'dayjs/plugin/timezone.js'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-import { Card, CardContent, CardHeader } from '../components/material/Card'
 import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import type { Route } from '../types'
 import { dateTimeToColorBetween } from '../utils/format'
@@ -17,6 +16,8 @@ import { useDongleId } from '../utils/hooks'
 import { getPlaceName } from '../utils/map'
 import { usePreservedRoutes } from '../api/queries'
 import { Toggle } from '../components/material/Toggle'
+import { Icon } from '../components/material/Icon'
+import { Link } from 'react-router-dom'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
@@ -30,22 +31,35 @@ const getLocation = async (route: Route) => {
 }
 
 const RouteCard = ({ route }: { route: Route }) => {
-  const startTime = () => dayjs.utc(route.start_time).local()
-  const endTime = () => dayjs.utc(route.end_time).local()
-  const color = () => dateTimeToColorBetween(startTime().toDate(), endTime().toDate(), [30, 57, 138], [218, 161, 28])
+  const startTime = dayjs.utc(route.start_time).local()
+  const endTime = dayjs.utc(route.end_time).local()
+  const color = dateTimeToColorBetween(startTime.toDate(), endTime.toDate(), [30, 57, 138], [218, 161, 28])
 
   const [location, setLocation] = useState<string | null>(null)
   useEffect(() => void getLocation(route).then(setLocation), [route])
-
   return (
-    <Card className="max-w-none" href={`/${route.dongle_id}/routes/${route.fullname.slice(17)}`} activeClass="md:before:bg-primary">
-      <CardHeader headline={`${startTime().format('h:mm A')} to ${endTime().format('h:mm A')}`} subhead={location} />
+    <Link
+      to={`/${route.dongle_id}/routes/${route.fullname.slice(17)}`}
+      className="block w-full overflow-hidden rounded-md bg-surface-container-high text-on-surface shadow-sm transition-all hover:bg-surface-container-highest hover:shadow-md active:scale-[0.99]"
+      style={{ borderLeft: `6px solid ${color}` }}
+    >
+      <div className="flex flex-col gap-3 p-4 pl-5">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-semibold tracking-tight">{startTime.format('h:mm A')}</span>
+            <span className="text-on-surface-variant/50">→</span>
+            <span className="text-lg font-medium text-on-surface-variant">{endTime.format('h:mm A')}</span>
+          </div>
 
-      <CardContent>
+          <div className="flex items-center gap-1.5 text-on-surface-variant">
+            <Icon name="location_on" className="text-[18px]" />
+            <span className="text-base font-medium leading-snug">{location || 'Loading...'}</span>
+          </div>
+        </div>
+
         <RouteStatisticsBar route={route} />
-      </CardContent>
-      <div className="h-2.5 w-full" style={{ background: color() }} />
-    </Card>
+      </div>
+    </Link>
   )
 }
 
