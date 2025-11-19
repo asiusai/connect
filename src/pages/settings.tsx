@@ -11,7 +11,7 @@ import { TopAppBar } from '../components/material/TopAppBar'
 import { ReactNode, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { useDevice, useDevices, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../api/queries'
+import { useDevice, useDevices, usePortal, useStripeSession, useSubscribeInfo, useSubscription, useUsers } from '../api/queries'
 import { useDongleId } from '../utils/hooks'
 import { TextField } from '../components/material/TextField'
 
@@ -303,6 +303,83 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
+const UserManagement = ({ dongleId }: { dongleId: string }) => {
+  const [users, { refetch }] = useUsers(dongleId)
+  const addUser = api.devices.addUser.useMutation({
+    onSuccess: () => {
+      setEmail('')
+      setIsAdding(false)
+      refetch()
+    },
+  })
+  const deleteUser = api.devices.deleteUser.useMutation({
+    onSuccess: () => refetch(),
+  })
+  const [email, setEmail] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg">Users</h2>
+        {!isAdding && (
+          <Button onClick={() => setIsAdding(true)} leading={<Icon name="add" />}>
+            Add User
+          </Button>
+        )}
+      </div>
+
+      {isAdding && (
+        <div className="flex items-center gap-2">
+          <TextField value={email} onChange={setEmail} className="w-full" label="Email" />
+          <Button
+            onClick={() => {
+              if (!email) return
+              addUser.mutate({ body: { email }, params: { dongleId } })
+            }}
+            loading={addUser.isPending}
+            disabled={!email}
+          >
+            Add
+          </Button>
+          <Button color="secondary" onClick={() => setIsAdding(false)}>
+            Cancel
+          </Button>
+        </div>
+      )}
+
+      {addUser.error && (
+        <div className="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
+          <Icon className="text-error" name="error" size="20" />
+          {(addUser.error as any) || 'Failed to add user'}
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2">
+        {users?.map((user) => (
+          <div key={user.email} className="flex items-center justify-between rounded-lg bg-surface-container p-3">
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{user.email}</span>
+              <span className="text-xs text-on-surface-variant capitalize">{user.permission.replace('_', ' ')}</span>
+            </div>
+            {user.permission !== 'owner' && (
+              <IconButton
+                name="delete"
+                className="text-error"
+                onClick={() => {
+                  if (!confirm(`Are you sure you want to remove ${user.email}?`)) return
+                  deleteUser.mutate({ body: { email: user.email }, params: { dongleId } })
+                }}
+                disabled={deleteUser.isPending}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 const DeviceSettingsForm = ({ dongleId }: { dongleId: string }) => {
   const navigate = useNavigate()
   const [device, { refetch }] = useDevice(dongleId)
@@ -360,8 +437,12 @@ export const Component = () => {
       <TopAppBar component="h2" leading={<IconButton className="md:hidden" name="arrow_back" href={`/${dongleId}`} />}>
         Device Settings
       </TopAppBar>
-      <div className="flex flex-col gap-4 max-w-lg px-4">
+      <div className="flex flex-col gap-4 px-4 w-full">
         <DeviceSettingsForm dongleId={dongleId} />
+
+        <hr className="mx-4 opacity-20" />
+
+        <UserManagement dongleId={dongleId} />
 
         <hr className="mx-4 opacity-20" />
 
