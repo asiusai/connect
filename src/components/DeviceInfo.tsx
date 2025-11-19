@@ -140,7 +140,7 @@ const Buttons = ({ dongleId }: { dongleId: string }) => {
             href ? 'hover:bg-surface-container' : 'opacity-50',
           )}
         >
-          <div className={clsx('p-2 rounded-xl aspect-square w-fit', color)}>
+          <div className={clsx('h-10 w-10 rounded-full flex items-center justify-center', color)}>
             <Icon name={icon as any} />
           </div>
           <div>
