@@ -258,7 +258,7 @@ const Info = ({ dongleId }: { dongleId: string }) => {
   const [routes] = useRoutes(dongleId, 1)
   const route = routes?.[0]
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 pb-10">
       <h2 className="text-title-lg font-bold px-2">Vehicle Info</h2>
       <div className="bg-surface-container-low rounded-md p-1 overflow-hidden">
         {!!route &&
@@ -266,7 +266,7 @@ const Info = ({ dongleId }: { dongleId: string }) => {
             {
               label: 'Repo',
               value: route.git_remote ? (
-                <a href={route.git_remote} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                <a href={`https://${route.git_remote}`} target="_blank" rel="noreferrer" className="text-primary hover:underline">
                   {route.git_remote}
                 </a>
               ) : undefined,
