@@ -18,7 +18,7 @@ const LoggedIn = () => {
       return devices[0]?.dongle_id
     }
     if (getDefaultDongleId()) return <Navigate to={`/${getDefaultDongleId()}`} />
-    else return <Navigate to="/pair" />
+    else return <Navigate to="/first-pair" />
   }
 
   return <Outlet />

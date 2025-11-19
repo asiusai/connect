@@ -54,6 +54,10 @@ const router = createBrowserRouter([
         lazy: () => import('./pages/pair'),
       },
       {
+        path: 'first-pair',
+        lazy: () => import('./pages/first-pair'),
+      },
+      {
         path: ':dongleId',
         lazy: () => import('./layouts/device'),
         children: [
