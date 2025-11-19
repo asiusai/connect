@@ -82,10 +82,9 @@ const router = createBrowserRouter([
     ],
   },
 ])
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: { queries: { queryKeyHashFn: (x) => x.toString() } },
 })
-
 export const App = () => (
   <QueryClientProvider client={queryClient}>
     <api.ReactQueryProvider>

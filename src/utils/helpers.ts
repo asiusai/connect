@@ -1,3 +1,4 @@
+import { queryClient } from '../App'
 import type { Device, RouteInfo, RouteShareSignature } from '../types'
 import { API_URL, SHARED_DEVICE } from './consts'
 
@@ -42,7 +43,10 @@ export const setAccessToken = (token: string | null) => {
 
 export const isSignedIn = () => !!accessToken()
 
-export const signOut = () => setAccessToken(null)
+export const signOut = () => {
+  setAccessToken(null)
+  queryClient.clear()
+}
 
 export const createSharedDevice = (dongleId: string): Device => ({
   dongle_id: dongleId,
