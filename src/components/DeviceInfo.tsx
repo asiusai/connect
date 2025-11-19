@@ -13,6 +13,7 @@ import { useDevice, useRoutes, useStats } from '../api/queries'
 import { useDongleId } from '../utils/hooks'
 import { callAthena } from '../api/athena'
 import { useNavigate } from 'react-router-dom'
+import { Toggle } from './material/Toggle'
 
 const timeAgo = (time: number): string => {
   const diff = Math.floor(Date.now() / 1000) - time
@@ -71,7 +72,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
         </div>
         <div className="bg-surface rounded-t-3xl overflow-hidden flex flex-col gap-6 pointer-events-auto min-h-full shrink-0 shadow-xl p-6">
           <div className="flex flex-col gap-2">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {[
                 {
                   title: 'Drives',
@@ -87,14 +88,23 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
                   href: `/${dongleId}/sentry`,
                   color: 'bg-red-500/10 text-red-400',
                 },
-                { title: 'Actions', subtitle: 'Trigger controls', icon: 'infrared', color: 'bg-purple-500/10 text-purple-400' },
-                { title: 'Teleop', subtitle: 'Remote control', icon: 'gamepad', color: 'bg-green-500/10 text-green-400' },
+                {
+                  title: 'Actions',
+                  subtitle: 'Trigger controls',
+                  icon: 'infrared',
+                  color: 'bg-zinc-500/10 text-zinc-500',
+                },
+                {
+                  title: 'Teleop',
+                  subtitle: 'Remote control',
+                  icon: 'gamepad',
+                  color: 'bg-zinc-500/10 text-zinc-500',
+                },
                 {
                   title: 'Analyze',
                   subtitle: 'See CAN data',
                   icon: 'bar_chart',
-                  href: `/${dongleId}/analyze`,
-                  color: 'bg-yellow-500/10 text-yellow-400',
+                  color: 'bg-zinc-500/10 text-zinc-500',
                 },
                 {
                   title: 'Settings',
@@ -107,7 +117,11 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
                 <ButtonBase
                   key={title}
                   href={href}
-                  className="flex flex-col gap-3 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-colors text-left"
+                  disabled={!href}
+                  className={clsx(
+                    'flex flex-col gap-3 p-4 rounded-2xl bg-surface-container-low transition-colors text-left',
+                    href ? 'hover:bg-surface-container' : 'opacity-50',
+                  )}
                 >
                   <div className={clsx('p-2 rounded-xl w-fit', color)}>
                     <Icon name={icon as any} size="24" />
@@ -198,41 +212,37 @@ const ActionBar = () => {
     </div>
   )
 }
-
 const DeviceStatistics = ({ dongleId }: { dongleId: string }) => {
   const [stats] = useStats(dongleId)
   const [routes] = useRoutes(dongleId, 1)
+  const [timeRange, setTimeRange] = useState<'week' | 'all'>('all')
   const route = routes?.[0]
 
   if (!stats) return null
 
+  const currentStats = stats[timeRange]
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-4">
-        <h2 className="text-title-lg font-bold px-2">Statistics</h2>
-        <div className="grid md:grid-cols-2 gap-3">
-          {[
-            { title: 'All time', stats: stats.all },
-            { title: 'This week', stats: stats.week },
-          ].map(({ title, stats }) => (
-            <div key={title} className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-4">
-              <p className="text-label-lg font-bold text-primary">{title}</p>
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-col">
-                  <span className="text-headline-sm font-bold">{formatDistance(stats.distance)}</span>
-                  <span className="text-label-sm text-on-surface-variant">Distance</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-title-md font-bold">{formatDuration(stats.minutes)}</span>
-                  <span className="text-label-sm text-on-surface-variant">Time</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-title-md font-bold">{stats.routes}</span>
-                  <span className="text-label-sm text-on-surface-variant">Drives</span>
-                </div>
-              </div>
+        <div className="flex items-center justify-between px-2">
+          <h2 className="text-title-lg font-bold">Statistics</h2>
+          <Toggle options={{ all: 'All time', week: 'This week' }} value={timeRange} onChange={setTimeRange} />
+        </div>
+        <div className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
+              <span className="text-headline-sm font-bold">{formatDistance(currentStats.distance)}</span>
+              <span className="text-label-sm text-on-surface-variant">Distance</span>
             </div>
-          ))}
+            <div className="flex flex-col">
+              <span className="text-title-md font-bold">{formatDuration(currentStats.minutes)}</span>
+              <span className="text-label-sm text-on-surface-variant">Time</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-title-md font-bold">{currentStats.routes}</span>
+              <span className="text-label-sm text-on-surface-variant">Drives</span>
+            </div>
+          </div>
         </div>
       </div>
 
