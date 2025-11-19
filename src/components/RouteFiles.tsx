@@ -13,7 +13,7 @@ import { getRouteDuration } from '../utils/format'
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
-const FileType = z.enum(['cameras', 'dcameras', 'ecameras', 'logs'])
+const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'logs'])
 type FileType = z.infer<typeof FileType>
 
 const FILE_NAMES = {
