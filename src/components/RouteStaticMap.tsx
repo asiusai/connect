@@ -1,34 +1,9 @@
 import clsx from 'clsx'
-
 import { type GPSPathPoint, getCoords } from '../utils/derived'
 import { Coord, getPathStaticMapUrl } from '../utils/map'
 import type { Route } from '../types'
-
 import { Icon } from '../components/material/Icon'
 import { ReactNode, useEffect, useState } from 'react'
-
-const loadImage = (url: string | undefined): Promise<string | undefined> => {
-  if (!url) {
-    return Promise.resolve(undefined)
-  }
-  return new Promise<string>((resolve, reject) => {
-    const image = new Image()
-    image.src = url
-    image.onload = () => resolve(url)
-    image.onerror = (error) => reject(new Error('Failed to load image', { cause: error }))
-  })
-}
-
-const getStaticMapUrl = (gpsPoints: GPSPathPoint[]): string | undefined => {
-  if (gpsPoints.length === 0) {
-    return undefined
-  }
-  const path: Coord[] = []
-  gpsPoints.forEach(({ lng, lat }) => {
-    path.push([lng, lat])
-  })
-  return getPathStaticMapUrl('dark', path, 512, 512, true)
-}
 
 const State = (props: { children: ReactNode; trailing?: ReactNode; opaque?: boolean }) => {
   return (
@@ -42,15 +17,24 @@ const State = (props: { children: ReactNode; trailing?: ReactNode; opaque?: bool
 export const RouteStaticMap = ({ route, className }: { className?: string; route?: Route }) => {
   const [coords, setCoords] = useState<GPSPathPoint[]>()
   const [image, setImage] = useState<string>()
+
   useEffect(() => {
-    if (route)
-      getCoords(route).then((coords) => {
-        setCoords(coords)
-        const url = getStaticMapUrl(coords)
-        loadImage(url).then((image) => {
-          setImage(image)
-        })
+    if (!route) return
+    const fn = async () => {
+      const coords = await getCoords(route)
+      if (!coords.length) return
+      setCoords(coords)
+      const paths: Coord[] = coords.map(({ lng, lat }) => [lng, lat])
+      const url = getPathStaticMapUrl('dark', paths, 512, 512, true)
+      const image = await new Promise<string>((resolve, reject) => {
+        const image = new Image()
+        image.src = url
+        image.onload = () => resolve(url)
+        image.onerror = (error) => reject(new Error('Failed to load image', { cause: error }))
       })
+      setImage(image)
+    }
+    fn()
   }, [route])
 
   return (

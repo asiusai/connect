@@ -46,6 +46,7 @@ export const RouteVideoPlayer = ({
         initiallyMuted
         clickToPlay
         controls
+        acknowledgeRemotionLicense
         allowFullscreen
       />
 

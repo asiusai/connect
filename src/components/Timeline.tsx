@@ -38,6 +38,7 @@ const getEventInfo = (event: TimelineEvent) => {
   }
   throw new Error(`Invalid event type ${JSON.stringify(event)}`)
 }
+
 const TimelineEvents = ({ route, events }: { route: Route; events: TimelineEvent[] }) => {
   if (!route) return
   const duration = getRouteDuration(route)?.asMilliseconds() ?? 0

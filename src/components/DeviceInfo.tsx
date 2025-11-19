@@ -197,25 +197,19 @@ const Active = ({ device }: { device: Device }) => {
 
 const ActionBar = () => {
   const dongleId = useDongleId()
-  const navigate = useNavigate()
   const icons = [
-    { name: 'power_settings_new', label: 'Shutdown', onClick: () => alert('Shut comma down to save battery') },
-    { name: 'home', label: 'Home', onClick: () => alert('Navigate to home') },
-    { name: 'work', label: 'Work', onClick: () => alert('Navigate to work') },
-    {
-      name: 'camera',
-      label: 'Snapshot',
-      onClick: () => {
-        navigate(`/${dongleId}/sentry?instant=1`)
-      },
-    },
+    { name: 'power_settings_new', label: 'Shutdown' },
+    { name: 'home', label: 'Home' },
+    { name: 'work', label: 'Work' },
+    { name: 'camera', label: 'Snapshot', href: `/${dongleId}/sentry?instant=1` },
   ]
   return (
     <div className="flex items-center justify-center gap-6 px-4 pb-4">
-      {icons.map(({ name, onClick }) => (
+      {icons.map(({ name, href }) => (
         <ButtonBase
           key={name}
-          onClick={onClick}
+          href={href}
+          disabled={!href}
           className="flex pointer-events-auto items-center justify-center w-12 h-12 rounded-full bg-surface-container-low hover:bg-surface-container shadow-md transition-all border border-white/5"
         >
           <Icon name={name as any} className="text-on-surface" size="24" />

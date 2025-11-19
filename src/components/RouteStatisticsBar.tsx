@@ -1,13 +1,11 @@
-import { generateRouteStatistics, getTimelineEvents, TimelineEvent, type RouteStatistics } from '../utils/derived'
+import { generateRouteStatistics, getTimelineEvents, type RouteStatistics } from '../utils/derived'
 import type { Route } from '../types'
 import { formatDistance, formatDuration, formatRouteDuration } from '../utils/format'
 import { StatisticBar } from './StatisticBar'
 import { useState, useEffect } from 'react'
 
-const formatEngagement = (stats: RouteStatistics | undefined): string | undefined => {
-  if (!stats || stats.routeDurationMs === 0) return undefined
-  return `${(100 * (stats.engagedDurationMs / stats.routeDurationMs)).toFixed(0)}%`
-}
+const formatEngagement = (stats?: RouteStatistics) =>
+  !stats?.routeDurationMs ? undefined : `${(100 * (stats.engagedDurationMs / stats.routeDurationMs)).toFixed(0)}%`
 
 const useTimelineEvents = (route: Route) => {
   const [stats, setStats] = useState<RouteStatistics>()
