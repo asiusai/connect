@@ -22,7 +22,7 @@ const takeScreenshots = async (deviceType: string, context: BrowserContext) => {
     console.log(`${route}-${deviceType}.playwright.png`)
 
     if (route === 'Login') {
-      await page.click("a:has-text('Try the demo')")
+      await page.click("button:has-text('Try the demo')")
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(375)
     }
