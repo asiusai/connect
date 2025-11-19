@@ -19,6 +19,7 @@ export const DeviceLocation = z.object({
 })
 
 const NAMES: Record<string, string> = {
+  four: 'comma four',
   threex: 'comma 3X',
   neo: 'EON',
   freon: 'freon',
