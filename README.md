@@ -24,16 +24,16 @@ bun dev
 
 ## Ideas
 
-- Everything working that is in https://connect.comma.ai
-- [Sentry mode](https://www.youtube.com/watch?v=laO0RzsDzfU)
-- Replace snapshot with a live stream
-- Easy download video files as mp4
+- ~~Everything working that is in the old connect~~
+- ~~Easy download video files as mp4~~
 - Openpilot video clips
-- Manage comma device settings, change forks, update etc
+- Replace snapshot with a live stream
+- [Sentry mode](https://www.youtube.com/watch?v=laO0RzsDzfU)
 - Car mangement: lock doors, EV charge status, and everything else you can do with CAN ()
+- Manage comma device settings, change forks, update etc
 - See live CAN messages, show stats and dashboards based on that
-- Teleop your car or comma body (joystick and in VR)
 - Android and iOS apps
+- Teleop your car or comma body (joystick and in VR)
 - Control comma device over bluetooth
 - [Buttons](https://www.enhauto.com/products/four-s3xy-buttons-bundle)
 - Navigate with OP

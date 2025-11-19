@@ -324,7 +324,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   if (!device) return <Loading className="h-screen w-screen" />
   return (
     <div className="min-w-full h-full relative bg-surface">
-      <div className="absolute w-full h-[450px] overflow-hidden" style={{ opacity: fade }}>
+      <div className="absolute w-full h-[500px] overflow-hidden" style={{ opacity: fade }}>
         <div className="inset-x-0 top-0 flex items-start justify-between px-4 py-4 text-white absolute z-[999]">
           <div className="flex justify-between items-start w-full">
             <div className="flex flex-col">
@@ -362,7 +362,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
         )}
       </div>
 
-      <div ref={scrollRef} className="relative pointer-events-none overflow-y-scroll h-screen z-[9999] flex flex-col pt-[40vh]">
+      <div ref={scrollRef} className="relative pointer-events-none overflow-y-scroll h-screen z-[9999] flex flex-col pt-[430px]">
         <ActionBar />
         <div className="bg-surface flex flex-col gap-6 pointer-events-auto min-h-full shrink-0 shadow-xl p-6">
           <Buttons dongleId={dongleId} />
