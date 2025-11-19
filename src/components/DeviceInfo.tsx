@@ -360,7 +360,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
 
   if (!device) return <Loading className="h-screen w-screen" />
   return (
-    <div className="w-full h-full relative bg-surface">
+    <div className="min-w-full h-full relative bg-surface">
       <div className="absolute w-full h-[450px] overflow-hidden" style={{ opacity: fade }}>
         <Top device={device} />
         <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full absolute" />
