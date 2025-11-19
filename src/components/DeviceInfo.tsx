@@ -27,7 +27,10 @@ const timeAgo = (time: number): string => {
   if (hours < 24) return `active ${hours}h ago`
 
   const days = Math.floor(hours / 24)
-  return `active ${days}d ago`
+  if (days < 365) return `active ${days}d ago`
+
+  const years = Math.floor(days / 365)
+  return `active ${years}y ago`
 }
 
 const DeviceList = ({ close }: { close: () => void }) => {
