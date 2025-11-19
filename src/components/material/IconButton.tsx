@@ -7,6 +7,7 @@ type IconButtonProps = ButtonBaseProps & {
   name: IconName
   filled?: IconProps['filled']
   size?: IconProps['size']
+  loading?: number | boolean
 }
 
 export const IconButton = ({ className, children, filled, size = '24', ...props }: IconButtonProps) => {

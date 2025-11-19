@@ -4,7 +4,7 @@ import { IconButton } from '../components/material/IconButton'
 import { TopAppBar } from '../components/material/TopAppBar'
 import { RouteStaticMap } from '../components/RouteStaticMap'
 import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
-import { RouteUploadButtons } from '../components/RouteUploadButtons'
+import { RouteFiles } from '../components/RouteFiles'
 import { useParams } from 'react-router-dom'
 import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
 import { usePreservedRoutes, useRoute } from '../api/queries'
@@ -92,7 +92,7 @@ export const Component = () => {
         <div className="flex flex-col gap-2">
           <span className="text-sm">Upload Files</span>
           <div className="flex flex-col rounded-md overflow-hidden bg-surface-container">
-            <RouteUploadButtons route={route} />
+            <RouteFiles route={route} />
           </div>
         </div>
 

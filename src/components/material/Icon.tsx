@@ -57,6 +57,7 @@ export const Icons = [
   'public',
   'public_off',
   'location_on',
+  'raw_on',
 ] as const
 
 export type IconName = (typeof Icons)[number]

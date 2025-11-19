@@ -7,6 +7,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { Icons } from './src/components/material/Icon'
 
 export default defineConfig({
+  optimizeDeps: {
+    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+  },
   plugins: [
     react(),
     VitePWA({
