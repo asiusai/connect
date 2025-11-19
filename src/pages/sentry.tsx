@@ -9,6 +9,7 @@ import clsx from 'clsx'
 import { HEIGHT, WIDTH } from '../../templates/shared'
 import { Loading } from '../components/material/Loading'
 import { Button } from '../components/material/Button'
+import { Icon } from '../components/material/Icon'
 
 export const Component = () => {
   const dongleId = useDongleId()
@@ -37,27 +38,39 @@ export const Component = () => {
       >
         Sentry mode
       </TopAppBar>
-      <div className="flex flex-col gap-4">
-        {isLoading && <Loading className="" style={{ aspectRatio: WIDTH / HEIGHT }} />}
-        {images?.map((img, i) => (
-          <div key={img} className="relative">
-            <img src={img} />
-            <IconButton
-              className="absolute top-0 right-0 "
-              name="download"
-              onClick={() => {
-                const link = document.createElement('a')
-                link.href = img
-                link.download = `snapshot${i + 1}.jpg`
-                document.body.appendChild(link)
-                link.click()
-                document.body.removeChild(link)
-              }}
-            />
+      {isLoading && <Loading className="" style={{ aspectRatio: WIDTH / HEIGHT }} />}
+      {images?.map((img, i) => (
+        <div key={img} className="relative">
+          <img src={img} />
+          <IconButton
+            className="absolute top-0 right-0 "
+            name="download"
+            onClick={() => {
+              const link = document.createElement('a')
+              link.href = img
+              link.download = `snapshot${i + 1}.jpg`
+              document.body.appendChild(link)
+              link.click()
+              document.body.removeChild(link)
+            }}
+          />
+        </div>
+      ))}
+
+      {!isLoading && !images && (
+        <div className="flex flex-col items-center justify-center h-full gap-6 pb-20">
+          <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center mb-4">
+            <Icon name="camera" size="48" className="text-primary" />
           </div>
-        ))}
-        {!images && !isLoading && <Button onClick={shot}>Take a picture</Button>}
-      </div>
+          <div className="text-center space-y-2 max-w-xs">
+            <h2 className="text-headline-sm font-bold">Take a snapshot</h2>
+            <p className="text-body-md text-on-surface-variant">Capture a real-time view from your device's cameras.</p>
+          </div>
+          <Button onClick={shot} className="px-8">
+            Take Snapshot
+          </Button>
+        </div>
+      )}
     </>
   )
 }
