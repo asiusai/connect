@@ -56,17 +56,16 @@ export const uploadSegments = async (routeName: string, totalSegments: number, t
 }
 
 const Processed = ({ type, file, namePrefix }: { namePrefix: string; type: FileType; file: string }) => {
-  const [isLoading, setIsLoading] = useState(false)
+  const [progress, setProgress] = useState<number>()
   if (type === 'logs') return null
   return (
     <IconButton
       name="camera"
-      loading={isLoading}
+      loading={progress}
       onClick={async () => {
-        setIsLoading(true)
+        setProgress(0)
 
-        const blob = await hevcToMp4(file, (p) => console.log(p.loaded / p.length))
-        console.log(blob)
+        const blob = await hevcToMp4(file, (p) => setProgress(p.loaded / p.length))
         const a = document.createElement('a')
         a.href = URL.createObjectURL(blob)
         a.download = namePrefix + FILE_NAMES[type].replace('.hevc', '.mp4')
@@ -74,9 +73,8 @@ const Processed = ({ type, file, namePrefix }: { namePrefix: string; type: FileT
         a.click()
         a.remove()
 
-        setIsLoading(false)
+        setProgress(undefined)
       }}
-      className={clsx(isLoading && 'animate-spin')}
     />
   )
 }
@@ -84,11 +82,13 @@ const Processed = ({ type, file, namePrefix }: { namePrefix: string; type: FileT
 const Upload = ({ type, files, route }: { type: FileType; files: Files; route: Route }) => {
   const [isLoading, setIsLoading] = useState(false)
   const totalSegments = route.maxqlog + 1
+
+  const disabled = files[type].length === totalSegments
   return (
     <IconButton
       name="upload"
-      loading={isLoading}
-      disabled={files[type].length === totalSegments}
+      loading={isLoading && !disabled}
+      disabled={disabled}
       onClick={async () => {
         setIsLoading(true)
         await uploadSegments(route.fullname, totalSegments, [type], files)
