@@ -16,6 +16,7 @@ import { Button } from '../components/material/Button'
 import { useDongleId } from '../utils/hooks'
 import { getPlaceName } from '../utils/map'
 import { usePreservedRoutes } from '../api/queries'
+import { Toggle } from '../components/material/Toggle'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
@@ -59,7 +60,6 @@ const getDayHeader = (route: Route) => {
 
 export const Component = () => {
   const dongleId = useDongleId()
-  const [showPreserved, setShowPreserved] = useState(false)
   const [preserved] = usePreservedRoutes(dongleId)
   const query = api.routes.allRoutes.useInfiniteQuery({
     queryKey: ['allRoutes', dongleId],
@@ -72,13 +72,15 @@ export const Component = () => {
   })
 
   let prevDayHeader: string | null = null
-  const routes = showPreserved ? preserved : query.data?.pages.flatMap((x) => x.body)
-  const hasNextPage = showPreserved ? false : query.hasNextPage
+
+  const [show, setShow] = useState<'all' | 'preserved'>('all')
+  const routes = show === 'all' ? query.data?.pages.flatMap((x) => x.body) : preserved
+  const hasNextPage = show === 'all' ? query.hasNextPage : false
   return (
     <>
       <TopAppBar
         leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}`} />}
-        trailing={<IconButton name="bookmark" filled={showPreserved} onClick={() => setShowPreserved(!showPreserved)} />}
+        trailing={<Toggle options={{ all: 'All', preserved: 'Preserved' }} value={show} onChange={setShow} />}
       >
         Routes
       </TopAppBar>

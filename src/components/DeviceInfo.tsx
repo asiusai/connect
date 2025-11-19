@@ -140,8 +140,8 @@ const Buttons = ({ dongleId }: { dongleId: string }) => {
             href ? 'hover:bg-surface-container' : 'opacity-50',
           )}
         >
-          <div className={clsx('p-2 rounded-xl w-fit', color)}>
-            <Icon name={icon as any} size="24" />
+          <div className={clsx('p-2 rounded-xl aspect-square w-fit', color)}>
+            <Icon name={icon as any} />
           </div>
           <div>
             <div className="text-title-md font-medium">{title}</div>
@@ -192,51 +192,6 @@ const Active = ({ device }: { device: Device }) => {
     <p className={clsx(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70')}>
       {timeAgo(device.last_athena_ping)}
     </p>
-  )
-}
-const Top = ({ device }: { device: Device }) => {
-  const dongleId = useDongleId()
-  const [battery, setBattery] = useState<number>()
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
-      setBattery(x ? x.peripheralState.voltage / 1000 : undefined),
-    )
-  }, [])
-
-  return (
-    <div className="inset-x-0 top-0 flex items-start justify-between px-4 py-4 text-white absolute z-[999]">
-      <div className="flex justify-between items-start w-full">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setOpen(true)}>
-            <h1 className="text-headline-sm font-bold">{device.name || 'connect'}</h1>
-            <Icon name="keyboard_arrow_down" className="drop-shadow-md" />
-          </div>
-          <div className="flex items-center gap-3 text-label-md font-medium drop-shadow-md opacity-90">
-            <Active device={device} />
-            {battery && (
-              <>
-                <div className="w-1 h-1 rounded-full bg-white/40" />
-                <div className={clsx('flex gap-1 items-center', getBatteryColor(battery))}>
-                  <Icon name="battery_5_bar" className="rotate-90 !text-[18px]" />
-                  <p>{battery.toFixed(1)}V</p>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-        <UserMenu />
-      </div>
-      {open && (
-        <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
-            <DeviceList close={() => setOpen(false)} />
-          </div>
-          <div className="absolute inset-0 z-[-1]" onClick={() => setOpen(false)} />
-        </div>
-      )}
-    </div>
   )
 }
 
@@ -344,6 +299,52 @@ const Info = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
+const Top = ({ device }: { device: Device }) => {
+  const dongleId = useDongleId()
+  const [battery, setBattery] = useState<number>()
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
+      setBattery(x ? x.peripheralState.voltage / 1000 : undefined),
+    )
+  }, [])
+
+  return (
+    <>
+      <div className="flex justify-between items-start w-full">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setOpen(true)}>
+            <h1 className="text-headline-sm font-bold">{device.name || 'connect'}</h1>
+            <Icon name="keyboard_arrow_down" className="drop-shadow-md" />
+          </div>
+          <div className="flex items-center gap-3 text-label-md font-medium drop-shadow-md opacity-90">
+            <Active device={device} />
+            {battery && (
+              <>
+                <div className="w-1 h-1 rounded-full bg-white/40" />
+                <div className={clsx('flex gap-1 items-center', getBatteryColor(battery))}>
+                  <Icon name="battery_5_bar" className="rotate-90 !text-[18px]" />
+                  <p>{battery.toFixed(1)}V</p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        <UserMenu />
+      </div>
+      {open && (
+        <div className="absolute inset-0 z-[1000] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
+            <DeviceList close={() => setOpen(false)} />
+          </div>
+          <div className="absolute inset-0 z-[-1]" onClick={() => setOpen(false)} />
+        </div>
+      )}
+    </>
+  )
+}
+
 export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [device] = useDevice(dongleId)
@@ -363,11 +364,11 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
     <div className="min-w-full h-full relative bg-surface">
       <div className="absolute w-full h-[450px] overflow-hidden" style={{ opacity: fade }}>
         <Top device={device} />
-        <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full absolute" />
+        <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
         {fade !== 1 && (
           <div
-            className="absolute top-0 h-full w-full z-[999999]"
+            className="absolute inset-0 z-[999999]"
             onClick={(e) => {
               e.stopPropagation()
               scrollRef.current!.scrollTo({ top: 0, behavior: 'smooth' })

@@ -32,7 +32,7 @@ export const Component = () => {
       >
         <DeviceInfo dongleId={dongleId} />
         {isSubpageOpen && (
-          <div className="min-w-full overflow-y-scroll relative">
+          <div className="min-w-full overflow-y-scroll relative h-screen">
             <Outlet />
           </div>
         )}
