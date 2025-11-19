@@ -158,6 +158,7 @@ const devices = c.router({
   unpair: {
     method: 'POST',
     path: '/v1/devices/:dongleId/unpair',
+    pathParams: z.object({ dongleId: z.string() }),
     body: z.any(),
     responses: {
       200: z.object({ success: z.number() }),
@@ -173,6 +174,37 @@ const devices = c.router({
         dongle_id: z.string(),
         first_pair: z.boolean(),
       }),
+    },
+  },
+  users: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/users',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: z
+        .object({
+          email: z.string(),
+          permission: z.enum(['owner', 'read_access']),
+        })
+        .array(),
+    },
+  },
+  addUser: {
+    method: 'POST',
+    path: '/v1/devices/:dongleId/add_user',
+    pathParams: z.object({ dongleId: z.string() }),
+    body: z.object({ email: z.string() }),
+    responses: {
+      200: z.object({ success: z.number() }),
+    },
+  },
+  deleteUser: {
+    method: 'POST',
+    path: '/v1/devices/:dongleId/del_user',
+    pathParams: z.object({ dongleId: z.string() }),
+    body: z.object({ email: z.string() }),
+    responses: {
+      200: z.object({ success: z.number() }),
     },
   },
 })

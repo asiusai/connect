@@ -74,3 +74,6 @@ export const usePortal = (dongleId: string) =>
 
 export const useFiles = (routeName: string) =>
   w(api.file.files.useQuery({ queryKey: ['files', routeName], queryData: { params: { routeName } }, refetchInterval: 10_000 }))
+
+export const useUsers = (dongleId: string) =>
+  w(api.devices.users.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))
