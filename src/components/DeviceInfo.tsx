@@ -375,7 +375,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
             <DeviceList close={() => setOpen(false)} />
           </div>
-          <div className="absolute inset-0" onClick={() => setOpen(false)} />
+          <div className="absolute inset-0 z-[-1]" onClick={() => setOpen(false)} />
         </div>
       )}
     </div>
