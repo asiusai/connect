@@ -89,15 +89,15 @@ export const Component = () => {
           <RouteStatisticsBar className="p-5" route={route} />
         </div>
 
+        <div className="aspect-square overflow-hidden rounded-lg">
+          <RouteStaticMap route={route} />
+        </div>
+
         <div className="flex flex-col gap-2">
           <span className="text-title-lg font-bold">Files</span>
           <div className="flex flex-col rounded-md overflow-hidden bg-surface-container">
             <RouteFiles route={route} />
           </div>
-        </div>
-
-        <div className="aspect-square overflow-hidden rounded-lg">
-          <RouteStaticMap route={route} />
         </div>
       </div>
     </>
