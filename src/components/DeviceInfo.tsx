@@ -280,19 +280,17 @@ const Statistics = ({ dongleId }: { dongleId: string }) => {
         <h2 className="text-title-lg font-bold">Statistics</h2>
         <Toggle options={{ all: 'All time', week: 'This week' }} value={timeRange} onChange={setTimeRange} />
       </div>
-      <div className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-2">
-        <div className="flex flex-col">
-          <span className="text-headline-sm font-bold">{formatDistance(currentStats.distance)}</span>
-          <span className="text-label-sm text-on-surface-variant">Distance</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-title-md font-bold">{formatDuration(currentStats.minutes)}</span>
-          <span className="text-label-sm text-on-surface-variant">Time</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-title-md font-bold">{currentStats.routes}</span>
-          <span className="text-label-sm text-on-surface-variant">Drives</span>
-        </div>
+      <div className="bg-surface-container-low rounded-md p-5 flex flex-col gap-2">
+        {[
+          { label: 'Distance', value: formatDistance(currentStats.distance) },
+          { label: 'Time', value: formatDuration(currentStats.minutes) },
+          { label: 'Drives', value: currentStats.routes },
+        ].map(({ value, label }, i) => (
+          <div key={label} className="flex flex-col">
+            <span className={clsx(i === 0 ? 'text-headline-sm' : 'text-md', 'font-bold')}>{value}</span>
+            <span className="text-label-sm text-on-surface-variant">{label}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -304,7 +302,7 @@ const Info = ({ dongleId }: { dongleId: string }) => {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-title-lg font-bold px-2">Vehicle Info</h2>
-      <div className="bg-surface-container-low rounded-2xl p-1 overflow-hidden">
+      <div className="bg-surface-container-low rounded-md p-1 overflow-hidden">
         {!!route &&
           [
             {
