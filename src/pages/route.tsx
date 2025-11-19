@@ -90,7 +90,7 @@ export const Component = () => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="text-sm">Upload Files</span>
+          <span className="text-title-lg font-bold">Files</span>
           <div className="flex flex-col rounded-md overflow-hidden bg-surface-container">
             <RouteFiles route={route} />
           </div>

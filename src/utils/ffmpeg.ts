@@ -8,10 +8,10 @@ export const init = async () => {
   await ffmpeg.load()
 }
 
-export type DownloadProgress = { loaded: number; length: number }
+export type DownloadProgress = { loaded: number; length: number; percent: number }
 export type OnDownloadProgress = (p: DownloadProgress) => void
 
-export const download = async (url: string, onLoad: OnDownloadProgress): Promise<Uint8Array> => {
+export const downloadFile = async (url: string, onLoad: OnDownloadProgress): Promise<Uint8Array> => {
   const res = await fetch(url)
   if (!res.ok || !res.body) throw new Error('Failed to fetch')
 
@@ -27,7 +27,7 @@ export const download = async (url: string, onLoad: OnDownloadProgress): Promise
 
     chunks.push(value)
     loaded += value.length
-    onLoad({ loaded, length })
+    onLoad({ loaded, length, percent: loaded / length })
   }
 
   // merge chunks into a single Uint8Array
@@ -41,9 +41,9 @@ export const download = async (url: string, onLoad: OnDownloadProgress): Promise
   return result
 }
 
-export const hevcToMp4 = async (file: string, onLoad: OnDownloadProgress) => {
+export const hevcToMp4 = async (file: string | Uint8Array, onLoad: OnDownloadProgress) => {
   await init()
-  const bin = await download(file, onLoad)
+  const bin = typeof file === 'string' ? await downloadFile(file, onLoad) : file
   await ffmpeg.writeFile('input.hevc', new Uint8Array(bin))
   await ffmpeg.exec(['-r', '20', '-i', 'input.hevc', '-c', 'copy', '-map', '0', '-vtag', 'hvc1', 'output.mp4'])
   const data = await ffmpeg.readFile('output.mp4')

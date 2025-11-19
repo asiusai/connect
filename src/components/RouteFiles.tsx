@@ -1,13 +1,12 @@
 import type { Files, Route } from '../types'
 import { useState } from 'react'
-import { parseRouteName } from '../utils/helpers'
+import { concatBins, parseRouteName, saveFile } from '../utils/helpers'
 import { z } from 'zod'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
 import { IconButton } from './material/IconButton'
-import clsx from 'clsx'
-import { hevcToMp4 } from '../utils/ffmpeg'
+import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
@@ -65,15 +64,8 @@ const Processed = ({ type, file, namePrefix }: { namePrefix: string; type: FileT
       onClick={async () => {
         setProgress(0)
 
-        const blob = await hevcToMp4(file, (p) => setProgress(p.loaded / p.length))
-        const a = document.createElement('a')
-        a.href = URL.createObjectURL(blob)
-        a.download = namePrefix + FILE_NAMES[type].replace('.hevc', '.mp4')
-        document.body.appendChild(a)
-        a.click()
-        a.remove()
-
-        setProgress(undefined)
+        const blob = await hevcToMp4(file, ({ percent }) => setProgress(percent))
+        saveFile(blob, namePrefix + FILE_NAMES[type].replace('.hevc', '.mp4'))
       }}
     />
   )
@@ -88,7 +80,7 @@ const Upload = ({ type, files, route }: { type: FileType; files: Files; route: R
     <IconButton
       name="upload"
       loading={isLoading && !disabled}
-      disabled={disabled}
+      disabled={disabled || isLoading}
       onClick={async () => {
         setIsLoading(true)
         await uploadSegments(route.fullname, totalSegments, [type], files)
@@ -98,6 +90,36 @@ const Upload = ({ type, files, route }: { type: FileType; files: Files; route: R
     </IconButton>
   )
 }
+
+const CombineVideos = ({ type, files, route }: { type: FileType; files: Files; route: Route }) => {
+  const [progress, setProgress] = useState<Record<number, number>>({})
+  const totalSegments = route.maxqlog + 1
+  const disabled = files[type].length !== totalSegments
+
+  if (type === 'logs') return null
+
+  const values = Object.values(progress)
+  const loading = values.length ? values.reduce((a, b) => a + b, 0) / values.length : undefined
+
+  return (
+    <IconButton
+      name="camera"
+      loading={loading}
+      disabled={disabled || loading !== undefined}
+      onClick={async () => {
+        setProgress({})
+
+        const bins = await Promise.all(
+          files[type].map((file, i) => downloadFile(file, ({ percent }) => setProgress((old) => ({ ...old, [i]: percent })))),
+        )
+        const bin = concatBins(bins)
+        const blob = await hevcToMp4(bin, () => {})
+        saveFile(blob, `${route.fullname}--${FILE_NAMES[type].replace('.hevc', '.mp4')}`)
+      }}
+    />
+  )
+}
+
 export const RouteFiles = ({ route }: { route: Route }) => {
   const [files] = useFiles(route.fullname)
   const totalSegments = route.maxqlog + 1
@@ -137,13 +159,14 @@ export const RouteFiles = ({ route }: { route: Route }) => {
               })}
             </tr>
           ))}
-          {/* <tr>
+          <tr>
             <td>Full</td>
-            {FileType.options.map((type) => {
-              const hasAll = files[type].length === totalSegments
-              return <td key={type}>{type === 'logs' ? '-' : <IconButton name="camera" disabled={!hasAll} />}</td>
-            })}
-          </tr> */}
+            {FileType.options.map((type) => (
+              <td key={type}>
+                <CombineVideos type={type} files={files} route={route} />
+              </td>
+            ))}
+          </tr>
           <tr>
             <td>Upload</td>
             {FileType.options.map((type) => (

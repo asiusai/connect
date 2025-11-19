@@ -69,3 +69,25 @@ export const createSharedDevice = (dongleId: string): Device => ({
   name: '',
   athena_host: null,
 })
+
+export const saveFile = (blob: Blob, fileName: string) => {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = fileName
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}
+
+export const concatBins = (chunks: Uint8Array[]) => {
+  const totalLength = chunks.reduce((sum, arr) => sum + arr.length, 0)
+  const result = new Uint8Array(totalLength)
+
+  let offset = 0
+  for (const arr of chunks) {
+    result.set(arr, offset)
+    offset += arr.length
+  }
+
+  return result
+}
