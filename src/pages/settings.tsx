@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-import type { Device, PrimePlan } from '../types'
+import { getDeviceName, type PrimePlan } from '../types'
 import { formatCurrency, formatDate } from '../utils/format'
 
 import { ButtonBase } from '../components/material/ButtonBase'
@@ -325,7 +325,7 @@ const DeviceSettingsForm = ({ dongleId }: { dongleId: string }) => {
   if (!device) return null
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg">{device.name}</h2>
+      <h2 className="text-lg">{getDeviceName(device)}</h2>
       <div className="flex items-center gap-2">
         <TextField value={alias} onChange={setAlias} className="w-full" label="Alias" />
         <Button onClick={() => changeName.mutate({ body: { alias }, params: { dongleId } })} loading={changeName.isPending}>

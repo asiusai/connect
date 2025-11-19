@@ -69,8 +69,6 @@ export const createSharedDevice = (dongleId: string): Device => ({
     prime_data: false,
     nav: false,
   },
-  is_online: false,
-  name: '',
   athena_host: null,
 })
 

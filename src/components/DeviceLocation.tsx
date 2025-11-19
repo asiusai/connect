@@ -4,7 +4,7 @@ import { getFullAddress, getTileUrl } from '../utils/map'
 import { useCallback, useEffect, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
-import { Device } from '../types'
+import { Device, getDeviceName } from '../types'
 import { useDeviceLocation } from '../api/queries'
 
 type Location = {
@@ -66,7 +66,7 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
           address: await getFullAddress([location.lng, location.lat]),
           lat: location.lat,
           lng: location.lng,
-          label: device.name,
+          label: getDeviceName(device),
           iconName: 'directions_car',
         })
       }
@@ -83,7 +83,7 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
       setMarkers(markers)
     }
     effect()
-  }, [position, device.name, location])
+  }, [position, device, location])
 
   useEffect(() => requestPosition(), [])
 

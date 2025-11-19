@@ -14,8 +14,8 @@ const LoggedIn = () => {
   if (isHome) {
     const getDefaultDongleId = () => {
       let lastSelectedDongleId = storage.getItem('lastSelectedDongleId')
-      if (devices?.some((device) => device.dongle_id === lastSelectedDongleId)) return lastSelectedDongleId
-      return devices?.[0]?.dongle_id
+      if (devices.some((device) => device.dongle_id === lastSelectedDongleId)) return lastSelectedDongleId
+      return devices[0]?.dongle_id
     }
     if (getDefaultDongleId()) return <Navigate to={`/${getDefaultDongleId()}`} />
     else return <Navigate to="/pair" />

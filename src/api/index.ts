@@ -2,7 +2,6 @@ import { accessToken } from '../utils/helpers'
 import { API_URL } from '../utils/consts'
 import { contract } from './contract'
 import { initTsrReactQuery } from '@ts-rest/react-query/v5'
-import { toast } from 'sonner'
 
 const objectToFormData = (obj: object) => {
   const data = new FormData()
@@ -27,21 +26,23 @@ export const api = initTsrReactQuery(contract, {
       headers: { ...args.headers, authorization: `JWT ${accessToken()}` },
     })
 
-    let body = await res.text()
-
-    if (res.status >= 400) console.error(`Request to ${path} failed with code: ${res.status}`)
-    else {
-      const schema = args.route.responses[res.status] as any
-
-      try {
-        body = schema.parse(JSON.parse(body))
-      } catch (e) {
-        toast.error('Invalid body')
-        console.error(e)
-        console.log(`Invalid body: ${body}`)
-      }
+    if (res.status >= 400) {
+      console.error(`Request to ${path} failed with code: ${res.status}`)
+      return { status: res.status, headers: res.headers, body: undefined }
     }
-    return { status: res.status, headers: res.headers, body }
+    const text = await res.text()
+
+    try {
+      const schema = args.route.responses[res.status] as any
+      const body = JSON.parse(text)
+      const parse = schema.safeParse(body)
+      if (!parse.success) console.error(`API response parsing failed: ${parse.error}`)
+      return { status: parse.status, headers: parse.headers, body }
+    } catch (e) {
+      console.error(e)
+      console.log(`Parsing body failed: ${text}`)
+      return { status: res.status, headers: res.headers, body: undefined }
+    }
   },
   validateResponse: true,
 })

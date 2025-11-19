@@ -25,40 +25,34 @@ const NAMES: Record<string, string> = {
   freon: 'freon',
   unknown: 'unknown',
 }
-export const getDeviceName = (device: { device_type: string }) => NAMES[device.device_type] || `comma ${device.device_type}`
-export const Device = z
-  .object({
-    alias: z.string().nullable(),
-    athena_host: z.string().nullable(),
-    device_type: z.string(),
-    dongle_id: z.string(),
-    eligible_features: z.object({
-      prime: z.boolean(),
-      prime_data: z.boolean(),
-      nav: z.boolean().optional(),
-    }),
-    ignore_uploads: z.boolean().nullable(),
-    is_paired: z.boolean(),
-    is_owner: z.boolean(),
-    last_athena_ping: z.number(),
-    // ...
-    openpilot_version: z.string().nullable(),
+export const getCommaName = (device: { device_type: string }) => NAMES[device.device_type] || `comma ${device.device_type}`
+export const Device = z.object({
+  alias: z.string().nullable(),
+  athena_host: z.string().nullable(),
+  device_type: z.string(),
+  dongle_id: z.string(),
+  eligible_features: z.object({
     prime: z.boolean(),
-    prime_type: z.number(),
-    public_key: z.string(),
-    serial: z.string(),
-    sim_id: z.string(),
-    sim_type: z.number(),
-    trial_claimed: z.boolean(),
-
-    is_online: z.boolean().optional(),
-    name: z.string().optional(),
-  })
-  .transform((x) => ({
-    ...x,
-    is_online: !!x.last_athena_ping && x.last_athena_ping >= Math.floor(Date.now() / 1000) - 120,
-    name: x.name || x.alias || getDeviceName(x),
-  }))
+    prime_data: z.boolean(),
+    nav: z.boolean().optional(),
+  }),
+  ignore_uploads: z.boolean().nullable(),
+  is_paired: z.boolean(),
+  is_owner: z.boolean(),
+  last_athena_ping: z.number(),
+  // ...
+  openpilot_version: z.string().nullable(),
+  prime: z.boolean(),
+  prime_type: z.number(),
+  public_key: z.string(),
+  serial: z.string(),
+  sim_id: z.string(),
+  sim_type: z.number(),
+  trial_claimed: z.boolean(),
+})
+export const isDeviceOnline = (device: Device) =>
+  !!device.last_athena_ping && device.last_athena_ping >= Math.floor(Date.now() / 1000) - 120
+export const getDeviceName = (device: Device) => device.alias || getCommaName(device)
 
 export const DrivingStatisticsAggregation = z.object({
   distance: z.number(),

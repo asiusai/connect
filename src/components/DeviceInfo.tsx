@@ -5,7 +5,7 @@ import { Icon } from '../components/material/Icon'
 import { DeviceLocation } from '../components/DeviceLocation'
 
 import { Loading } from './material/Loading'
-import { Device, getDeviceName } from '../types'
+import { Device, getCommaName, getDeviceName } from '../types'
 import { formatDistance, formatDuration } from '../utils/format'
 import { useEffect, useRef, useState } from 'react'
 import { useDevice, useDevices, useProfile, useRoutes, useStats } from '../api/queries'
@@ -64,10 +64,10 @@ const DeviceList = ({ close }: { close: () => void }) => {
             onClick={() => onSelect(device)}
           >
             <div className="flex flex-col z-10">
-              <span className="text-title-sm font-bold">{device.name || 'Unnamed Device'}</span>
+              <span className="text-title-sm font-bold">{getDeviceName(device)}</span>
               <Active device={device} />
             </div>
-            <div>{getDeviceName(device)}</div>
+            <div>{getCommaName(device)}</div>
           </div>
         ))}
 
@@ -323,7 +323,7 @@ export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
           <div className="flex justify-between items-start w-full">
             <div className="flex flex-col">
               <div className="flex items-center gap-2 cursor-pointer" onClick={() => setOpen(true)}>
-                <h1 className="text-headline-sm font-bold">{device.name || 'connect'}</h1>
+                <h1 className="text-headline-sm font-bold">{getDeviceName(device)}</h1>
                 <Icon name="keyboard_arrow_down" className="drop-shadow-md" />
               </div>
               <div className="flex items-center gap-3 text-label-md font-medium drop-shadow-md opacity-90">
