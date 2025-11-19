@@ -59,7 +59,7 @@ const Processed = ({ type, file, namePrefix }: { namePrefix: string; type: FileT
   if (type === 'logs') return null
   return (
     <IconButton
-      name="camera"
+      name="movie"
       loading={progress}
       onClick={async () => {
         setProgress(0)
@@ -103,7 +103,7 @@ const CombineVideos = ({ type, files, route }: { type: FileType; files: Files; r
 
   return (
     <IconButton
-      name="camera"
+      name="movie"
       loading={loading}
       disabled={disabled || loading !== undefined}
       onClick={async () => {
