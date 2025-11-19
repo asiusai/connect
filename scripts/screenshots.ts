@@ -5,6 +5,7 @@ const baseUrl = process.argv[2]
 const outDir = process.argv[3] || 'screenshots'
 const endpoints = {
   Login: 'login',
+  Pair: 'pair',
   Home: '1d3dc3e03047b0c7',
   Routes: '1d3dc3e03047b0c7/routes',
   Route: '1d3dc3e03047b0c7/routes/000000dd--455f14369d',

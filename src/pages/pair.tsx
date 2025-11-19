@@ -9,12 +9,10 @@ import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useDevices } from '../api/queries'
 import { api } from '../api'
-import { useDrawerContext } from '../components/material/Drawer'
 
 const Scanning = () => {
   let videoRef = useRef<HTMLVideoElement>(null)
   const navigate = useNavigate()
-  const { setOpen } = useDrawerContext()
 
   useEffect(() => {
     if (!videoRef.current) return
@@ -35,9 +33,7 @@ const Scanning = () => {
 
   return (
     <div id="video-container" className="flex flex-col gap-4">
-      <TopAppBar leading={<IconButton name="menu" onClick={() => setOpen(true)} />} trailing={<IconButton name="close" href="/" />}>
-        Add new device
-      </TopAppBar>
+      <TopAppBar trailing={<IconButton name="close" href="/" />}>Add new device</TopAppBar>
       <video className="w-full h-[500px]" ref={videoRef} />
       <h2 className="px-8 text-center text-md">Use the viewfinder to scan the QR code on your device</h2>
     </div>

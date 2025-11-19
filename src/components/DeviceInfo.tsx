@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 
-import { useDrawerContext } from '../components/material/Drawer'
 import { ButtonBase } from '../components/material/ButtonBase'
 import { Icon } from '../components/material/Icon'
 import { DeviceLocation } from '../components/DeviceLocation'
@@ -146,9 +145,8 @@ const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-400' : valu
 
 const Top = ({ device }: { device: Device }) => {
   const dongleId = useDongleId()
-  const { modal, setOpen } = useDrawerContext()
   const [battery, setBattery] = useState<number>()
-
+  const [open, setOpen] = useState(false)
   useEffect(() => {
     callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
       setBattery(x ? x.peripheralState.voltage / 1000 : undefined),
@@ -157,11 +155,11 @@ const Top = ({ device }: { device: Device }) => {
 
   return (
     <div className="inset-x-0 top-0 flex items-center justify-between px-6 py-6 text-white absolute z-[999]">
-      <div className="flex items-center gap-3" onClick={() => setOpen(true)}>
+      <div className="flex items-center gap-3">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2 cursor-pointer">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setOpen(true)}>
             <h1 className="text-headline-sm font-bold drop-shadow-md">{device.name || 'connect'}</h1>
-            {modal && <Icon name="keyboard_arrow_down" className="drop-shadow-md" />}
+            <Icon name="keyboard_arrow_down" className="drop-shadow-md" />
           </div>
           <div className="flex items-center gap-3 text-label-md font-medium drop-shadow-md opacity-90">
             <p className={clsx(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70')}>
