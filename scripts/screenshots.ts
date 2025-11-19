@@ -5,9 +5,11 @@ const baseUrl = process.argv[2]
 const outDir = process.argv[3] || 'screenshots'
 const endpoints = {
   Login: 'login',
-  RouteList: '1d3dc3e03047b0c7',
-  RouteActivity: '1d3dc3e03047b0c7/000000dd--455f14369d',
-  SettingsActivity: '1d3dc3e03047b0c7/settings',
+  Home: '1d3dc3e03047b0c7',
+  Routes: '1d3dc3e03047b0c7/routes',
+  Route: '1d3dc3e03047b0c7/routes/000000dd--455f14369d',
+  Settings: '1d3dc3e03047b0c7/settings',
+  Sentry: '1d3dc3e03047b0c7/sentry',
 }
 
 const takeScreenshots = async (deviceType: string, context: BrowserContext) => {
@@ -19,7 +21,7 @@ const takeScreenshots = async (deviceType: string, context: BrowserContext) => {
     console.log(`${route}-${deviceType}.playwright.png`)
 
     if (route === 'Login') {
-      await page.click("button:has-text('Try the demo')")
+      await page.click("a:has-text('Try the demo')")
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(375)
     }

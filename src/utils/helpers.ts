@@ -13,7 +13,7 @@ export const getService = () => (typeof window !== 'undefined' ? window.location
 
 type StorageKey = 'lastSelectedDongleId' | 'auth'
 export const storage = {
-  getKey: (key: StorageKey) => `connect:${key}`,
+  getKey: (key: StorageKey) => `comma:${key}`,
   getItem: (key: StorageKey): string | null => {
     if (typeof localStorage === 'undefined') return null
     return localStorage.getItem(storage.getKey(key))
