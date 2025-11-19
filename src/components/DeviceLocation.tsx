@@ -85,6 +85,8 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
     effect()
   }, [position, device.name, location])
 
+  useEffect(() => requestPosition(), [])
+
   return (
     <div className={clsx(className)}>
       <MapContainer

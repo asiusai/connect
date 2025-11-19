@@ -51,12 +51,6 @@ export const getGitHubAuthUrl = () => {
 }
 
 export const Component = () => {
-  const navigate = useNavigate()
-  const loginAsDemoUser = () => {
-    setAccessToken(DEMO_ACCESS_TOKEN)
-    navigate('/')
-  }
-
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-6">
       <div className="flex max-w-sm flex-col items-center gap-8">
@@ -97,7 +91,7 @@ export const Component = () => {
           <img src="/images/icon-comma-three-light.svg" alt="" width={32} height={32} />
         </div>
 
-        <Button onClick={loginAsDemoUser} trailing={<Icon name="chevron_right" />}>
+        <Button href="/demo" trailing={<Icon name="chevron_right" />}>
           Try the demo
         </Button>
       </div>
