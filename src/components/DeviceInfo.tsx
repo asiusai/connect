@@ -45,7 +45,7 @@ const DeviceList = ({ close }: { close: () => void }) => {
   }
 
   return (
-    <div className="flex flex-col w-full bg-surface text-on-surface animate-in slide-in-from-top-5 fade-in duration-200">
+    <div className="flex flex-col w-full bg-surface text-on-surface animate-in slide-in-from-top-5 fade-in duration-200 overflow-hidden max-h-[60vh]">
       <div className="flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-2 cursor-pointer" onClick={close}>
           <h2 className="text-headline-sm font-bold">Devices</h2>
@@ -53,19 +53,19 @@ const DeviceList = ({ close }: { close: () => void }) => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-1 px-3 pb-3 max-h-[60vh] overflow-y-auto">
+      <div className="flex flex-col gap-1 px-3 pb-3 overflow-y-auto">
         {devices?.map((device) => (
           <div
             key={device.dongle_id}
             className={clsx(
-              'flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors relative overflow-hidden',
+              'flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors shrink-0 relative overflow-hidden',
               device.dongle_id === dongleId ? 'bg-surface-container' : 'hover:bg-surface-container-low',
             )}
             onClick={() => onSelect(device)}
           >
             <div className="flex flex-col z-10">
               <span className="text-title-sm font-bold">{getDeviceName(device)}</span>
-              <Active device={device} />
+              <Active device={device} className="text-sm" />
             </div>
             <div>{getCommaName(device)}</div>
           </div>
@@ -187,9 +187,9 @@ const UserMenu = () => {
   )
 }
 
-const Active = ({ device }: { device: Device }) => {
+const Active = ({ device, className }: { device: Device; className?: string }) => {
   return (
-    <p className={clsx(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70')}>
+    <p className={clsx(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70', className)}>
       {timeAgo(device.last_athena_ping)}
     </p>
   )
