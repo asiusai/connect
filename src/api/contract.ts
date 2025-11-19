@@ -207,6 +207,22 @@ const devices = c.router({
       200: z.object({ success: z.number() }),
     },
   },
+  bootlogs: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/bootlogs',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: z.string().array(),
+    },
+  },
+  crashlogs: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/crashlogs',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: z.string().array(),
+    },
+  },
 })
 
 const athena = c.router({
