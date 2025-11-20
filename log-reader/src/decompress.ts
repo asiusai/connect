@@ -1,10 +1,10 @@
-import { streamReader } from './reader'
+import { StreamReader, StreamReaderOptions } from './reader'
 import { StreamSelector } from './stream-selector'
 import { PassThrough } from 'stream'
 import fs from 'fs'
 
-export const Reader = (inputStream: fs.ReadStream, options = {}) => {
-  var selectorStream = StreamSelector({
+export const Reader = (inputStream: fs.ReadStream, options?: StreamReaderOptions) => {
+  const selectorStream = new StreamSelector({
     minBuffer: 6,
     selector: () => new PassThrough(),
   })
@@ -14,5 +14,5 @@ export const Reader = (inputStream: fs.ReadStream, options = {}) => {
   })
   inputStream.pipe(selectorStream)
 
-  return streamReader(selectorStream, options)
+  return StreamReader(selectorStream, options)
 }

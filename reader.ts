@@ -5,8 +5,8 @@ const readStream = fs.createReadStream('qlog')
 const reader = Reader(readStream)
 
 const set = new Set<string>()
-await reader((obj: any) => {
-  if (!obj.Valid) return
+reader((obj: any) => {
+  if (obj.Valid !== true) return
   for (const key of Object.keys(obj)) {
     if (key === 'Valid' || key === 'LogMonoTime') continue
     if (set.has(key)) continue

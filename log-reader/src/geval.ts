@@ -11,7 +11,7 @@ export const Event = () => {
   const listeners: ListItem[] = []
 
   const broadcast = (value: Message) => {
-    var listenersCopy = listeners.slice()
+    let listenersCopy = listeners.slice()
     for (let i = 0; i < listenersCopy.length; i++) {
       if (!listenersCopy[i].deleted) {
         listenersCopy[i].fn(value)

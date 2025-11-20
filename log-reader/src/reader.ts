@@ -1,23 +1,22 @@
 import { CapnpStream } from './stream'
 import { Event as EventWrapper } from './event'
 import { Event } from './geval'
+import { StreamSelector } from './stream-selector'
 
-export const streamReader = (inputStream, options = {}) => {
+export type StreamReaderOptions = {
+  isBinary?: boolean
+}
+export const StreamReader = (inputStream: StreamSelector, options: StreamReaderOptions = {}) => {
   const event = Event()
   const capnpStream = new CapnpStream()
-  const isBinary = !!options.binary
-
-  var isStarted = false
+  let isStarted = false
 
   capnpStream.on('message', (buf) => {
-    if (!isBinary) {
-      event.broadcast(EventWrapper(buf).toJSON())
-    } else {
-      event.broadcast(buf)
-    }
+    if (!options.isBinary) event.broadcast(EventWrapper(buf).toJSON())
+    else event.broadcast(buf)
   })
 
-  return (fn) => {
+  return (fn: any) => {
     if (!isStarted) {
       isStarted = true
       inputStream.pipe(capnpStream)
