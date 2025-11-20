@@ -51,3 +51,7 @@ output/
 __pycache__/
 screenshots/
 openpilot/
+qlog
+rlog
+qlog.zst
+rlog.zst
