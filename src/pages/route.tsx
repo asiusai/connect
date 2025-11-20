@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
 import { api } from '../api'
 import { Route } from '../types'
+import { Copy } from '../components/Copy'
 
 const useIsPreserved = (route: Route) => {
   const [preserved] = usePreservedRoutes(route.dongle_id)
@@ -84,6 +85,10 @@ export const Component = () => {
         <div className="flex flex-col">
           <RouteVideoPlayer playerRef={playerRef} route={route} />
           <Timeline playerRef={playerRef} className="mb-1" route={route} events={events} />
+        </div>
+        <div className="bg-surface-container text-sm p-3 rounded-md flex items-center justify-between">
+          {routeName.replace('|', '/')}
+          <Copy value={routeName.replace('|', '/')} />
         </div>
 
         <div className="flex flex-col gap-2  rounded-md overflow-hidden bg-surface-container">

@@ -45,16 +45,15 @@ const RouteCard = ({ route }: { route: Route }) => {
     >
       <div className="flex flex-col gap-3 p-4 pl-5">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <span className="text-lg font-semibold tracking-tight">{startTime.format('h:mm A')}</span>
             <span className="text-on-surface-variant/50">→</span>
-            <span className="text-lg font-medium text-on-surface-variant">{endTime.format('h:mm A')}</span>
+            <span className="text- font-medium text-on-surface-variant">{endTime.format('h:mm A')}</span>
+            <Icon name="location_on" className="text-[18px] text-on-surface-variant" />
+            <span className="text-base font-medium leading-snug text-on-surface-variant">{location || 'Loading...'}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-on-surface-variant">
-            <Icon name="location_on" className="text-[18px]" />
-            <span className="text-base font-medium leading-snug">{location || 'Loading...'}</span>
-          </div>
+          <Icon name={route.is_public ? 'public' : 'public_off'} />
         </div>
 
         <RouteStatisticsBar route={route} />

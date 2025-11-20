@@ -209,7 +209,7 @@ const SegmentGrid = ({
           if (files[type].find((path) => path.includes(key))) count++
         }
         const status = count === 4 ? 'full' : count > 0 ? 'partial' : 'empty'
-        const bgClass = status === 'full' ? 'bg-green-900' : status === 'partial' ? 'bg-yellow-900' : 'bg-gray-800'
+        const bgClass = status === 'full' ? 'bg-green-900' : status === 'partial' ? 'bg-yellow-900' : 'bg-red-800'
 
         return (
           <div
