@@ -71,8 +71,6 @@
     "@commaai/capnp-json": "^0.8.1",
     "ap": "^0.2.0",
     "capnp-ts": "^0.4.0",
-    "file-type": "^7.6.0",
-    "geval": "^2.2.0",
     "stream-selector": "^0.4.0",
     "through2": "^2.0.3"
   },

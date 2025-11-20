@@ -1,12 +1,6 @@
-const through2 = require('through2')
+import through2 from 'through2'
 
-module.exports = StreamSelector
-
-function StreamSelector(options) {
-  if (!(this instanceof StreamSelector)) {
-    return new StreamSelector(options)
-  }
-
+export const StreamSelector = (options) => {
   var curBuffer = null
   var destinationStream = null
   var isDeciding = false

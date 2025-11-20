@@ -1,11 +1,8 @@
-const CapnpStream = require('./stream')
-const EventWrapper = require('./event')
-const Event = require('geval/event')
+import { CapnpStream } from './stream'
+import { Event as EventWrapper } from './event'
+import { Event } from './geval'
 
-module.exports = streamReader
-
-function streamReader(inputStream, options) {
-  options = options || {}
+export const streamReader = (inputStream, options = {}) => {
   const event = Event()
   const capnpStream = new CapnpStream()
   const isBinary = !!options.binary
@@ -14,15 +11,13 @@ function streamReader(inputStream, options) {
 
   capnpStream.on('message', (buf) => {
     if (!isBinary) {
-      event.broadcast(new EventWrapper(buf).toJSON())
+      event.broadcast(EventWrapper(buf).toJSON())
     } else {
       event.broadcast(buf)
     }
   })
 
-  return pipeAndListen
-
-  function pipeAndListen(fn) {
+  return (fn) => {
     if (!isStarted) {
       isStarted = true
       inputStream.pipe(capnpStream)
