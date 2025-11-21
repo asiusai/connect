@@ -50,7 +50,7 @@ out/
 output/
 __pycache__/
 screenshots/
-openpilot/
+/openpilot
 qlog
 rlog
 qlog.zst
