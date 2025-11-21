@@ -74,6 +74,10 @@ const router = createBrowserRouter([
             lazy: () => import('./pages/route'),
           },
           {
+            path: 'routes/:date/logs',
+            lazy: () => import('./pages/logs'),
+          },
+          {
             path: 'sentry',
             lazy: () => import('./pages/sentry'),
           },

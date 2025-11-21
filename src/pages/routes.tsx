@@ -12,7 +12,7 @@ import { TopAppBar } from '../components/material/TopAppBar'
 import { IconButton } from '../components/material/IconButton'
 import { api } from '../api'
 import { Button } from '../components/material/Button'
-import { useDongleId } from '../utils/hooks'
+import { useParams } from '../utils/hooks'
 import { getPlaceName } from '../utils/map'
 import { usePreservedRoutes } from '../api/queries'
 import { Toggle } from '../components/material/Toggle'
@@ -72,7 +72,7 @@ const getDayHeader = (route: Route) => {
 }
 
 export const Component = () => {
-  const dongleId = useDongleId()
+  const { dongleId } = useParams()
   const [preserved] = usePreservedRoutes(dongleId)
   const query = api.routes.allRoutes.useInfiniteQuery({
     queryKey: ['allRoutes', dongleId],

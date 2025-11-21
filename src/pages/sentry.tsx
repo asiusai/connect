@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { IconButton } from '../components/material/IconButton'
 import { TopAppBar } from '../components/material/TopAppBar'
-import { useDongleId } from '../utils/hooks'
+import { useParams } from '../utils/hooks'
 import { callAthena } from '../api/athena'
 import { toast } from 'sonner'
 import { useSearchParams } from 'react-router-dom'
@@ -12,7 +12,7 @@ import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
 
 export const Component = () => {
-  const dongleId = useDongleId()
+  const { dongleId } = useParams()
   const [images, setImages] = useState<string[]>()
   const [params] = useSearchParams()
   const instant = params.get('instant')

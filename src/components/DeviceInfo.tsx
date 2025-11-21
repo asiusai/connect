@@ -10,7 +10,7 @@ import { formatDistance, formatDuration } from '../utils/format'
 import { useEffect, useRef, useState } from 'react'
 import { useDevice, useDevices, useProfile, useRoutes, useStats } from '../api/queries'
 import { storage } from '../utils/helpers'
-import { useDongleId } from '../utils/hooks'
+import { useParams } from '../utils/hooks'
 import { callAthena } from '../api/athena'
 import { useNavigate } from 'react-router-dom'
 import { Toggle } from './material/Toggle'
@@ -36,7 +36,7 @@ const timeAgo = (time: number): string => {
 const DeviceList = ({ close }: { close: () => void }) => {
   const [devices] = useDevices()
   const navigate = useNavigate()
-  const dongleId = useDongleId()
+  const { dongleId } = useParams()
 
   const onSelect = (device: Device) => {
     close()
@@ -196,7 +196,7 @@ const Active = ({ device, className }: { device: Device; className?: string }) =
 }
 
 const ActionBar = () => {
-  const dongleId = useDongleId()
+  const { dongleId } = useParams()
   const icons = [
     { name: 'power_settings_new', label: 'Shutdown' },
     { name: 'home', label: 'Home' },
@@ -293,7 +293,8 @@ const Info = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-export const DeviceInfo = ({ dongleId }: { dongleId: string }) => {
+export const DeviceInfo = () => {
+  const { dongleId } = useParams()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [device] = useDevice(dongleId)
 

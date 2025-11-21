@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams as useParamsRouter } from 'react-router-dom'
 
 type Dimensions = { width: number; height: number }
 const getDimensions = (): Dimensions =>
@@ -16,4 +16,13 @@ export const useDimensions = (): Dimensions => {
   return dimensions
 }
 
-export const useDongleId = () => useParams().dongleId!
+export const useParams = () => {
+  const { dongleId, date } = useParamsRouter()
+  return { dongleId: dongleId!, date: date!, routeName: `${dongleId}|${date}` }
+}
+
+export const useAsyncEffect = (fn: () => Promise<any>, args: any[]) => {
+  useEffect(() => {
+    fn()
+  }, args)
+}

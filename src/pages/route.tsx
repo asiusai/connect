@@ -5,7 +5,6 @@ import { TopAppBar } from '../components/material/TopAppBar'
 import { RouteStaticMap } from '../components/RouteStaticMap'
 import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import { RouteFiles } from '../components/RouteFiles'
-import { useParams } from 'react-router-dom'
 import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
 import { usePreservedRoutes, useRoute } from '../api/queries'
 import { Timeline } from '../components/Timeline'
@@ -15,6 +14,7 @@ import { PlayerRef } from '@remotion/player'
 import { api } from '../api'
 import { Route } from '../types'
 import { Copy } from '../components/Copy'
+import { useParams } from '../utils/hooks'
 
 const useIsPreserved = (route: Route) => {
   const [preserved] = usePreservedRoutes(route.dongle_id)
@@ -65,9 +65,8 @@ const Top = ({ route }: { route: Route }) => {
 // TODO: get start and end time from URL
 export const Component = () => {
   const playerRef = useRef<PlayerRef>(null)
-  const { dongleId, date } = useParams()
+  const { routeName } = useParams()
 
-  const routeName = `${dongleId}|${date}`
   const [route] = useRoute(routeName)
   const [events, setEvents] = useState<TimelineEvent[]>([])
 

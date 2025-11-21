@@ -9,6 +9,7 @@ import { IconButton } from './material/IconButton'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
 import { getRouteDuration } from '../utils/format'
+import { useParams } from '../utils/hooks'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
@@ -79,13 +80,16 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Files;
 }
 
 const FullRouteDownload = ({ type, files, route }: { type: FileType; files: Files; route: Route }) => {
+  const { dongleId, date } = useParams()
   const [progress, setProgress] = useState<Record<number, number>>({})
   const totalSegments = route.maxqlog + 1
 
-  if (type === 'logs' || files[type].length !== totalSegments) return null
-
   const values = Object.values(progress)
   const loading = values.length ? values.reduce((a, b) => a + b, 0) / values.length : undefined
+
+  if (files[type].length !== totalSegments) return null
+
+  if (type === 'logs') return <IconButton name="file_json" href={`/${dongleId}/routes/${date}/logs`} />
 
   return (
     <IconButton
@@ -105,16 +109,20 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
   )
 }
 
-const DownloadSegment = ({ type, files, routeName, segment }: { segment: number; type: FileType; files: Files; routeName: string }) => {
+const DownloadSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
+  const { routeName } = useParams()
   const file = files[type].find((x) => x.includes(`/${segment}/${FILE_NAMES[type]}`))
   if (!file) return null
   return <IconButton name="raw_on" href={file} download={`${routeName}--${segment}--${FILE_NAMES[type]}`} />
 }
 
-const ProcessSegment = ({ type, files, routeName, segment }: { segment: number; type: FileType; files: Files; routeName: string }) => {
+const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
+  const { dongleId, date, routeName } = useParams()
   const file = files[type].find((x) => x.includes(`/${segment}/${FILE_NAMES[type]}`))
   const [progress, setProgress] = useState<number>()
-  if (type === 'logs' || !file) return null
+
+  if (!file) return null
+  if (type === 'logs') return <IconButton name="file_json" href={`/${dongleId}/routes/${date}/logs?segment=${segment}`} />
   return (
     <IconButton
       name="movie"
@@ -144,8 +152,8 @@ const SegmentDetails = ({ segment, files, route }: { segment: number; files: Fil
                 <FullRouteDownload type={type} files={files} route={route} />
               ) : (
                 <>
-                  <DownloadSegment type={type} files={files} segment={segment} routeName={route.fullname} />
-                  <ProcessSegment type={type} files={files} segment={segment} routeName={route.fullname} />
+                  <DownloadSegment type={type} files={files} segment={segment} />
+                  <ProcessSegment type={type} files={files} segment={segment} />
                 </>
               )}
             </div>

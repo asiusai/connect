@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { Outlet, useLocation } from 'react-router-dom'
 import { DeviceInfo } from '../components/DeviceInfo'
-import { useDongleId } from '../utils/hooks'
+import { useParams } from '../utils/hooks'
 
 export const parseRouteId = (pathname: string) => {
   const parts = pathname.split('/').slice(1).filter(Boolean)
@@ -16,7 +16,6 @@ export const parseRouteId = (pathname: string) => {
 }
 
 export const Component = () => {
-  const dongleId = useDongleId()
   const location = useLocation()
   const isSubpageOpen = location.pathname.split('/').filter(Boolean).length > 1
 
@@ -30,7 +29,7 @@ export const Component = () => {
           isSubpageOpen ? '-translate-x-full md:translate-x-0 md:grid md:grid-cols-2' : 'translate-x-0',
         )}
       >
-        <DeviceInfo dongleId={dongleId} />
+        <DeviceInfo />
         {isSubpageOpen && (
           <div className="min-w-full overflow-y-scroll relative h-screen">
             <Outlet />

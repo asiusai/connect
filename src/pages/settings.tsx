@@ -12,7 +12,7 @@ import { ReactNode, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useDevice, useDevices, usePortal, useStripeSession, useSubscribeInfo, useSubscription, useUsers } from '../api/queries'
-import { useDongleId } from '../utils/hooks'
+import { useParams } from '../utils/hooks'
 import { TextField } from '../components/material/TextField'
 
 type PlanProps = {
@@ -63,7 +63,9 @@ const PlanSelector = ({
   )
 }
 
-const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
+const PrimeCheckout = () => {
+  const { dongleId } = useParams()
+
   const [selectedPlan, setSelectedPlan] = useState<PrimePlan | undefined>()
   const [device] = useDevice(dongleId)
 
@@ -199,7 +201,9 @@ const PrimeCheckout = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-const PrimeManage = ({ dongleId }: { dongleId: string }) => {
+const PrimeManage = () => {
+  const { dongleId } = useParams()
+
   const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
   const [stripeSession] = useStripeSession(dongleId, stripeSessionId)
 
@@ -303,7 +307,9 @@ const PrimeManage = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-const UserManagement = ({ dongleId }: { dongleId: string }) => {
+const UserManagement = () => {
+  const { dongleId } = useParams()
+
   const [users, { refetch }] = useUsers(dongleId)
   const addUser = api.devices.addUser.useMutation({
     onSuccess: () => {
@@ -380,7 +386,8 @@ const UserManagement = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-const DeviceSettingsForm = ({ dongleId }: { dongleId: string }) => {
+const DeviceSettingsForm = () => {
+  const { dongleId } = useParams()
   const navigate = useNavigate()
   const [device, { refetch }] = useDevice(dongleId)
   const [_, devices] = useDevices()
@@ -428,7 +435,7 @@ const DeviceSettingsForm = ({ dongleId }: { dongleId: string }) => {
 }
 
 export const Component = () => {
-  const dongleId = useDongleId()
+  const { dongleId } = useParams()
   const [device] = useDevice(dongleId)
 
   if (!device) return null
@@ -438,16 +445,16 @@ export const Component = () => {
         Device Settings
       </TopAppBar>
       <div className="flex flex-col gap-4 px-4 w-full">
-        <DeviceSettingsForm dongleId={dongleId} />
+        <DeviceSettingsForm />
 
         <hr className="mx-4 opacity-20" />
 
-        <UserManagement dongleId={dongleId} />
+        <UserManagement />
 
         <hr className="mx-4 opacity-20" />
 
         <h2 className="text-lg">comma prime</h2>
-        {!device.prime ? <PrimeCheckout dongleId={dongleId} /> : <PrimeManage dongleId={dongleId} />}
+        {!device.prime ? <PrimeCheckout /> : <PrimeManage />}
       </div>
     </>
   )

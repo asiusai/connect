@@ -257,3 +257,7 @@
   -ms-overflow-style: none; /* IE/Edge */
   scrollbar-width: none; /* Firefox */
 }
+
+select {
+  @apply bg-transparent rounded-md p-2;
+}

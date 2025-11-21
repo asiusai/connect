@@ -15,7 +15,6 @@
         "@ts-rest/core": "3.53.0-rc.1",
         "@ts-rest/react-query": "3.53.0-rc.1",
         "@types/react-dom": "19.2.0",
-        "@types/through2": "^2.0.41",
         "@vitejs/plugin-react": "^5.1.0",
         "capnp-ts": "^0.7.0",
         "clsx": "^2.1.1",
@@ -593,8 +592,6 @@
     "@types/react-dom": ["@types/react-dom@19.2.0", "", { "peerDependencies": { "@types/react": "^19.2.0" } }, "sha512-brtBs0MnE9SMx7px208g39lRmC5uHZs96caOJfTjFcYSLHNamvaSMfJNagChVNkup2SdtOxKX1FDBkRSJe1ZAg=="],
 
     "@types/resolve": ["@types/resolve@1.20.2", "", {}, "sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q=="],
-
-    "@types/through2": ["@types/through2@2.0.41", "", { "dependencies": { "@types/node": "*" } }, "sha512-ryQ0tidWkb1O1JuYvWKyMLYEtOWDqF5mHerJzKz/gQpoAaJq2l/dsMPBF0B5BNVT34rbARYJ5/tsZwLfUi2kwQ=="],
 
     "@types/trusted-types": ["@types/trusted-types@2.0.7", "", {}, "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw=="],
 
