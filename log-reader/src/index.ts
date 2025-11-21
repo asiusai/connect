@@ -1,277 +1,183 @@
-import fs from 'fs'
-import capnp from 'capnp-ts'
-import { Transform, Writable, PassThrough } from 'stream'
-import * as Log from '../capnp/log.capnp'
+import * as capnp from 'capnp-ts'
+import * as Log from '../capnp/log.capnp' // Adjust path as needed
 
-const assignGetter = (data: any, name: string, capnpObject: any, method: any) => {
-  Object.defineProperty(data, name, {
-    enumerable: true,
-    configurable: true,
-    get: () => {
-      let value = capnpObject[method]()
-      switch (value.constructor.name) {
-        case 'Uint64':
-        case 'Int64':
-          // just tostring all 64 bit ints
-          value = value.toString()
-          break
-        case 'Data':
-          value = Buffer.from(value.toUint8Array()).toString('base64')
-          break
-        case 'Pointer':
-          try {
-            let dataArr = capnp.Data.fromPointer(value).toUint8Array()
-            if (dataArr[dataArr.length - 1] === 0) {
-              // exclude null terminator if present
-              dataArr = dataArr.subarray(0, dataArr.length - 1)
-            }
-            value = new TextDecoder().decode(dataArr)
-          } catch (err) {
-            value = undefined
-          }
-          break
-        default:
-          value = toJSON(value)
-          break
-      }
-      Object.defineProperty(data, name, {
-        configurable: false,
-        writable: false,
-        value: value,
-      })
-      return value
-    },
-  })
+// --- types ---
+
+type CapnpValue = {
+  which?: () => number
+  [key: string]: any
 }
-const readSize = (buf: Buffer, offset: number = 0) => {
-  if (offset + 8 >= buf.byteLength) return null
 
-  const segments = buf.readUInt32LE(offset) + 1
+type CapnpStructClass = {
+  _capnp: { displayName: string }
+  [key: string]: any
+}
 
-  let localIndex = 0
-  const sizeArr = []
-  for (let i = 0; i < segments; ++i) {
-    localIndex += 4
-    const segSize = buf.readUInt32LE(offset + localIndex)
-    sizeArr.push(segSize * 8)
+// --- Helpers ---
+
+/**
+ * Converts a Cap'n Proto object to a plain JSON object with lazy getters.
+ * Replaces Node Buffer logic with Uint8Array/TextDecoder.
+ */
+const toJSON = (capnpObject: any, struct?: CapnpStructClass): any => {
+  if (typeof capnpObject !== 'object' || !capnpObject._capnp) return capnpObject
+  if (Array.isArray(capnpObject)) return capnpObject.map((x) => toJSON(x))
+  if (capnpObject.constructor._capnp.displayName.startsWith('List')) {
+    return capnpObject.toArray().map((n: any) => toJSON(n))
   }
 
-  let size = sizeArr.reduce((memo, val) => memo + val, localIndex)
+  if (!struct) struct = capnpObject.constructor as CapnpStructClass
 
-  // round size to the word boundary, that reduce statement already took into account header size
-  size += 8 - (size % 8)
-
-  return size
-}
-
-const toJSON = (capnpObject?: any, struct?: any): any => {
-  if (typeof capnpObject !== 'object' || !capnpObject._capnp) return capnpObject
-  if (Array.isArray(capnpObject)) return capnpObject.map(toJSON)
-
-  if (!struct) struct = capnpObject.constructor
-
-  let which = capnpObject.which ? capnpObject.which() : -1
-  let unionCapsName = null
-  let unionName = null
-
-  if (capnpObject.constructor._capnp.displayName.startsWith('List')) return capnpObject.toArray().map((n: any) => toJSON(n))
-
-  let data = {}
-
+  const which = capnpObject.which ? capnpObject.which() : -1
+  const data: Record<string, any> = {}
   const proto = Object.getPrototypeOf(capnpObject)
+
   Object.getOwnPropertyNames(proto).forEach((method) => {
     if (!method.startsWith('get')) return
-    let name = method.substr(3)
+    const name = method.substr(3)
     let capsName = ''
     let wasLower = false
 
-    for (let i = 0, len = name.length; i < len; ++i) {
+    // Convert camelCase to CAPS_CASE to find the union index in the struct
+    for (let i = 0; i < name.length; ++i) {
       if (name[i].toLowerCase() !== name[i]) {
         if (wasLower) capsName += '_'
-
         wasLower = false
       } else wasLower = true
       capsName += name[i].toUpperCase()
     }
 
-    if (which === struct[capsName]) {
-      assignGetter(data, name, capnpObject, method)
-      unionName = name
-      unionCapsName = capsName
-    } else if (struct[capsName] === undefined) assignGetter(data, name, capnpObject, method)
+    // Union handling: only access if it matches the active union field
+    if (which !== -1 && struct![capsName] !== undefined && which !== struct![capsName]) {
+      return
+    }
+
+    // Define lazy getter
+    Object.defineProperty(data, name, {
+      enumerable: true,
+      configurable: true,
+      get: () => {
+        let value = capnpObject[method]()
+
+        // Handle primitive/special types
+        if (value?.constructor) {
+          const typeName = value.constructor.name
+          if (typeName === 'Uint64' || typeName === 'Int64') {
+            value = value.toString()
+          } else if (typeName === 'Data') {
+            // Capnp Data -> Base64 String
+            const uint8 = value.toUint8Array()
+            let binary = ''
+            const len = uint8.byteLength
+            for (let i = 0; i < len; i++) binary += String.fromCharCode(uint8[i])
+            value = btoa(binary)
+          } else if (typeName === 'Pointer') {
+            // Text handling
+            try {
+              let dataArr = capnp.Data.fromPointer(value).toUint8Array()
+              if (dataArr.byteLength > 0 && dataArr[dataArr.byteLength - 1] === 0) {
+                dataArr = dataArr.subarray(0, dataArr.byteLength - 1)
+              }
+              value = new TextDecoder().decode(dataArr)
+            } catch {
+              value = undefined
+            }
+          } else {
+            // Recursion for structs
+            value = toJSON(value)
+          }
+        }
+
+        // Cache the result
+        Object.defineProperty(data, name, {
+          configurable: false,
+          writable: false,
+          value: value,
+        })
+        return value
+      },
+    })
   })
 
   return data
 }
 
-type Message = any
+/**
+ * Calculates the full size of a Cap'n Proto message (header + body)
+ * based on the buffer at offset 0.
+ */
+const getMessageSize = (view: DataView): number | null => {
+  if (view.byteLength < 8) return null
 
-class ListItem {
-  constructor(
-    public fn: (v: Message) => void,
-    public deleted = false,
-  ) {}
-}
+  // Segment count is the first 4 bytes (little endian) + 1
+  const segmentCount = view.getUint32(0, true) + 1
 
-const Event = () => {
-  const listeners: ListItem[] = []
+  // Header size: 4 bytes (count) + 4 bytes per segment size
+  const headerSize = 4 + segmentCount * 4
 
-  const broadcast = (value: Message) => {
-    let listenersCopy = listeners.slice()
-    for (let i = 0; i < listenersCopy.length; i++) {
-      if (!listenersCopy[i].deleted) {
-        listenersCopy[i].fn(value)
-      }
-    }
+  // The header itself is padded to an 8-byte boundary
+  const paddedHeaderSize = headerSize + (headerSize % 8 === 0 ? 0 : 8 - (headerSize % 8))
+
+  if (view.byteLength < paddedHeaderSize) return null
+
+  // Sum up segment sizes
+  let totalBodySize = 0
+  for (let i = 0; i < segmentCount; i++) {
+    // Offset: 4 bytes (count) + i * 4 (segment sizes)
+    const segmentWords = view.getUint32(4 + i * 4, true)
+    totalBodySize += segmentWords * 8 // Convert words to bytes
   }
 
-  const listen = (listener: any) => {
-    listeners.push(new ListItem(listener))
+  return paddedHeaderSize + totalBodySize
+}
 
-    return removeListener
+// --- Main Reader Logic ---
 
-    function removeListener() {
-      for (let i = 0; i < listeners.length; i++) {
-        if (listeners[i].fn === listener) {
-          listeners[i].deleted = true
-          listeners.splice(i, 1)
-          break
+/**
+ * Reads a stream, handles buffering/framing, and yields parsed JSON objects.
+ */
+export async function* LogReader(stream: ReadableStream<Uint8Array>): AsyncGenerator<any, void, unknown> {
+  const reader = stream.getReader()
+  let buffer = new Uint8Array(0)
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      // Append new chunk to buffer
+      const temp = new Uint8Array(buffer.length + value.length)
+      temp.set(buffer)
+      temp.set(value, buffer.length)
+      buffer = temp
+
+      // Process complete messages in buffer
+      while (true) {
+        const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+        const msgSize = getMessageSize(view)
+
+        if (!msgSize || buffer.byteLength < msgSize) {
+          break // Wait for more data
         }
+
+        // Extract message bytes
+        const msgBytes = buffer.subarray(0, msgSize)
+
+        // Create Capnp Message (ensure generic copy to avoid memory issues if stream is large)
+        // We copy because capnp-ts might hold references, and we are slicing a shifting buffer.
+        const msgCopy = new Uint8Array(msgBytes)
+        const message = new capnp.Message(msgCopy, false)
+
+        // Decode and Yield
+        // Assuming 'Log.Event' is your root struct
+        const event = message.getRoot(Log.Event)
+        yield toJSON(event)
+
+        // Advance buffer
+        buffer = buffer.subarray(msgSize)
       }
     }
+  } finally {
+    reader.releaseLock()
   }
-  return { broadcast, listen }
-}
-
-type Options = {
-  minBuffer?: number
-  selector: (buf: Buffer, encoding: BufferEncoding, cb: (err: any, buf: any) => void) => Transform
-}
-class StreamSelector extends Transform {
-  constructor(public options: Options) {
-    super({})
-  }
-  curBuffer: Buffer | null = null
-  destinationStream: any = null
-  isDeciding: boolean = false
-
-  assignStream = (stream: any, encoding: BufferEncoding, self: Transform, done: () => void) => {
-    if (this.destinationStream === stream) return done()
-    this.destinationStream = stream
-
-    this.destinationStream.on('data', self.push.bind(self))
-
-    this.destinationStream.on('end', () => self.push(null))
-    this.destinationStream.on('error', (err: any) => self.emit('error', err))
-
-    if (!this.curBuffer) done()
-    else {
-      this.destinationStream.write(this.curBuffer, encoding, done)
-      this.curBuffer = null
-    }
-  }
-
-  override _flush = (cb: () => void) => {
-    if (this.destinationStream?.flush) this.destinationStream.flush(cb)
-    else if (this.destinationStream) this.destinationStream.end(cb)
-    else cb()
-  }
-
-  override _transform = (chunk: Buffer, encoding: BufferEncoding, done: () => void) => {
-    if (this.destinationStream) {
-      this.destinationStream.write(chunk, encoding, done)
-      return
-    }
-
-    if (!this.curBuffer) this.curBuffer = chunk
-    else this.curBuffer = Buffer.concat([this.curBuffer, chunk])
-
-    if (this.options.minBuffer && this.options.minBuffer > this.curBuffer.byteLength) return done()
-    if (this.isDeciding) return done()
-    if (this.curBuffer.byteLength < 1) return done()
-
-    this.isDeciding = true
-
-    let stream = this.options.selector(this.curBuffer, encoding, (err, stream) => {
-      this.isDeciding = false
-
-      if (err) return this.emit('error', err)
-      if (this.destinationStream) return this.emit('error', new Error('Cannot specific destination stream twice'))
-      if (!stream) return this.emit('error', new Error('Selector method did not return an error or a destination stream'))
-
-      this.assignStream(stream, encoding, this, done)
-    })
-
-    if (stream) {
-      this.isDeciding = false
-      this.assignStream(stream, encoding, this, done)
-    }
-  }
-}
-
-class CapnpStream extends Writable {
-  curBuffer: Buffer | null
-  constructor() {
-    super()
-    this.curBuffer = null
-  }
-  readNextMessage = () => {
-    if (!this.curBuffer) return false
-    if (this.curBuffer.byteLength < 8) {
-      return false
-    }
-    let size = readSize(this.curBuffer)
-    if (!size || size > this.curBuffer.byteLength) {
-      return false
-    }
-    this.emit('message', this.curBuffer.slice(0, size))
-    this.curBuffer = this.curBuffer.slice(size)
-
-    return true
-  }
-
-  _write = (chunk: Buffer, _: any, done: () => void) => {
-    if (!this.curBuffer) this.curBuffer = chunk
-    else if (chunk.byteLength || chunk.length) this.curBuffer = Buffer.concat([this.curBuffer, chunk])
-    while (this.readNextMessage());
-
-    done()
-  }
-}
-
-const eventToJSON = (buf: Buffer, struct?: any) => toJSON(new capnp.Message(buf, false).getRoot(Log.Event), struct)
-
-type StreamReaderOptions = { isBinary?: boolean }
-const StreamReader = (inputStream: StreamSelector, options: StreamReaderOptions = {}) => {
-  const event = Event()
-  const capnpStream = new CapnpStream()
-  let isStarted = false
-
-  capnpStream.on('message', (buf) => {
-    if (!options.isBinary) event.broadcast(eventToJSON(buf))
-    else event.broadcast(buf)
-  })
-
-  return (fn: any) => {
-    if (!isStarted) {
-      isStarted = true
-      inputStream.pipe(capnpStream)
-    }
-
-    return event.listen(fn)
-  }
-}
-
-export const Reader = (inputStream: fs.ReadStream, options?: StreamReaderOptions) => {
-  const selectorStream = new StreamSelector({
-    minBuffer: 6,
-    selector: () => new PassThrough(),
-  })
-
-  selectorStream.on('error', (err: any) => {
-    throw err
-  })
-  inputStream.pipe(selectorStream)
-
-  return StreamReader(selectorStream, options)
 }
