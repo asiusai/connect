@@ -115,7 +115,7 @@ const createZstdDecompressor = () => {
   })
 }
 
-export const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>): Promise<ReadableStream<Uint8Array>> => {
+const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>): Promise<ReadableStream<Uint8Array>> => {
   const reader = inputStream.getReader()
   const { value: firstChunk, done } = await reader.read()
 
@@ -156,6 +156,7 @@ export const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>)
 }
 
 export async function* LogReader(stream: ReadableStream<Uint8Array>): AsyncGenerator<any, void, unknown> {
+  stream = await getSmartLogStream(stream)
   const reader = stream.getReader()
   let buffer = new Uint8Array(0)
 

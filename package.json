@@ -56,7 +56,6 @@
     "@ts-rest/core": "3.53.0-rc.1",
     "@ts-rest/react-query": "3.53.0-rc.1",
     "@types/react-dom": "19.2.0",
-    "@types/through2": "^2.0.41",
     "@vitejs/plugin-react": "^5.1.0",
     "capnp-ts": "^0.7.0",
     "clsx": "^2.1.1",
