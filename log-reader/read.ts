@@ -1,4 +1,4 @@
-import { Reader } from './src/decompress'
+import { Reader } from './src/index'
 import fs from 'fs'
 
 const readStream = fs.createReadStream('rlog')
