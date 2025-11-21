@@ -1,12 +1,8 @@
 import * as capnp from 'capnp-ts'
-import * as Log from '../capnp/log.capnp' // Adjust path as needed
+import * as Log from './capnp/log.capnp'
+import { Decompress } from 'fzstd'
 
-// --- types ---
-
-type CapnpValue = {
-  which?: () => number
-  [key: string]: any
-}
+// --- Types ---
 
 type CapnpStructClass = {
   _capnp: { displayName: string }
@@ -15,10 +11,6 @@ type CapnpStructClass = {
 
 // --- Helpers ---
 
-/**
- * Converts a Cap'n Proto object to a plain JSON object with lazy getters.
- * Replaces Node Buffer logic with Uint8Array/TextDecoder.
- */
 const toJSON = (capnpObject: any, struct?: CapnpStructClass): any => {
   if (typeof capnpObject !== 'object' || !capnpObject._capnp) return capnpObject
   if (Array.isArray(capnpObject)) return capnpObject.map((x) => toJSON(x))
@@ -38,7 +30,6 @@ const toJSON = (capnpObject: any, struct?: CapnpStructClass): any => {
     let capsName = ''
     let wasLower = false
 
-    // Convert camelCase to CAPS_CASE to find the union index in the struct
     for (let i = 0; i < name.length; ++i) {
       if (name[i].toLowerCase() !== name[i]) {
         if (wasLower) capsName += '_'
@@ -47,32 +38,25 @@ const toJSON = (capnpObject: any, struct?: CapnpStructClass): any => {
       capsName += name[i].toUpperCase()
     }
 
-    // Union handling: only access if it matches the active union field
-    if (which !== -1 && struct![capsName] !== undefined && which !== struct![capsName]) {
-      return
-    }
+    if (which !== -1 && struct![capsName] !== undefined && which !== struct![capsName]) return
 
-    // Define lazy getter
     Object.defineProperty(data, name, {
       enumerable: true,
       configurable: true,
       get: () => {
         let value = capnpObject[method]()
 
-        // Handle primitive/special types
         if (value?.constructor) {
           const typeName = value.constructor.name
           if (typeName === 'Uint64' || typeName === 'Int64') {
             value = value.toString()
           } else if (typeName === 'Data') {
-            // Capnp Data -> Base64 String
             const uint8 = value.toUint8Array()
             let binary = ''
             const len = uint8.byteLength
             for (let i = 0; i < len; i++) binary += String.fromCharCode(uint8[i])
             value = btoa(binary)
           } else if (typeName === 'Pointer') {
-            // Text handling
             try {
               let dataArr = capnp.Data.fromPointer(value).toUint8Array()
               if (dataArr.byteLength > 0 && dataArr[dataArr.byteLength - 1] === 0) {
@@ -83,12 +67,10 @@ const toJSON = (capnpObject: any, struct?: CapnpStructClass): any => {
               value = undefined
             }
           } else {
-            // Recursion for structs
             value = toJSON(value)
           }
         }
 
-        // Cache the result
         Object.defineProperty(data, name, {
           configurable: false,
           writable: false,
@@ -102,40 +84,77 @@ const toJSON = (capnpObject: any, struct?: CapnpStructClass): any => {
   return data
 }
 
-/**
- * Calculates the full size of a Cap'n Proto message (header + body)
- * based on the buffer at offset 0.
- */
 const getMessageSize = (view: DataView): number | null => {
   if (view.byteLength < 8) return null
-
-  // Segment count is the first 4 bytes (little endian) + 1
   const segmentCount = view.getUint32(0, true) + 1
-
-  // Header size: 4 bytes (count) + 4 bytes per segment size
   const headerSize = 4 + segmentCount * 4
-
-  // The header itself is padded to an 8-byte boundary
   const paddedHeaderSize = headerSize + (headerSize % 8 === 0 ? 0 : 8 - (headerSize % 8))
-
   if (view.byteLength < paddedHeaderSize) return null
 
-  // Sum up segment sizes
   let totalBodySize = 0
   for (let i = 0; i < segmentCount; i++) {
-    // Offset: 4 bytes (count) + i * 4 (segment sizes)
     const segmentWords = view.getUint32(4 + i * 4, true)
-    totalBodySize += segmentWords * 8 // Convert words to bytes
+    totalBodySize += segmentWords * 8
   }
-
   return paddedHeaderSize + totalBodySize
 }
 
-// --- Main Reader Logic ---
+// --- Streaming Logic ---
 
-/**
- * Reads a stream, handles buffering/framing, and yields parsed JSON objects.
- */
+const ZSTD_MAGIC = new Uint8Array([0x28, 0xb5, 0x2f, 0xfd])
+
+const createZstdDecompressor = () => {
+  let decompressor: Decompress
+
+  return new TransformStream<Uint8Array, Uint8Array>({
+    start: (controller) => {
+      decompressor = new Decompress((chunk) => controller.enqueue(chunk))
+    },
+    transform: (chunk) => decompressor.push(chunk),
+    flush: () => decompressor.push(new Uint8Array(0), true),
+  })
+}
+
+export const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>): Promise<ReadableStream<Uint8Array>> => {
+  const reader = inputStream.getReader()
+  const { value: firstChunk, done } = await reader.read()
+
+  if (done) {
+    reader.releaseLock()
+    return new ReadableStream()
+  }
+
+  let isZstd = false
+  if (firstChunk.length >= 4) {
+    isZstd =
+      firstChunk[0] === ZSTD_MAGIC[0] &&
+      firstChunk[1] === ZSTD_MAGIC[1] &&
+      firstChunk[2] === ZSTD_MAGIC[2] &&
+      firstChunk[3] === ZSTD_MAGIC[3]
+  }
+
+  const stitchedStream = new ReadableStream<Uint8Array>({
+    start: (controller) => {
+      controller.enqueue(firstChunk)
+    },
+    pull: async (controller) => {
+      try {
+        const { value, done } = await reader.read()
+        if (done) controller.close()
+        else controller.enqueue(value)
+      } catch (e) {
+        controller.error(e)
+      }
+    },
+    cancel: (reason) => {
+      reader.cancel(reason)
+    },
+  })
+
+  if (isZstd) return stitchedStream.pipeThrough(createZstdDecompressor())
+  return stitchedStream
+}
+
 export async function* LogReader(stream: ReadableStream<Uint8Array>): AsyncGenerator<any, void, unknown> {
   const reader = stream.getReader()
   let buffer = new Uint8Array(0)
@@ -145,35 +164,23 @@ export async function* LogReader(stream: ReadableStream<Uint8Array>): AsyncGener
       const { done, value } = await reader.read()
       if (done) break
 
-      // Append new chunk to buffer
       const temp = new Uint8Array(buffer.length + value.length)
       temp.set(buffer)
       temp.set(value, buffer.length)
       buffer = temp
 
-      // Process complete messages in buffer
       while (true) {
         const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength)
         const msgSize = getMessageSize(view)
 
-        if (!msgSize || buffer.byteLength < msgSize) {
-          break // Wait for more data
-        }
+        if (!msgSize || buffer.byteLength < msgSize) break
 
-        // Extract message bytes
         const msgBytes = buffer.subarray(0, msgSize)
-
-        // Create Capnp Message (ensure generic copy to avoid memory issues if stream is large)
-        // We copy because capnp-ts might hold references, and we are slicing a shifting buffer.
         const msgCopy = new Uint8Array(msgBytes)
         const message = new capnp.Message(msgCopy, false)
-
-        // Decode and Yield
-        // Assuming 'Log.Event' is your root struct
         const event = message.getRoot(Log.Event)
         yield toJSON(event)
 
-        // Advance buffer
         buffer = buffer.subarray(msgSize)
       }
     }
