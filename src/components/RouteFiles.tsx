@@ -242,7 +242,7 @@ const format = (seconds: number) => {
   return `${min}:${sec}`
 }
 export const RouteFiles = ({ route }: { route: Route }) => {
-  const [files] = useFiles(route.fullname)
+  const [files] = useFiles(route.fullname, 10_000)
   const totalSegments = route.maxqlog + 1
   const [segment, setSegment] = useState<number>(-1) // ROUTE= -1
 

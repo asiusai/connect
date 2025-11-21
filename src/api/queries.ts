@@ -72,8 +72,8 @@ export const useSubscription = (dongleId: string) =>
 export const usePortal = (dongleId: string) =>
   w(api.prime.getPortal.useQuery({ queryKey: ['get-portal', dongleId], queryData: { query: { dongle_id: dongleId } } }))
 
-export const useFiles = (routeName: string) =>
-  w(api.file.files.useQuery({ queryKey: ['files', routeName], queryData: { params: { routeName } }, refetchInterval: 10_000 }))
+export const useFiles = (routeName: string, refetchInterval?: number) =>
+  w(api.file.files.useQuery({ queryKey: ['files', routeName], queryData: { params: { routeName } }, refetchInterval }))
 
 export const useUsers = (dongleId: string) =>
   w(api.devices.users.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))
