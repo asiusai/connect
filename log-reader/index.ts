@@ -155,35 +155,149 @@ const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>): Promi
   return stitchedStream
 }
 
+class ChunkBuffer {
+  private chunks: Uint8Array[] = []
+  private totalLength = 0
+  private offset = 0 // Offset in the first chunk
+
+  add(chunk: Uint8Array) {
+    if (chunk.length === 0) return
+    this.chunks.push(chunk)
+    this.totalLength += chunk.length
+  }
+
+  get length() {
+    return this.totalLength
+  }
+
+  // Peek at the first 'size' bytes without consuming
+  peek(size: number): Uint8Array | null {
+    if (this.totalLength < size) return null
+
+    // Optimization: if the first chunk has enough data, return a subarray view
+    if (this.chunks[0].length - this.offset >= size) {
+      return this.chunks[0].subarray(this.offset, this.offset + size)
+    }
+
+    // Otherwise, we need to stitch chunks together
+    const result = new Uint8Array(size)
+    let copied = 0
+    let currentChunkIdx = 0
+    let currentOffset = this.offset
+
+    while (copied < size) {
+      const chunk = this.chunks[currentChunkIdx]
+      const remaining = chunk.length - currentOffset
+      const toCopy = Math.min(remaining, size - copied)
+      
+      result.set(chunk.subarray(currentOffset, currentOffset + toCopy), copied)
+      
+      copied += toCopy
+      currentOffset += toCopy
+      if (currentOffset === chunk.length) {
+        currentChunkIdx++
+        currentOffset = 0
+      }
+    }
+    return result
+  }
+
+  // Consume 'size' bytes, returning them as a single Uint8Array
+  read(size: number): Uint8Array | null {
+    if (this.totalLength < size) return null
+
+    // Optimization: if the first chunk has enough data
+    if (this.chunks[0].length - this.offset >= size) {
+      const result = this.chunks[0].subarray(this.offset, this.offset + size)
+      this.offset += size
+      this.totalLength -= size
+      
+      // Cleanup empty first chunk
+      if (this.offset === this.chunks[0].length) {
+        this.chunks.shift()
+        this.offset = 0
+      }
+      return result
+    }
+
+    // Otherwise, stitch and consume
+    const result = new Uint8Array(size)
+    let copied = 0
+    
+    while (copied < size) {
+      const chunk = this.chunks[0]
+      const remaining = chunk.length - this.offset
+      const toCopy = Math.min(remaining, size - copied)
+      
+      result.set(chunk.subarray(this.offset, this.offset + toCopy), copied)
+      
+      copied += toCopy
+      this.offset += toCopy
+      this.totalLength -= toCopy
+
+      if (this.offset === chunk.length) {
+        this.chunks.shift()
+        this.offset = 0
+      }
+    }
+    return result
+  }
+}
+
 export async function* LogReader(stream: ReadableStream<Uint8Array>): AsyncGenerator<any, void, unknown> {
   stream = await getSmartLogStream(stream)
   const reader = stream.getReader()
-  let buffer = new Uint8Array(0)
+  const buffer = new ChunkBuffer()
 
   try {
     while (true) {
+      // Read loop
       const { done, value } = await reader.read()
-      if (done) break
-
-      const temp = new Uint8Array(buffer.length + value.length)
-      temp.set(buffer)
-      temp.set(value, buffer.length)
-      buffer = temp
-
+      if (value) buffer.add(value)
+      
+      // Process loop
       while (true) {
-        const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+        // We need at least 8 bytes for the header to determine size
+        // But getMessageSize handles partial headers gracefully if we pass enough data
+        // Let's peek a reasonable amount for a header (e.g. 64 bytes) or whatever we have
+        // Actually getMessageSize needs to read the segment table.
+        // The first word (4 bytes) is segment count.
+        
+        const headerPeek = buffer.peek(16) // Peek enough for basic header info
+        if (!headerPeek) break // Not enough data even for a tiny header
+
+        const view = new DataView(headerPeek.buffer, headerPeek.byteOffset, headerPeek.byteLength)
         const msgSize = getMessageSize(view)
 
-        if (!msgSize || buffer.byteLength < msgSize) break
+        if (!msgSize) {
+           // Not enough data to determine size yet
+           break
+        }
 
-        const msgBytes = buffer.subarray(0, msgSize)
-        const msgCopy = new Uint8Array(msgBytes)
-        const message = new capnp.Message(msgCopy, false)
+        if (buffer.length < msgSize) {
+          // We know the size, but don't have the full message yet
+          break
+        }
+
+        // We have the full message!
+        const msgBytes = buffer.read(msgSize)
+        if (!msgBytes) throw new Error("Unexpected buffer underflow") // Should not happen due to check above
+
+        // capnp-ts requires a copy if the buffer is a subarray of a larger buffer that might be overwritten?
+        // In our case, 'msgBytes' is either a fresh allocation (from stitching) or a subarray of a chunk.
+        // If it's a subarray, it's safe as long as we don't modify the underlying chunk (we don't).
+        // However, capnp-ts might expect a clean buffer or specific alignment.
+        // Let's try passing it directly.
+        
+        // Note: capnp.Message expects the data to be 8-byte aligned if it's a typed array? 
+        // Actually it just takes Uint8Array.
+        
+        const message = new capnp.Message(msgBytes, false)
         const event = message.getRoot(Log.Event)
         yield toJSON(event)
-
-        buffer = buffer.subarray(msgSize)
       }
+
+      if (done) break
     }
   } finally {
     reader.releaseLock()

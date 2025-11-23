@@ -113,7 +113,7 @@ export const Component = () => {
 
   const segment = Number(params.get('segment')) || 0
   const eventName = (params.get('eventName') as LogEvent) || 'DrivingModelData'
-  const limit = Number(params.get('limit')) || 100
+  const limit = Number(params.get('limit')) || 10
   const prettify = params.get('prettify') !== 'false'
 
   const [data, setData] = useState<any[]>()

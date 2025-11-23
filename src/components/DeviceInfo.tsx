@@ -153,7 +153,7 @@ const Buttons = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-400' : value < 12.5 ? 'text-yellow-400' : 'text-green-400')
+const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-400' : value < 12.4 ? 'text-yellow-400' : 'text-green-400')
 
 const UserMenu = () => {
   const [open, setOpen] = useState(false)

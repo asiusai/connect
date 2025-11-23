@@ -1,96 +1,57 @@
 import { AbsoluteFill, useCurrentFrame } from 'remotion'
 import { WIDTH, HEIGHT } from './shared'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Files } from '../src/types'
-import { LogReader } from '../log-reader'
-import { useAsyncEffect } from '../src/utils/hooks'
+import Worker from '../log-reader/worker?worker'
+import { DB } from '../src/utils/db'
 
-const intrinsics = {
-  fx: 910,
-  fy: 910,
-  cx: WIDTH / 2,
-  cy: HEIGHT / 2,
-}
+const db = new DB()
 
-const CAM_HEIGHT = 2.0
-const PATH_WIDTH = 1.8
-
-const project = (x: number, y: number, z: number) => {
-  const Xc = y
-  const Yc = -(z - CAM_HEIGHT)
-  const Zc = x
-
-  if (Zc < 0.5) return null
-
-  const u = intrinsics.fx * (Xc / Zc) + intrinsics.cx
-  const v = intrinsics.fy * (Yc / Zc) + intrinsics.cy
-
-  return { x: u, y: v }
-}
-type Point = { x: number; y: number }
-
-export const DrivingPath = ({ files }: { files: Files }) => {
+export const DrivingPath = ({ files, routeName }: { files: Files; routeName: string }) => {
   const frame = useCurrentFrame()
 
   const [data, setData] = useState<Record<string, string>>()
   const logs = files.logs
 
-  useAsyncEffect(async () => {
+  useEffect(() => {
     if (data) return
 
-    for (const url of logs) {
-      const res = await fetch(url)
-      if (!res.ok || !res.body) continue
-      const reader = LogReader(res.body)
+    const loadLogs = async () => {
+      await db.init()
+      const workers: Worker[] = []
 
-      for await (const event of reader) {
-        if ('ModelV2' in event) {
-          const { X, Y, Z } = event.ModelV2.Position
-          const leftPoints: Point[] = []
-          const rightPoints: Point[] = []
+      for (let i = 0; i < logs.length; i++) {
+        const url = logs[i]
+        const cacheKey = `${routeName}--${i}`
+        const cached = await db.get<string>(cacheKey)
 
-          for (let i = 0; i < X.length; i++) {
-            // Calculate normal
-            let dx: number, dy: number
-            if (i < X.length - 1) {
-              dx = X[i + 1] - X[i]
-              dy = Y[i + 1] - Y[i]
-            } else {
-              dx = X[i] - X[i - 1]
-              dy = Y[i] - Y[i - 1]
-            }
+        if (cached) {
+          setData((prev) => ({ ...prev, ...JSON.parse(cached) }))
+          continue
+        }
 
-            const len = Math.sqrt(dx * dx + dy * dy)
-            if (len === 0) continue
+        const worker = new Worker()
+        workers.push(worker)
 
-            const ny = dx / len
-
-            const l = project(X[i], Y[i] + ny * (PATH_WIDTH / 2), Z[i])
-            const r = project(X[i], Y[i] - ny * (PATH_WIDTH / 2), Z[i])
-
-            if (l && r) {
-              leftPoints.push(l)
-              rightPoints.push(r)
-            }
+        worker.onmessage = async (e) => {
+          const { paths, error } = e.data
+          if (paths) {
+            setData((prev) => ({ ...prev, ...paths }))
+            await db.set(cacheKey, JSON.stringify(paths))
           }
 
-          if (leftPoints.length === 0) continue
-
-          const data = `M ${leftPoints[0].x.toFixed(0)} ${leftPoints[0].y.toFixed(0)}
-    ${leftPoints.map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`).join(' ')}
-    ${rightPoints
-      .reverse()
-      .map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`)
-      .join(' ')}
-    Z`
-          setData((d) => ({ ...d, [event.ModelV2.FrameId.toFixed(0)]: data }))
+          if (error) console.error('Worker error:', error)
+          worker.terminate()
         }
+
+        worker.postMessage({ url })
       }
     }
-  }, logs)
+
+    loadLogs()
+  }, [logs, routeName]) // Only run once when logs change
 
   const d = data?.[frame.toFixed(0)]
-
   return (
     <AbsoluteFill>
       {d ? (

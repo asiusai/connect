@@ -29,11 +29,11 @@ export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> =
   }
 }
 
-export const Preview = ({ qCamUrl, files }: PreviewProps) => {
+export const Preview = ({ qCamUrl, files, routeName }: PreviewProps) => {
   return (
     <AbsoluteFill style={{}}>
       {qCamUrl && <HlsVideo src={qCamUrl} />}
-      {files && <DrivingPath files={files} />}
+      {files && <DrivingPath files={files} routeName={routeName} />}
     </AbsoluteFill>
   )
 }

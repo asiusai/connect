@@ -40,7 +40,8 @@
         "noExplicitAny": "off",
         // Tailwind makes use of custom at-rules
         "noUnknownAtRules": "off",
-        "noArrayIndexKey": "off"
+        "noArrayIndexKey": "off",
+        "useIterableCallbackReturn": "off"
       }
     }
   },
