@@ -82,7 +82,7 @@ export const Timeline = ({
   const updateMarker = (clientX: number) => {
     const rect = ref.current!.getBoundingClientRect()
     const x = Math.min(Math.max(clientX - rect.left, 0), rect.width - MARKER_WIDTH)
-    playerRef.current?.seekTo((x / rect.width) * duration * FPS)
+    playerRef.current?.seekTo(Math.floor((x / rect.width) * duration * FPS))
   }
 
   const onStart = () => {

@@ -5,10 +5,11 @@ import { Player, PlayerRef } from '@remotion/player'
 import { createQCameraStreamUrl } from '../utils/helpers'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { Preview } from '../../templates/Preview'
-import { useShareSignature } from '../api/queries'
+import { useFiles, useShareSignature } from '../api/queries'
 import { Route } from '../types'
 import { getRouteDuration } from '../utils/format'
 import { RefObject, useEffect } from 'react'
+import { useParams } from '../utils/hooks'
 
 export const RouteVideoPlayer = ({
   playerRef,
@@ -19,8 +20,9 @@ export const RouteVideoPlayer = ({
   route: Route
   className?: string
 }) => {
-  const routeName = route.fullname
+  const { routeName } = useParams()
   const [signature] = useShareSignature(routeName)
+  const [files] = useFiles(routeName)
   const duration = getRouteDuration(route)!.asSeconds()
 
   // Removing remotion player timeline
@@ -41,7 +43,11 @@ export const RouteVideoPlayer = ({
         durationInFrames={duration * FPS}
         fps={FPS}
         style={{ width: '100%' }}
-        inputProps={{ routeName, qCamUrl: signature ? createQCameraStreamUrl(routeName, signature) : undefined }}
+        inputProps={{
+          routeName,
+          qCamUrl: signature ? createQCameraStreamUrl(routeName, signature) : undefined,
+          files,
+        }}
         autoPlay
         initiallyMuted
         clickToPlay
