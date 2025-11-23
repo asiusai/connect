@@ -26,12 +26,12 @@ const FILE_NAMES = {
   qlogs: 'qlog.zst',
 }
 const FILE_LABELS = {
-  cameras: 'road',
-  ecameras: 'wide',
-  dcameras: 'driver',
-  qcameras: 'qcam',
-  logs: 'logs',
-  qlogs: 'qlogs',
+  cameras: 'Road camera',
+  ecameras: 'Wide-angle camera',
+  dcameras: 'Driver camera',
+  qcameras: 'Quantized road camera',
+  logs: 'Logs',
+  qlogs: 'Quantized logs',
 }
 
 export const uploadSegments = async (routeName: string, segments: number[], types: FileType[], files: Files) => {
@@ -145,28 +145,29 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
 }
 
 const SegmentDetails = ({ segment, files, route }: { segment: number; files: Files; route: Route }) => {
-  const isAll = segment === -1
+  const isRoute = segment === -1
 
   return (
-    <div className="grid grid-cols-4">
+    <div className="flex flex-col gap-1">
       {FileType.options.map((type) => {
         return (
-          <div key={`${type}-${segment}`} className="flex flex-col items-center gap-2">
-            <span className="uppercase text-xs font-bold mb-1">{FILE_LABELS[type]}</span>
+          <div key={`${type}-${segment}`} className="flex items-center justify-between py-1 px-2 rounded-md hover:bg-white/5 ">
+            <span className="text-sm font-medium text-gray-200">{FILE_LABELS[type]}</span>
 
-            <div className="h-8 flex gap-1 items-center justify-center">
-              {isAll ? (
-                <FullRouteDownload type={type} files={files} route={route} />
-              ) : (
-                <>
-                  <DownloadSegment type={type} files={files} segment={segment} />
-                  <ProcessSegment type={type} files={files} segment={segment} />
-                </>
-              )}
-            </div>
-
-            <div className="h-8 flex items-center justify-center">
-              <Upload type={type} files={files} route={route} segment={segment} />
+            <div className="flex gap-2 items-center">
+              <div>
+                {isRoute ? (
+                  <FullRouteDownload type={type} files={files} route={route} />
+                ) : (
+                  <>
+                    <DownloadSegment type={type} files={files} segment={segment} />
+                    <ProcessSegment type={type} files={files} segment={segment} />
+                  </>
+                )}
+              </div>
+              <div className='flex w-8'>
+                <Upload type={type} files={files} route={route} segment={segment} />
+              </div>
             </div>
           </div>
         )
@@ -192,7 +193,7 @@ const SegmentGrid = ({
 
   // Calculate FULL status
   let allStatus = 'empty'
-  let totalPossibleFiles = totalSegments * 4
+  let totalPossibleFiles = totalSegments * FileType.options.length
   let totalCurrentFiles = 0
   for (const type of FileType.options) {
     totalCurrentFiles += files[type].length
@@ -223,7 +224,7 @@ const SegmentGrid = ({
           const key = [dongleId, routeId, i, FILE_NAMES[type]].join('/')
           if (files[type].find((path) => path.includes(key))) count++
         }
-        const status = count === 4 ? 'full' : count > 0 ? 'partial' : 'empty'
+        const status = count === FileType.options.length ? 'full' : count > 0 ? 'partial' : 'empty'
         const bgClass = status === 'full' ? 'bg-green-900' : status === 'partial' ? 'bg-yellow-900' : 'bg-red-800'
 
         return (
