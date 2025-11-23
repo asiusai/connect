@@ -5,7 +5,7 @@ import { useAsyncEffect, useParams } from '../utils/hooks'
 import { TopAppBar } from '../components/material/TopAppBar'
 import { IconButton } from '../components/material/IconButton'
 import { Icon } from '../components/material/Icon'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 
 const LogEvent = z.enum([
@@ -108,6 +108,8 @@ const SyntaxHighlightedJson = ({ json }: { json: string }) => {
 export const Component = () => {
   const { routeName, dongleId, date } = useParams()
   const [params, setParams] = useSearchParams()
+  const location = useLocation()
+  const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'
 
   const segment = Number(params.get('segment')) || 0
   const eventName = (params.get('eventName') as LogEvent) || 'DrivingModelData'
@@ -116,7 +118,7 @@ export const Component = () => {
 
   const [data, setData] = useState<any[]>()
   const [files] = useFiles(routeName)
-  const url = files?.logs[segment]
+  const url = files?.[type][segment]
 
   useAsyncEffect(async () => {
     if (!url) return
@@ -132,8 +134,9 @@ export const Component = () => {
     for await (const event of reader) {
       if (!(eventName in event)) continue
       if (count >= limit) break
-
-      data.push(event[eventName])
+      console.log()
+      const LogMonoTime = Number(new BigUint64Array(event.LogMonoTime.buffer.buffer).at(0)! / 1_000_000n)
+      data.push({ LogMonoTime, ...event[eventName] })
 
       count++
     }
@@ -153,7 +156,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col h-screen bg-surface text-on-surface">
-      <TopAppBar leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}/routes/${date}`} />}>Logs</TopAppBar>
+      <TopAppBar leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}/routes/${date}`} />}>{type}</TopAppBar>
 
       {/* Top Controls Bar */}
       <div className="flex items-center gap-1 p-2 rounded-md bg-surface-container-low shrink-0 overflow-x-auto">

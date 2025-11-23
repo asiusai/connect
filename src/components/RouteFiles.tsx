@@ -1,10 +1,10 @@
 import type { Files, Route } from '../types'
 import { useState } from 'react'
-import { concatBins, parseRouteName, saveFile } from '../utils/helpers'
+import { concatBins, createQCameraStreamUrl, parseRouteName, saveFile } from '../utils/helpers'
 import { z } from 'zod'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
-import { useFiles } from '../api/queries'
+import { useFiles, useShareSignature } from '../api/queries'
 import { IconButton } from './material/IconButton'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
@@ -14,20 +14,24 @@ import { useParams } from '../utils/hooks'
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
-const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'logs'])
+const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras', 'logs', 'qlogs'])
 type FileType = z.infer<typeof FileType>
 
 const FILE_NAMES = {
-  logs: 'rlog.zst',
   cameras: 'fcamera.hevc',
-  dcameras: 'dcamera.hevc',
   ecameras: 'ecamera.hevc',
+  dcameras: 'dcamera.hevc',
+  qcameras: 'qcamera.ts',
+  logs: 'rlog.zst',
+  qlogs: 'qlog.zst',
 }
 const FILE_LABELS = {
   cameras: 'road',
   ecameras: 'wide',
   dcameras: 'driver',
+  qcameras: 'qcam',
   logs: 'logs',
+  qlogs: 'qlogs',
 }
 
 export const uploadSegments = async (routeName: string, segments: number[], types: FileType[], files: Files) => {
@@ -80,16 +84,17 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Files;
 }
 
 const FullRouteDownload = ({ type, files, route }: { type: FileType; files: Files; route: Route }) => {
-  const { dongleId, date } = useParams()
+  const { dongleId, date, routeName } = useParams()
   const [progress, setProgress] = useState<Record<number, number>>({})
   const totalSegments = route.maxqlog + 1
 
   const values = Object.values(progress)
   const loading = values.length ? values.reduce((a, b) => a + b, 0) / values.length : undefined
-
+  const [signature] = useShareSignature(routeName)
   if (files[type].length !== totalSegments) return null
 
-  if (type === 'logs') return <IconButton name="file_json" href={`/${dongleId}/routes/${date}/logs`} />
+  if (type === 'logs' || type === 'qlogs') return <IconButton name="file_json" href={`/${dongleId}/routes/${date}/${type}`} />
+  if (type === 'qcameras') return <IconButton name="raw_on" href={signature ? createQCameraStreamUrl(routeName, signature) : undefined} />
 
   return (
     <IconButton
@@ -122,7 +127,9 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
   const [progress, setProgress] = useState<number>()
 
   if (!file) return null
-  if (type === 'logs') return <IconButton name="file_json" href={`/${dongleId}/routes/${date}/logs?segment=${segment}`} />
+  if (type === 'logs' || type === 'qlogs')
+    return <IconButton name="file_json" href={`/${dongleId}/routes/${date}/${type}?segment=${segment}`} />
+  if (type === 'qcameras') return null
   return (
     <IconButton
       name="movie"
@@ -236,11 +243,13 @@ const SegmentGrid = ({
     </div>
   )
 }
+
 const format = (seconds: number) => {
   const min = Math.floor(seconds / 60)
   const sec = String(seconds % 60).padStart(2, '0')
   return `${min}:${sec}`
 }
+
 export const RouteFiles = ({ route }: { route: Route }) => {
   const [files] = useFiles(route.fullname, 10_000)
   const totalSegments = route.maxqlog + 1
