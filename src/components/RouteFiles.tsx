@@ -165,7 +165,7 @@ const SegmentDetails = ({ segment, files, route }: { segment: number; files: Fil
                   </>
                 )}
               </div>
-              <div className='flex w-8'>
+              <div className="flex w-8">
                 <Upload type={type} files={files} route={route} segment={segment} />
               </div>
             </div>
