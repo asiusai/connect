@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { FrameData } from './DrivingPath'
+import { useMemo } from 'react'
+import { DriverStateV2 } from '../log-reader/worker'
 
 // Constants
 const BTN_SIZE = 192
@@ -53,13 +53,12 @@ const DEFAULT_FACE_KPTS_3D = [
 ]
 
 type Props = {
-  driverState: NonNullable<FrameData['driverState']>
+  state: DriverStateV2
   isEngaged: boolean
 }
 
-export const DriverStateRenderer = ({ driverState, isEngaged }: Props) => {
-  const { faceOrientation, faceProb } = driverState
-  const isActive = faceProb > 0.4
+export const DriverStateRenderer = ({ state, isEngaged }: Props) => {
+  const isActive = state.FaceProb > 0.4
   // We don't have isRHD in FrameData yet, assume false or add it later.
   // For now, let's assume standard LHD or just use the data we have.
   // The python code uses isRHD to select left/right driver data, but we already have the selected data in `driverState`.
@@ -76,7 +75,7 @@ export const DriverStateRenderer = ({ driverState, isEngaged }: Props) => {
     // The python code does: 0.8 * v_this + 0.2 * self.driver_pose_vals
     // We will use raw values for "v_this" as the "current" pose.
 
-    const driver_orient = faceOrientation // [pitch, roll, yaw] ? No, check capnp or python code.
+    const driver_orient = state.FaceOrientation // [pitch, roll, yaw] ? No, check capnp or python code.
     // Python code: driver_orient = driver_data.faceOrientation
     // Capnp: faceOrientation is List<float32>
     // Python code uses it as a vector of 3.
@@ -220,7 +219,7 @@ export const DriverStateRenderer = ({ driverState, isEngaged }: Props) => {
       hArc: { path: hArcPath, thickness: hArcData?.thickness },
       vArc: { path: vArcPath, thickness: vArcData?.thickness },
     }
-  }, [faceOrientation, isActive, isEngaged]) // faceOrientation changes every frame
+  }, [state.FaceOrientation, isActive, isEngaged]) // faceOrientation changes every frame
 
   const opacity = isActive ? 0.65 : 0.2
   const arcColor = isEngaged ? '#1af242' : '#8b8b8b'

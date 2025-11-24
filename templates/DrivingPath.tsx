@@ -1,28 +1,13 @@
 import { AbsoluteFill, useCurrentFrame } from 'remotion'
-import { WIDTH, HEIGHT } from './shared'
+import { WIDTH, HEIGHT, FPS } from './shared'
 import { useEffect, useMemo, useState } from 'react'
 import { Files } from '../src/types'
 import Worker from '../log-reader/worker?worker'
 import { DB } from '../src/utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
+import type { FrameData } from '../log-reader/worker'
 
 const db = new DB()
-
-export type FrameData = {
-  position: { X: number[]; Y: number[]; Z: number[] }
-  laneLines: { X: number[]; Y: number[]; Z: number[]; prob?: number }[]
-  roadEdges: { X: number[]; Y: number[]; Z: number[] }[]
-  carState?: { VEgo: number; engaged: boolean; maxSpeed: number; experimentalMode: boolean }
-  driverState?: {
-    faceOrientation: number[]
-    facePosition: number[]
-    faceProb: number
-    leftEyeProb: number
-    rightEyeProb: number
-    leftBlinkProb: number
-    rightBlinkProb: number
-  }
-}
 
 const PATH_WIDTH = 1.8
 const FX = 500
@@ -33,11 +18,13 @@ const CAM_HEIGHT = 1.5
 
 export const DrivingPath = ({ files, routeName }: { files: Files; routeName: string }) => {
   const frame = useCurrentFrame()
-  const [data, setData] = useState<Record<string, FrameData>>()
-  const logs = files.logs
+  const [frames, setFrames] = useState<Record<string, FrameData>>()
+
+  const logType = files.logs.length === files.qlogs.length ? 'log' : 'qlog'
+  const logs = logType === 'log' ? files.logs : files.qlogs
 
   useEffect(() => {
-    if (data) return
+    if (frames) return
 
     const loadLogs = async () => {
       await db.init()
@@ -45,11 +32,11 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
 
       for (let i = 0; i < logs.length; i++) {
         const url = logs[i]
-        const cacheKey = `${routeName}--${i}`
+        const cacheKey = `${routeName}--${i}--${logType}`
         const cached = await db.get<string>(cacheKey)
 
         if (cached) {
-          setData((prev) => ({ ...prev, ...JSON.parse(cached) }))
+          setFrames((prev) => ({ ...prev, ...JSON.parse(cached) }))
           continue
         }
 
@@ -62,24 +49,32 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
           }
 
           if (data.frames) {
-            setData((prev) => ({ ...prev, ...data.frames }))
+            setFrames((prev) => ({ ...prev, ...data.frames }))
             await db.set(cacheKey, JSON.stringify(data.frames))
           }
 
           worker.terminate()
         }
 
-        worker.postMessage({ url })
+        worker.postMessage({ url, logType })
       }
     }
 
     loadLogs()
   }, [...logs, routeName])
 
-  const item = data?.[frame]
+  // Finding the latest frame data, max 1s old
+  let item: FrameData | undefined = frames?.[frame]
+  for (let i = 0; i < FPS; i++) {
+    const res = frames?.[frame - i]
+    if (res) {
+      item = res
+      break
+    }
+  }
 
   const projectedPaths = useMemo(() => {
-    if (!item) return null
+    if (!item?.ModelV2) return null
 
     const project = (x: number, y: number, z: number) => {
       const Xc = y
@@ -108,7 +103,7 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
     }
 
     // Driving Path
-    const { X, Y, Z } = item.position
+    const { X, Y, Z } = item.ModelV2.Position
     const leftPoints: { x: number; y: number }[] = []
     const rightPoints: { x: number; y: number }[] = []
 
@@ -146,41 +141,41 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
             .join(' ')} Z`
         : undefined
 
-    const showLaneLines = item.laneLines.some((x) => x.prob && x.prob > 0.1)
+    const showLaneLines = item.ModelV2.LaneLines.some((x) => x.prob && x.prob > 0.1)
     const laneLines = showLaneLines
-      ? item.laneLines.map((line) => ({ d: getPolyline(line.X, line.Y, line.Z), prob: line.prob }))
+      ? item.ModelV2.LaneLines.map((line) => ({ d: getPolyline(line.X, line.Y, line.Z), prob: line.prob }))
       : undefined
 
-    const roadEdges = showLaneLines ? item.roadEdges.map((edge) => getPolyline(edge.X, edge.Y, edge.Z)) : undefined
+    const roadEdges = showLaneLines ? item.ModelV2.RoadEdges.map((edge) => getPolyline(edge.X, edge.Y, edge.Z)) : undefined
 
     return { path, laneLines, roadEdges }
   }, [item, FX, FY, CX, CY, CAM_HEIGHT])
 
   return (
     <AbsoluteFill>
-      {item?.carState?.engaged && (
+      {item?.CarState?.CruiseEnabled && (
         <div className="absolute inset-0 border-[30px] border-[#00c853] z-10 pointer-events-none rounded-[40px]" />
       )}
 
-      {item?.carState && (
+      {item?.CarState && (
         <>
           <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-[32px] w-56 h-56 flex flex-col items-center justify-center z-20">
             <div className="text-[#00c853] text-4xl font-bold mb-2">MAX</div>
             <div className="text-white text-[100px] leading-none font-bold">
-              {item.carState.engaged ? (item.carState.maxSpeed * 2.23694).toFixed(0) : '-'}
+              {item.CarState.CruiseEnabled ? (item.CarState.CruiseSpeed * 2.23694).toFixed(0) : '-'}
             </div>
           </div>
 
           <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
             <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
-              {Math.max(0, item.carState.VEgo * 2.23694).toFixed(0)}
+              {Math.max(0, item.CarState.VEgo * 2.23694).toFixed(0)}
             </div>
             <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">mph</div>
           </div>
 
           <div className="absolute top-12 right-12 z-20">
             <img
-              src={item.carState.experimentalMode ? '/experimental.png' : '/chffr_wheel.png'}
+              src={item.SelfdriveState?.ExperimentalMode ? '/experimental.png' : '/chffr_wheel.png'}
               className="w-40 h-40 object-contain opacity-80"
               alt="Mode Icon"
             />
@@ -188,9 +183,9 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
         </>
       )}
 
-      {item?.driverState && (
+      {item?.DriverStateV2 && (
         <div className="absolute bottom-12 left-12 z-20">
-          <DriverStateRenderer driverState={item.driverState} isEngaged={item.carState?.engaged ?? false} />
+          <DriverStateRenderer state={item.DriverStateV2} isEngaged={item.CarState?.CruiseEnabled ?? false} />
         </div>
       )}
 
