@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Files } from '../src/types'
 import Worker from '../log-reader/worker?worker'
 import { DB } from '../src/utils/db'
+import { DriverStateRenderer } from './DriverStateRenderer'
 
 const db = new DB()
 
@@ -11,7 +12,16 @@ export type FrameData = {
   position: { X: number[]; Y: number[]; Z: number[] }
   laneLines: { X: number[]; Y: number[]; Z: number[]; prob?: number }[]
   roadEdges: { X: number[]; Y: number[]; Z: number[] }[]
-  carState?: { VEgo: number; engaged: boolean; maxSpeed: number }
+  carState?: { VEgo: number; engaged: boolean; maxSpeed: number; experimentalMode: boolean }
+  driverState?: {
+    faceOrientation: number[]
+    facePosition: number[]
+    faceProb: number
+    leftEyeProb: number
+    rightEyeProb: number
+    leftBlinkProb: number
+    rightBlinkProb: number
+  }
 }
 
 const PATH_WIDTH = 1.8
@@ -167,7 +177,21 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
             </div>
             <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">mph</div>
           </div>
+
+          <div className="absolute top-12 right-12 z-20">
+            <img
+              src={item.carState.experimentalMode ? '/experimental.png' : '/chffr_wheel.png'}
+              className="w-40 h-40 object-contain opacity-80"
+              alt="Mode Icon"
+            />
+          </div>
         </>
+      )}
+
+      {item?.driverState && (
+        <div className="absolute bottom-12 left-12 z-20">
+          <DriverStateRenderer driverState={item.driverState} isEngaged={item.carState?.engaged ?? false} />
+        </div>
       )}
 
       {projectedPaths && (

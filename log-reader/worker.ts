@@ -16,13 +16,26 @@ self.onmessage = async ({ data: { url } }: any) => {
     const reader = LogReader(res.body)
     const frames: Record<string, FrameData> = {}
     let carState: any = null
+    let driverState: any = null
 
     for await (const event of reader) {
       // if ('LiveCalibration' in event) console.log(event.LiveCalibration)
 
       if ('CarState' in event) {
         const { VEgo, CruiseState, GearShifter, LeftBlinker, RightBlinker } = event.CarState
-        carState = { VEgo, GearShifter, LeftBlinker, RightBlinker, engaged: CruiseState.Enabled, maxSpeed: CruiseState.Speed }
+        carState = {
+          VEgo,
+          GearShifter,
+          LeftBlinker,
+          RightBlinker,
+          engaged: CruiseState.Enabled,
+          maxSpeed: CruiseState.Speed,
+          experimentalMode: false,
+        }
+      }
+
+      if ('SelfdriveState' in event) {
+        carState = { ...carState, experimentalMode: event.SelfdriveState.ExperimentalMode }
       }
 
       if ('ModelV2' in event) {
@@ -36,6 +49,21 @@ self.onmessage = async ({ data: { url } }: any) => {
           laneLines,
           roadEdges,
           carState,
+          ...(driverState ? { driverState } : {}),
+        }
+      }
+
+      if ('DriverStateV2' in event) {
+        const { LeftDriverData } = event.DriverStateV2
+        const { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb } = LeftDriverData
+        driverState = {
+          faceOrientation: Array.from(FaceOrientation),
+          facePosition: Array.from(FacePosition),
+          faceProb: FaceProb,
+          leftEyeProb: LeftEyeProb,
+          rightEyeProb: RightEyeProb,
+          leftBlinkProb: LeftBlinkProb,
+          rightBlinkProb: RightBlinkProb,
         }
       }
     }
