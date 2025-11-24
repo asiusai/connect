@@ -40,14 +40,14 @@ const PlanSelector = ({
 }) => {
   return (
     <div className="relative">
-      <div className="flex w-full gap-2 xs:gap-4">
+      <div className="flex w-full gap-2 min-[411px]:gap-4">
         {plans.map((plan) => (
           <ButtonBase
             key={plan.name}
             className={clsx(
-              'flex grow basis-0 flex-col items-center justify-center gap-2 rounded-lg p-2 text-center xs:p-4',
-              'state-layer bg-tertiary text-on-tertiary transition before:bg-on-tertiary',
-              selectedPlan === plan.name && 'ring-4 ring-on-tertiary',
+              'flex grow basis-0 flex-col items-center justify-center gap-2 rounded-lg p-2 text-center min-[411px]:p-4',
+              'state-layer bg-tertiary text-tertiary-x transition before:bg-tertiary-x',
+              selectedPlan === plan.name && 'ring-4 ring-tertiary-x',
               plan.disabled && 'cursor-not-allowed opacity-50',
             )}
             onClick={() => setSelectedPlan(plan.name)}
@@ -157,7 +157,7 @@ const PrimeCheckout = () => {
       </p>
 
       {stripeCancelled && (
-        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
           <Icon name="error" className="text-error" size="20" />
           Checkout cancelled
         </div>
@@ -179,7 +179,7 @@ const PrimeCheckout = () => {
       />
 
       {disabledDataPlanText && (
-        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
           <Icon name="info" size="20" />
           {disabledDataPlanText}
         </div>
@@ -219,22 +219,22 @@ const PrimeManage = () => {
   return (
     <div className="flex flex-col gap-4">
       {!stripeSession ? (
-        <div className="flex gap-2 rounded-sm bg-on-error-container p-2 text-sm font-semibold text-error-container">
+        <div className="flex gap-2 rounded-lg bg-error-alt-x p-2 text-sm font-semibold text-error-alt">
           <Icon name="error" size="20" />
           Unable to check payment status
         </div>
       ) : paymentStatus === 'unpaid' ? (
-        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
           <Icon name="payments" size="20" />
           Waiting for confirmed payment...
         </div>
       ) : paymentStatus === 'paid' && !subscription ? (
-        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
           <Icon className="animate-spin" name="autorenew" size="20" />
           Processing subscription...
         </div>
       ) : paymentStatus === 'paid' && subscription ? (
-        <div className="flex gap-2 rounded-sm bg-tertiary-container p-2 text-sm text-on-tertiary-container">
+        <div className="flex gap-2 rounded-lg bg-tertiary-alt p-2 text-sm text-tertiary-x-alt">
           <Icon name="check" size="20" />
           <div className="flex flex-col gap-2">
             <p className="font-semibold">comma prime activated</p>
@@ -245,12 +245,12 @@ const PrimeManage = () => {
       ) : null}
 
       {cancel.isError ? (
-        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
           <Icon className="text-error" name="error" size="20" />
           Failed to cancel subscription: {cancel.error as any}
         </div>
       ) : cancel.isSuccess ? (
-        <div className="flex gap-2 rounded-sm bg-surface-container p-2 text-sm text-on-surface">
+        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
           <Icon name="check" size="20" />
           Subscription cancelled
         </div>
@@ -278,10 +278,10 @@ const PrimeManage = () => {
 
       {cancelDialog && (
         <div
-          className="bg-scrim/10 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+          className="bg-black/10 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
           onClick={() => setCancelDialog(false)}
         >
-          <div className="flex size-full flex-col gap-4 bg-surface-container p-6 sm:h-auto sm:max-w-lg sm:rounded-lg sm:shadow-lg">
+          <div className="flex size-full flex-col gap-4 bg-background-alt p-6 sm:h-auto sm:max-w-lg sm:rounded-2xl sm:shadow-lg">
             <h2 className="text-lg">Cancel subscription</h2>
             <p className="text-sm">Are you sure you want to cancel your subscription?</p>
             <div className="mt-4 flex flex-wrap justify-stretch gap-4">
@@ -355,7 +355,7 @@ const UserManagement = () => {
       )}
 
       {addUser.error && (
-        <div className="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
+        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
           <Icon className="text-error" name="error" size="20" />
           {(addUser.error as any) || 'Failed to add user'}
         </div>
@@ -363,10 +363,10 @@ const UserManagement = () => {
 
       <div className="flex flex-col gap-2">
         {users?.map((user) => (
-          <div key={user.email} className="flex items-center justify-between rounded-lg bg-surface-container p-3">
+          <div key={user.email} className="flex items-center justify-between rounded-2xl bg-background-alt p-3">
             <div className="flex flex-col">
               <span className="text-sm font-medium">{user.email}</span>
-              <span className="text-xs text-on-surface-variant capitalize">{user.permission.replace('_', ' ')}</span>
+              <span className="text-xs text-background-alt-x capitalize">{user.permission.replace('_', ' ')}</span>
             </div>
             {user.permission !== 'owner' && (
               <IconButton
@@ -417,7 +417,7 @@ const DeviceSettingsForm = () => {
         </Button>
       </div>
       {unpair.error && (
-        <div className="flex gap-2 rounded-sm bg-surface-container-high p-2 text-sm text-on-surface">
+        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
           <Icon className="text-error" name="error" size="20" />
           {(unpair.error as any) || 'Unknown error'}
         </div>

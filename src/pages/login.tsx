@@ -64,21 +64,21 @@ export const Component = () => {
 
         <div className="flex flex-col items-stretch gap-4 self-stretch">
           <Button
-            className="h-14 gap-4 xs:h-16"
+            className="h-14 gap-4 min-[411px]:h-16"
             href={getGoogleAuthUrl()}
             leading={<img src="/images/logo-google.svg" alt="" width={32} height={32} />}
           >
             Sign in with Google
           </Button>
           <Button
-            className="h-14 gap-4 xs:h-16"
+            className="h-14 gap-4 min-[411px]:h-16"
             href={getAppleAuthUrl()}
             leading={<img src="/images/logo-apple.svg" alt="" width={32} height={32} />}
           >
             Sign in with Apple
           </Button>
           <Button
-            className="h-14 gap-4 xs:h-16"
+            className="h-14 gap-4 min-[411px]:h-16"
             href={getGitHubAuthUrl()}
             leading={<img src="/images/logo-github.svg" alt="" width={32} height={32} />}
           >
@@ -87,7 +87,9 @@ export const Component = () => {
         </div>
 
         <div className="flex justify-between gap-4">
-          <p className="text-sm xs:text-md">Make sure to sign in with the same account if you have previously paired your comma three.</p>
+          <p className="text-sm min-[411px]:text-base">
+            Make sure to sign in with the same account if you have previously paired your comma three.
+          </p>
 
           <img src="/images/icon-comma-three-light.svg" alt="" width={32} height={32} />
         </div>

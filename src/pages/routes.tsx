@@ -40,17 +40,17 @@ const RouteCard = ({ route }: { route: Route }) => {
   return (
     <Link
       to={`/${route.dongle_id}/routes/${route.fullname.slice(17)}`}
-      className="block w-full overflow-hidden rounded-md bg-surface-container-high text-on-surface shadow-sm transition-all hover:bg-surface-container-highest hover:shadow-md active:scale-[0.99]"
+      className="w-full overflow-hidden rounded-xl bg-background-alt text-background-x shadow-sm transition-all hover:bg-background-alt/50 hover:shadow-md"
       style={{ borderLeft: `6px solid ${color}` }}
     >
       <div className="flex flex-col gap-3 p-4 pl-5">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-lg font-semibold tracking-tight">{startTime.format('h:mm A')}</span>
-            <span className="text-on-surface-variant/50">→</span>
-            <span className="text- font-medium text-on-surface-variant">{endTime.format('h:mm A')}</span>
-            <Icon name="location_on" className="text-[18px] text-on-surface-variant" />
-            <span className="text-base font-medium leading-snug text-on-surface-variant">{location || 'Loading...'}</span>
+            <span className="text-lg md:text-xl font-semibold tracking-tight">{startTime.format('h:mm A')}</span>
+            <span className="text-background-alt-x/50">→</span>
+            <span className="font-medium text-background-alt-x">{endTime.format('h:mm A')}</span>
+            <Icon name="location_on" className="text-[18px] text-background-alt-x" />
+            <span className="text-base font-medium leading-snug text-background-alt-x">{location || 'Loading...'}</span>
           </div>
 
           <Icon name={route.is_public ? 'public' : 'public_off'} />
@@ -105,7 +105,7 @@ export const Component = () => {
           else prevDayHeader = dayHeader
           return (
             <Fragment key={`${route.id}-${route.start_time}`}>
-              {dayHeader && <h2 className="px-4 text-lg font-bold text-on-surface-variant">{dayHeader}</h2>}
+              {dayHeader && <h2 className="px-4 text-lg font-bold text-background-alt-x">{dayHeader}</h2>}
               <RouteCard route={route} />
             </Fragment>
           )

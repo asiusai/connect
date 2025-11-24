@@ -14,13 +14,13 @@ type TextFieldProps = {
 
 const stateColors = {
   base: {
-    label: 'text-on-surface-variant',
-    indicator: 'bg-on-surface-variant',
-    input: 'text-on-surface caret-primary',
-    helper: 'text-on-surface-variant',
+    label: 'text-background-alt-x',
+    indicator: 'bg-background-alt-x',
+    input: 'text-background-x caret-primary',
+    helper: 'text-background-alt-x',
   },
   hover: {
-    indicator: 'bg-on-surface',
+    indicator: 'bg-background-x',
   },
   focus: {
     label: 'text-primary',
@@ -29,12 +29,12 @@ const stateColors = {
   error: {
     label: 'text-error',
     indicator: 'bg-error',
-    input: 'text-on-surface caret-error',
+    input: 'text-background-x caret-error',
     helper: 'text-error',
   },
   errorHover: {
-    label: 'text-on-error-container',
-    indicator: 'bg-on-error-container',
+    label: 'text-error-alt-x',
+    indicator: 'bg-error-alt-x',
   },
 }
 
@@ -56,8 +56,8 @@ export const TextField = ({ className, label, helperText, error, value, onChange
     <div className={clsx('flex flex-col', className)}>
       <div
         className={clsx(
-          'relative flex rounded-t-xs min-h-[56px] bg-surface-container-highest',
-          hovered && !props.disabled && 'after:absolute after:inset-0 after:bg-on-surface after:opacity-[0.08] after:pointer-events-none',
+          'relative flex rounded-t-xs min-h-[56px] bg-white',
+          hovered && !props.disabled && 'after:absolute after:inset-0 after:bg-background-x after:opacity-[0.08] after:pointer-events-none',
           props.disabled && 'opacity-40',
         )}
         onMouseEnter={() => setHovered(true)}
@@ -68,7 +68,7 @@ export const TextField = ({ className, label, helperText, error, value, onChange
           {label && (
             <label
               className={clsx(
-                'absolute pointer-events-none transition-all text-body-lg left-4',
+                'absolute pointer-events-none transition-all text-base left-4',
                 labelFloating ? 'text-xs top-2' : 'top-1/2 -translate-y-1/2',
                 stateStyle.label,
               )}
@@ -81,8 +81,8 @@ export const TextField = ({ className, label, helperText, error, value, onChange
           <input
             {...props}
             className={clsx(
-              'w-full bg-transparent outline-none px-4 py-4 text-body-lg z-10',
-              'select-text selection:bg-primary-container',
+              'w-full bg-transparent outline-none px-4 py-4 text-base z-10',
+              'select-text selection:bg-primary-alt',
               stateStyle.input,
               label && labelFloating && 'pt-6 pb-2',
             )}
@@ -99,7 +99,7 @@ export const TextField = ({ className, label, helperText, error, value, onChange
 
       {/* Helper text or error */}
       {(helperText || error) && (
-        <label className={clsx('text-body-sm px-4 pt-1', stateStyle.helper, props.disabled && 'opacity-40')} htmlFor={props.id}>
+        <label className={clsx('text-xs px-4 pt-1', stateStyle.helper, props.disabled && 'opacity-40')} htmlFor={props.id}>
           {error || helperText}
         </label>
       )}

@@ -30,13 +30,13 @@ const Scanning = () => {
   }, [videoRef.current])
 
   return (
-    <div className="min-h-screen w-full bg-surface text-on-surface flex flex-col">
+    <div className="min-h-screen w-full bg-surface text-background-x flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center p-4 gap-6">
         <div className="relative w-full max-w-md aspect-square bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10">
           <video className="w-full h-full object-cover" ref={videoRef} />
           <div className="absolute inset-0 border-[2px] border-white/20 rounded-3xl pointer-events-none" />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-64 h-64 border-2 border-primary/50 rounded-xl relative">
+            <div className="w-64 h-64 border-2 border-primary/50 rounded-3xl relative">
               <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-primary -mt-1 -ml-1" />
               <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-primary -mt-1 -mr-1" />
               <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-primary -mb-1 -ml-1" />
@@ -47,8 +47,8 @@ const Scanning = () => {
         <div className="flex flex-col items-center gap-4 text-center max-w-xs">
           <div className="flex flex-col items-center gap-2">
             <Icon name="camera" size="40" className="text-primary mb-2" />
-            <h2 className="text-headline-sm font-bold">Scan QR Code</h2>
-            <p className="text-body-lg text-on-surface-variant">Point your camera at the QR code displayed on your device screen.</p>
+            <h2 className="text-2xl font-bold">Scan QR Code</h2>
+            <p className="text-base text-background-alt-x">Point your camera at the QR code displayed on your device screen.</p>
           </div>
           <Button color="text" href="/" leading={<Icon name="arrow_back" />}>
             Go Back
@@ -89,15 +89,15 @@ const Pairing = ({ token }: { token: string }) => {
   }, [token])
 
   return (
-    <div className="min-h-screen w-full bg-surface text-on-surface flex flex-col items-center justify-center p-4">
-      <div className="bg-surface-container-low p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full">
+    <div className="min-h-screen w-full bg-surface text-background-x flex flex-col items-center justify-center p-4">
+      <div className="bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full">
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
           <Icon name="autorenew" className="animate-spin text-primary relative z-10" size="48" />
         </div>
         <div className="flex flex-col items-center gap-1 text-center">
-          <h2 className="text-headline-sm font-bold">Pairing device...</h2>
-          <p className="text-body-md text-on-surface-variant">Please wait while we verify your device.</p>
+          <h2 className="text-2xl font-bold">Pairing device...</h2>
+          <p className="text-sm text-background-alt-x">Please wait while we verify your device.</p>
         </div>
       </div>
     </div>
@@ -112,14 +112,14 @@ export const Component = () => {
 
   if (error)
     return (
-      <div className="min-h-screen w-full bg-surface text-on-surface flex flex-col items-center justify-center p-4">
-        <div className="bg-surface-container-low p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full text-center">
+      <div className="min-h-screen w-full bg-surface text-background-x flex flex-col items-center justify-center p-4">
+        <div className="bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full text-center">
           <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center">
             <Icon name="error" className="text-error" size="40" />
           </div>
           <div className="flex flex-col gap-2">
-            <h2 className="text-headline-sm font-bold">Pairing Failed</h2>
-            <p className="text-body-md text-on-surface-variant">{error}</p>
+            <h2 className="text-2xl font-bold">Pairing Failed</h2>
+            <p className="text-sm text-background-alt-x">{error}</p>
           </div>
           <Button color="primary" onClick={() => navigate(`/pair`)} className="w-full">
             Try Again

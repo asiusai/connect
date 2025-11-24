@@ -25,7 +25,7 @@ export const IconButton = ({ className, children, filled, size = '24', loading, 
   return (
     <ButtonBase
       className={clsx(
-        'state-layer inline-flex items-center justify-center rounded-full before:rounded-full before:bg-on-surface',
+        'state-layer inline-flex items-center justify-center rounded-full before:rounded-full before:bg-background-x',
         buttonSize,
         className,
       )}

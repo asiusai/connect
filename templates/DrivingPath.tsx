@@ -165,7 +165,7 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
       {item?.carState && (
         <>
           <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-[32px] w-56 h-56 flex flex-col items-center justify-center z-20">
-            <div className="text-[#00c853] text-2xl font-bold mb-2">MAX</div>
+            <div className="text-[#00c853] text-4xl font-bold mb-2">MAX</div>
             <div className="text-white text-[100px] leading-none font-bold">
               {item.carState.engaged ? (item.carState.maxSpeed * 2.23694).toFixed(0) : '-'}
             </div>

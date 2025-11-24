@@ -13,7 +13,7 @@ export const Toggle = <Key extends string>({
   const activeIndex = keys.indexOf(value)
 
   return (
-    <div className="grid grid-cols-2 bg-surface-container-high rounded-full p-1 relative isolate">
+    <div className="grid grid-cols-2 bg-background-alt rounded-full p-1 relative isolate">
       <div
         className="absolute inset-y-1 rounded-full bg-primary shadow-sm transition-all duration-200 ease-out -z-10"
         style={{
@@ -25,8 +25,8 @@ export const Toggle = <Key extends string>({
         <button
           key={key}
           className={clsx(
-            'py-1.5 px-3 rounded-full text-label-md font-medium transition-colors relative z-10 whitespace-nowrap text-center',
-            value === key ? 'text-on-primary' : 'text-on-surface-variant hover:text-on-surface',
+            'py-1.5 px-3 rounded-full text-xs font-medium relative z-10 whitespace-nowrap text-center',
+            value === key ? 'text-primary-x' : 'text-background-alt-x hover:text-background-x',
           )}
           onClick={() => onChange(key)}
         >

@@ -14,11 +14,11 @@ type ButtonProps = ButtonBaseProps & {
 
 export const Button = ({ color, leading, trailing, className, children, disabled, loading, ...props }: ButtonProps) => {
   const colorClasses = {
-    text: 'text-primary before:bg-on-primary',
-    primary: 'bg-primary before:bg-on-primary text-on-primary hover:elevation-1',
-    secondary: 'bg-secondary before:bg-on-secondary text-on-secondary hover:elevation-1',
-    tertiary: 'bg-tertiary before:bg-on-tertiary text-on-tertiary hover:elevation-1',
-    error: 'bg-error before:bg-on-error text-on-error hover:elevation-1',
+    text: 'text-primary before:bg-primary-x',
+    primary: 'bg-primary before:bg-primary-x text-primary-x',
+    secondary: 'bg-secondary before:bg-secondary-x text-secondary-x',
+    tertiary: 'bg-tertiary before:bg-tertiary-x text-tertiary-x',
+    error: 'bg-error before:bg-error-x text-error-x',
   }[color || 'primary']
   if (!disabled && loading) disabled = true
 
@@ -37,7 +37,7 @@ export const Button = ({ color, leading, trailing, className, children, disabled
       disabled={disabled || loading}
     >
       {leading}
-      <span className={clsx('text-label-lg', loading && 'invisible')}>{children}</span>
+      <span className={clsx('text-sm', loading && 'invisible')}>{children}</span>
       {loading && <Icon name="autorenew" className="absolute left-1/2 top-1/2 ml-[-10px] mt-[-10px] animate-spin" size="20" />}
       {trailing}
     </ButtonBase>

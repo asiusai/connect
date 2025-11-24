@@ -27,7 +27,7 @@ export const RouteStaticMap = ({ route, className }: { className?: string; route
   }, [route])
 
   return (
-    <div className={clsx('relative isolate flex h-full flex-col justify-end self-stretch bg-surface text-on-surface', className)}>
+    <div className={clsx('relative isolate flex h-full flex-col justify-end self-stretch bg-surface text-background-x', className)}>
       {image ? <img className="pointer-events-none size-full object-cover" src={image} /> : <Loading className="size-full" />}
     </div>
   )

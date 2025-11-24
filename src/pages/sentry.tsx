@@ -59,12 +59,12 @@ export const Component = () => {
 
       {!isLoading && !images && (
         <div className="flex flex-col items-center justify-center h-full gap-6 pb-20">
-          <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center mb-4">
+          <div className="w-24 h-24 rounded-full bg-background-alt flex items-center justify-center mb-4">
             <Icon name="camera" size="48" className="text-primary" />
           </div>
           <div className="text-center space-y-2 max-w-xs">
-            <h2 className="text-headline-sm font-bold">Take a snapshot</h2>
-            <p className="text-body-md text-on-surface-variant">Capture a real-time view from your device's cameras.</p>
+            <h2 className="text-2xl font-bold">Take a snapshot</h2>
+            <p className="text-sm text-background-alt-x">Capture a real-time view from your device's cameras.</p>
           </div>
           <Button onClick={shot} className="px-8">
             Take Snapshot

@@ -85,18 +85,18 @@ export const Component = () => {
           <RouteVideoPlayer playerRef={playerRef} route={route} />
           <Timeline playerRef={playerRef} className="mb-1" route={route} events={events} />
         </div>
-        <div className="bg-surface-container text-sm p-3 rounded-md flex items-center justify-between">
+        <div className="bg-background-alt text-sm p-3 rounded-xl flex items-center justify-between">
           {routeName.replace('|', '/')}
           <Copy value={routeName.replace('|', '/')} />
         </div>
 
-        <div className="flex flex-col gap-2  rounded-md overflow-hidden bg-surface-container">
+        <div className="flex flex-col gap-2  rounded-xl overflow-hidden bg-background-alt">
           <RouteStatisticsBar className="p-5" route={route} />
         </div>
 
         <RouteFiles route={route} />
 
-        <div className="aspect-square overflow-hidden rounded-lg">
+        <div className="aspect-square overflow-hidden rounded-2xl">
           <RouteStaticMap route={route} />
         </div>
       </div>

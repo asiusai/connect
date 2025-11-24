@@ -108,7 +108,7 @@ export const Timeline = ({
   const markerOffset = (frame / FPS / duration) * 100
   return (
     <div className="flex flex-col">
-      <div className="h-1 bg-surface-container-high">
+      <div className="h-1 bg-background-alt">
         <div className="h-full bg-white" style={{ width: `calc(${markerOffset}% + 1px)` }} />
       </div>
       <div

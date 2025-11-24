@@ -8,7 +8,7 @@ export const OfflinePage = () => {
         <div className="flex flex-col gap-2 items-center">
           <h1 className="text-2xl">comma connect</h1>
           <div className="flex items-center gap-3">
-            <span className="size-2 rounded-full bg-error-container" />
+            <span className="size-2 rounded-full bg-error-alt" />
             <p className="text-lg">offline</p>
           </div>
         </div>

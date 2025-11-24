@@ -155,16 +155,16 @@ export const Component = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-surface text-on-surface">
+    <div className="flex flex-col h-screen bg-surface text-background-x">
       <TopAppBar leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}/routes/${date}`} />}>{type}</TopAppBar>
 
       {/* Top Controls Bar */}
-      <div className="flex items-center gap-1 p-2 rounded-md bg-surface-container-low shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-1 p-2 rounded-xl bg-background-alt shrink-0 overflow-x-auto">
         <div className="relative">
           <select
             value={segment}
             onChange={(e) => updateParam('segment', e.currentTarget.value)}
-            className="appearance-none bg-surface-container py-1.5 pl-3 pr-8 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[120px]"
+            className="appearance-none bg-background-alt py-1.5 pl-3 pr-8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[120px]"
           >
             {files &&
               Array.from({ length: files.logs.length }).map((_, i) => (
@@ -173,18 +173,18 @@ export const Component = () => {
                 </option>
               ))}
           </select>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-background-alt-x">
             <Icon name="keyboard_arrow_down" size="20" />
           </div>
         </div>
 
-        <div className="w-px h-6 bg-outline-variant/20 shrink-0" />
+        <div className="w-px h-6 bg-background/20 shrink-0" />
 
         <div className="relative">
           <select
             value={eventName}
             onChange={(e) => updateParam('eventName', e.currentTarget.value)}
-            className="appearance-none bg-surface-container py-1.5 pl-3 pr-8 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[200px]"
+            className="appearance-none bg-background-alt py-1.5 pl-3 pr-8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[200px]"
           >
             {LogEvent.options.map((x) => (
               <option key={x} value={x}>
@@ -192,18 +192,18 @@ export const Component = () => {
               </option>
             ))}
           </select>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-background-alt-x">
             <Icon name="keyboard_arrow_down" size="20" />
           </div>
         </div>
 
-        <div className="w-px h-6 bg-outline-variant/20 shrink-0" />
+        <div className="w-px h-6 bg-background/20 shrink-0" />
 
         <div className="relative">
           <select
             value={limit}
             onChange={(e) => updateParam('limit', e.currentTarget.value)}
-            className="appearance-none bg-surface-container py-1.5 pl-3 pr-8 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[100px]"
+            className="appearance-none bg-background-alt py-1.5 pl-3 pr-8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[100px]"
           >
             {[10, 100, 500, 1000, 2000, 5000].map((x) => (
               <option key={x} value={x}>
@@ -211,12 +211,12 @@ export const Component = () => {
               </option>
             ))}
           </select>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-background-alt-x">
             <Icon name="keyboard_arrow_down" size="20" />
           </div>
         </div>
 
-        <div className="w-px h-6 bg-outline-variant/20 shrink-0" />
+        <div className="w-px h-6 bg-background/20 shrink-0" />
 
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <div className="relative">
@@ -226,9 +226,9 @@ export const Component = () => {
               onChange={(e) => updateParam('prettify', String(e.target.checked))}
               className="sr-only peer"
             />
-            <div className="w-9 h-5 bg-surface-container-high peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+            <div className="w-9 h-5 bg-background-alt peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
           </div>
-          <span className="text-label-sm font-medium text-on-surface-variant">Prettify</span>
+          <span className="text-xs font-medium text-background-alt-x">Prettify</span>
         </label>
       </div>
 
@@ -239,22 +239,22 @@ export const Component = () => {
             data.length > 0 ? (
               <div className="flex flex-col pb-4">
                 {data.map((x, i) => (
-                  <div key={i} className="flex hover:bg-surface-container-low transition-colors rounded-md gap-3 px-2 py-2">
-                    <span className="select-none text-on-surface-variant/50 w-4 text-right shrink-0">{i + 1}</span>
-                    <span className="break-all text-on-surface whitespace-pre-wrap">
+                  <div key={i} className="flex hover:bg-background-alt rounded-xl gap-3 px-2 py-2">
+                    <span className="select-none text-background-alt-x/50 w-4 text-right shrink-0">{i + 1}</span>
+                    <span className="break-all text-background-x whitespace-pre-wrap">
                       <SyntaxHighlightedJson json={JSON.stringify(x, null, prettify ? 2 : undefined)} />
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-on-surface-variant gap-2">
-                <Icon name="error" size="40" className="text-on-surface-variant/50" />
+              <div className="flex flex-col items-center justify-center h-full text-background-alt-x gap-2">
+                <Icon name="error" size="40" className="text-background-alt-x/50" />
                 <span>No events found for {eventName}</span>
               </div>
             )
           ) : (
-            <div className="flex items-center justify-center h-full text-on-surface-variant">
+            <div className="flex items-center justify-center h-full text-background-alt-x">
               <span className="animate-pulse">Loading logs...</span>
             </div>
           )}

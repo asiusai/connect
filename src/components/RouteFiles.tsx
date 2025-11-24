@@ -151,8 +151,8 @@ const SegmentDetails = ({ segment, files, route }: { segment: number; files: Fil
     <div className="flex flex-col gap-1">
       {FileType.options.map((type) => {
         return (
-          <div key={`${type}-${segment}`} className="flex items-center justify-between py-1 px-2 rounded-md hover:bg-white/5 ">
-            <span className="text-sm font-medium text-gray-200">{FILE_LABELS[type]}</span>
+          <div key={`${type}-${segment}`} className="flex items-center justify-between py-1 px-2 rounded-xl hover:bg-white/5 ">
+            <span className="text-base font-medium text-gray-200">{FILE_LABELS[type]}</span>
 
             <div className="flex gap-2 items-center">
               <div>
@@ -212,7 +212,7 @@ const SegmentGrid = ({
   return (
     <div className="flex flex-wrap gap-1 p-2">
       <div
-        className={`h-8 px-3 flex items-center justify-center rounded-xl cursor-pointer text-xs font-bold ${getAllBgClass(allStatus, selectedSegment === -1)} hover:opacity-80`}
+        className={`h-8 px-3 flex items-center justify-center rounded-3xl cursor-pointer text-xs font-bold ${getAllBgClass(allStatus, selectedSegment === -1)} hover:opacity-80`}
         onClick={() => onSelect(-1)}
       >
         Route
@@ -231,7 +231,7 @@ const SegmentGrid = ({
           <div
             key={i}
             className={clsx(
-              'h-8 w-8 flex items-center justify-center rounded-xl cursor-pointer text-xs hover:opacity-80',
+              'h-8 w-8 flex items-center justify-center rounded-3xl cursor-pointer text-xs hover:opacity-80',
               bgClass,
               selectedSegment === i && 'ring-2 ring-white ',
             )}
@@ -263,8 +263,8 @@ export const RouteFiles = ({ route }: { route: Route }) => {
   const startTime = isFull ? 0 : segment * 60
   const endTime = isFull ? routeDuration : Math.min((segment + 1) * 60, routeDuration)
   return (
-    <div className="flex flex-col rounded-md bg-surface-container p-4 gap-3">
-      <h3 className="text-lg font-bold mb-2">
+    <div className="flex flex-col rounded-xl bg-background-alt p-4 gap-3">
+      <h3 className="text-2xl font-bold mb-2">
         {isFull ? 'Route files' : `Segment ${segment} files`} ({format(startTime)} - {format(endTime)})
       </h3>
       <SegmentDetails segment={segment} files={files} route={route} />

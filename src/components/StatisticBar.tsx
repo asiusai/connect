@@ -12,7 +12,7 @@ export const StatisticBar = ({
       <div className={clsx('flex h-auto w-full justify-between gap-8', className)}>
         {stats?.map((stat) => (
           <div key={stat.label} className="flex basis-0 grow flex-col justify-between">
-            <span className="text-xs text-on-surface-variant">{stat.label}</span>
+            <span className="text-sm text-background-alt-x">{stat.label}</span>
             <span className="font-mono text-sm">{stat.value?.toString() ?? '—'}</span>
           </div>
         ))}
