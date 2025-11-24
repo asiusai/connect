@@ -7,25 +7,24 @@ import { DB } from '../src/utils/db'
 
 const db = new DB()
 
-type FrameData = {
+export type FrameData = {
   position: { X: number[]; Y: number[]; Z: number[] }
-  laneLines: { X: number[]; Y: number[]; Z: number[]; prob: number }[]
+  laneLines: { X: number[]; Y: number[]; Z: number[]; prob?: number }[]
   roadEdges: { X: number[]; Y: number[]; Z: number[] }[]
-  carState?: { vEgo: number; engaged: boolean; maxSpeed: number }
+  carState?: { VEgo: number; engaged: boolean; maxSpeed: number }
 }
 
 const PATH_WIDTH = 1.8
+const FX = 500
+const FY = 2000
+const CX = 857
+const CY = 626
+const CAM_HEIGHT = 1.5
 
 export const DrivingPath = ({ files, routeName }: { files: Files; routeName: string }) => {
   const frame = useCurrentFrame()
   const [data, setData] = useState<Record<string, FrameData>>()
   const logs = files.logs
-
-  const [fx, setFx] = useState(500)
-  const [fy, setFy] = useState(2000)
-  const [cx, setCx] = useState(857)
-  const [cy, setCy] = useState(626)
-  const [camHeight, setCamHeight] = useState(1.5)
 
   useEffect(() => {
     if (data) return
@@ -67,22 +66,22 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
     loadLogs()
   }, [...logs, routeName])
 
-  const d = data?.[frame.toFixed(0)]
+  const item = data?.[frame]
 
   const projectedPaths = useMemo(() => {
-    if (!d) return null
+    if (!item) return null
 
     const project = (x: number, y: number, z: number) => {
       const Xc = y
-      const Yc = -(z - camHeight)
+      const Yc = -(z - CAM_HEIGHT)
       const Zc = x
 
       if (Zc < 0.5) return null
 
-      const u = fx * (Xc / Zc) + cx
-      const v = fy * (Yc / Zc) + cy
-
-      return { x: u, y: v }
+      return {
+        x: FX * (Xc / Zc) + CX,
+        y: FY * (Yc / Zc) + CY,
+      }
     }
 
     const getPolyline = (X: number[], Y: number[], Z: number[]) => {
@@ -99,8 +98,7 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
     }
 
     // Driving Path
-    let pathData = ''
-    const { X, Y, Z } = d.position
+    const { X, Y, Z } = item.position
     const leftPoints: { x: number; y: number }[] = []
     const rightPoints: { x: number; y: number }[] = []
 
@@ -128,41 +126,44 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
       }
     }
 
-    if (leftPoints.length > 0) {
-      pathData = `M ${leftPoints[0].x.toFixed(0)} ${leftPoints[0].y.toFixed(0)} ${leftPoints
-        .map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`)
-        .join(' ')} ${rightPoints
-        .reverse()
-        .map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`)
-        .join(' ')} Z`
-    }
+    const path =
+      leftPoints.length > 0
+        ? `M ${leftPoints[0].x.toFixed(0)} ${leftPoints[0].y.toFixed(0)} ${leftPoints
+            .map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`)
+            .join(' ')} ${rightPoints
+            .reverse()
+            .map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`)
+            .join(' ')} Z`
+        : undefined
 
-    // Lane Lines
-    const laneLines = d.laneLines.map((line) => ({
-      d: getPolyline(line.X, line.Y, line.Z),
-      prob: line.prob,
-    }))
+    const showLaneLines = item.laneLines.some((x) => x.prob && x.prob > 0.1)
+    const laneLines = showLaneLines
+      ? item.laneLines.map((line) => ({ d: getPolyline(line.X, line.Y, line.Z), prob: line.prob }))
+      : undefined
 
-    // Road Edges
-    const roadEdges = d.roadEdges.map((edge) => getPolyline(edge.X, edge.Y, edge.Z))
+    const roadEdges = showLaneLines ? item.roadEdges.map((edge) => getPolyline(edge.X, edge.Y, edge.Z)) : undefined
 
-    return { path: pathData, laneLines, roadEdges }
-  }, [d, fx, fy, cx, cy, camHeight])
+    return { path, laneLines, roadEdges }
+  }, [item, FX, FY, CX, CY, CAM_HEIGHT])
 
   return (
     <AbsoluteFill>
-      {d?.carState?.engaged && <div className="absolute inset-0 border-[30px] border-[#00c853] z-10 pointer-events-none rounded-[40px]" />}
+      {item?.carState?.engaged && (
+        <div className="absolute inset-0 border-[30px] border-[#00c853] z-10 pointer-events-none rounded-[40px]" />
+      )}
 
-      {d?.carState && (
+      {item?.carState && (
         <>
           <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-[32px] w-56 h-56 flex flex-col items-center justify-center z-20">
             <div className="text-[#00c853] text-2xl font-bold mb-2">MAX</div>
-            <div className="text-white text-[100px] leading-none font-bold">{(d.carState.maxSpeed * 2.23694).toFixed(0)}</div>
+            <div className="text-white text-[100px] leading-none font-bold">
+              {item.carState.engaged ? (item.carState.maxSpeed * 2.23694).toFixed(0) : '-'}
+            </div>
           </div>
 
           <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
             <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
-              {Math.max(0, d.carState.vEgo * 2.23694).toFixed(0)}
+              {Math.max(0, item.carState.VEgo * 2.23694).toFixed(0)}
             </div>
             <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">mph</div>
           </div>
@@ -172,14 +173,20 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
       {projectedPaths && (
         <svg width={WIDTH} height={HEIGHT} style={{ overflow: 'visible' }}>
           {projectedPaths.path && <path d={projectedPaths.path} fill="rgba(0, 255, 0, 0.4)" stroke="none" />}
-          {projectedPaths.laneLines.map((line, i) =>
-            line.d ? (
-              <path key={`lane-${i}`} d={line.d} stroke="white" strokeWidth={4} fill="none" style={{ opacity: Math.max(0.1, line.prob) }} />
-            ) : null,
+          {projectedPaths.laneLines?.map(
+            (line, i) =>
+              line.d && (
+                <path
+                  key={`lane-${i}`}
+                  d={line.d}
+                  stroke="white"
+                  strokeWidth={4}
+                  fill="none"
+                  style={{ opacity: Math.max(0.1, line.prob ?? 0) }}
+                />
+              ),
           )}
-          {projectedPaths.roadEdges.map((edge, i) =>
-            edge ? <path key={`edge-${i}`} d={edge} stroke="red" strokeWidth={4} fill="none" /> : null,
-          )}
+          {projectedPaths.roadEdges?.map((edge, i) => edge && <path key={`edge-${i}`} d={edge} stroke="red" strokeWidth={4} fill="none" />)}
         </svg>
       )}
     </AbsoluteFill>

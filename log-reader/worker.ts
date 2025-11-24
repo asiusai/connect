@@ -1,7 +1,9 @@
+import { FrameData } from '../templates/DrivingPath'
 import { LogReader } from './index'
 
-self.onmessage = async (e) => {
-  const { url } = e.data
+export type Pos = { X: number[]; Y: number[]; Z: number[]; prob?: number }
+
+self.onmessage = async ({ data: { url } }: any) => {
   if (!url) return
 
   try {
@@ -12,47 +14,28 @@ self.onmessage = async (e) => {
     }
 
     const reader = LogReader(res.body)
-    const frames: Record<string, any> = {}
-    let latestCarState: any = null
+    const frames: Record<string, FrameData> = {}
+    let carState: any = null
 
     for await (const event of reader) {
-      if ('LiveCalibration' in event) {
-        console.log(event.LiveCalibration)
-      }
+      // if ('LiveCalibration' in event) console.log(event.LiveCalibration)
 
       if ('CarState' in event) {
-        const cs = event.CarState
-        latestCarState = {
-          vEgo: cs.VEgo,
-          engaged: cs.CruiseState.Enabled,
-          maxSpeed: cs.CruiseState.Speed,
-        }
+        const { VEgo, CruiseState, GearShifter, LeftBlinker, RightBlinker } = event.CarState
+        carState = { VEgo, GearShifter, LeftBlinker, RightBlinker, engaged: CruiseState.Enabled, maxSpeed: CruiseState.Speed }
       }
 
       if ('ModelV2' in event) {
-        const model = event.ModelV2
-        const { X, Y, Z } = model.Position
+        const { Position, LaneLines, RoadEdges, LaneLineProbs, FrameId } = event.ModelV2
 
-        // Lane Lines
-        const laneLines = []
-        if (model.LaneLines) {
-          for (let i = 0; i < model.LaneLines.length; i++) {
-            const line = model.LaneLines[i]
-            laneLines.push({ X: line.X, Y: line.Y, Z: line.Z, prob: model.LaneLineProbs?.[i] ?? 0 })
-          }
-        }
+        const laneLines: Pos[] = LaneLines?.map(({ X, Y, Z }: any, i: number) => ({ X, Y, Z, prob: LaneLineProbs?.[i] })) || []
+        const roadEdges: Pos[] = RoadEdges?.map(({ X, Y, Z }: any) => ({ X, Y, Z })) || []
 
-        // Road Edges
-        const roadEdges = []
-        if (model.RoadEdges) {
-          for (const edge of model.RoadEdges) roadEdges.push({ X: edge.X, Y: edge.Y, Z: edge.Z })
-        }
-
-        frames[model.FrameId.toFixed(0)] = {
-          position: { X, Y, Z },
+        frames[FrameId] = {
+          position: { X: Position.X, Y: Position.Y, Z: Position.Z },
           laneLines,
           roadEdges,
-          carState: latestCarState,
+          carState,
         }
       }
     }
