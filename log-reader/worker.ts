@@ -13,24 +13,19 @@ self.onmessage = async (e) => {
 
     const reader = LogReader(res.body)
     const frames: Record<string, any> = {}
-    let calibration: any = null
-    let initData: any = null
+    let latestCarState: any = null
 
     for await (const event of reader) {
-      if ('InitData' in event) {
-        const init = event.InitData
-        initData = {
-          deviceType: init.DeviceType,
-        }
+      if ('LiveCalibration' in event) {
+        console.log(event.LiveCalibration)
       }
 
-      if ('LiveCalibration' in event) {
-        const cal = event.LiveCalibration
-        if (cal.Height && cal.RpyCalib) {
-          calibration = {
-            height: cal.Height[0],
-            rpy: cal.RpyCalib,
-          }
+      if ('CarState' in event) {
+        const cs = event.CarState
+        latestCarState = {
+          vEgo: cs.VEgo,
+          engaged: cs.CruiseState.Enabled,
+          maxSpeed: cs.CruiseState.Speed,
         }
       }
 
@@ -50,20 +45,19 @@ self.onmessage = async (e) => {
         // Road Edges
         const roadEdges = []
         if (model.RoadEdges) {
-          for (const edge of model.RoadEdges) {
-            roadEdges.push({ X: edge.X, Y: edge.Y, Z: edge.Z })
-          }
+          for (const edge of model.RoadEdges) roadEdges.push({ X: edge.X, Y: edge.Y, Z: edge.Z })
         }
 
         frames[model.FrameId.toFixed(0)] = {
           position: { X, Y, Z },
           laneLines,
           roadEdges,
+          carState: latestCarState,
         }
       }
     }
 
-    self.postMessage({ frames, calibration, initData })
+    self.postMessage({ frames })
   } catch (err) {
     self.postMessage({ error: String(err) })
   }

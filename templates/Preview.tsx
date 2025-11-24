@@ -1,7 +1,7 @@
 import { AbsoluteFill, CalculateMetadataFunction } from 'remotion'
 import { HlsVideo } from './HlsVideo'
 import { z } from 'zod'
-import { FPS, getRouteDuration, getRouteSegment, HEIGHT, WIDTH } from './shared'
+import { FPS, getRouteDuration, getRouteSegment } from './shared'
 import { createQCameraStreamUrl } from '../src/utils/helpers'
 import { DrivingPath } from './DrivingPath'
 import { Files } from '../src/types'

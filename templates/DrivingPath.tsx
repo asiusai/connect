@@ -11,6 +11,7 @@ type FrameData = {
   position: { X: number[]; Y: number[]; Z: number[] }
   laneLines: { X: number[]; Y: number[]; Z: number[]; prob: number }[]
   roadEdges: { X: number[]; Y: number[]; Z: number[] }[]
+  carState?: { vEgo: number; engaged: boolean; maxSpeed: number }
 }
 
 const PATH_WIDTH = 1.8
@@ -20,12 +21,11 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
   const [data, setData] = useState<Record<string, FrameData>>()
   const logs = files.logs
 
-  // Calibration State
-  const [fx, setFx] = useState(910)
-  const [fy, setFy] = useState(910)
-  const [cx, setCx] = useState(WIDTH / 2)
-  const [cy, setCy] = useState(HEIGHT / 2)
-  const [camHeight, setCamHeight] = useState(2.0)
+  const [fx, setFx] = useState(500)
+  const [fy, setFy] = useState(2000)
+  const [cx, setCx] = useState(857)
+  const [cy, setCy] = useState(626)
+  const [camHeight, setCamHeight] = useState(1.5)
 
   useEffect(() => {
     if (data) return
@@ -36,7 +36,7 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
 
       for (let i = 0; i < logs.length; i++) {
         const url = logs[i]
-        const cacheKey = `${routeName}--${i}--raw`
+        const cacheKey = `${routeName}--${i}`
         const cached = await db.get<string>(cacheKey)
 
         if (cached) {
@@ -47,27 +47,16 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
         const worker = new Worker()
         workers.push(worker)
 
-        worker.onmessage = async (e) => {
-          const { frames, calibration, initData, error } = e.data
-          if (frames) {
-            setData((prev) => ({ ...prev, ...frames }))
-            await db.set(cacheKey, JSON.stringify(frames))
+        worker.onmessage = async ({ data }) => {
+          if (data.error) {
+            console.error('Worker error:', data.error)
           }
 
-          if (calibration) {
-            if (calibration.height?.[0]) setCamHeight(calibration.height[0])
-            // We could also use rpy here if we implemented full rotation
+          if (data.frames) {
+            setData((prev) => ({ ...prev, ...data.frames }))
+            await db.set(cacheKey, JSON.stringify(data.frames))
           }
 
-          if (initData) {
-            // TICI (Comma 3) has DeviceType 3
-            if (initData.deviceType === 3) {
-              setFx(2648)
-              setFy(2648)
-            }
-          }
-
-          if (error) console.error('Worker error:', error)
           worker.terminate()
         }
 
@@ -76,7 +65,7 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
     }
 
     loadLogs()
-  }, [logs, routeName])
+  }, [...logs, routeName])
 
   const d = data?.[frame.toFixed(0)]
 
@@ -162,7 +151,25 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
 
   return (
     <AbsoluteFill>
-      {projectedPaths ? (
+      {d?.carState?.engaged && <div className="absolute inset-0 border-[30px] border-[#00c853] z-10 pointer-events-none rounded-[40px]" />}
+
+      {d?.carState && (
+        <>
+          <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-[32px] w-56 h-56 flex flex-col items-center justify-center z-20">
+            <div className="text-[#00c853] text-2xl font-bold mb-2">MAX</div>
+            <div className="text-white text-[100px] leading-none font-bold">{(d.carState.maxSpeed * 2.23694).toFixed(0)}</div>
+          </div>
+
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
+            <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
+              {Math.max(0, d.carState.vEgo * 2.23694).toFixed(0)}
+            </div>
+            <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">mph</div>
+          </div>
+        </>
+      )}
+
+      {projectedPaths && (
         <svg width={WIDTH} height={HEIGHT} style={{ overflow: 'visible' }}>
           {projectedPaths.path && <path d={projectedPaths.path} fill="rgba(0, 255, 0, 0.4)" stroke="none" />}
           {projectedPaths.laneLines.map((line, i) =>
@@ -174,34 +181,7 @@ export const DrivingPath = ({ files, routeName }: { files: Files; routeName: str
             edge ? <path key={`edge-${i}`} d={edge} stroke="red" strokeWidth={4} fill="none" /> : null,
           )}
         </svg>
-      ) : (
-        <div></div>
       )}
-
-      {/* Calibration Controls */}
-      <div className="absolute top-4 right-4 bg-black/80 p-4 rounded-lg text-white text-xs flex flex-col gap-2 w-64 z-50">
-        <h3 className="font-bold mb-2">Calibration</h3>
-        <label className="flex flex-col">
-          FX: {fx}
-          <input type="range" min="500" max="2000" value={fx} onChange={(e) => setFx(Number(e.target.value))} />
-        </label>
-        <label className="flex flex-col">
-          FY: {fy}
-          <input type="range" min="500" max="2000" value={fy} onChange={(e) => setFy(Number(e.target.value))} />
-        </label>
-        <label className="flex flex-col">
-          CX: {cx}
-          <input type="range" min="0" max={WIDTH} value={cx} onChange={(e) => setCx(Number(e.target.value))} />
-        </label>
-        <label className="flex flex-col">
-          CY: {cy}
-          <input type="range" min="0" max={HEIGHT} value={cy} onChange={(e) => setCy(Number(e.target.value))} />
-        </label>
-        <label className="flex flex-col">
-          Height: {camHeight.toFixed(2)}
-          <input type="range" min="0.5" max="3.0" step="0.1" value={camHeight} onChange={(e) => setCamHeight(Number(e.target.value))} />
-        </label>
-      </div>
     </AbsoluteFill>
   )
 }
