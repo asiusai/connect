@@ -46,6 +46,10 @@ const router = createBrowserRouter([
     lazy: () => import('./pages/auth'),
   },
   {
+    path: 'test',
+    lazy: () => import('./pages/test'),
+  },
+  {
     path: '',
     lazy: () => import('./layouts/authorized'),
     children: [
