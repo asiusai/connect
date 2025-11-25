@@ -22,7 +22,8 @@ const BUTTON_CLASSES = {
 
 export const Button = ({ color, leading, trailing, className, children, disabled, loading, ...props }: ButtonProps) => {
   const colorClasses = BUTTON_CLASSES[color || 'primary']
-  if (!disabled && loading) disabled = true
+  const isLoading = !!loading || loading === 0
+  if (!disabled && isLoading) disabled = true
 
   return (
     <ButtonBase
@@ -36,11 +37,17 @@ export const Button = ({ color, leading, trailing, className, children, disabled
         className,
       )}
       {...props}
-      disabled={disabled || !!loading}
+      disabled={disabled}
     >
       {leading}
-      <span className={clsx('text-sm', loading && 'invisible')}>{children}</span>
-      {loading && <CircularProgress loading={loading} className="absolute left-1/2 top-1/2 ml-[-10px] mt-[-10px] animate-spin" size="20" />}
+      <span className={clsx('relative')}>
+        <span className={clsx('text-sm', isLoading && 'invisible')}>{children}</span>
+        {isLoading && (
+          <span className="absolute inset-0 flex justify-center items-center">
+            <CircularProgress loading={loading} size="20" />
+          </span>
+        )}
+      </span>
       {trailing}
     </ButtonBase>
   )

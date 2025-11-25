@@ -4,14 +4,14 @@ import { ButtonBase, type ButtonBaseProps } from './ButtonBase'
 import { CircularProgress } from './CircularProgress'
 import { Icon, IconName, IconProps } from './Icon'
 
-type IconButtonProps = ButtonBaseProps & {
+type IconButtonProps = Omit<ButtonBaseProps, 'children'> & {
   name: IconName
   filled?: IconProps['filled']
   size?: IconProps['size']
   loading?: number | boolean
 }
 
-export const IconButton = ({ className, children, filled, size = '24', loading, ...props }: IconButtonProps) => {
+export const IconButton = ({ className, filled, size = '24', loading, ...props }: IconButtonProps) => {
   const buttonSize = {
     '20': 'w-[28px] h-[28px] min-w-[28px] min-h-[28px]',
     '24': 'w-[32px] h-[32px] min-w-[32px] min-h-[32px]',

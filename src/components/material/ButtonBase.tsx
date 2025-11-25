@@ -6,13 +6,14 @@ export type ButtonBaseProps = {
   className?: string
   disabled?: boolean
   href?: string
-  children?: ReactNode
+  children: ReactNode
   onClick?: () => void
   activeClass?: string
   download?: string
+  target?: string
 }
 
-export const ButtonBase = ({ activeClass, download, ...props }: ButtonBaseProps) => {
+export const ButtonBase = ({ activeClass, ...props }: ButtonBaseProps) => {
   const className = clsx('isolate overflow-hidden', props.className, props.disabled && 'opacity-70')
   return props.href ? <Link {...props} to={props.href} className={className} /> : <button {...props} className={className} />
 }

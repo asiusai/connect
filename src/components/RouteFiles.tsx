@@ -5,11 +5,12 @@ import { z } from 'zod'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
 import { useFiles, useShareSignature } from '../api/queries'
-import { IconButton } from './material/IconButton'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
 import { getRouteDuration } from '../utils/format'
 import { useParams } from '../utils/hooks'
+import { Button } from './material/Button'
+import { Icon } from './material/Icon'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
@@ -17,21 +18,42 @@ const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if de
 const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras', 'logs', 'qlogs'])
 type FileType = z.infer<typeof FileType>
 
-const FILE_NAMES = {
-  cameras: 'fcamera.hevc',
-  ecameras: 'ecamera.hevc',
-  dcameras: 'dcamera.hevc',
-  qcameras: 'qcamera.ts',
-  logs: 'rlog.zst',
-  qlogs: 'qlog.zst',
-}
-const FILE_LABELS = {
-  cameras: 'Road camera',
-  ecameras: 'Wide-angle camera',
-  dcameras: 'Driver camera',
-  qcameras: 'Quantized road camera',
-  logs: 'Logs',
-  qlogs: 'Quantized logs',
+const FILE_INFO: Record<FileType, { name: string; raw: string; processed?: string; label: string }> = {
+  cameras: {
+    label: 'Road camera',
+    name: 'fcamera.hevc',
+    raw: '.hevc',
+    processed: '.mp4',
+  },
+  ecameras: {
+    label: 'Wide-angle camera',
+    name: 'ecamera.hevc',
+    raw: '.hevc',
+    processed: '.mp4',
+  },
+  dcameras: {
+    label: 'Driver camera',
+    name: 'dcamera.hevc',
+    raw: '.hevc',
+    processed: '.mp4',
+  },
+  qcameras: {
+    label: 'Quantized camera',
+    name: 'qcamera.ts',
+    raw: '.ts',
+  },
+  logs: {
+    label: 'Logs',
+    name: 'rlog.zst',
+    raw: '.zst',
+    processed: 'View',
+  },
+  qlogs: {
+    label: 'Quantized logs',
+    name: 'qlog.zst',
+    raw: '.zst',
+    processed: 'View',
+  },
 }
 
 export const uploadSegments = async (routeName: string, segments: number[], types: FileType[], files: Files) => {
@@ -41,7 +63,7 @@ export const uploadSegments = async (routeName: string, segments: number[], type
   const paths: string[] = []
   for (const i of segments) {
     for (const type of types) {
-      const name = FILE_NAMES[type]
+      const name = FILE_INFO[type].name
       const key = [dongleId, routeId, i, name].join('/')
       if (!files[type].find((path) => path.includes(key))) {
         paths.push(`${routeId}--${i}/${name}`)
@@ -67,11 +89,13 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Files;
   const totalSegments = route.maxqlog + 1
 
   const disabled =
-    segment === -1 ? files[type].length === totalSegments : !!files[type].find((x) => x.includes(`/${segment}/${FILE_NAMES[type]}`))
+    segment === -1 ? files[type].length === totalSegments : !!files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
   if (disabled) return null
   return (
-    <IconButton
-      name="upload"
+    <Button
+      children="Upload"
+      leading={<Icon name="upload" />}
+      color="secondary"
       loading={isLoading}
       onClick={async () => {
         setIsLoading(true)
@@ -93,12 +117,30 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
   const [signature] = useShareSignature(routeName)
   if (files[type].length !== totalSegments) return null
 
-  if (type === 'logs' || type === 'qlogs') return <IconButton name="file_json" href={`/${dongleId}/routes/${date}/${type}`} />
-  if (type === 'qcameras') return <IconButton name="raw_on" href={signature ? createQCameraStreamUrl(routeName, signature) : undefined} />
+  if (type === 'logs' || type === 'qlogs')
+    return (
+      <Button
+        target="_blank"
+        children={FILE_INFO[type].processed}
+        leading={<Icon name="open_in_new" />}
+        href={`/${dongleId}/routes/${date}/${type}`}
+      />
+    )
+
+  if (type === 'qcameras')
+    return (
+      <Button
+        children=".m3u8"
+        leading={<Icon name="raw_on" />}
+        download={`${routeName}--qcamera.m3u8`}
+        href={signature ? createQCameraStreamUrl(routeName, signature) : undefined}
+      />
+    )
 
   return (
-    <IconButton
-      name="movie"
+    <Button
+      children={FILE_INFO[type].processed}
+      leading={<Icon name="movie" />}
       loading={loading}
       onClick={async () => {
         setProgress({})
@@ -108,7 +150,7 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
         )
         const bin = concatBins(bins)
         const blob = await hevcToMp4(bin, () => {})
-        saveFile(blob, `${route.fullname}--${FILE_NAMES[type].replace('.hevc', '.mp4')}`)
+        saveFile(blob, `${routeName}--${FILE_INFO[type].name.replace('.hevc', '.mp4')}`)
       }}
     />
   )
@@ -116,29 +158,47 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
 
 const DownloadSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
   const { routeName } = useParams()
-  const file = files[type].find((x) => x.includes(`/${segment}/${FILE_NAMES[type]}`))
+  const file = files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
   if (!file) return null
-  return <IconButton name="raw_on" href={file} download={`${routeName}--${segment}--${FILE_NAMES[type]}`} />
+  return (
+    <Button
+      children={FILE_INFO[type].raw}
+      leading={<Icon name="raw_on" />}
+      href={file}
+      download={`${routeName}--${segment}--${FILE_INFO[type].name}`}
+    />
+  )
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
   const { dongleId, date, routeName } = useParams()
-  const file = files[type].find((x) => x.includes(`/${segment}/${FILE_NAMES[type]}`))
+  const file = files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
   const [progress, setProgress] = useState<number>()
 
   if (!file) return null
-  if (type === 'logs' || type === 'qlogs')
-    return <IconButton name="file_json" href={`/${dongleId}/routes/${date}/${type}?segment=${segment}`} />
+
   if (type === 'qcameras') return null
+
+  if (type === 'logs' || type === 'qlogs')
+    return (
+      <Button
+        children={FILE_INFO[type].processed}
+        target="_blank"
+        leading={<Icon name="open_in_new" />}
+        href={`/${dongleId}/routes/${date}/${type}?segment=${segment}`}
+      />
+    )
+
   return (
-    <IconButton
-      name="movie"
+    <Button
+      children={FILE_INFO[type].processed}
+      leading={<Icon name="movie" />}
       loading={progress}
       onClick={async () => {
         setProgress(0)
 
         const blob = await hevcToMp4(file, ({ percent }) => setProgress(percent))
-        saveFile(blob, `${routeName}--${segment}--${FILE_NAMES[type].replace('.hevc', '.mp4')}`)
+        saveFile(blob, `${routeName}--${segment}--${FILE_INFO[type].name.replace('.hevc', '.mp4')}`)
       }}
     />
   )
@@ -148,26 +208,25 @@ const SegmentDetails = ({ segment, files, route }: { segment: number; files: Fil
   const isRoute = segment === -1
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-">
       {FileType.options.map((type) => {
         return (
-          <div key={`${type}-${segment}`} className="flex items-center justify-between py-1 px-2 rounded-xl hover:bg-white/5 ">
-            <span className="text-base font-medium text-gray-200">{FILE_LABELS[type]}</span>
+          <div
+            key={`${type}-${segment}`}
+            className="flex flex-col gap-1 md:flex-row md:items-center justify-between py-2 px-2 rounded-xl hover:bg-white/5 "
+          >
+            <span className="text-base font-medium text-gray-200">{FILE_INFO[type].label}</span>
 
-            <div className="flex gap-2 items-center">
-              <div>
-                {isRoute ? (
-                  <FullRouteDownload type={type} files={files} route={route} />
-                ) : (
-                  <>
-                    <DownloadSegment type={type} files={files} segment={segment} />
-                    <ProcessSegment type={type} files={files} segment={segment} />
-                  </>
-                )}
-              </div>
-              <div className="flex w-8">
-                <Upload type={type} files={files} route={route} segment={segment} />
-              </div>
+            <div className="flex gap-2 items-center justify-start">
+              {isRoute ? (
+                <FullRouteDownload type={type} files={files} route={route} />
+              ) : (
+                <>
+                  <DownloadSegment type={type} files={files} segment={segment} />
+                  <ProcessSegment type={type} files={files} segment={segment} />
+                </>
+              )}
+              <Upload type={type} files={files} route={route} segment={segment} />
             </div>
           </div>
         )
@@ -221,7 +280,7 @@ const SegmentGrid = ({
       {Array.from({ length: totalSegments }).map((_, i) => {
         let count = 0
         for (const type of FileType.options) {
-          const key = [dongleId, routeId, i, FILE_NAMES[type]].join('/')
+          const key = [dongleId, routeId, i, FILE_INFO[type].name].join('/')
           if (files[type].find((path) => path.includes(key))) count++
         }
         const status = count === FileType.options.length ? 'full' : count > 0 ? 'partial' : 'empty'
