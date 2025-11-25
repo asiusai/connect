@@ -19,8 +19,7 @@ export const IconButton = ({ className, children, filled, size = '24', loading, 
     '48': 'w-[56px] h-[56px] min-w-[56px] min-h-[56px]',
   }[size]
 
-  const isLoading = loading === true || (typeof loading === 'number' && loading >= 0)
-  const progressValue = typeof loading === 'number' ? loading : undefined
+  const isLoading = !!loading || loading === 0
 
   return (
     <ButtonBase
@@ -32,7 +31,7 @@ export const IconButton = ({ className, children, filled, size = '24', loading, 
       disabled={isLoading || props.disabled}
       {...props}
     >
-      {isLoading ? <CircularProgress size={size} value={progressValue} /> : <Icon name={props.name} filled={filled} size={size} />}
+      {isLoading ? <CircularProgress size={size} loading={loading} /> : <Icon name={props.name} filled={filled} size={size} />}
     </ButtonBase>
   )
 }

@@ -1,25 +1,27 @@
 import clsx from 'clsx'
 
 import { ButtonBase, type ButtonBaseProps } from './ButtonBase'
-import { Icon } from './Icon'
 import { ReactNode } from 'react'
+import { CircularProgress } from './CircularProgress'
 
 type ButtonProps = ButtonBaseProps & {
   color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'text'
   disabled?: boolean
-  loading?: boolean
+  loading?: number | boolean
   leading?: ReactNode
   trailing?: ReactNode
 }
 
+const BUTTON_CLASSES = {
+  text: 'text-primary before:bg-primary-x',
+  primary: 'bg-primary before:bg-primary-x text-primary-x',
+  secondary: 'bg-secondary before:bg-secondary-x text-secondary-x',
+  tertiary: 'bg-tertiary before:bg-tertiary-x text-tertiary-x',
+  error: 'bg-error before:bg-error-x text-error-x',
+}
+
 export const Button = ({ color, leading, trailing, className, children, disabled, loading, ...props }: ButtonProps) => {
-  const colorClasses = {
-    text: 'text-primary before:bg-primary-x',
-    primary: 'bg-primary before:bg-primary-x text-primary-x',
-    secondary: 'bg-secondary before:bg-secondary-x text-secondary-x',
-    tertiary: 'bg-tertiary before:bg-tertiary-x text-tertiary-x',
-    error: 'bg-error before:bg-error-x text-error-x',
-  }[color || 'primary']
+  const colorClasses = BUTTON_CLASSES[color || 'primary']
   if (!disabled && loading) disabled = true
 
   return (
@@ -34,11 +36,11 @@ export const Button = ({ color, leading, trailing, className, children, disabled
         className,
       )}
       {...props}
-      disabled={disabled || loading}
+      disabled={disabled || !!loading}
     >
       {leading}
       <span className={clsx('text-sm', loading && 'invisible')}>{children}</span>
-      {loading && <Icon name="autorenew" className="absolute left-1/2 top-1/2 ml-[-10px] mt-[-10px] animate-spin" size="20" />}
+      {loading && <CircularProgress loading={loading} className="absolute left-1/2 top-1/2 ml-[-10px] mt-[-10px] animate-spin" size="20" />}
       {trailing}
     </ButtonBase>
   )

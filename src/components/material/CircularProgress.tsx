@@ -2,11 +2,13 @@ import clsx from 'clsx'
 
 type CircularProgressProps = {
   size?: number | string
-  value?: number
+  loading?: number | boolean
   className?: string
 }
 
-export const CircularProgress = ({ size = 24, value, className }: CircularProgressProps) => {
+export const CircularProgress = ({ size = 24, loading, className }: CircularProgressProps) => {
+  const value = typeof loading === 'number' ? loading : undefined
+
   const sizeNum = typeof size === 'string' ? parseInt(size, 10) : size
   const strokeWidth = 3
   const radius = (sizeNum - strokeWidth) / 2
