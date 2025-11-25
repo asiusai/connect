@@ -4,7 +4,7 @@ import { ButtonBase } from '../components/material/ButtonBase'
 import { Icon } from '../components/material/Icon'
 import { DeviceLocation } from '../components/DeviceLocation'
 
-import { Loading } from './material/Loading'
+import { Loading } from '../components/material/Loading'
 import { Device, getCommaName, getDeviceName } from '../types'
 import { formatDistance, formatDuration } from '../utils/format'
 import { useEffect, useRef, useState } from 'react'
@@ -13,7 +13,7 @@ import { storage } from '../utils/helpers'
 import { useParams } from '../utils/hooks'
 import { callAthena } from '../api/athena'
 import { useNavigate } from 'react-router-dom'
-import { Toggle } from './material/Toggle'
+import { Toggle } from '../components/material/Toggle'
 
 const timeAgo = (time: number): string => {
   const diff = Math.floor(Date.now() / 1000) - time
@@ -290,9 +290,8 @@ const Info = ({ dongleId }: { dongleId: string }) => {
   )
 }
 
-export const DeviceInfo = () => {
+export const Component = () => {
   const { dongleId } = useParams()
-  const scrollRef = useRef<HTMLDivElement>(null)
   const [device] = useDevice(dongleId)
 
   const [fade, setFade] = useState(1)
@@ -306,17 +305,16 @@ export const DeviceInfo = () => {
   }, [])
 
   useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    const onScroll = () => setFade(Math.max(0, 1 - el.scrollTop / 300))
-    el.addEventListener('scroll', onScroll)
-    return () => el.removeEventListener('scroll', onScroll)
-  }, [scrollRef.current])
+    const onScroll = () => setFade(Math.max(0, 1 - window.scrollY / 300))
+
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   if (!device) return <Loading className="h-screen w-screen" />
   return (
-    <div className="min-w-full h-full relative bg-surface">
-      <div className="absolute w-full h-[500px] overflow-hidden" style={{ opacity: fade }}>
+    <>
+      <div className="fixed top-0 w-full h-[500px] overflow-hidden" style={{ opacity: fade }}>
         <div className="inset-x-0 top-0 flex items-start justify-between px-4 py-4 text-white absolute z-[999]">
           <div className="flex justify-between items-start w-full">
             <div className="flex flex-col">
@@ -342,34 +340,34 @@ export const DeviceInfo = () => {
         </div>
 
         <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full absolute" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent pointer-events-none " />
         {fade !== 1 && (
           <div
             className="absolute inset-0 z-[999999]"
             onClick={(e) => {
               e.stopPropagation()
-              scrollRef.current!.scrollTo({ top: 0, behavior: 'smooth' })
+              document.documentElement.scrollTo({ top: 0, behavior: 'smooth' })
             }}
           ></div>
         )}
       </div>
 
-      <div ref={scrollRef} className="relative pointer-events-none overflow-y-scroll h-screen z-[9999] flex flex-col pt-[430px]">
-        <ActionBar />
-        <div className="bg-background flex flex-col gap-6 pointer-events-auto min-h-full shrink-0 shadow-xl p-6">
-          <Buttons dongleId={dongleId} />
-          <Statistics dongleId={dongleId} />
-          <Info dongleId={dongleId} />
-        </div>
+      <div className="h-[430px] pointer-events-none"></div>
+      <ActionBar />
+      <div className="bg-background flex flex-col gap-6 shrink-0 p-6 w-full relative">
+        <Buttons dongleId={dongleId} />
+        <Statistics dongleId={dongleId} />
+        <Info dongleId={dongleId} />
       </div>
+
       {open && (
-        <div className="absolute inset-0 z-[999999] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[999999] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
             <DeviceList close={() => setOpen(false)} />
           </div>
           <div className="absolute inset-0 z-[-1]" onClick={() => setOpen(false)} />
         </div>
       )}
-    </div>
+    </>
   )
 }

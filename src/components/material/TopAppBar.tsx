@@ -12,10 +12,15 @@ type TopAppBarProps = {
 export const TopAppBar = (props: TopAppBarProps) => {
   // TODO: handle component
   return (
-    <header className={clsx('inset-x-0 top-0 flex items-center gap-4 px-5 py-5 text-background-x', props.className)}>
-      {props.leading}
-      <h1 className="grow truncate text-2xl">{props.children}</h1>
-      {props.trailing}
-    </header>
+    <>
+      <header className={clsx('fixed flex items-center top-0 left-0 w-screen gap-4 h-16 px-4 text-background-x z-10 bg-background shadow-md shadow-black border-b border-black', props.className)}>
+        {props.leading}
+        <h1 className="grow truncate text-2xl">{props.children}</h1>
+        {props.trailing}
+      </header>
+      <div className='h-20 shrink-0'>
+a
+      </div>
+    </>
   )
 }
