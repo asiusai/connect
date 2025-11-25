@@ -15,6 +15,7 @@ import { api } from '../api'
 import { Route } from '../types'
 import { Copy } from '../components/Copy'
 import { useParams } from '../utils/hooks'
+import { BackButton } from '../components/material/BackButton'
 
 const useIsPreserved = (route: Route) => {
   const [preserved] = usePreservedRoutes(route.dongle_id)
@@ -49,7 +50,7 @@ const Top = ({ route }: { route: Route }) => {
   return (
     <TopAppBar
       component="h2"
-      leading={<IconButton name="keyboard_arrow_left" href={`/${route.dongle_id}/routes`} />}
+      leading={<BackButton fallback={`/${route.dongle_id}/routes`} />}
       trailing={
         <>
           <IconButton name={isPreserved ? 'bookmark_check' : 'bookmark'} onClick={() => setIsPreserved(!isPreserved)} />

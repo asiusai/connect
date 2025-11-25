@@ -3,7 +3,7 @@ import { LogReader } from '../../log-reader'
 import { useFiles } from '../api/queries'
 import { useAsyncEffect, useParams } from '../utils/hooks'
 import { TopAppBar } from '../components/material/TopAppBar'
-import { IconButton } from '../components/material/IconButton'
+import { BackButton } from '../components/material/BackButton'
 import { Icon } from '../components/material/Icon'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
@@ -156,7 +156,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col h-screen bg-surface text-background-x">
-      <TopAppBar leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}/routes/${date}`} />}>{type}</TopAppBar>
+      <TopAppBar leading={<BackButton fallback={`/${dongleId}/routes/${date}`} />}>{type}</TopAppBar>
 
       {/* Top Controls Bar */}
       <div className="flex items-center gap-1 p-2 rounded-xl bg-background-alt shrink-0 overflow-x-auto">

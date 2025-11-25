@@ -9,7 +9,7 @@ import type { Route } from '../types'
 import { dateTimeToColorBetween } from '../utils/format'
 import { Fragment, useEffect, useState } from 'react'
 import { TopAppBar } from '../components/material/TopAppBar'
-import { IconButton } from '../components/material/IconButton'
+import { BackButton } from '../components/material/BackButton'
 import { api } from '../api'
 import { Button } from '../components/material/Button'
 import { useParams } from '../utils/hooks'
@@ -17,7 +17,7 @@ import { getPlaceName } from '../utils/map'
 import { usePreservedRoutes } from '../api/queries'
 import { Toggle } from '../components/material/Toggle'
 import { Icon } from '../components/material/Icon'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
@@ -86,14 +86,22 @@ export const Component = () => {
 
   let prevDayHeader: string | null = null
 
-  const [show, setShow] = useState<'all' | 'preserved'>('all')
+  const [params, setParams] = useSearchParams()
+  const show = params.has('preserved') ? 'preserved' : 'all'
+
   const routes = show === 'all' ? query.data?.pages.flatMap((x) => x.body) : preserved
   const hasNextPage = show === 'all' ? query.hasNextPage : false
   return (
     <>
       <TopAppBar
-        leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}`} />}
-        trailing={<Toggle options={{ all: 'All', preserved: 'Preserved' }} value={show} onChange={setShow} />}
+        leading={<BackButton fallback={`/${dongleId}`} />}
+        trailing={
+          <Toggle
+            options={{ all: 'All', preserved: 'Preserved' }}
+            value={show}
+            onChange={(val) => setParams(val === 'all' ? undefined : { preserved: 'true' }, { replace: true })}
+          />
+        }
       >
         Routes
       </TopAppBar>

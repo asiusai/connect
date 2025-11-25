@@ -10,6 +10,7 @@ import { HEIGHT, WIDTH } from '../../templates/shared'
 import { Loading } from '../components/material/Loading'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
+import { BackButton } from '../components/material/BackButton'
 
 export const Component = () => {
   const { dongleId } = useParams()
@@ -33,8 +34,9 @@ export const Component = () => {
   return (
     <>
       <TopAppBar
-        leading={<IconButton name="keyboard_arrow_left" href={`/${dongleId}`} />}
+        leading={<BackButton fallback={`/${dongleId}`} />}
         trailing={<IconButton name="camera" className={clsx(isLoading && 'animate-spin')} onClick={shot} disabled={isLoading} />}
+        removePadding
       >
         Sentry mode
       </TopAppBar>
@@ -58,7 +60,7 @@ export const Component = () => {
       ))}
 
       {!isLoading && !images && (
-        <div className="flex flex-col items-center justify-center h-full gap-6 pb-20">
+        <div className="flex flex-col items-center justify-center h-screen gap-6 pb-20">
           <div className="w-24 h-24 rounded-full bg-background-alt flex items-center justify-center mb-4">
             <Icon name="camera" size="48" className="text-primary" />
           </div>
