@@ -3,14 +3,15 @@ import { chromium, devices, type BrowserContext, type BrowserContextOptions } fr
 
 const baseUrl = process.argv[2]
 const outDir = process.argv[3] || 'screenshots'
+const dongleId = '1d3dc3e03047b0c7'
 const endpoints = {
   Login: 'login',
   Pair: 'pair',
-  Home: '1d3dc3e03047b0c7',
-  Routes: '1d3dc3e03047b0c7/routes',
-  Route: '1d3dc3e03047b0c7/routes/000000dd--455f14369d',
-  Settings: '1d3dc3e03047b0c7/settings',
-  Sentry: '1d3dc3e03047b0c7/sentry',
+  Home: dongleId,
+  Routes: `${dongleId}/routes`,
+  Route: `${dongleId}/routes/000000dd--455f14369d`,
+  Settings: `${dongleId}/settings`,
+  Sentry: `${dongleId}/sentry`,
 }
 
 const takeScreenshots = async (deviceType: string, context: BrowserContext) => {

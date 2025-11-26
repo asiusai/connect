@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       number: ${{ steps.pr.outputs.number }}
-    if: github.repository == 'commaai/new-connect' && github.event.workflow_run.event == 'pull_request'
+    if: github.repository == 'karelnagel/new-connect' && github.event.workflow_run.event == 'pull_request'
     steps:
       # use `gr pr view` to get the PR number
       # https://github.com/orgs/community/discussions/25220#discussioncomment-11285971
@@ -95,7 +95,7 @@ jobs:
           message: |
             <!-- _(run_id **${{ github.run_id }}**)_ -->
 
-            # deployed preview: https://${{ needs.pr.outputs.number }}.connect-d5y.pages.dev
+            # deployed preview: https://${{ needs.pr.outputs.number }}.comma-connect.pages.dev
 
             Welcome to connect! Make sure to:
             * read the [contributing guidelines](https://github.com/commaai/connect?tab=readme-ov-file#contributing)
@@ -114,7 +114,7 @@ jobs:
           ref: master
 
       - name: take screenshots
-        run: bun scripts/screenshots.ts https://${{ needs.pr.outputs.number }}.connect-d5y.pages.dev ${{ github.workspace }}/ci-artifacts
+        run: bun scripts/screenshots.ts https://${{ needs.pr.outputs.number }}.comma-connect.pages.dev ${{ github.workspace }}/ci-artifacts
 
       - name: Push Screenshots
         working-directory: ${{ github.workspace }}/ci-artifacts
@@ -132,7 +132,7 @@ jobs:
           message: |
             <!-- _(run_id **${{ github.run_id }}**)_ -->
 
-            # deployed preview: https://${{ needs.pr.outputs.number }}.connect-d5y.pages.dev
+            # deployed preview: https://${{ needs.pr.outputs.number }}.comma-connect.pages.dev
 
             Welcome to connect! Make sure to:
             * read the [contributing guidelines](https://github.com/commaai/connect?tab=readme-ov-file#contributing)
