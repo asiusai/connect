@@ -1,11 +1,14 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 
 export let ffmpeg: FFmpeg
+
+let loadingPromise: Promise<boolean> | null = null
 export const init = async () => {
-  if (ffmpeg) return
-  ffmpeg = new FFmpeg()
-  // ffmpeg.on('log', ({ message }) => console.log(message))
-  await ffmpeg.load()
+  if (!ffmpeg) ffmpeg = new FFmpeg()
+
+  if (!loadingPromise) loadingPromise = ffmpeg.load()
+
+  await loadingPromise
 }
 
 export type DownloadProgress = { loaded: number; length: number; percent: number }
@@ -40,24 +43,29 @@ export const downloadFile = async (url: string, onLoad: OnDownloadProgress): Pro
 
   return result
 }
+const randomName = (ext: string) => `${(Math.random() * 100000).toFixed(0)}.${ext}`
 export const hevcToMp4 = async (file: string | Uint8Array, onLoad: OnDownloadProgress) => {
   await init()
   const bin = typeof file === 'string' ? await downloadFile(file, onLoad) : file
-  await ffmpeg.writeFile('input.hevc', new Uint8Array(bin))
-  await ffmpeg.exec(['-r', '20', '-i', 'input.hevc', '-c', 'copy', '-map', '0', '-vtag', 'hvc1', 'output.mp4'])
-  const data = await ffmpeg.readFile('output.mp4')
+  const input = randomName('hevc'),
+    output = randomName('mp4')
+  await ffmpeg.writeFile(input, new Uint8Array(bin))
+  await ffmpeg.exec(['-r', '20', '-i', input, '-c', 'copy', '-map', '0', '-vtag', 'hvc1', output])
+  const data = await ffmpeg.readFile(output)
   return new Blob([(data as any).buffer], { type: 'video/mp4' })
 }
 
 export const hevcStreamToMp4 = async (file: string | Uint8Array, onLoad?: OnDownloadProgress) => {
   await init()
   const bin = typeof file === 'string' ? await downloadFile(file, onLoad || (() => {})) : file
-  await ffmpeg.writeFile('input.hevc', new Uint8Array(bin))
+  const input = randomName('hevc'),
+    output = randomName('mp4')
+  await ffmpeg.writeFile(input, new Uint8Array(bin))
   await ffmpeg.exec([
     '-r',
     '20',
     '-i',
-    'input.hevc',
+    input,
     '-c',
     'copy',
     '-movflags',
@@ -66,8 +74,8 @@ export const hevcStreamToMp4 = async (file: string | Uint8Array, onLoad?: OnDown
     '0',
     '-vtag',
     'hvc1',
-    'output.mp4',
+    output,
   ])
-  const data = await ffmpeg.readFile('output.mp4')
+  const data = await ffmpeg.readFile(output)
   return new Uint8Array<ArrayBuffer>((data as any).buffer)
 }

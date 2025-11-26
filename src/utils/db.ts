@@ -3,6 +3,8 @@ const STORE_NAME = 'hevc_files'
 export class DB {
   _db!: IDBDatabase
   init = async () => {
+    if (this._db) return this
+
     this._db = await new Promise((resolve, reject) => {
       const request = indexedDB.open('VideoCache', 1)
       request.onupgradeneeded = (event) => {

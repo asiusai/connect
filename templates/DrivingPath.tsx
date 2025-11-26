@@ -6,6 +6,7 @@ import Worker from '../log-reader/worker?worker'
 import { DB } from '../src/utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
 import type { FrameData } from '../log-reader/worker'
+import { useAsyncEffect } from '../src/utils/hooks'
 
 const db = new DB()
 
@@ -16,52 +17,41 @@ const CX = 857
 const CY = 626
 const CAM_HEIGHT = 1.5
 
-export const DrivingPath = ({ files, routeName }: { files: Files; routeName: string }) => {
-  const frame = useCurrentFrame()
+export const DrivingPath = ({ url, routeName, i }: { i: number; url: string; routeName: string }) => {
+  const _frame = useCurrentFrame()
+  const frame = i * 60 * FPS + _frame
   const [frames, setFrames] = useState<Record<string, FrameData>>()
 
-  const logType = files.logs.length === files.qlogs.length ? 'log' : 'qlog'
-  const logs = logType === 'log' ? files.logs : files.qlogs
-
-  useEffect(() => {
+  useAsyncEffect(async () => {
     if (frames) return
 
-    const loadLogs = async () => {
-      await db.init()
-      const workers: Worker[] = []
+    await db.init()
+    const workers: Worker[] = []
 
-      for (let i = 0; i < logs.length; i++) {
-        const url = logs[i]
-        const cacheKey = `${routeName}--${i}--${logType}`
-        const cached = await db.get<string>(cacheKey)
+    const logType = url.includes('qlog') ? 'qlog' : 'log'
+    const cacheKey = `${routeName}--${i}--${logType}`
+    const cached = await db.get<string>(cacheKey)
 
-        if (cached) {
-          setFrames((prev) => ({ ...prev, ...JSON.parse(cached) }))
-          continue
-        }
+    if (cached) return setFrames((prev) => ({ ...prev, ...JSON.parse(cached) }))
 
-        const worker = new Worker()
-        workers.push(worker)
+    const worker = new Worker()
+    workers.push(worker)
 
-        worker.onmessage = async ({ data }) => {
-          if (data.error) {
-            console.error('Worker error:', data.error)
-          }
-
-          if (data.frames) {
-            setFrames((prev) => ({ ...prev, ...data.frames }))
-            await db.set(cacheKey, JSON.stringify(data.frames))
-          }
-
-          worker.terminate()
-        }
-
-        worker.postMessage({ url, logType })
+    worker.onmessage = async ({ data }) => {
+      if (data.error) {
+        console.error('Worker error:', data.error)
       }
+
+      if (data.frames) {
+        setFrames((prev) => ({ ...prev, ...data.frames }))
+        await db.set(cacheKey, JSON.stringify(data.frames))
+      }
+
+      worker.terminate()
     }
 
-    loadLogs()
-  }, [...logs, routeName])
+    worker.postMessage({ url, logType })
+  }, [url, routeName])
 
   // Finding the latest frame data, max 1s old
   let item: FrameData | undefined = frames?.[frame]
