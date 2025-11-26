@@ -41,7 +41,6 @@ export const HevcVideo = ({ src, ...props }: VideoProps) => {
         return
       }
       cached[src] = []
-
       const res = await fetch(src)
       if (!res.ok || !res.body) return
 
@@ -74,5 +73,5 @@ export const HevcVideo = ({ src, ...props }: VideoProps) => {
   }, [])
 
   if (src.endsWith('.mp4')) return <OffthreadVideo src={src} {...props} />
-  return <Html5Video src={src} ref={videoRef} {...props} />
+  return <Html5Video src={src} ref={videoRef} {...props} showInTimeline={false} className="relative" />
 }

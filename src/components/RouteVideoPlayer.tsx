@@ -27,7 +27,7 @@ export const RouteVideoPlayer = ({
 
   // Removing remotion player timeline
   useEffect(() => document.querySelector('div[style*="user-select: none"][style*="padding-top: 4px"]')?.remove(), [])
-
+  const maxLen = route.maxqlog + 1
   return (
     <div
       className={clsx(
@@ -45,8 +45,10 @@ export const RouteVideoPlayer = ({
         style={{ width: '100%' }}
         inputProps={{
           routeName,
-          qCamUrl: signature ? createQCameraStreamUrl(routeName, signature) : undefined,
-          files,
+          largeCamera: files?.cameras.length === maxLen ? 'cameras' : 'qcameras',
+          logType: 'qlogs',
+          smallCamera: files?.dcameras.length === maxLen ? 'dcameras' : undefined,
+          data: files ? { files, qCameraUrl: signature ? createQCameraStreamUrl(routeName, signature) : undefined } : undefined,
         }}
         initiallyMuted
         clickToPlay

@@ -24,5 +24,5 @@ export const HlsVideo = ({ src, ...props }: RemotionVideoProps) => {
     return () => void hls.destroy()
   }, [src])
 
-  return <Html5Video {...props} ref={videoRef} src={src} />
+  return <Html5Video {...props} ref={videoRef} src={src} className="h-full w-full" />
 }
