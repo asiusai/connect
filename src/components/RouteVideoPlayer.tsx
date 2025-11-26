@@ -48,7 +48,6 @@ export const RouteVideoPlayer = ({
           qCamUrl: signature ? createQCameraStreamUrl(routeName, signature) : undefined,
           files,
         }}
-        autoPlay
         initiallyMuted
         clickToPlay
         controls

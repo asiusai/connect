@@ -81,7 +81,7 @@ const LargeCamera = () => {
         const name = `${style.largeCamera} ${i + 1}/${files.length}`
         return (
           <Series.Sequence key={src} durationInFrames={60 * FPS} premountFor={60 * FPS} name={name}>
-            <HevcVideo name={name} src={src} style={{ width: '100%', background: 'white' }} />
+            <HevcVideo src={src} style={{ width: '100%', background: 'white' }} />
           </Series.Sequence>
         )
       })}
@@ -101,7 +101,6 @@ const SmallCamera = () => {
         return (
           <Series.Sequence key={src} name={name} durationInFrames={60 * FPS} premountFor={60 * FPS}>
             <HevcVideo
-              name={name}
               src={src}
               style={{
                 position: 'absolute',
