@@ -1,3 +1,3 @@
 export const Component = () => {
-  return null
+  return <div>test</div>
 }
