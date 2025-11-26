@@ -42,7 +42,8 @@
         // Tailwind makes use of custom at-rules
         "noUnknownAtRules": "off",
         "noArrayIndexKey": "off",
-        "useIterableCallbackReturn": "off"
+        "useIterableCallbackReturn": "off",
+        "noDocumentCookie": "off"
       }
     }
   },

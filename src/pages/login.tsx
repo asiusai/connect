@@ -6,7 +6,7 @@ import { API_URL, HACK_LOGIN_CALLBACK_HOST } from '../utils/consts'
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
 // Redirecting straight back on localhost, but elsewhere redirect to the HACK url
-const state = `service,${window.location.host.includes('localhost') ? window.location.host : HACK_LOGIN_CALLBACK_HOST}`
+const state = `service,${window.location.hostname === 'localhost' ? window.location.host : HACK_LOGIN_CALLBACK_HOST}`
 
 const GOOGLE_OAUTH_PARAMS = {
   type: 'web_server',
@@ -18,7 +18,7 @@ const GOOGLE_OAUTH_PARAMS = {
   state,
 }
 
-export const getGoogleAuthUrl = () => `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`
+const getGoogleAuthUrl = () => `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`
 
 const APPLE_OAUTH_PARAMS = {
   client_id: 'ai.comma.login',
@@ -28,7 +28,7 @@ const APPLE_OAUTH_PARAMS = {
   scope: 'name email',
   state,
 }
-export const getAppleAuthUrl = () => `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`
+const getAppleAuthUrl = () => `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`
 
 const GITHUB_OAUTH_PARAMS = {
   client_id: '28c4ecb54bb7272cb5a4',
@@ -36,7 +36,7 @@ const GITHUB_OAUTH_PARAMS = {
   scope: 'read:user',
   state,
 }
-export const getGitHubAuthUrl = () => `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`
+const getGitHubAuthUrl = () => `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`
 
 export const Component = () => {
   const navigate = useNavigate()

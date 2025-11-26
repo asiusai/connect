@@ -1,6 +1,6 @@
 import { queryClient } from '../App'
 import type { Device, RouteInfo, RouteShareSignature } from '../types'
-import { API_URL, SHARED_DEVICE } from './consts'
+import { API_URL, HACK_DEFAULT_REDICT_HOST, SHARED_DEVICE } from './consts'
 
 export const parseRouteName = (routeName: string): RouteInfo => {
   const [dongleId, routeId] = routeName.split(/[|/]/)
@@ -27,17 +27,35 @@ export const storage = {
   },
 }
 
-let _accessToken: string | null = null
-export const accessToken = () => {
-  if (!_accessToken) _accessToken = storage.getItem('auth')
-  return _accessToken
+export const setAccessToken = (token: string | null) => {
+  const isLocal = window.location.hostname === 'localhost'
+
+  const cookie = [
+    `_accessToken=${token ?? ''}`,
+    !isLocal && `Domain=.${window.location.host}`,
+    !isLocal && `Secure`,
+    token === null ? 'Expires=Thu, 01 Jan 1970 00:00:00 GMT' : `Max-Age=${60 * 60 * 24 * 30}`,
+    `Path=/`,
+    'SameSite=Lax',
+  ]
+    .filter(Boolean)
+    .join('; ')
+  console.log(cookie)
+  document.cookie = cookie
 }
 
-export const setAccessToken = (token: string | null) => {
-  _accessToken = token
-  if (token === null) storage.removeItem('auth')
-  else storage.setItem('auth', token)
+export const getCookie = (name: string) => {
+  const nameEQ = name + '='
+  const ca = document.cookie.split(';')
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i]
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length)
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
+  }
+  return null
 }
+
+export const accessToken = () => getCookie('_accessToken')
 
 export const isSignedIn = () => !!accessToken()
 
