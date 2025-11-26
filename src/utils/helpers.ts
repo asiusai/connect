@@ -10,7 +10,8 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 export const createQCameraStreamUrl = (routeName: string, signature: RouteShareSignature): string =>
   `${API_URL}/v1/route/${routeName.replace('/', '%7C')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
 
-export const getService = () => (typeof window !== 'undefined' ? window.location.host : 'localhost:3000')
+// TODO: this is a hack to get the URL working
+export const getService = () => (typeof window !== 'undefined' ? '612.connect-d5y.pages.dev' : 'localhost:3000')
 
 type StorageKey = 'lastSelectedDongleId' | 'auth'
 export const storage = {

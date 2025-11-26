@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
-import { API_URL, DEMO_ACCESS_TOKEN } from '../utils/consts'
-import { getService, setAccessToken } from '../utils/helpers'
+import { API_URL } from '../utils/consts'
+import { getService } from '../utils/helpers'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
