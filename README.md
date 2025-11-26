@@ -2,7 +2,7 @@
 
 connect is the web and mobile experience for [openpilot](https://github.com/commaai/openpilot).
 
-Try it out at https://612.connect-d5y.pages.dev.
+Try it out at https://comma-connect.pages.dev.
 
 ## Development
 
@@ -15,7 +15,7 @@ curl -fsSL https://bun.com/install | bash
 ## Clone, install and run
 
 ```bash
-git clone https://github.com/commaai/new-connect.git
+git clone https://github.com/karelnagel/new-connect.git
 
 cd connect
 bun install  
