@@ -15,3 +15,6 @@ export const MAPBOX_DARK_STYLE_ID = 'clcgvbi4f000q15t6o2s8gys3'
 export const MAPBOX_TOKEN = 'pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDluMWR4amUydGl5In0.6Vb11S6tdX6Arpj6trRE_g'
 
 export const SHARED_DEVICE = 'Shared Device'
+
+export const HACK_LOGIN_CALLBACK_HOST = '612.connect-d5y.pages.dev'
+export const HACK_DEFAULT_REDICT_HOST = 'comma-connect.pages.dev'

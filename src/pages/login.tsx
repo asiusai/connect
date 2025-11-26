@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
-import { API_URL } from '../utils/consts'
-import { getService } from '../utils/helpers'
+import { API_URL, HACK_LOGIN_CALLBACK_HOST } from '../utils/consts'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
+
+// Redirecting straight back on localhost, but elsewhere redirect to the HACK url
+const state = `service,${window.location.host.includes('localhost') ? window.location.host : HACK_LOGIN_CALLBACK_HOST}`
 
 const GOOGLE_OAUTH_PARAMS = {
   type: 'web_server',
@@ -13,14 +15,10 @@ const GOOGLE_OAUTH_PARAMS = {
   response_type: 'code',
   scope: 'https://www.googleapis.com/auth/userinfo.email',
   prompt: 'select_account',
+  state,
 }
-export const getGoogleAuthUrl = () => {
-  const params = {
-    ...GOOGLE_OAUTH_PARAMS,
-    state: 'service,' + getService(),
-  }
-  return 'https://accounts.google.com/o/oauth2/auth?' + stringify(params)
-}
+
+export const getGoogleAuthUrl = () => `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`
 
 const APPLE_OAUTH_PARAMS = {
   client_id: 'ai.comma.login',
@@ -28,27 +26,17 @@ const APPLE_OAUTH_PARAMS = {
   response_type: 'code',
   response_mode: 'form_post',
   scope: 'name email',
+  state,
 }
-export const getAppleAuthUrl = () => {
-  const params = {
-    ...APPLE_OAUTH_PARAMS,
-    state: 'service,' + getService(),
-  }
-  return 'https://appleid.apple.com/auth/authorize?' + stringify(params)
-}
+export const getAppleAuthUrl = () => `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`
 
 const GITHUB_OAUTH_PARAMS = {
   client_id: '28c4ecb54bb7272cb5a4',
   redirect_uri: `${API_URL}/v2/auth/h/redirect/`,
   scope: 'read:user',
+  state,
 }
-export const getGitHubAuthUrl = () => {
-  const params = {
-    ...GITHUB_OAUTH_PARAMS,
-    state: 'service,' + getService(),
-  }
-  return 'https://github.com/login/oauth/authorize?' + stringify(params)
-}
+export const getGitHubAuthUrl = () => `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`
 
 export const Component = () => {
   const navigate = useNavigate()
