@@ -4,7 +4,7 @@ export let ffmpeg: FFmpeg
 export const init = async () => {
   if (ffmpeg) return
   ffmpeg = new FFmpeg()
-  ffmpeg.on('log', ({ message }) => console.log(message))
+  // ffmpeg.on('log', ({ message }) => console.log(message))
   await ffmpeg.load()
 }
 
@@ -40,7 +40,6 @@ export const downloadFile = async (url: string, onLoad: OnDownloadProgress): Pro
 
   return result
 }
-
 export const hevcToMp4 = async (file: string | Uint8Array, onLoad: OnDownloadProgress) => {
   await init()
   const bin = typeof file === 'string' ? await downloadFile(file, onLoad) : file
@@ -48,4 +47,27 @@ export const hevcToMp4 = async (file: string | Uint8Array, onLoad: OnDownloadPro
   await ffmpeg.exec(['-r', '20', '-i', 'input.hevc', '-c', 'copy', '-map', '0', '-vtag', 'hvc1', 'output.mp4'])
   const data = await ffmpeg.readFile('output.mp4')
   return new Blob([(data as any).buffer], { type: 'video/mp4' })
+}
+
+export const hevcStreamToMp4 = async (file: string | Uint8Array, onLoad?: OnDownloadProgress) => {
+  await init()
+  const bin = typeof file === 'string' ? await downloadFile(file, onLoad || (() => {})) : file
+  await ffmpeg.writeFile('input.hevc', new Uint8Array(bin))
+  await ffmpeg.exec([
+    '-r',
+    '20',
+    '-i',
+    'input.hevc',
+    '-c',
+    'copy',
+    '-movflags',
+    'frag_keyframe+empty_moov+default_base_moof',
+    '-map',
+    '0',
+    '-vtag',
+    'hvc1',
+    'output.mp4',
+  ])
+  const data = await ffmpeg.readFile('output.mp4')
+  return new Uint8Array<ArrayBuffer>((data as any).buffer)
 }
