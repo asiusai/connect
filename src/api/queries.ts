@@ -55,7 +55,7 @@ export const useStripeSession = (dongleId: string, stripeSessionId: string) =>
     api.prime.getSession.useQuery({
       queryKey: ['session', dongleId, stripeSessionId],
       queryData: { query: { dongle_id: dongleId, session_id: stripeSessionId } },
-      enabled: (x) => x.state.data?.body.payment_status !== 'paid',
+      enabled: (x) => x.state.data?.body.payment_status !== 'paid' && !!stripeSessionId,
       refetchInterval: 10_000,
     }),
   )

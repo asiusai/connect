@@ -201,48 +201,57 @@ const PrimeCheckout = () => {
   )
 }
 
+const StripeSession = ({ id }: { id: string }) => {
+  const { dongleId } = useParams()
+  const [stripeSession] = useStripeSession(dongleId, id)
+  const [subscription] = useSubscription(dongleId)
+  const paymentStatus = stripeSession?.payment_status
+
+  if (!stripeSession || !subscription)
+    return (
+      <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
+        <Icon className="animate-spin" name="autorenew" size="20" />
+        Processing subscription...
+      </div>
+    )
+
+  if (paymentStatus === 'unpaid')
+    return (
+      <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
+        <Icon name="payments" size="20" />
+        Waiting for confirmed payment...
+      </div>
+    )
+  if (paymentStatus === 'paid' && subscription)
+    return (
+      <div className="flex gap-2 rounded-lg bg-tertiary-alt p-2 text-sm text-tertiary-x-alt">
+        <Icon name="check" size="20" />
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold">comma prime activated</p>
+          {subscription.is_prime_sim &&
+            ' Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help.'}
+        </div>
+      </div>
+    )
+  return null
+}
+
 const PrimeManage = () => {
   const { dongleId } = useParams()
 
   const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
-  const [stripeSession] = useStripeSession(dongleId, stripeSessionId)
 
   // TODO: we should wait for the session to be paid before fetching subscription
-  const [subscription] = useSubscription(dongleId)
+  const [subscription, { refetch }] = useSubscription(dongleId)
   const [cancelDialog, setCancelDialog] = useState(false)
 
-  const cancel = api.prime.cancel.useMutation()
+  const cancel = api.prime.cancel.useMutation({ onSuccess: () => refetch() })
   const [portal] = usePortal(dongleId)
 
-  const loading = !subscription || cancel.isPending || !portal || !stripeSession
-  const paymentStatus = stripeSession?.payment_status
+  const loading = !subscription || cancel.isPending || !portal
   return (
     <div className="flex flex-col gap-4">
-      {!stripeSession ? (
-        <div className="flex gap-2 rounded-lg bg-error-alt-x p-2 text-sm font-semibold text-error-alt">
-          <Icon name="error" size="20" />
-          Unable to check payment status
-        </div>
-      ) : paymentStatus === 'unpaid' ? (
-        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-          <Icon name="payments" size="20" />
-          Waiting for confirmed payment...
-        </div>
-      ) : paymentStatus === 'paid' && !subscription ? (
-        <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-          <Icon className="animate-spin" name="autorenew" size="20" />
-          Processing subscription...
-        </div>
-      ) : paymentStatus === 'paid' && subscription ? (
-        <div className="flex gap-2 rounded-lg bg-tertiary-alt p-2 text-sm text-tertiary-x-alt">
-          <Icon name="check" size="20" />
-          <div className="flex flex-col gap-2">
-            <p className="font-semibold">comma prime activated</p>
-            {subscription.is_prime_sim &&
-              ' Connectivity will be enabled as soon as activation propogates to your local cell tower. Rebooting your device may help.'}
-          </div>
-        </div>
-      ) : null}
+      {stripeSessionId && <StripeSession id={stripeSessionId} />}
 
       {cancel.isError ? (
         <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
