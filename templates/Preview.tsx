@@ -2,13 +2,14 @@ import { AbsoluteFill, CalculateMetadataFunction, Sequence, Series } from 'remot
 import { z } from 'zod'
 import { FPS, getRouteDuration, getRouteSegment, HEIGHT, WIDTH } from './shared'
 import { createQCameraStreamUrl } from '../src/utils/helpers'
-import { Files } from '../src/types'
+import { Files, RouteSegment } from '../src/types'
 import { api } from '../src/api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
 import { DrivingPath } from './DrivingPath'
 import { Loading } from '../src/components/material/Loading'
 import clsx from 'clsx'
+import { readLogs } from '../log-reader/reader'
 
 export const CameraType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras'])
 export type CameraType = z.infer<typeof CameraType>
@@ -16,9 +17,12 @@ export type CameraType = z.infer<typeof CameraType>
 export const LogType = z.enum(['qlogs', 'logs'])
 export type LogType = z.infer<typeof LogType>
 
+export const FrameData = z.any()
 export const PreviewData = z.object({
+  segment: RouteSegment,
   qCameraUrl: z.string().optional(),
   files: Files,
+  logData: z.record(FrameData).array().optional(),
 })
 export type PreviewData = z.infer<typeof PreviewData>
 export const PreviewProps = z.object({
@@ -30,18 +34,27 @@ export const PreviewProps = z.object({
 })
 export type PreviewProps = z.infer<typeof PreviewProps>
 
-export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> = async ({ props }) => {
-  if (!props.routeName) return {}
-
+export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const segment = await getRouteSegment(props.routeName)
-  const duration = getRouteDuration(segment)
   const qCameraUrl = createQCameraStreamUrl(props.routeName, { exp: segment.share_exp, sig: segment.share_sig })
 
   const files = await api.file.files.query({ params: { routeName: props.routeName.replace('/', '%7C') } })
+
   if (files.status !== 200) throw new Error()
+  const logData = props.logType
+    ? await Promise.all(files.body[props.logType].map((url) => readLogs({ logType: props.logType!, url })))
+    : undefined
+  return { segment, files: files.body, qCameraUrl, logData }
+}
+
+export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> = async ({ props }) => {
+  const data = props.data ?? (await getPreviewData(props))
+
+  const duration = getRouteDuration(data.segment)
+
   return {
     durationInFrames: duration * FPS,
-    props: { ...props, data: { files: files.body, qCameraUrl } },
+    props: { ...props, data },
   }
 }
 
@@ -69,7 +82,7 @@ const UI = ({ data, logType, routeName }: { data: PreviewData; logType: LogType;
     <Series>
       {data.files?.[logType].map((url, i) => (
         <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
-          <DrivingPath i={i} routeName={routeName} url={url} />
+          <DrivingPath i={i} logType={logType} routeName={routeName} url={url} frames={data.logData?.[i]} />
         </Series.Sequence>
       ))}
     </Series>
