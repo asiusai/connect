@@ -2,14 +2,7 @@ import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
 import { renderer } from '../src/api/contract'
 import { router } from './router'
 
-const PORT =8080
-const HOSTNAME = "0.0.0.0"
-
-console.log(`Started server on http://${HOSTNAME}:${PORT}`)
-
-Bun.serve({
-  port: PORT,
-  hostname: HOSTNAME,
+const server = Bun.serve({
   fetch: async (request) => {
     const res = await fetchRequestHandler({
       contract: renderer,
@@ -21,3 +14,5 @@ Bun.serve({
     return res
   },
 })
+
+console.log(`Started server on http://${server.hostname}:${server.port}`)
