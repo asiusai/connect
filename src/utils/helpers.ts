@@ -1,5 +1,5 @@
-import type { Device, RouteInfo, RouteShareSignature } from '../types'
-import { API_URL, SHARED_DEVICE } from './consts'
+import type { Device, RouteInfo } from '../types'
+import { SHARED_DEVICE } from './consts'
 import { QueryClient } from '@tanstack/react-query'
 
 export const queryClient = new QueryClient({})
@@ -8,9 +8,6 @@ export const parseRouteName = (routeName: string): RouteInfo => {
   const [dongleId, routeId] = routeName.split(/[|/]/)
   return { dongleId, routeId }
 }
-
-export const createQCameraStreamUrl = (routeName: string, signature: RouteShareSignature): string =>
-  `${API_URL}/v1/route/${routeName.replace('/', '%7C')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
 
 type StorageKey = 'lastSelectedDongleId' | 'auth'
 export const storage = {

@@ -6,7 +6,7 @@ import { RouteStaticMap } from '../components/RouteStaticMap'
 import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import { RouteFiles } from '../components/RouteFiles'
 import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
-import { usePreservedRoutes, useRoute } from '../api/queries'
+import { usePreservedRoutes, useProfile, useRoute } from '../api/queries'
 import { Timeline } from '../components/Timeline'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useEffect, useRef, useState } from 'react'
@@ -18,7 +18,8 @@ import { useParams } from '../utils/hooks'
 import { BackButton } from '../components/material/BackButton'
 
 const useIsPreserved = (route: Route) => {
-  const [preserved] = usePreservedRoutes(route.dongle_id)
+  const [profile] = useProfile()
+  const [preserved] = usePreservedRoutes(route.dongle_id, route.user_id === profile?.id)
   const [isPreserved, setIsPreserved] = useState<boolean>()
   useEffect(() => setIsPreserved(preserved ? preserved.some((p) => p.fullname === route.fullname) : undefined), [preserved, route.fullname])
   return [
@@ -53,7 +54,9 @@ const Top = ({ route }: { route: Route }) => {
       leading={<BackButton fallback={`/${route.dongle_id}/routes`} />}
       trailing={
         <>
-          <IconButton name={isPreserved ? 'bookmark_check' : 'bookmark'} onClick={() => setIsPreserved(!isPreserved)} />
+          {isPreserved !== undefined && (
+            <IconButton name={isPreserved ? 'bookmark_check' : 'bookmark'} onClick={() => setIsPreserved(!isPreserved)} />
+          )}
           <IconButton name={isPublic ? 'public' : 'public_off'} onClick={() => setIsPublic(!isPublic)} />
         </>
       }

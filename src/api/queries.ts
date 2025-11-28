@@ -1,5 +1,6 @@
 import { api } from '.'
 import { DEMO_DONGLE_ID } from '../utils/consts'
+import { isSignedIn } from '../utils/helpers'
 
 // TODO:
 // wrapper
@@ -22,8 +23,8 @@ export const useDeviceLocation = (dongleId: string) =>
     }),
   )
 
-export const usePreservedRoutes = (dongleId: string) =>
-  w(api.routes.preserved.useQuery({ queryKey: ['preserved', dongleId], queryData: { params: { dongleId } } }))
+export const usePreservedRoutes = (dongleId: string, enabled?: boolean) =>
+  w(api.routes.preserved.useQuery({ queryKey: ['preserved', dongleId], queryData: { params: { dongleId } }, enabled }))
 
 export const useRoutes = (dongleId: string, limit: number) =>
   w(
@@ -42,7 +43,7 @@ export const useShareSignature = (routeName: string) =>
   )
 
 export const useDevices = () => w(api.devices.devices.useQuery({ queryKey: ['devices'] }))
-export const useProfile = () => w(api.profile.me.useQuery({ queryKey: ['me'] }))
+export const useProfile = () => w(api.profile.me.useQuery({ queryKey: ['me'], enabled: isSignedIn() }))
 
 export const useRoute = (routeName: string) =>
   w(api.routes.get.useQuery({ queryKey: ['route', routeName], queryData: { params: { routeName } } }))

@@ -6,23 +6,26 @@ export const HlsVideo = ({ src, ...props }: RemotionVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
-    if (!src) throw new Error('src is required')
+    if (!src || !videoRef.current) return
 
-    const startFrom = 0
+    const virtualManifest = ['#EXTM3U', '#EXT-X-VERSION:3', '#EXT-X-TARGETDURATION:61', '#EXTINF:60,', src, '#EXT-X-ENDLIST'].join('\n')
+
+    const blob = new Blob([virtualManifest], { type: 'application/vnd.apple.mpegurl' })
+    const manifestUrl = URL.createObjectURL(blob)
 
     const hls = new Hls({
-      startLevel: 4,
-      maxBufferLength: 5,
-      maxMaxBufferLength: 5,
+      enableWorker: true,
+      lowLatencyMode: true,
     })
 
-    hls.on(Hls.Events.MANIFEST_PARSED, () => void hls.startLoad(startFrom))
+    hls.loadSource(manifestUrl)
+    hls.attachMedia(videoRef.current)
 
-    hls.loadSource(src)
-    hls.attachMedia(videoRef.current!)
-
-    return () => void hls.destroy()
+    return () => {
+      hls.destroy()
+      URL.revokeObjectURL(manifestUrl)
+    }
   }, [src])
 
-  return <Html5Video {...props} ref={videoRef} src={src} className="h-full w-full" />
+  return <Html5Video {...props} src={src} ref={videoRef} className="h-full w-full" />
 }

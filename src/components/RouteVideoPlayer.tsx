@@ -1,11 +1,9 @@
 import clsx from 'clsx'
 
-import { Loading } from './material/Loading'
 import { Player, PlayerRef } from '@remotion/player'
-import { createQCameraStreamUrl } from '../utils/helpers'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { Preview } from '../../templates/Preview'
-import { useFiles, useShareSignature } from '../api/queries'
+import { useFiles } from '../api/queries'
 import { Route } from '../types'
 import { getRouteDuration } from '../utils/format'
 import { RefObject, useEffect } from 'react'
@@ -21,7 +19,6 @@ export const RouteVideoPlayer = ({
   className?: string
 }) => {
   const { routeName } = useParams()
-  const [signature] = useShareSignature(routeName)
   const [files] = useFiles(routeName)
   const duration = getRouteDuration(route)!.asSeconds()
 
@@ -48,7 +45,7 @@ export const RouteVideoPlayer = ({
           largeCamera: files?.cameras.length === maxLen ? 'cameras' : 'qcameras',
           logType: 'qlogs',
           smallCamera: files?.dcameras.length === maxLen ? 'dcameras' : undefined,
-          data: files ? { files, qCameraUrl: signature ? createQCameraStreamUrl(routeName, signature) : undefined } : undefined,
+          data: files ? { files, route } : undefined,
         }}
         initiallyMuted
         clickToPlay
@@ -56,8 +53,6 @@ export const RouteVideoPlayer = ({
         acknowledgeRemotionLicense
         allowFullscreen
       />
-
-      {!signature && <Loading className="absolute h-full w-full" />}
     </div>
   )
 }

@@ -27,7 +27,6 @@ export const api = initTsrReactQuery(contract, {
     })
 
     if (res.status >= 400) {
-      console.error(`Request to ${path} failed with code: ${res.status}`)
       return { status: res.status, headers: res.headers, body: undefined }
     }
     const text = await res.text()
