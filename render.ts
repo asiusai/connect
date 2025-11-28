@@ -4,9 +4,10 @@ import path from 'path'
 import { $ } from 'bun'
 import { CameraType, getPreviewData, PreviewProps } from './templates/Preview'
 import { enableTailwind } from '@remotion/tailwind'
+import { EXAMPLE_ROUTE_NAME } from './src/utils/consts'
 
 const props: PreviewProps = {
-  routeName: `9748a98e983e0b39/0000002c--d68dde99ca`,
+  routeName: EXAMPLE_ROUTE_NAME,
   largeCamera: 'cameras',
   smallCamera: 'dcameras',
   logType: 'qlogs',
