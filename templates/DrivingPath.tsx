@@ -1,12 +1,11 @@
 import { AbsoluteFill, useCurrentFrame } from 'remotion'
 import { WIDTH, HEIGHT, FPS } from './shared'
-import { useEffect, useMemo, useState } from 'react'
-import { Files } from '../src/types'
-import Worker from '../log-reader/worker?worker'
+import { useMemo, useState } from 'react'
 import { DB } from '../src/utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
 import type { FrameData } from '../log-reader/worker'
 import { useAsyncEffect } from '../src/utils/hooks'
+import { LogType } from './Preview'
 
 const db = new DB()
 
@@ -17,10 +16,22 @@ const CX = 857
 const CY = 626
 const CAM_HEIGHT = 1.5
 
-export const DrivingPath = ({ url, routeName, i }: { i: number; url: string; routeName: string }) => {
+export const DrivingPath = ({
+  url,
+  routeName,
+  logType,
+  i,
+  frames: inputFrames,
+}: {
+  i: number
+  url: string
+  routeName: string
+  frames?: Record<string, FrameData>
+  logType: LogType
+}) => {
   const _frame = useCurrentFrame()
   const frame = i * 60 * FPS + _frame
-  const [frames, setFrames] = useState<Record<string, FrameData>>()
+  const [frames, setFrames] = useState<Record<string, FrameData> | undefined>(inputFrames)
 
   useAsyncEffect(async () => {
     if (frames) return
@@ -28,12 +39,12 @@ export const DrivingPath = ({ url, routeName, i }: { i: number; url: string; rou
     await db.init()
     const workers: Worker[] = []
 
-    const logType = url.includes('qlog') ? 'qlog' : 'log'
     const cacheKey = `${routeName}--${i}--${logType}`
     const cached = await db.get<string>(cacheKey)
 
     if (cached) return setFrames((prev) => ({ ...prev, ...JSON.parse(cached) }))
 
+    const Worker = await import('../log-reader/worker?worker').then((x) => x.default)
     const worker = new Worker()
     workers.push(worker)
 

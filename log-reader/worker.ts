@@ -1,3 +1,4 @@
+import { LogType } from '../templates/Preview'
 import { LogReader } from './index'
 
 export type Pos = { X: number[]; Y: number[]; Z: number[]; prob?: number }
@@ -49,80 +50,79 @@ export type FrameData = {
   DriverStateV2?: DriverStateV2
   SelfdriveState?: SelfdriveState
 }
-export type WorkerData = {
+export type ReadLogsInput = {
   url: string
-  logType: 'log' | 'qlog'
+  logType: LogType
 }
 
-self.onmessage = async ({ data: { url, logType } }: { data: WorkerData }) => {
-  if (!url) return
+export const readLogs = async ({ url, logType }: ReadLogsInput) => {
+  const res = await fetch(url)
+  if (!res.ok || !res.body) throw new Error('Failed to fetch log file!')
 
-  try {
-    const res = await fetch(url)
-    if (!res.ok || !res.body) {
-      self.postMessage({ error: 'Failed to fetch log' })
-      return
-    }
+  const reader = LogReader(res.body)
+  const frames: Record<string, FrameData> = {}
+  let CarState: CarState | undefined
+  let DriverStateV2: DriverStateV2 | undefined
+  let SelfdriveState: SelfdriveState | undefined
 
-    const reader = LogReader(res.body)
-    const frames: Record<string, FrameData> = {}
-    let CarState: CarState | undefined
-    let DriverStateV2: DriverStateV2 | undefined
-    let SelfdriveState: SelfdriveState | undefined
-
-    for await (const event of reader) {
-      if ('CarState' in event) {
-        const { VEgo, CruiseState, GearShifter, LeftBlinker, RightBlinker } = event.CarState
-        CarState = {
-          VEgo,
-          GearShifter,
-          LeftBlinker,
-          RightBlinker,
-          CruiseEnabled: CruiseState.Enabled,
-          CruiseSpeed: CruiseState.Speed,
-        }
-      }
-
-      if ('SelfdriveState' in event) {
-        SelfdriveState = { ExperimentalMode: event.SelfdriveState.ExperimentalMode }
-      }
-
-      if ('DriverStateV2' in event) {
-        const { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb } =
-          event.DriverStateV2.LeftDriverData
-        DriverStateV2 = { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb }
-      }
-
-      if (logType === 'qlog' && 'DrivingModelData' in event) {
-        const { FrameId } = event.DrivingModelData
-
-        frames[FrameId] = {
-          event: 'DrivingModelData',
-          CarState,
-          DriverStateV2,
-          SelfdriveState,
-        }
-      }
-
-      if (logType === 'log' && 'ModelV2' in event) {
-        const { Position, LaneLines, RoadEdges, LaneLineProbs, FrameId } = event.ModelV2
-
-        frames[FrameId] = {
-          event: 'ModelV2',
-          ModelV2: {
-            Position: { X: Position.X, Y: Position.Y, Z: Position.Z },
-            LaneLines: LaneLines?.map(({ X, Y, Z }: any, i: number) => ({ X, Y, Z, prob: LaneLineProbs?.[i] })),
-            RoadEdges: RoadEdges?.map(({ X, Y, Z }: any) => ({ X, Y, Z })),
-          },
-          CarState,
-          DriverStateV2,
-          SelfdriveState,
-        }
+  for await (const event of reader) {
+    if ('CarState' in event) {
+      const { VEgo, CruiseState, GearShifter, LeftBlinker, RightBlinker } = event.CarState
+      CarState = {
+        VEgo,
+        GearShifter,
+        LeftBlinker,
+        RightBlinker,
+        CruiseEnabled: CruiseState.Enabled,
+        CruiseSpeed: CruiseState.Speed,
       }
     }
 
-    self.postMessage({ frames })
-  } catch (err) {
-    self.postMessage({ error: String(err) })
+    if ('SelfdriveState' in event) {
+      SelfdriveState = { ExperimentalMode: event.SelfdriveState.ExperimentalMode }
+    }
+
+    if ('DriverStateV2' in event) {
+      const { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb } =
+        event.DriverStateV2.LeftDriverData
+      DriverStateV2 = { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb }
+    }
+
+    if (logType === 'qlogs' && 'DrivingModelData' in event) {
+      const { FrameId } = event.DrivingModelData
+
+      frames[FrameId] = {
+        event: 'DrivingModelData',
+        CarState,
+        DriverStateV2,
+        SelfdriveState,
+      }
+    }
+
+    if (logType === 'logs' && 'ModelV2' in event) {
+      const { Position, LaneLines, RoadEdges, LaneLineProbs, FrameId } = event.ModelV2
+
+      frames[FrameId] = {
+        event: 'ModelV2',
+        ModelV2: {
+          Position: { X: Position.X, Y: Position.Y, Z: Position.Z },
+          LaneLines: LaneLines?.map(({ X, Y, Z }: any, i: number) => ({ X, Y, Z, prob: LaneLineProbs?.[i] })),
+          RoadEdges: RoadEdges?.map(({ X, Y, Z }: any) => ({ X, Y, Z })),
+        },
+        CarState,
+        DriverStateV2,
+        SelfdriveState,
+      }
+    }
   }
+  return frames
 }
+
+// self.onmessage = async ({ data }: { data: ReadLogsInput }) => {
+//   try {
+//     const frames = readLogs(data)
+//     self.postMessage({ frames })
+//   } catch (err) {
+//     self.postMessage({ error: String(err) })
+//   }
+// }
