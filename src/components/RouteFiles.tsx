@@ -1,10 +1,10 @@
 import type { Files, Route } from '../types'
 import { useState } from 'react'
-import { concatBins, createQCameraStreamUrl, parseRouteName, saveFile } from '../utils/helpers'
+import { concatBins, parseRouteName, saveFile } from '../utils/helpers'
 import { z } from 'zod'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
-import { useFiles, useShareSignature } from '../api/queries'
+import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
 import { getRouteDuration } from '../utils/format'
@@ -114,7 +114,6 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
 
   const values = Object.values(progress)
   const loading = values.length ? values.reduce((a, b) => a + b, 0) / values.length : undefined
-  const [signature] = useShareSignature(routeName)
   if (files[type].length !== totalSegments) return null
 
   if (type === 'logs' || type === 'qlogs')
@@ -122,15 +121,7 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
       <Button children={FILE_INFO[type].processed} leading={<Icon name="open_in_new" />} href={`/${dongleId}/routes/${date}/${type}`} />
     )
 
-  if (type === 'qcameras')
-    return (
-      <Button
-        children=".m3u8"
-        leading={<Icon name="raw_on" />}
-        download={`${routeName}--qcamera.m3u8`}
-        href={signature ? createQCameraStreamUrl(routeName, signature) : undefined}
-      />
-    )
+  if (type === 'qcameras') return null
 
   return (
     <Button

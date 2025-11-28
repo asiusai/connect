@@ -1,8 +1,7 @@
 import { AbsoluteFill, CalculateMetadataFunction, Sequence, Series } from 'remotion'
 import { z } from 'zod'
-import { FPS, getRouteDuration, getRouteSegment, HEIGHT, WIDTH } from './shared'
-import { createQCameraStreamUrl } from '../src/utils/helpers'
-import { Files, RouteSegment } from '../src/types'
+import { FPS, HEIGHT, WIDTH } from './shared'
+import { Files, Route } from '../src/types'
 import { api } from '../src/api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
@@ -10,6 +9,7 @@ import { DrivingPath } from './DrivingPath'
 import { Loading } from '../src/components/material/Loading'
 import clsx from 'clsx'
 import { readLogs } from '../log-reader/reader'
+import { getRouteDuration } from '../src/utils/format'
 
 export const CameraType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras'])
 export type CameraType = z.infer<typeof CameraType>
@@ -19,8 +19,7 @@ export type LogType = z.infer<typeof LogType>
 
 export const FrameData = z.any()
 export const PreviewData = z.object({
-  segment: RouteSegment,
-  qCameraUrl: z.string().optional(),
+  route: Route,
   files: Files,
   logData: z.record(FrameData).array().optional(),
 })
@@ -35,8 +34,10 @@ export const PreviewProps = z.object({
 export type PreviewProps = z.infer<typeof PreviewProps>
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
-  const segment = await getRouteSegment(props.routeName)
-  const qCameraUrl = createQCameraStreamUrl(props.routeName, { exp: segment.share_exp, sig: segment.share_sig })
+  const [dongleId] = props.routeName.split('/')
+  const segments = await api.routes.segments.query({ params: { dongleId }, query: { route_str: props.routeName } })
+  if (segments.status !== 200) throw new Error('Failed getting segments!')
+  const route = segments.body[0]
 
   const files = await api.file.files.query({ params: { routeName: props.routeName.replace('/', '%7C') } })
 
@@ -44,13 +45,13 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
   const logData = props.logType
     ? await Promise.all(files.body[props.logType].map((url) => readLogs({ logType: props.logType!, url })))
     : undefined
-  return { segment, files: files.body, qCameraUrl, logData }
+  return { route, files: files.body, logData }
 }
 
 export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> = async ({ props }) => {
   const data = props.data ?? (await getPreviewData(props))
 
-  const duration = getRouteDuration(data.segment)
+  const duration = getRouteDuration(data.route)!.asSeconds()
 
   return {
     durationInFrames: duration * FPS,
@@ -63,15 +64,11 @@ const Camera = ({ className, data, camera, name }: { name: string; data: Preview
     <div className={clsx('absolute', className)} style={{ aspectRatio: WIDTH / HEIGHT }}>
       <Loading className="absolute inset-0" />
       <div className="relative h-full w-full">
-        {camera === 'qcameras' ? (
-          <HlsVideo src={data.qCameraUrl} />
-        ) : (
-          data.files?.[camera].map((src, i) => (
-            <Sequence key={src} from={i * 60 * FPS} name={`${name} ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
-              <HevcVideo src={src} />
-            </Sequence>
-          ))
-        )}
+        {data.files?.[camera].map((src, i) => (
+          <Sequence key={src} from={i * 60 * FPS} name={`${name} ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
+            {camera === 'qcameras' ? <HlsVideo src={src} /> : <HevcVideo src={src} />}
+          </Sequence>
+        ))}
       </div>
     </div>
   )

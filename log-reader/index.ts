@@ -1,6 +1,8 @@
 import * as capnp from 'capnp-ts'
 import * as Log from './capnp/log.capnp'
 import { Decompress } from 'fzstd'
+// @ts-expect-error
+import * as WasmBz2 from '@commaai/wasm-bz2'
 
 // --- Types ---
 
@@ -115,6 +117,28 @@ const createZstdDecompressor = () => {
   })
 }
 
+const BZ2_MAGIC = new Uint8Array([0x42, 0x5a, 0x68])
+
+const createBz2Decompressor = () => {
+  let ref: any
+
+  return new TransformStream<Uint8Array, Uint8Array>({
+    start: async (controller) => {
+      ref = await WasmBz2.start()
+      ref.onData((chunk: Uint8Array) => controller.enqueue(chunk))
+    },
+    transform: (chunk) => {
+      if (ref) WasmBz2.sendNextChunk(ref, chunk)
+    },
+    flush: async () => {
+      if (ref) {
+        WasmBz2.flush(ref)
+        await WasmBz2.finish(ref)
+      }
+    },
+  })
+}
+
 const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>): Promise<ReadableStream<Uint8Array>> => {
   const reader = inputStream.getReader()
   const { value: firstChunk, done } = await reader.read()
@@ -131,6 +155,11 @@ const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>): Promi
       firstChunk[1] === ZSTD_MAGIC[1] &&
       firstChunk[2] === ZSTD_MAGIC[2] &&
       firstChunk[3] === ZSTD_MAGIC[3]
+  }
+
+  let isBz2 = false
+  if (firstChunk.length >= 3) {
+    isBz2 = firstChunk[0] === BZ2_MAGIC[0] && firstChunk[1] === BZ2_MAGIC[1] && firstChunk[2] === BZ2_MAGIC[2]
   }
 
   const stitchedStream = new ReadableStream<Uint8Array>({
@@ -152,6 +181,7 @@ const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>): Promi
   })
 
   if (isZstd) return stitchedStream.pipeThrough(createZstdDecompressor())
+  if (isBz2) return stitchedStream.pipeThrough(createBz2Decompressor())
   return stitchedStream
 }
 

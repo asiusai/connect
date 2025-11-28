@@ -18,3 +18,5 @@ export const SHARED_DEVICE = 'Shared Device'
 
 export const HACK_LOGIN_CALLBACK_HOST = '612.connect-d5y.pages.dev'
 export const HACK_DEFAULT_REDICT_HOST = 'comma-connect.pages.dev'
+
+export const EXAMPLE_ROUTE_NAME = 'a2a0ccea32023010/2023-07-27--13-01-19'

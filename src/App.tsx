@@ -57,6 +57,28 @@ const router = createBrowserRouter([
     path: 'test',
     lazy: () => import('./pages/test'),
   },
+
+  // Route pages
+  {
+    path: ':dongleId/routes/:date',
+    lazy: () => import('./layouts/route'),
+    children: [
+      {
+        path: '',
+        lazy: () => import('./pages/route'),
+      },
+      {
+        path: 'logs',
+        lazy: () => import('./pages/logs'),
+      },
+      {
+        path: 'qlogs',
+        lazy: () => import('./pages/logs'),
+      },
+    ],
+  },
+
+  // Other authorized pages
   {
     path: '',
     lazy: () => import('./layouts/authorized'),
@@ -84,18 +106,7 @@ const router = createBrowserRouter([
             path: 'routes',
             lazy: () => import('./pages/routes'),
           },
-          {
-            path: 'routes/:date',
-            lazy: () => import('./pages/route'),
-          },
-          {
-            path: 'routes/:date/logs',
-            lazy: () => import('./pages/logs'),
-          },
-          {
-            path: 'routes/:date/qlogs',
-            lazy: () => import('./pages/logs'),
-          },
+
           {
             path: 'sentry',
             lazy: () => import('./pages/sentry'),

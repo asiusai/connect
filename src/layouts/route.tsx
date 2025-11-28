@@ -1,0 +1,38 @@
+import { Outlet } from 'react-router-dom'
+import { useRoute } from '../api/queries'
+import { useParams } from '../utils/hooks'
+import { Loading } from '../components/material/Loading'
+import { Button } from '../components/material/Button'
+import { Icon } from '../components/material/Icon'
+
+const RouteNotFound = () => {
+  const { routeName } = useParams()
+  return (
+    <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-background text-background-x">
+      <div className="flex flex-col items-center gap-2">
+        <Icon name="error" size="48" className="text-error" />
+        <h1 className="flex flex-col items-center text-center text-2xl font-bold text-primary">Route {routeName} not found!</h1>
+        <p className="text-secondary-alt-x">The route you are looking for does not exist or has been made private.</p>
+      </div>
+      <div className="flex gap-4">
+        <Button color="secondary" leading={<Icon name="refresh" />} onClick={() => window.location.reload()}>
+          Try again
+        </Button>
+        <Button color="primary" leading={<Icon name="home" />} href="/">
+          Go home
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+export const Component = () => {
+  const { routeName } = useParams()
+  const [route, { isLoading }] = useRoute(routeName)
+
+  if (isLoading) return <Loading className="h-screen w-screen" />
+
+  if (!route) return <RouteNotFound />
+
+  return <Outlet />
+}
