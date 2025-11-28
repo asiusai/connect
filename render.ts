@@ -3,14 +3,14 @@ import { renderMedia, selectComposition } from '@remotion/renderer'
 import path from 'path'
 import { $ } from 'bun'
 import { CameraType, getPreviewData, PreviewProps } from './templates/Preview'
-import { enableTailwind } from '@remotion/tailwind'
 import { EXAMPLE_ROUTE_NAME } from './src/utils/consts'
+import { webpackOverride } from './remotion.config'
 
 const props: PreviewProps = {
   routeName: EXAMPLE_ROUTE_NAME,
   largeCamera: 'cameras',
   smallCamera: 'dcameras',
-  logType: 'qlogs',
+  logType: 'logs',
 }
 
 console.log(`Getting route data`)
@@ -19,7 +19,7 @@ const data = await getPreviewData(props)
 console.log('Bundling')
 const serveUrl = await bundle({
   entryPoint: path.resolve('./templates/index.ts'),
-  webpackOverride: (config) => enableTailwind(config),
+  webpackOverride,
 })
 
 const replaceCamFiles = async (cam?: CameraType) => {

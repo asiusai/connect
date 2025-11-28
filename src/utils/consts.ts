@@ -1,7 +1,8 @@
-export const ATHENA_URL = 'https://athena-proxy.nagelkarel.workers.dev' // Needed cause athena.comma.ai restricts CORS
+export const ATHENA_URL = 'https://athena.new-connect.dev' // Needed cause athena.comma.ai restricts CORS
 export const API_URL = 'https://api.comma.ai'
-export const BILLING_URL = 'https://billing-proxy.nagelkarel.workers.dev' // Needed cause billing.comma.ai restricts CORS
+export const BILLING_URL = 'https://billing.new-connect.dev' // Needed cause billing.comma.ai restricts CORS
 export const USERADMIN_URL = 'https://useradmin.comma.ai'
+export const RENDERER_URL = 'https://renderer.new-connect.dev'
 
 export const DEMO_DONGLE_ID = '1d3dc3e03047b0c7'
 export const DEMO_ACCESS_TOKEN =
@@ -17,6 +18,6 @@ export const MAPBOX_TOKEN = 'pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDlu
 export const SHARED_DEVICE = 'Shared Device'
 
 export const HACK_LOGIN_CALLBACK_HOST = '612.connect-d5y.pages.dev'
-export const HACK_DEFAULT_REDICT_HOST = 'comma-connect.pages.dev'
+export const HACK_DEFAULT_REDICT_HOST = 'new-connect.dev'
 
 export const EXAMPLE_ROUTE_NAME = 'a2a0ccea32023010/2023-07-27--13-01-19'

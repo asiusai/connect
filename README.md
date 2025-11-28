@@ -2,7 +2,7 @@
 
 connect is the web and mobile experience for [openpilot](https://github.com/commaai/openpilot).
 
-Try it out at https://comma-connect.pages.dev.
+Try it out at https://new-connect.dev.
 
 ## Development
 
