@@ -4,5 +4,5 @@ bun install --frozen-lockfile
 bun biome ci
 [ -z "$SKIP_PLAYWRIGHT_INSTALL" ] && bun playwright install
 bun run test run
-bun lines
-bun bundle-size
+bun scripts/lines.ts
+bun scripts/bundle-size.ts

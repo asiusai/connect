@@ -17,7 +17,6 @@ worker
 /coverage
 
 # production
-/build
 stats.html
 
 # misc
@@ -55,3 +54,4 @@ qlog
 rlog
 qlog.zst
 rlog.zst
+build
