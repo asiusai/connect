@@ -1,4 +1,4 @@
-const TARGET_DOMAIN = 'https://billing.comma.ai'
+const TARGET_DOMAIN = 'https://athena.comma.ai'
 
 export default {
   fetch: async (request) => {
