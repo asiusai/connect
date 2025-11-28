@@ -1,6 +1,6 @@
 export const ATHENA_URL = 'https://athena-proxy.nagelkarel.workers.dev' // Needed cause athena.comma.ai restricts CORS
 export const API_URL = 'https://api.comma.ai'
-export const BILLING_URL = 'https://billing.comma.ai'
+export const BILLING_URL = 'https://billing-proxy.nagelkarel.workers.dev' // Needed cause billing.comma.ai restricts CORS
 export const USERADMIN_URL = 'https://useradmin.comma.ai'
 
 export const DEMO_DONGLE_ID = '1d3dc3e03047b0c7'
