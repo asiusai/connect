@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { DriverStateV2 } from '../log-reader/worker'
+import { DriverStateV2 } from '../log-reader/reader'
 
 // Constants
 const BTN_SIZE = 192

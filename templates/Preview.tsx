@@ -1,7 +1,6 @@
 import { AbsoluteFill, CalculateMetadataFunction, Sequence, Series } from 'remotion'
-import { z } from 'zod'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { Files, Route } from '../src/types'
+import { CameraType, LogType, PreviewData, PreviewProps } from '../src/types'
 import { api } from '../src/api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
@@ -10,28 +9,6 @@ import { Loading } from '../src/components/material/Loading'
 import clsx from 'clsx'
 import { readLogs } from '../log-reader/reader'
 import { getRouteDuration } from '../src/utils/format'
-
-export const CameraType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras'])
-export type CameraType = z.infer<typeof CameraType>
-
-export const LogType = z.enum(['qlogs', 'logs'])
-export type LogType = z.infer<typeof LogType>
-
-export const FrameData = z.any()
-export const PreviewData = z.object({
-  route: Route,
-  files: Files,
-  logData: z.record(FrameData).array().optional(),
-})
-export type PreviewData = z.infer<typeof PreviewData>
-export const PreviewProps = z.object({
-  routeName: z.string(),
-  largeCamera: CameraType,
-  smallCamera: CameraType.optional(),
-  logType: LogType.optional(),
-  data: PreviewData.optional(),
-})
-export type PreviewProps = z.infer<typeof PreviewProps>
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const [dongleId] = props.routeName.split('/')
@@ -42,9 +19,7 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
   const files = await api.file.files.query({ params: { routeName: props.routeName.replace('/', '%7C') } })
 
   if (files.status !== 200) throw new Error()
-  const logData = props.logType
-    ? await Promise.all(files.body[props.logType].map((url) => readLogs({ logType: props.logType!, url })))
-    : undefined
+  const logData = props.logType ? await Promise.all(files.body[props.logType].map((url) => readLogs({ url }))) : undefined
   return { route, files: files.body, logData }
 }
 

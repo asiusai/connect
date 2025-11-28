@@ -186,6 +186,38 @@ export const Coord = z.object({
   speed: z.number(),
   dist: z.number(),
 })
+
+export const CameraType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras'])
+
+export const LogType = z.enum(['qlogs', 'logs'])
+export const FrameData = z.any()
+export const PreviewData = z.object({
+  route: Route,
+  files: Files,
+  logData: z.record(FrameData).array().optional(),
+})
+export const PreviewProps = z.object({
+  routeName: z.string(),
+  largeCamera: CameraType,
+  smallCamera: CameraType.optional(),
+  logType: LogType.optional(),
+  data: PreviewData.optional(),
+})
+export type PreviewProps = z.infer<typeof PreviewProps>
+
+export const AthenaRequest = z.object({
+  id: z.literal(0),
+  jsonrpc: z.literal('2.0'),
+  expiry: z.number().optional(),
+  method: z.string(),
+  params: z.any(),
+})
+export const AthenaResponse = z.object({
+  queued: z.boolean().optional(),
+  error: z.string().optional(),
+  result: z.any(),
+})
+
 // TYPES
 export type Profile = z.infer<typeof Profile>
 export type DeviceLocation = z.infer<typeof DeviceLocation>
@@ -205,3 +237,9 @@ export type RouteSegment = z.infer<typeof RouteSegment>
 export type PrimePlan = z.infer<typeof PrimePlan>
 export type Coord = z.infer<typeof Coord>
 export type RouteEvent = z.infer<typeof RouteEvent>
+
+export type CameraType = z.infer<typeof CameraType>
+export type LogType = z.infer<typeof LogType>
+export type PreviewData = z.infer<typeof PreviewData>
+export type AthenaRequest = z.infer<typeof AthenaRequest>
+export type AthenaResponse = z.infer<typeof AthenaResponse>

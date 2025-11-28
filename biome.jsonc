@@ -23,7 +23,8 @@
       "recommended": true,
       "a11y": "off",
       "complexity": {
-        "noForEach": "off"
+        "noForEach": "off",
+        "noBannedTypes": "off"
       },
       "correctness": {
         "noUnusedImports": "off",

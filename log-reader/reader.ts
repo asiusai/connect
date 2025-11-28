@@ -1,4 +1,3 @@
-import { LogType } from '../templates/Preview'
 import { LogReader } from './index'
 
 export type Pos = { X: number[]; Y: number[]; Z: number[]; prob?: number }

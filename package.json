@@ -21,7 +21,8 @@
     "remotion:dev": "remotion studio templates/index.ts",
     "remotion:render": "bun render.ts",
     "remotion:build": "remotion bundle",
-    "remotion:upgrade": "remotion upgrade"
+    "remotion:upgrade": "remotion upgrade",
+    "api": "bun run api/index.ts"
   },
   "packageManager": "bun@1.2.9",
   "type": "module",
@@ -57,6 +58,7 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "@ts-rest/core": "3.53.0-rc.1",
     "@ts-rest/react-query": "3.53.0-rc.1",
+    "@ts-rest/serverless": "3.53.0-rc.1",
     "@types/react-dom": "19.2.0",
     "@vitejs/plugin-react": "^5.1.0",
     "capnp-ts": "^0.7.0",

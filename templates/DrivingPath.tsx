@@ -5,7 +5,7 @@ import { DB } from '../src/utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
 import type { FrameData } from '../log-reader/reader'
 import { useAsyncEffect } from '../src/utils/hooks'
-import { LogType } from './Preview'
+import { LogType } from '../src/types'
 
 const db = new DB()
 

@@ -2,9 +2,10 @@ import { bundle } from '@remotion/bundler'
 import { renderMedia, selectComposition } from '@remotion/renderer'
 import path from 'path'
 import { $ } from 'bun'
-import { CameraType, getPreviewData, PreviewProps } from './templates/Preview'
+import { getPreviewData } from './templates/Preview'
 import { EXAMPLE_ROUTE_NAME } from './src/utils/consts'
 import { webpackOverride } from './remotion.config'
+import { PreviewProps, CameraType } from './src/types'
 
 const props: PreviewProps = {
   routeName: EXAMPLE_ROUTE_NAME,

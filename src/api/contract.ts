@@ -11,11 +11,12 @@ import {
   SubscriptionStatus,
   RouteSegment,
   UploadFileMetadata,
+  AthenaRequest,
+  AthenaResponse,
+  PreviewProps,
 } from '../types'
 import { z } from 'zod'
 import { ATHENA_URL, BILLING_URL, RENDERER_URL } from '../utils/consts'
-import { AthenaRequest, AthenaResponse } from './athena'
-import { PreviewProps } from '../../templates/Preview'
 
 const c = initContract()
 
@@ -342,13 +343,13 @@ const prime = c.router({
   },
 })
 
-const renderer = c.router({
+export const renderer = c.router({
   status: {
     metadata: { baseUrl: RENDERER_URL },
     method: 'GET',
     path: '/v1/status',
     responses: {
-      200: z.object({}),
+      200: z.object({ alive: z.boolean() }),
     },
   },
   render: {

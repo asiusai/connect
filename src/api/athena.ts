@@ -23,19 +23,6 @@ export const UploadQueueItem = z.object({
   url: z.string(),
 })
 
-export const AthenaRequest = z.object({
-  id: z.literal(0),
-  jsonrpc: z.literal('2.0'),
-  expiry: z.number().optional(),
-  method: z.string(),
-  params: z.any(),
-})
-export const AthenaResponse = z.object({
-  queued: z.boolean().optional(),
-  error: z.string().optional(),
-  result: z.any(),
-})
-
 const REQUESTS = {
   getNetworkMetered: {
     params: z.void(),

@@ -1,8 +1,9 @@
 import '../src/index.css'
 import { Composition } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { Preview, previewCalculateMetadata, PreviewProps } from './Preview'
+import { Preview, previewCalculateMetadata } from './Preview'
 import { EXAMPLE_ROUTE_NAME } from '../src/utils/consts'
+import { PreviewProps } from '../src/types'
 
 export const RemotionRoot = () => {
   return (
