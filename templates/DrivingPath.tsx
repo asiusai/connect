@@ -64,9 +64,9 @@ export const DrivingPath = ({
     worker.postMessage({ url, logType })
   }, [url, routeName])
 
-  // Finding the latest frame data, max 1s old
+  // Finding the latest frame data, max 2s old
   let item: FrameData | undefined = frames?.[frame]
-  for (let i = 0; i < FPS; i++) {
+  for (let i = 0; i < FPS * 2; i++) {
     const res = frames?.[frame - i]
     if (res) {
       item = res

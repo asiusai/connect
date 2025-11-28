@@ -52,15 +52,17 @@ export type FrameData = {
 }
 export type ReadLogsInput = {
   url: string
-  logType: LogType
 }
 
-export const readLogs = async ({ url, logType }: ReadLogsInput) => {
+export const readLogs = async ({ url }: ReadLogsInput) => {
   const res = await fetch(url)
   if (!res.ok || !res.body) throw new Error('Failed to fetch log file!')
 
   const reader = LogReader(res.body)
-  const frames: Record<string, FrameData> = {}
+
+  const DrivingModelData: Record<string, FrameData> = {}
+  const ModelV2: Record<string, FrameData> = {}
+
   let CarState: CarState | undefined
   let DriverStateV2: DriverStateV2 | undefined
   let SelfdriveState: SelfdriveState | undefined
@@ -88,10 +90,10 @@ export const readLogs = async ({ url, logType }: ReadLogsInput) => {
       DriverStateV2 = { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb }
     }
 
-    if (logType === 'qlogs' && 'DrivingModelData' in event) {
+    if ('DrivingModelData' in event) {
       const { FrameId } = event.DrivingModelData
 
-      frames[FrameId] = {
+      DrivingModelData[FrameId] = {
         event: 'DrivingModelData',
         CarState,
         DriverStateV2,
@@ -99,10 +101,10 @@ export const readLogs = async ({ url, logType }: ReadLogsInput) => {
       }
     }
 
-    if (logType === 'logs' && 'ModelV2' in event) {
+    if ('ModelV2' in event) {
       const { Position, LaneLines, RoadEdges, LaneLineProbs, FrameId } = event.ModelV2
 
-      frames[FrameId] = {
+      ModelV2[FrameId] = {
         event: 'ModelV2',
         ModelV2: {
           Position: { X: Position.X, Y: Position.Y, Z: Position.Z },
@@ -115,5 +117,5 @@ export const readLogs = async ({ url, logType }: ReadLogsInput) => {
       }
     }
   }
-  return frames
+  return Object.keys(ModelV2).length ? ModelV2 : DrivingModelData
 }
