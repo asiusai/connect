@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { OfflinePage } from './pages/offline'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 
 import 'leaflet/dist/leaflet.css'
 import { Toaster } from 'sonner'
 import { api } from './api'
 import { HACK_DEFAULT_REDICT_HOST, HACK_LOGIN_CALLBACK_HOST } from './utils/consts'
+import { queryClient } from './utils/helpers'
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -108,9 +109,7 @@ const router = createBrowserRouter([
     ],
   },
 ])
-export const queryClient = new QueryClient({
-  defaultOptions: { queries: { queryKeyHashFn: (x) => x.toString() } },
-})
+
 export const App = () => (
   <QueryClientProvider client={queryClient}>
     <api.ReactQueryProvider>

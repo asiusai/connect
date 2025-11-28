@@ -1,9 +1,9 @@
-import { AbsoluteFill, useCurrentFrame } from 'remotion'
+import { AbsoluteFill, staticFile, useCurrentFrame } from 'remotion'
 import { WIDTH, HEIGHT, FPS } from './shared'
 import { useMemo, useState } from 'react'
 import { DB } from '../src/utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
-import type { FrameData } from '../log-reader/worker'
+import type { FrameData } from '../log-reader/reader'
 import { useAsyncEffect } from '../src/utils/hooks'
 import { LogType } from './Preview'
 
@@ -176,7 +176,7 @@ export const DrivingPath = ({
 
           <div className="absolute top-12 right-12 z-20">
             <img
-              src={item.SelfdriveState?.ExperimentalMode ? '/experimental.png' : '/chffr_wheel.png'}
+              src={item.SelfdriveState?.ExperimentalMode ? staticFile('/experimental.png') : staticFile('/chffr_wheel.png')}
               className="w-40 h-40 object-contain opacity-80"
               alt="Mode Icon"
             />

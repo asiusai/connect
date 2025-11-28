@@ -164,7 +164,6 @@ export const SubscribeInfo = z.object({
   trial_end_nodata: z.number().nullable(),
 })
 
-export const CameraType = z.enum(['road', 'wide', 'driver'])
 export const RouteEventEvent = z.object({
   data: z.object({ event_type: z.string(), value: z.boolean().optional() }),
   offset_millis: z.number(),
@@ -204,6 +203,5 @@ export type SubscriptionStatus = z.infer<typeof SubscriptionStatus>
 export type SubscribeInfo = z.infer<typeof SubscribeInfo>
 export type RouteSegment = z.infer<typeof RouteSegment>
 export type PrimePlan = z.infer<typeof PrimePlan>
-export type CameraType = z.infer<typeof CameraType>
 export type Coord = z.infer<typeof Coord>
 export type RouteEvent = z.infer<typeof RouteEvent>

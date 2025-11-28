@@ -1,6 +1,8 @@
-import { queryClient } from '../App'
 import type { Device, RouteInfo, RouteShareSignature } from '../types'
-import { API_URL, HACK_DEFAULT_REDICT_HOST, SHARED_DEVICE } from './consts'
+import { API_URL, SHARED_DEVICE } from './consts'
+import { QueryClient } from '@tanstack/react-query'
+
+export const queryClient = new QueryClient({})
 
 export const parseRouteName = (routeName: string): RouteInfo => {
   const [dongleId, routeId] = routeName.split(/[|/]/)
@@ -45,6 +47,7 @@ export const setAccessToken = (token: string | null) => {
 }
 
 export const getCookie = (name: string) => {
+  if (typeof document === 'undefined') return null
   const nameEQ = name + '='
   const ca = document.cookie.split(';')
   for (let i = 0; i < ca.length; i++) {
