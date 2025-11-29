@@ -14,6 +14,7 @@ import {
   AthenaRequest,
   AthenaResponse,
   PreviewProps,
+  RenderProgress,
 } from '../types'
 import { z } from 'zod'
 import { ATHENA_URL, BILLING_URL, RENDERER_URL } from '../utils/consts'
@@ -358,7 +359,7 @@ export const renderer = c.router({
     path: '/v1/render',
     body: z.object({
       props: PreviewProps,
-      siteUrl: z.string(),
+      serveUrl: z.string(),
     }),
     responses: {
       200: z.object({
@@ -375,7 +376,7 @@ export const renderer = c.router({
     }),
     responses: {
       200: z.object({
-        progress: z.number(),
+        progress: RenderProgress.optional(),
       }),
     },
   },

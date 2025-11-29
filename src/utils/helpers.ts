@@ -9,6 +9,8 @@ export const parseRouteName = (routeName: string): RouteInfo => {
   return { dongleId, routeId }
 }
 
+export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
+
 type StorageKey = 'lastSelectedDongleId' | 'auth'
 export const storage = {
   getKey: (key: StorageKey) => `comma:${key}`,

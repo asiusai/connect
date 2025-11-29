@@ -45,7 +45,7 @@ export const RouteVideoPlayer = ({
           largeCamera: files?.cameras.length === maxLen ? 'cameras' : 'qcameras',
           logType: 'qlogs',
           smallCamera: files?.dcameras.length === maxLen ? 'dcameras' : undefined,
-          data: files ? { files, route } : undefined,
+          data: files ? { files, route, duration } : undefined,
         }}
         initiallyMuted
         clickToPlay

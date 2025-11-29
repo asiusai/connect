@@ -9,6 +9,7 @@ import { Loading } from '../src/components/material/Loading'
 import clsx from 'clsx'
 import { readLogs } from '../log-reader/reader'
 import { getRouteDuration } from '../src/utils/format'
+import { keys } from '../src/utils/helpers'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const [dongleId] = props.routeName.split('/')
@@ -16,20 +17,29 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
   if (segments.status !== 200) throw new Error('Failed getting segments!')
   const route = segments.body[0]
 
-  const files = await api.file.files.query({ params: { routeName: props.routeName.replace('/', '%7C') } })
+  const res = await api.file.files.query({ params: { routeName: props.routeName.replace('/', '%7C') } })
+  if (res.status !== 200) throw new Error()
+  let files = res.body
 
-  if (files.status !== 200) throw new Error()
-  const logData = props.logType ? await Promise.all(files.body[props.logType].map((url) => readLogs({ url }))) : undefined
-  return { route, files: files.body, logData }
+  const start = props.startSegment ?? 0
+  const end = props.segmentCount ? start + props.segmentCount : route.maxqlog + 1
+  if (props.startSegment || props.segmentCount) {
+    for (const key of keys(files)) files[key] = files[key].slice(start, end)
+  }
+  const logData = props.logType ? await Promise.all(files[props.logType].map((url) => readLogs({ url }))) : undefined
+
+  const totalDuration = getRouteDuration(route)!.asSeconds()
+  const lastSegmentDuration = end === route.maxqlog + 1 ? totalDuration % 60 : 60
+  const duration = (end - start - 1) * 60 + lastSegmentDuration
+
+  return { route, files, logData, duration }
 }
 
 export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> = async ({ props }) => {
   const data = props.data ?? (await getPreviewData(props))
 
-  const duration = getRouteDuration(data.route)!.asSeconds()
-
   return {
-    durationInFrames: duration * FPS,
+    durationInFrames: data.duration * FPS,
     props: { ...props, data },
   }
 }

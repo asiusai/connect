@@ -1,7 +1,6 @@
-import type { Files, Route } from '../types'
+import { Files, FileType, Route } from '../types'
 import { useState } from 'react'
 import { concatBins, parseRouteName, saveFile } from '../utils/helpers'
-import { z } from 'zod'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
@@ -14,9 +13,6 @@ import { Icon } from './material/Icon'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
-
-const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras', 'logs', 'qlogs'])
-type FileType = z.infer<typeof FileType>
 
 const FILE_INFO: Record<FileType, { name: string; raw: string; processed?: string; label: string }> = {
   cameras: {

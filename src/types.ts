@@ -195,11 +195,14 @@ export const PreviewData = z.object({
   route: Route,
   files: Files,
   logData: z.record(FrameData).array().optional(),
+  duration: z.number(),
 })
 export const PreviewProps = z.object({
   routeName: z.string(),
   largeCamera: CameraType,
   smallCamera: CameraType.optional(),
+  startSegment: z.number().optional(),
+  segmentCount: z.number().optional(),
   logType: LogType.optional(),
   data: PreviewData.optional(),
 })
@@ -216,6 +219,18 @@ export const AthenaResponse = z.object({
   queued: z.boolean().optional(),
   error: z.string().optional(),
   result: z.any(),
+})
+
+export const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras', 'logs', 'qlogs'])
+export type FileType = z.infer<typeof FileType>
+export const RenderProgress = z.object({
+  renderedFrames: z.number(),
+  encodedFrames: z.number(),
+  encodedDoneIn: z.number().nullable(),
+  renderedDoneIn: z.number().nullable(),
+  renderEstimatedTime: z.number(),
+  progress: z.number(),
+  stitchStage: z.enum(['encoding', 'muxing']),
 })
 
 // TYPES
@@ -243,3 +258,4 @@ export type LogType = z.infer<typeof LogType>
 export type PreviewData = z.infer<typeof PreviewData>
 export type AthenaRequest = z.infer<typeof AthenaRequest>
 export type AthenaResponse = z.infer<typeof AthenaResponse>
+export type RenderProgress = z.infer<typeof RenderProgress>
