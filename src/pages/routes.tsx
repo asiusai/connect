@@ -15,7 +15,7 @@ import { Button } from '../components/material/Button'
 import { useParams } from '../utils/hooks'
 import { getPlaceName } from '../utils/map'
 import { usePreservedRoutes } from '../api/queries'
-import { Toggle } from '../components/material/Toggle'
+import { Slider } from '../components/material/Slider'
 import { Icon } from '../components/material/Icon'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -96,7 +96,7 @@ export const Component = () => {
       <TopAppBar
         leading={<BackButton fallback={`/${dongleId}`} />}
         trailing={
-          <Toggle
+          <Slider
             options={{ all: 'All', preserved: 'Preserved' }}
             value={show}
             onChange={(val) => setParams(val === 'all' ? undefined : { preserved: 'true' }, { replace: true })}

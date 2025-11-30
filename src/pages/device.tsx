@@ -13,7 +13,7 @@ import { storage } from '../utils/helpers'
 import { useParams } from '../utils/hooks'
 import { callAthena } from '../api/athena'
 import { useNavigate } from 'react-router-dom'
-import { Toggle } from '../components/material/Toggle'
+import { Slider } from '../components/material/Slider'
 
 const timeAgo = (time: number): string => {
   const diff = Math.floor(Date.now() / 1000) - time
@@ -227,7 +227,7 @@ const Statistics = ({ dongleId }: { dongleId: string }) => {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between px-2">
         <h2 className="text-xl font-bold">Statistics</h2>
-        <Toggle options={{ all: 'All time', week: 'This week' }} value={timeRange} onChange={setTimeRange} />
+        <Slider options={{ all: 'All time', week: 'This week' }} value={timeRange} onChange={setTimeRange} />
       </div>
       <div className="bg-background-alt rounded-md p-5 flex flex-col gap-2">
         {[

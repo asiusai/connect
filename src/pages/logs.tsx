@@ -7,6 +7,8 @@ import { BackButton } from '../components/material/BackButton'
 import { Icon } from '../components/material/Icon'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
+import { Select } from '../components/material/Select'
+import { Toggle } from '../components/material/Toggle'
 
 const LogEvent = z.enum([
   'Sentinel',
@@ -154,80 +156,42 @@ export const Component = () => {
     )
   }
 
+  if (!files) return null
   return (
     <div className="flex flex-col h-screen bg-surface text-background-x">
       <TopAppBar leading={<BackButton fallback={`/${dongleId}/routes/${date}`} />}>{type}</TopAppBar>
 
       {/* Top Controls Bar */}
       <div className="flex items-center gap-1 p-2 rounded-xl bg-background-alt shrink-0 overflow-x-auto">
-        <div className="relative">
-          <select
-            value={segment}
-            onChange={(e) => updateParam('segment', e.currentTarget.value)}
-            className="appearance-none bg-background-alt py-1.5 pl-3 pr-8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[120px]"
-          >
-            {files &&
-              Array.from({ length: files.logs.length }).map((_, i) => (
-                <option key={i} value={i}>
-                  Segment {i}
-                </option>
-              ))}
-          </select>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-background-alt-x">
-            <Icon name="keyboard_arrow_down" size="20" />
-          </div>
-        </div>
+        <Select
+          value={segment.toString()}
+          onChange={(value) => updateParam('segment', value)}
+          options={Array.from({ length: files.logs.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
+          className="min-w-[120px]"
+        />
 
         <div className="w-px h-6 bg-background/20 shrink-0" />
 
-        <div className="relative">
-          <select
-            value={eventName}
-            onChange={(e) => updateParam('eventName', e.currentTarget.value)}
-            className="appearance-none bg-background-alt py-1.5 pl-3 pr-8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[200px]"
-          >
-            {LogEvent.options.map((x) => (
-              <option key={x} value={x}>
-                {x}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-background-alt-x">
-            <Icon name="keyboard_arrow_down" size="20" />
-          </div>
-        </div>
+        <Select
+          value={eventName}
+          onChange={(value) => updateParam('eventName', value)}
+          options={LogEvent.options.map((x) => ({ value: x, label: x }))}
+          className="min-w-[200px]"
+        />
 
         <div className="w-px h-6 bg-background/20 shrink-0" />
 
-        <div className="relative">
-          <select
-            value={limit}
-            onChange={(e) => updateParam('limit', e.currentTarget.value)}
-            className="appearance-none bg-background-alt py-1.5 pl-3 pr-8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer min-w-[100px]"
-          >
-            {[10, 100, 500, 1000, 2000, 5000].map((x) => (
-              <option key={x} value={x}>
-                {x}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-background-alt-x">
-            <Icon name="keyboard_arrow_down" size="20" />
-          </div>
-        </div>
+        <Select
+          value={limit.toString()}
+          onChange={(value) => updateParam('limit', value)}
+          options={[10, 100, 500, 1000, 2000, 5000].map((x) => ({ value: x.toString(), label: x }))}
+          className="min-w-[100px]"
+        />
 
         <div className="w-px h-6 bg-background/20 shrink-0" />
 
         <label className="flex items-center gap-2 cursor-pointer select-none">
-          <div className="relative">
-            <input
-              type="checkbox"
-              checked={prettify}
-              onChange={(e) => updateParam('prettify', String(e.target.checked))}
-              className="sr-only peer"
-            />
-            <div className="w-9 h-5 bg-background-alt peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-          </div>
+          <Toggle value={prettify} onChange={(v) => updateParam('prettify', String(v))} />
           <span className="text-xs font-medium text-background-alt-x">Prettify</span>
         </label>
       </div>

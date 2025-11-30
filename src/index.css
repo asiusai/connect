@@ -103,3 +103,7 @@
 select {
   @apply bg-transparent rounded-md p-2;
 }
+
+html {
+  overflow-y: hidden;
+}

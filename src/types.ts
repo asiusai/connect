@@ -191,20 +191,34 @@ export const CameraType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras']
 
 export const LogType = z.enum(['qlogs', 'logs'])
 export const FrameData = z.any()
+
 export const PreviewData = z.object({
   route: Route,
   files: Files,
-  logData: z.record(FrameData).array().optional(),
+})
+
+export const PreviewGenerated = z.object({
+  largeCameraFiles: z.string().array(),
+  smallCameraFiles: z.string().array().optional(),
+
+  logFiles: z.string().array().optional(),
+  prefetchedLogs: z.record(FrameData).array().optional(),
+
   duration: z.number(),
 })
 export const PreviewProps = z.object({
   routeName: z.string(),
-  largeCamera: CameraType,
-  smallCamera: CameraType.optional(),
   startSegment: z.number().optional(),
   segmentCount: z.number().optional(),
+
+  largeCameraType: CameraType,
+  smallCameraType: CameraType.optional(),
+
   logType: LogType.optional(),
+  prefetchLogs: z.boolean().optional(),
+
   data: PreviewData.optional(),
+  generated: PreviewGenerated.optional(),
 })
 export type PreviewProps = z.infer<typeof PreviewProps>
 
@@ -256,6 +270,7 @@ export type RouteEvent = z.infer<typeof RouteEvent>
 export type CameraType = z.infer<typeof CameraType>
 export type LogType = z.infer<typeof LogType>
 export type PreviewData = z.infer<typeof PreviewData>
+export type PreviewGenerated = z.infer<typeof PreviewGenerated>
 export type AthenaRequest = z.infer<typeof AthenaRequest>
 export type AthenaResponse = z.infer<typeof AthenaResponse>
 export type RenderProgress = z.infer<typeof RenderProgress>

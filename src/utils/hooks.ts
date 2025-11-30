@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { PlayerRef } from '@remotion/player'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { useParams as useParamsRouter } from 'react-router-dom'
 
 type Dimensions = { width: number; height: number }
@@ -25,4 +26,39 @@ export const useAsyncEffect = (fn: () => Promise<any>, args: any[]) => {
   useEffect(() => {
     fn()
   }, args)
+}
+
+type UseAsyncMemo = {
+  <T>(fn: () => Promise<T>, deps: any[], def: T): T
+  <T>(fn: () => Promise<T>, deps: any[]): T | undefined
+}
+export const useAsyncMemo: UseAsyncMemo = <T>(fn: () => Promise<T>, deps: any[], def?: T) => {
+  const [state, setState] = useState<T | undefined>(def)
+
+  useAsyncEffect(async () => {
+    const res = await fn()
+    setState(res)
+  }, deps)
+
+  return state as T
+}
+
+export const useCurrentPlayerFrame = (ref: React.RefObject<PlayerRef | null>) => {
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      const { current } = ref
+      if (!current) return () => undefined
+      current.addEventListener('frameupdate', onStoreChange)
+      return () => current.removeEventListener('frameupdate', onStoreChange)
+    },
+    [ref],
+  )
+
+  const data = useSyncExternalStore<number>(
+    subscribe,
+    () => ref.current?.getCurrentFrame() ?? 0,
+    () => 0,
+  )
+
+  return data
 }

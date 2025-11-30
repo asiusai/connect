@@ -1,15 +1,14 @@
 import { AbsoluteFill, CalculateMetadataFunction, Sequence, Series } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { CameraType, LogType, PreviewData, PreviewProps } from '../src/types'
+import { CameraType, LogType, PreviewData, PreviewGenerated, PreviewProps } from '../src/types'
 import { api } from '../src/api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
 import { DrivingPath } from './DrivingPath'
 import { Loading } from '../src/components/material/Loading'
 import clsx from 'clsx'
-import { readLogs } from '../log-reader/reader'
+import { FrameData, readLogs } from '../log-reader/reader'
 import { getRouteDuration } from '../src/utils/format'
-import { keys } from '../src/utils/helpers'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const [dongleId] = props.routeName.split('/')
@@ -20,38 +19,47 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
   const res = await api.file.files.query({ params: { routeName: props.routeName.replace('/', '%7C') } })
   if (res.status !== 200) throw new Error()
   let files = res.body
+  return { route, files }
+}
+
+export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewGenerated> => {
+  if (!props.data) throw new Error()
 
   const start = props.startSegment ?? 0
-  const end = props.segmentCount ? start + props.segmentCount : route.maxqlog + 1
-  if (props.startSegment || props.segmentCount) {
-    for (const key of keys(files)) files[key] = files[key].slice(start, end)
-  }
-  const logData = props.logType ? await Promise.all(files[props.logType].map((url) => readLogs({ url }))) : undefined
+  const end = props.segmentCount ? start + props.segmentCount : props.data.route.maxqlog + 1
 
-  const totalDuration = getRouteDuration(route)!.asSeconds()
-  const lastSegmentDuration = end === route.maxqlog + 1 ? totalDuration % 60 : 60
+  let largeCameraFiles = props.data.files[props.largeCameraType].slice(start, end)
+  let smallCameraFiles = props.smallCameraType ? props.data.files[props.smallCameraType].slice(start, end) : undefined
+  let logFiles = props.logType ? props.data.files[props.logType].slice(start, end) : undefined
+
+  const prefetchedLogData = logFiles && props.prefetchLogs ? await Promise.all(logFiles.map((url) => readLogs({ url }))) : undefined
+
+  const totalDuration = getRouteDuration(props.data.route)!.asSeconds()
+  const lastSegmentDuration = end === props.data.route.maxqlog + 1 ? totalDuration % 60 : 60
   const duration = (end - start - 1) * 60 + lastSegmentDuration
 
-  return { route, files, logData, duration }
+  return { duration, largeCameraFiles, logFiles, prefetchedLogs: prefetchedLogData, smallCameraFiles }
 }
 
 export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> = async ({ props }) => {
-  const data = props.data ?? (await getPreviewData(props))
+  if (!props.data) props.data = await getPreviewData(props)
+  if (!props.generated) props.generated = await getPreviewGenerated(props)
 
   return {
-    durationInFrames: data.duration * FPS,
-    props: { ...props, data },
+    durationInFrames: props.generated.duration * FPS,
+    props: props,
   }
 }
 
-const Camera = ({ className, data, camera, name }: { name: string; data: PreviewData; camera: CameraType; className?: string }) => {
+const Camera = ({ className, files, type, name }: { name: string; files?: string[]; type: CameraType; className?: string }) => {
+  if (!files) return null
   return (
     <div className={clsx('absolute', className)} style={{ aspectRatio: WIDTH / HEIGHT }}>
       <Loading className="absolute inset-0" />
       <div className="relative h-full w-full">
-        {data.files?.[camera].map((src, i) => (
+        {files.map((src, i) => (
           <Sequence key={src} from={i * 60 * FPS} name={`${name} ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
-            {camera === 'qcameras' ? <HlsVideo src={src} /> : <HevcVideo src={src} />}
+            {type === 'qcameras' ? <HlsVideo src={src} /> : <HevcVideo src={src} />}
           </Sequence>
         ))}
       </div>
@@ -59,28 +67,41 @@ const Camera = ({ className, data, camera, name }: { name: string; data: Preview
   )
 }
 
-const UI = ({ data, logType, routeName }: { data: PreviewData; logType: LogType; routeName: string }) => {
+const UI = ({
+  files,
+  logType,
+  routeName,
+  prefetchedLogs,
+}: {
+  files?: string[]
+  logType: LogType
+  routeName: string
+  prefetchedLogs?: Record<string, FrameData>[]
+}) => {
+  if (!files) return null
   return (
     <Series>
-      {data.files?.[logType].map((url, i) => (
+      {files.map((url, i) => (
         <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
-          <DrivingPath i={i} logType={logType} routeName={routeName} url={url} frames={data.logData?.[i]} />
+          <DrivingPath i={i} logType={logType} routeName={routeName} url={url} frames={prefetchedLogs?.[i]} />
         </Series.Sequence>
       ))}
     </Series>
   )
 }
 
-export const Preview = ({ data, largeCamera, smallCamera, routeName, logType }: PreviewProps) => {
-  if (!data) return null
+export const Preview = ({ generated, largeCameraType, smallCameraType, routeName, logType }: PreviewProps) => {
+  if (!generated) return null
   return (
     <AbsoluteFill>
-      <Camera data={data} camera={largeCamera} name="Large" className="inset-0" />
-      {logType && <UI data={data} routeName={routeName} logType={logType} />}
-      {smallCamera && (
+      <Camera files={generated?.largeCameraFiles} type={largeCameraType} name="Large" className="inset-0" />
+      {generated?.logFiles && (
+        <UI files={generated.logFiles} routeName={routeName} logType={logType!} prefetchedLogs={generated.prefetchedLogs} />
+      )}
+      {generated?.smallCameraFiles && (
         <Camera
-          data={data}
-          camera={smallCamera}
+          files={generated.smallCameraFiles}
+          type={smallCameraType!}
           name="Small"
           className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden"
         />

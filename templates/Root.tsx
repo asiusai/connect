@@ -18,8 +18,8 @@ export const RemotionRoot = () => {
       calculateMetadata={previewCalculateMetadata}
       defaultProps={{
         routeName: EXAMPLE_ROUTE_NAME,
-        largeCamera: 'cameras',
-        smallCamera: 'dcameras',
+        largeCameraType: 'cameras',
+        smallCameraType: 'dcameras',
       }}
     />
   )

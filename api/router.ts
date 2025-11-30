@@ -4,28 +4,40 @@ import { $ } from 'bun'
 import { CameraType, PreviewProps, RenderProgress } from '../src/types'
 import { RENDERER_URL, USER_CONTENT_DIR } from '../src/utils/consts'
 import { renderMedia, selectComposition } from '@remotion/renderer'
+import { getPreviewGenerated } from '../templates/Preview'
 
 const generateId = () => (Math.random() * 1_000_000).toFixed(0)
 
 const queue: Record<string, { promise: Promise<any>; progress?: RenderProgress; error?: string }> = {}
 
+const downloadCamFiles = async (renderId: string, files: string[], type?: CameraType) => {
+  if (!type || type === 'qcameras') throw new Error(`Invalid camera type: ${type}`)
+
+  const replaceFile = async (url: string, name: string) => {
+    const path = `${USER_CONTENT_DIR}/${renderId}/input/${name}.mp4`
+    await $`curl ${url} | ffmpeg -f hevc -i pipe:0 -c copy ${path} -y`
+    return `${RENDERER_URL}/${path}`
+  }
+
+  console.log(`Downloading and re-encoding ${type} cam`)
+  return await Promise.all(files.map((file, i) => replaceFile(file, `${type}${i}`)))
+}
+
 const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; renderId: string; serveUrl: string }) => {
   try {
     if (!props.data) throw new Error('No data in props')
-    const replaceCamFiles = async (cam?: CameraType) => {
-      if (!cam) return
-      console.log(`Downloading and re-encoding ${cam} cam`)
-      const replaceFile = async (url: string, name: string) => {
-        const path = `${USER_CONTENT_DIR}/${renderId}/input/${name}.mp4`
-        await $`curl ${url} | ffmpeg -f hevc -i pipe:0 -c copy ${path} -y`
-        return `${RENDERER_URL}/${path}`
-      }
-      // TODO: replace `files` with largeCameraFiles, smallCameraFiles and logFiles
-      // TODO: throw on qcamera
-      props.data!.files[cam] = await Promise.all(props.data!.files[cam].map((file, i) => replaceFile(file, `${cam}${i}`)))
-    }
 
-    await Promise.all([replaceCamFiles(props.largeCamera), replaceCamFiles(props.smallCamera)])
+    props.segmentCount = 1 // To make it faster at first
+    props.prefetchLogs = true
+
+    const generated = await getPreviewGenerated(props)
+
+    console.log('Downloading files')
+    const [largeCameraFiles, smallCameraFiles] = await Promise.all([
+      downloadCamFiles(renderId, generated.largeCameraFiles, props.largeCameraType),
+      generated.smallCameraFiles ? downloadCamFiles(renderId, generated.smallCameraFiles, props.smallCameraType) : undefined,
+    ])
+    props.generated = { ...generated, largeCameraFiles, smallCameraFiles }
 
     console.log(`Rendering`)
     const composition = await selectComposition({

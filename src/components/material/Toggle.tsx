@@ -1,38 +1,8 @@
-import clsx from 'clsx'
-
-export const Toggle = <Key extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: Record<Key, string>
-  value: Key
-  onChange: (x: Key) => void
-}) => {
-  const keys = Object.keys(options) as Key[]
-  const activeIndex = keys.indexOf(value)
-
+export const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => {
   return (
-    <div className="grid grid-cols-2 bg-background-alt rounded-full p-1 relative isolate">
-      <div
-        className="absolute inset-y-1 rounded-full bg-primary shadow-sm transition-all duration-200 ease-out -z-10"
-        style={{
-          width: `calc((100% - 8px) / ${keys.length})`,
-          left: `calc(4px + (100% - 8px) * ${activeIndex} / ${keys.length})`,
-        }}
-      />
-      {keys.map((key) => (
-        <button
-          key={key}
-          className={clsx(
-            'py-1.5 px-3 rounded-full text-xs font-medium relative z-10 whitespace-nowrap text-center',
-            value === key ? 'text-primary-x' : 'text-background-alt-x hover:text-background-x',
-          )}
-          onClick={() => onChange(key)}
-        >
-          {options[key]}
-        </button>
-      ))}
+    <div className="relative">
+      <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} className="sr-only peer" />
+      <div className="w-9 h-5 bg-background-alt peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
     </div>
   )
 }

@@ -5,28 +5,8 @@ import { Route } from '../types'
 import { TimelineEvent } from '../utils/derived'
 import { useRef } from 'react'
 import { FPS } from '../../templates/shared'
-import { useCallback, useSyncExternalStore } from 'react'
 import { PlayerRef } from '@remotion/player'
-
-export const useCurrentPlayerFrame = (ref: React.RefObject<PlayerRef | null>) => {
-  const subscribe = useCallback(
-    (onStoreChange: () => void) => {
-      const { current } = ref
-      if (!current) return () => undefined
-      current.addEventListener('frameupdate', onStoreChange)
-      return () => current.removeEventListener('frameupdate', onStoreChange)
-    },
-    [ref],
-  )
-
-  const data = useSyncExternalStore<number>(
-    subscribe,
-    () => ref.current?.getCurrentFrame() ?? 0,
-    () => 0,
-  )
-
-  return data
-}
+import { useCurrentPlayerFrame } from '../utils/hooks'
 
 const getEventInfo = (event: TimelineEvent) => {
   if (event.type === 'engaged') return ['Engaged', 'bg-green-800 min-w-[1px]', '1']
@@ -37,29 +17,6 @@ const getEventInfo = (event: TimelineEvent) => {
     else return ['Critical alert', 'bg-red-600 min-w-[2px]', '3']
   }
   throw new Error(`Invalid event type ${JSON.stringify(event)}`)
-}
-
-const TimelineEvents = ({ route, events }: { route: Route; events: TimelineEvent[] }) => {
-  if (!route) return
-  const duration = getRouteDuration(route)?.asMilliseconds() ?? 0
-  return (
-    <>
-      {events.map((event, i) => {
-        const left = (event.route_offset_millis / duration) * 100
-        const width = event.type === 'user_flag' ? (1000 / duration) * 100 : (event.end_route_offset_millis / duration) * 100 - left
-
-        const [title, classes, zIndex] = getEventInfo(event)
-        return (
-          <div
-            key={i}
-            title={title}
-            className={clsx('absolute top-0 h-full', classes)}
-            style={{ left: `${left}%`, width: `${width}%`, zIndex }}
-          />
-        )
-      })}
-    </>
-  )
 }
 
 const MARKER_WIDTH = 3
@@ -106,6 +63,7 @@ export const Timeline = ({
   }
 
   const markerOffset = (frame / FPS / duration) * 100
+  const durationMs = duration * 1000
   return (
     <div className="flex flex-col">
       <div className="h-1 bg-background-alt">
@@ -131,7 +89,20 @@ export const Timeline = ({
         title="Disengaged"
       >
         <div className="absolute inset-0 size-full rounded-b-md overflow-hidden">
-          <TimelineEvents route={route} events={events} />
+          {events.map((event, i) => {
+            const left = (event.route_offset_millis / durationMs) * 100
+            const width = event.type === 'user_flag' ? (1000 / durationMs) * 100 : (event.end_route_offset_millis / durationMs) * 100 - left
+
+            const [title, classes, zIndex] = getEventInfo(event)
+            return (
+              <div
+                key={i}
+                title={title}
+                className={clsx('absolute top-0 h-full', classes)}
+                style={{ left: `${left}%`, width: `${width}%`, zIndex }}
+              />
+            )
+          })}
         </div>
         <div
           className="absolute top-0 z-10 h-full"

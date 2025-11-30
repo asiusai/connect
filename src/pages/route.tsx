@@ -6,8 +6,7 @@ import { RouteStaticMap } from '../components/RouteStaticMap'
 import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import { RouteFiles } from '../components/RouteFiles'
 import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
-import { usePreservedRoutes, useProfile, useRoute } from '../api/queries'
-import { Timeline } from '../components/Timeline'
+import { useFiles, usePreservedRoutes, useProfile, useRoute } from '../api/queries'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useEffect, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
@@ -73,6 +72,7 @@ export const Component = () => {
 
   const [route] = useRoute(routeName)
   const [events, setEvents] = useState<TimelineEvent[]>([])
+  const [files] = useFiles(routeName)
 
   useEffect(() => {
     if (route) void getTimelineEvents(route).then(setEvents)
@@ -85,10 +85,8 @@ export const Component = () => {
     <>
       <Top route={route} />
       <div className="flex flex-col gap-6 px-4 pb-4">
-        <div className="flex flex-col">
-          <RouteVideoPlayer playerRef={playerRef} route={route} />
-          <Timeline playerRef={playerRef} className="mb-1" route={route} events={events} />
-        </div>
+        {files && <RouteVideoPlayer playerRef={playerRef} route={route} files={files} />}
+
         <div className="bg-background-alt text-sm p-3 rounded-xl flex items-center justify-between">
           {routeName.replace('|', '/')}
           <Copy value={routeName.replace('|', '/')} />
