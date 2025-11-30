@@ -14,38 +14,44 @@ import { Icon } from './material/Icon'
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
-export const FILE_INFO: Record<FileType, { name: string; raw: string; processed?: string; label: string }> = {
+export const FILE_INFO: Record<FileType, { name: string; raw: string; processed?: string; label: string; short: string }> = {
   cameras: {
     label: 'Road camera',
+    short: 'Road',
     name: 'fcamera.hevc',
     raw: '.hevc',
     processed: '.mp4',
   },
   ecameras: {
     label: 'Wide-angle camera',
+    short: 'Wide',
     name: 'ecamera.hevc',
     raw: '.hevc',
     processed: '.mp4',
   },
   dcameras: {
     label: 'Driver camera',
+    short: 'Driver',
     name: 'dcamera.hevc',
     raw: '.hevc',
     processed: '.mp4',
   },
   qcameras: {
     label: 'Quantized camera',
+    short: 'Quantized',
     name: 'qcamera.ts',
     raw: '.ts',
   },
   logs: {
     label: 'Logs',
+    short: 'Logs',
     name: 'rlog.zst',
     raw: '.zst',
     processed: 'View',
   },
   qlogs: {
     label: 'Quantized logs',
+    short: 'Quantized',
     name: 'qlog.zst',
     raw: '.zst',
     processed: 'View',
