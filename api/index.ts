@@ -18,7 +18,7 @@ const server = Bun.serve({
 
       const path = new URL(request.url).pathname
 
-      if (path.startsWith(`/${USER_CONTENT_DIR}`)) return new Response(Bun.file(path.slice(1)))
+      if (path.startsWith(`/${USER_CONTENT_DIR}`)) return new Response(Bun.file(path.slice(1)), { headers })
 
       const res = await fetchRequestHandler({
         contract: renderer,

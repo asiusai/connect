@@ -106,4 +106,5 @@ select {
 
 html {
   overflow-x: hidden;
+  width: 100vw;
 }
