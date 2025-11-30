@@ -11,6 +11,7 @@ const headers = {
 
 const server = Bun.serve({
   port: 8080,
+  idleTimeout: 600,
   fetch: async (request) => {
     try {
       if (request.method === 'OPTIONS') return new Response(null, { headers })
