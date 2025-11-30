@@ -4,7 +4,7 @@ import { CameraType, LogType, PreviewData, PreviewGenerated, PreviewProps } from
 import { api } from '../src/api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
-import { DrivingPath } from './DrivingPath'
+import { OpenpilotUI } from './OpenpilotUI'
 import { Loading } from '../src/components/material/Loading'
 import clsx from 'clsx'
 import { FrameData, readLogs } from '../log-reader/reader'
@@ -72,40 +72,44 @@ const UI = ({
   logType,
   routeName,
   prefetchedLogs,
+  showPath,
 }: {
   files?: string[]
   logType: LogType
   routeName: string
   prefetchedLogs?: Record<string, FrameData>[]
+  showPath: boolean
 }) => {
   if (!files) return null
   return (
     <Series>
       {files.map((url, i) => (
         <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
-          <DrivingPath i={i} logType={logType} routeName={routeName} url={url} frames={prefetchedLogs?.[i]} />
+          <OpenpilotUI i={i} logType={logType} routeName={routeName} url={url} prefetchedFrames={prefetchedLogs?.[i]} showPath={showPath} />
         </Series.Sequence>
       ))}
     </Series>
   )
 }
 
-export const Preview = ({ generated, largeCameraType, smallCameraType, routeName, logType }: PreviewProps) => {
+export const Preview = ({ generated, largeCameraType, smallCameraType, routeName, logType, showPath }: PreviewProps) => {
   if (!generated) return null
   return (
     <AbsoluteFill>
-      <Camera files={generated?.largeCameraFiles} type={largeCameraType} name="Large" className="inset-0" />
-      {generated?.logFiles && (
-        <UI files={generated.logFiles} routeName={routeName} logType={logType!} prefetchedLogs={generated.prefetchedLogs} />
-      )}
-      {generated?.smallCameraFiles && (
-        <Camera
-          files={generated.smallCameraFiles}
-          type={smallCameraType!}
-          name="Small"
-          className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden"
-        />
-      )}
+      <Camera files={generated.largeCameraFiles} type={largeCameraType} name="Large" className="inset-0" />
+      <UI
+        files={generated.logFiles}
+        routeName={routeName}
+        logType={logType!}
+        prefetchedLogs={generated.prefetchedLogs}
+        showPath={!!showPath}
+      />
+      <Camera
+        files={generated.smallCameraFiles}
+        type={smallCameraType!}
+        name="Small"
+        className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden"
+      />
     </AbsoluteFill>
   )
 }

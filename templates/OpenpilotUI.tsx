@@ -16,22 +16,23 @@ const CX = 857
 const CY = 626
 const CAM_HEIGHT = 1.5
 
-export const DrivingPath = ({
+export const OpenpilotUI = ({
   url,
   routeName,
   logType,
   i,
-  frames: inputFrames,
+  prefetchedFrames,
+  showPath,
 }: {
   i: number
   url: string
   routeName: string
-  frames?: Record<string, FrameData>
+  prefetchedFrames?: Record<string, FrameData>
   logType: LogType
+  showPath: boolean
 }) => {
   const _frame = useCurrentFrame()
-  const frame = i * 60 * FPS + _frame
-  const [frames, setFrames] = useState<Record<string, FrameData> | undefined>(inputFrames)
+  const [frames, setFrames] = useState<Record<string, FrameData> | undefined>(prefetchedFrames)
 
   useAsyncEffect(async () => {
     if (frames) return
@@ -65,17 +66,62 @@ export const DrivingPath = ({
   }, [url, routeName])
 
   // Finding the latest frame data, max 2s old
-  let item: FrameData | undefined = frames?.[frame]
+  const currentFrame = i * 60 * FPS + _frame
+  let frame: FrameData | undefined
   for (let i = 0; i < FPS * 2; i++) {
-    const res = frames?.[frame - i]
+    const res = frames?.[currentFrame - i]
     if (res) {
-      item = res
+      frame = res
       break
     }
   }
+  if (!frame) return null
 
-  const projectedPaths = useMemo(() => {
-    if (!item?.ModelV2) return null
+  return (
+    <AbsoluteFill>
+      {frame.CarState?.CruiseEnabled && (
+        <div className="absolute inset-0 border-[30px] border-[#00c853] z-10 pointer-events-none rounded-[40px]" />
+      )}
+
+      {frame.CarState && (
+        <>
+          <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-[32px] w-56 h-56 flex flex-col items-center justify-center z-20">
+            <div className="text-[#00c853] text-4xl font-bold mb-2">MAX</div>
+            <div className="text-white text-[100px] leading-none font-bold">
+              {frame.CarState.CruiseEnabled ? (frame.CarState.CruiseSpeed * 2.23694).toFixed(0) : '-'}
+            </div>
+          </div>
+
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
+            <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
+              {Math.max(0, frame.CarState.VEgo * 2.23694).toFixed(0)}
+            </div>
+            <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">mph</div>
+          </div>
+
+          <div className="absolute top-12 right-12 z-20">
+            <img
+              src={frame.SelfdriveState?.ExperimentalMode ? staticFile('/experimental.png') : staticFile('/chffr_wheel.png')}
+              className="w-40 h-40 object-contain opacity-80"
+              alt="Mode Icon"
+            />
+          </div>
+        </>
+      )}
+
+      {frame.DriverStateV2 && (
+        <div className="absolute bottom-12 left-12 z-20">
+          <DriverStateRenderer state={frame.DriverStateV2} isEngaged={frame.CarState?.CruiseEnabled ?? false} />
+        </div>
+      )}
+      {showPath && <Path frame={frame} />}
+    </AbsoluteFill>
+  )
+}
+
+const Path = ({ frame }: { frame: FrameData }) => {
+  const paths = useMemo(() => {
+    if (!frame?.ModelV2) return null
 
     const project = (x: number, y: number, z: number) => {
       const Xc = y
@@ -104,7 +150,7 @@ export const DrivingPath = ({
     }
 
     // Driving Path
-    const { X, Y, Z } = item.ModelV2.Position
+    const { X, Y, Z } = frame.ModelV2.Position
     const leftPoints: { x: number; y: number }[] = []
     const rightPoints: { x: number; y: number }[] = []
 
@@ -142,73 +188,35 @@ export const DrivingPath = ({
             .join(' ')} Z`
         : undefined
 
-    const showLaneLines = item.ModelV2.LaneLines.some((x) => x.prob && x.prob > 0.1)
+    const showLaneLines = frame.ModelV2.LaneLines.some((x) => x.prob && x.prob > 0.1)
     const laneLines = showLaneLines
-      ? item.ModelV2.LaneLines.map((line) => ({ d: getPolyline(line.X, line.Y, line.Z), prob: line.prob }))
+      ? frame.ModelV2.LaneLines.map((line) => ({ d: getPolyline(line.X, line.Y, line.Z), prob: line.prob }))
       : undefined
 
-    const roadEdges = showLaneLines ? item.ModelV2.RoadEdges.map((edge) => getPolyline(edge.X, edge.Y, edge.Z)) : undefined
+    const roadEdges = showLaneLines ? frame.ModelV2.RoadEdges.map((edge) => getPolyline(edge.X, edge.Y, edge.Z)) : undefined
 
     return { path, laneLines, roadEdges }
-  }, [item, FX, FY, CX, CY, CAM_HEIGHT])
+  }, [frame, FX, FY, CX, CY, CAM_HEIGHT])
+
+  if (!paths) return null
 
   return (
-    <AbsoluteFill>
-      {item?.CarState?.CruiseEnabled && (
-        <div className="absolute inset-0 border-[30px] border-[#00c853] z-10 pointer-events-none rounded-[40px]" />
-      )}
-
-      {item?.CarState && (
-        <>
-          <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-[32px] w-56 h-56 flex flex-col items-center justify-center z-20">
-            <div className="text-[#00c853] text-4xl font-bold mb-2">MAX</div>
-            <div className="text-white text-[100px] leading-none font-bold">
-              {item.CarState.CruiseEnabled ? (item.CarState.CruiseSpeed * 2.23694).toFixed(0) : '-'}
-            </div>
-          </div>
-
-          <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
-            <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
-              {Math.max(0, item.CarState.VEgo * 2.23694).toFixed(0)}
-            </div>
-            <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">mph</div>
-          </div>
-
-          <div className="absolute top-12 right-12 z-20">
-            <img
-              src={item.SelfdriveState?.ExperimentalMode ? staticFile('/experimental.png') : staticFile('/chffr_wheel.png')}
-              className="w-40 h-40 object-contain opacity-80"
-              alt="Mode Icon"
+    <svg width={WIDTH} height={HEIGHT} style={{ overflow: 'visible' }}>
+      {paths.path && <path d={paths.path} fill="rgba(0, 255, 0, 0.4)" stroke="none" />}
+      {paths.laneLines?.map(
+        (line, i) =>
+          line.d && (
+            <path
+              key={`lane-${i}`}
+              d={line.d}
+              stroke="white"
+              strokeWidth={4}
+              fill="none"
+              style={{ opacity: Math.max(0.1, line.prob ?? 0) }}
             />
-          </div>
-        </>
+          ),
       )}
-
-      {item?.DriverStateV2 && (
-        <div className="absolute bottom-12 left-12 z-20">
-          <DriverStateRenderer state={item.DriverStateV2} isEngaged={item.CarState?.CruiseEnabled ?? false} />
-        </div>
-      )}
-
-      {projectedPaths && (
-        <svg width={WIDTH} height={HEIGHT} style={{ overflow: 'visible' }}>
-          {projectedPaths.path && <path d={projectedPaths.path} fill="rgba(0, 255, 0, 0.4)" stroke="none" />}
-          {projectedPaths.laneLines?.map(
-            (line, i) =>
-              line.d && (
-                <path
-                  key={`lane-${i}`}
-                  d={line.d}
-                  stroke="white"
-                  strokeWidth={4}
-                  fill="none"
-                  style={{ opacity: Math.max(0.1, line.prob ?? 0) }}
-                />
-              ),
-          )}
-          {projectedPaths.roadEdges?.map((edge, i) => edge && <path key={`edge-${i}`} d={edge} stroke="red" strokeWidth={4} fill="none" />)}
-        </svg>
-      )}
-    </AbsoluteFill>
+      {paths.roadEdges?.map((edge, i) => edge && <path key={`edge-${i}`} d={edge} stroke="red" strokeWidth={4} fill="none" />)}
+    </svg>
   )
 }
