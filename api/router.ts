@@ -1,14 +1,14 @@
 import { tsr } from '@ts-rest/serverless/fetch'
 import { renderer } from '../src/api/contract'
 import { $ } from 'bun'
-import { CameraType, PreviewProps, RenderProgress } from '../src/types'
+import { CameraType, PreviewProps, RenderInfo } from '../src/types'
 import { RENDERER_URL, USER_CONTENT_DIR } from '../src/utils/consts'
 import { renderMedia, selectComposition } from '@remotion/renderer'
 import { getPreviewGenerated } from '../templates/Preview'
 
 const generateId = () => (Math.random() * 1_000_000).toFixed(0)
 
-const queue: Record<string, { promise: Promise<any>; progress?: RenderProgress; error?: string }> = {}
+const queue: Record<string, RenderInfo> = {}
 
 const downloadCamFiles = async (renderId: string, files: string[], type?: CameraType) => {
   if (!type || type === 'qcameras') throw new Error(`Invalid camera type: ${type}`)
@@ -32,8 +32,10 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
     props.segmentCount = 1 // To make it faster at first
     props.prefetchLogs = true
 
+    queue[renderId].state = 'generating'
     const generated = await getPreviewGenerated(props)
 
+    queue[renderId].state = 'downloading'
     console.log('Downloading files')
     const [largeCameraFiles, smallCameraFiles] = await Promise.all([
       downloadCamFiles(renderId, generated.largeCameraFiles, props.largeCameraType),
@@ -42,17 +44,19 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
     props.generated = { ...generated, largeCameraFiles, smallCameraFiles }
 
     console.log(`Rendering`)
+    queue[renderId].state = 'rendering'
     const composition = await selectComposition({
       id: 'Preview',
       serveUrl,
       inputProps: props,
     })
 
+    const out = `${USER_CONTENT_DIR}/${renderId}/output.mp4`
     await renderMedia({
       composition: composition,
       serveUrl,
       codec: 'h264',
-      outputLocation: `out/${props.routeName}.mp4`,
+      outputLocation: out,
       timeoutInMilliseconds: 120_000,
       onProgress: (p) => {
         queue[renderId].progress = p
@@ -61,8 +65,12 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
         enableMultiProcessOnLinux: true,
       },
     })
+
+    queue[renderId].state = 'done'
+    queue[renderId].output = out
   } catch (e) {
     queue[renderId].error = String(e)
+    queue[renderId].state = 'error'
   }
 }
 export const router = tsr.platformContext<{}>().router(renderer, {
@@ -72,12 +80,14 @@ export const router = tsr.platformContext<{}>().router(renderer, {
   render: async ({ body: { props, serveUrl } }) => {
     const renderId = generateId()
 
-    queue[renderId] = { promise: render({ props, renderId, serveUrl }) }
+    render({ props, renderId, serveUrl })
+    queue[renderId] = { state: 'started' }
     return { status: 200, body: { renderId } }
   },
 
   progress: async ({ query: { renderId } }) => {
-    const item = queue[renderId]
-    return { status: 200, body: { progress: item.progress, error: item.error } }
+    const info = queue[renderId]
+    if (!info) return { status: 404, body: 'Not found' }
+    return { status: 200, body: info }
   },
 })

@@ -14,7 +14,7 @@ import {
   AthenaRequest,
   AthenaResponse,
   PreviewProps,
-  RenderProgress,
+  RenderInfo,
 } from '../types'
 import { z } from 'zod'
 import { ATHENA_URL, BILLING_URL, RENDERER_URL } from '../utils/consts'
@@ -375,9 +375,7 @@ export const renderer = c.router({
       renderId: z.string(),
     }),
     responses: {
-      200: z.object({
-        progress: RenderProgress.optional(),
-      }),
+      200: RenderInfo,
     },
   },
 })

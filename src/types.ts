@@ -246,6 +246,12 @@ export const RenderProgress = z.object({
   progress: z.number(),
   stitchStage: z.enum(['encoding', 'muxing']),
 })
+export const RenderInfo = z.object({
+  progress: RenderProgress.optional(),
+  error: z.string().optional(),
+  state: z.enum(['started', 'generating', 'downloading', 'rendering', 'done', 'error']),
+  output: z.string().optional(),
+})
 
 // TYPES
 export type Profile = z.infer<typeof Profile>
@@ -274,3 +280,4 @@ export type PreviewGenerated = z.infer<typeof PreviewGenerated>
 export type AthenaRequest = z.infer<typeof AthenaRequest>
 export type AthenaResponse = z.infer<typeof AthenaResponse>
 export type RenderProgress = z.infer<typeof RenderProgress>
+export type RenderInfo = z.infer<typeof RenderInfo>
