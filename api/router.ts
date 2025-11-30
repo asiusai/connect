@@ -6,17 +6,15 @@ import { RENDERER_URL, USER_CONTENT_DIR } from '../src/utils/consts'
 import { renderMedia, selectComposition } from '@remotion/renderer'
 import { getPreviewGenerated } from '../templates/Preview'
 
-const generateId = () => (Math.random() * 1_000_000).toFixed(0)
+const generateId = () => (Math.random() * 1_000_000_000).toFixed(0)
 
 const queue: Record<string, RenderInfo> = {}
 
-const downloadCamFiles = async (renderId: string, files: string[], type?: CameraType) => {
+const downloadCamFiles = async (folder: string, files: string[], type?: CameraType) => {
   if (!type || type === 'qcameras') throw new Error(`Invalid camera type: ${type}`)
 
   const replaceFile = async (url: string, name: string) => {
-    const folder = `${USER_CONTENT_DIR}/${renderId}/input`
     const file = `${folder}/${name}.mp4`
-    await $`mkdir -p ${folder}`
     await $`curl ${url} | ffmpeg -f hevc -i pipe:0 -c copy ${file} -y`
     return `${RENDERER_URL}/${file}`
   }
@@ -26,6 +24,9 @@ const downloadCamFiles = async (renderId: string, files: string[], type?: Camera
 }
 
 const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; renderId: string; serveUrl: string }) => {
+  const folder = `${USER_CONTENT_DIR}/${renderId}/input`
+  await $`mkdir -p ${folder}`
+
   try {
     if (!props.data) throw new Error('No data in props')
 
@@ -42,8 +43,8 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
     queue[renderId].state = 'downloading'
     console.log('Downloading files')
     const [largeCameraFiles, smallCameraFiles] = await Promise.all([
-      downloadCamFiles(renderId, generated.largeCameraFiles, props.largeCameraType),
-      generated.smallCameraFiles ? downloadCamFiles(renderId, generated.smallCameraFiles, props.smallCameraType) : undefined,
+      downloadCamFiles(folder, generated.largeCameraFiles, props.largeCameraType),
+      generated.smallCameraFiles ? downloadCamFiles(folder, generated.smallCameraFiles, props.smallCameraType) : undefined,
     ])
     props.generated = { ...generated, largeCameraFiles, smallCameraFiles }
 
@@ -76,6 +77,8 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
     queue[renderId].error = String(e)
     queue[renderId].state = 'error'
   }
+
+  await $`rm -rf ${folder}`
 }
 export const router = tsr.platformContext<{}>().router(renderer, {
   status: async () => {

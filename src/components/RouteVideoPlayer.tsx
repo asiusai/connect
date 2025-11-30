@@ -10,6 +10,7 @@ import { Select } from './material/Select'
 import { FILE_INFO } from './RouteFiles'
 import { Button } from './material/Button'
 import { TEMPLATES_URL } from '../utils/consts'
+import { useRendererStatus, useRenderProgress } from '../api/queries'
 
 export const RouteVideoPlayer = ({ playerRef, route, files }: { playerRef: RefObject<PlayerRef | null>; route: Route; files: Files }) => {
   const { routeName } = useParams()
@@ -71,9 +72,13 @@ export const RouteVideoPlayer = ({ playerRef, route, files }: { playerRef: RefOb
 
 const Render = ({ props }: { props: PreviewProps }) => {
   const { data, mutate } = api.renderer.render.useMutation()
+  const [status] = useRendererStatus()
+  const [progress] = useRenderProgress(data?.body.renderId)
+  if (!status) return <div>Renderer is offline</div>
   return (
     <div>
-      {data?.body.renderId}
+      RenderId: {data?.body.renderId}
+      Progress: {JSON.stringify(progress)}
       <Button onClick={() => mutate({ body: { props, serveUrl: TEMPLATES_URL } })}>Render</Button>
     </div>
   )
