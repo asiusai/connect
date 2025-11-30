@@ -84,8 +84,8 @@ export const router = tsr.platformContext<{}>().router(renderer, {
   render: async ({ body: { props, serveUrl } }) => {
     const renderId = generateId()
 
-    render({ props, renderId, serveUrl })
     queue[renderId] = { state: 'started' }
+    render({ props, renderId, serveUrl })
     return { status: 200, body: { renderId } }
   },
 
