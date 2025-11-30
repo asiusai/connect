@@ -157,7 +157,7 @@ const SettingsMenu = ({
       <MenuItem label="Large Camera" value={FILE_INFO[props.largeCameraType].short} onClick={() => setView('large')} />
       <MenuItem
         label="Small Camera"
-        value={props.smallCameraType ? FILE_INFO[props.smallCameraType].short : "Hidden"}
+        value={props.smallCameraType ? FILE_INFO[props.smallCameraType].short : 'Hidden'}
         onClick={() => setView('small')}
       />
       <MenuItem label="Log" value={props.logType ? FILE_INFO[props.logType].short : 'Hidden'} onClick={() => setView('log')} />
