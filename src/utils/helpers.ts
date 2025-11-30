@@ -90,9 +90,9 @@ export const createSharedDevice = (dongleId: string): Device => ({
   athena_host: null,
 })
 
-export const saveFile = (blob: Blob, fileName: string) => {
+export const saveFile = (blobOrUrl: Blob | string, fileName: string) => {
   const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
+  a.href = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl)
   a.download = fileName
   document.body.appendChild(a)
   a.click()

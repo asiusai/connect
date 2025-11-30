@@ -58,7 +58,14 @@ const Camera = ({ className, files, type, name }: { name: string; files?: string
       <Loading className="absolute inset-0" />
       <div className="relative h-full w-full">
         {files.map((src, i) => (
-          <Sequence key={src} from={i * 60 * FPS} name={`${name} ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
+          <Sequence
+            key={src}
+            from={i * 60 * FPS}
+            name={`${name} ${i}`}
+            durationInFrames={60 * FPS}
+            premountFor={60 * FPS}
+            postmountFor={60 * FPS}
+          >
             {type === 'qcameras' ? <HlsVideo src={src} /> : <HevcVideo src={src} />}
           </Sequence>
         ))}
@@ -84,7 +91,7 @@ const UI = ({
   return (
     <Series>
       {files.map((url, i) => (
-        <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS}>
+        <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
           <OpenpilotUI i={i} logType={logType} routeName={routeName} url={url} prefetchedFrames={prefetchedLogs?.[i]} showPath={showPath} />
         </Series.Sequence>
       ))}

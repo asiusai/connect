@@ -7,7 +7,6 @@ import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import { RouteFiles } from '../components/RouteFiles'
 import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
 import { useFiles, usePreservedRoutes, useProfile, useRoute } from '../api/queries'
-import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useEffect, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
 import { api } from '../api'
@@ -71,12 +70,8 @@ export const Component = () => {
   const { routeName } = useParams()
 
   const [route] = useRoute(routeName)
-  const [events, setEvents] = useState<TimelineEvent[]>([])
   const [files] = useFiles(routeName)
 
-  useEffect(() => {
-    if (route) void getTimelineEvents(route).then(setEvents)
-  }, [route])
   if (!route) return null
 
   // TODO: set route viewed

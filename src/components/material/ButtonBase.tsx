@@ -7,13 +7,25 @@ export type ButtonBaseProps = {
   disabled?: boolean
   href?: string
   children: ReactNode
-  onClick?: () => void
+  onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   activeClass?: string
   download?: string
   target?: string
 }
 
-export const ButtonBase = ({ activeClass, ...props }: ButtonBaseProps) => {
+export const ButtonBase = ({ activeClass, href, onClick, ...props }: ButtonBaseProps) => {
   const className = clsx('isolate overflow-hidden', props.className, props.disabled && 'opacity-70')
-  return props.href ? <Link {...props} to={props.href} className={className} /> : <button {...props} className={className} />
+  return href ? (
+    <Link {...props} to={href} className={className} />
+  ) : (
+    <button
+      {...props}
+      onClick={(e) => {
+        if (!onClick) return
+        e.stopPropagation()
+        onClick(e)
+      }}
+      className={className}
+    />
+  )
 }

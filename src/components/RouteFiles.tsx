@@ -6,7 +6,7 @@ import { callAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
-import { getRouteDuration } from '../utils/format'
+import { formatTime, getRouteDuration } from '../utils/format'
 import { useParams } from '../utils/hooks'
 import { Button } from './material/Button'
 import { Icon } from './material/Icon'
@@ -285,12 +285,6 @@ const SegmentGrid = ({
   )
 }
 
-const format = (seconds: number) => {
-  const min = Math.floor(seconds / 60)
-  const sec = String(seconds % 60).padStart(2, '0')
-  return `${min}:${sec}`
-}
-
 export const RouteFiles = ({ route }: { route: Route }) => {
   const [files] = useFiles(route.fullname)
   const totalSegments = route.maxqlog + 1
@@ -305,7 +299,7 @@ export const RouteFiles = ({ route }: { route: Route }) => {
   return (
     <div className="flex flex-col rounded-xl bg-background-alt p-4 gap-3">
       <h3 className="text-2xl font-bold mb-2">
-        {isFull ? 'Route files' : `Segment ${segment} files`} ({format(startTime)} - {format(endTime)})
+        {isFull ? 'Route files' : `Segment ${segment} files`} ({formatTime(startTime)} - {formatTime(endTime)})
       </h3>
       <SegmentDetails segment={segment} files={files} route={route} />
       <SegmentGrid totalSegments={totalSegments} files={files} route={route} selectedSegment={segment} onSelect={setSegment} />

@@ -60,6 +60,10 @@ export const Icons = [
   'raw_on',
   'movie',
   'file_json',
+  'volume_up',
+  'volume_off',
+  'fullscreen',
+  'fullscreen_exit',
 ] as const
 
 export type IconName = (typeof Icons)[number]

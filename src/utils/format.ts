@@ -99,3 +99,9 @@ export const dateTimeToColorBetween = (startTime: Date, endTime: Date, startColo
 }
 
 export const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`
+
+export const formatTime = (seconds: number) => {
+  const min = Math.floor(seconds / 60)
+  const sec = String(seconds % 60).padStart(2, '0')
+  return `${min}:${sec}`
+}
