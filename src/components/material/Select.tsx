@@ -26,8 +26,8 @@ export const Select = <T extends string>({
         )}
         style={style}
       >
-        {options.map(({ value, label }) => (
-          <option key={value} value={value}>
+        {options.map(({ value, label, disabled }) => (
+          <option key={value} value={value} disabled={disabled}>
             {label}
           </option>
         ))}
