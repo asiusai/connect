@@ -14,9 +14,11 @@ const downloadCamFiles = async (renderId: string, files: string[], type?: Camera
   if (!type || type === 'qcameras') throw new Error(`Invalid camera type: ${type}`)
 
   const replaceFile = async (url: string, name: string) => {
-    const path = `${USER_CONTENT_DIR}/${renderId}/input/${name}.mp4`
-    await $`curl ${url} | ffmpeg -f hevc -i pipe:0 -c copy ${path} -y`
-    return `${RENDERER_URL}/${path}`
+    const folder = `${USER_CONTENT_DIR}/${renderId}/input`
+    const file = `${folder}/${name}.mp4`
+    await $`mkdir -p ${folder}`
+    await $`curl ${url} | ffmpeg -f hevc -i pipe:0 -c copy ${file} -y`
+    return `${RENDERER_URL}/${file}`
   }
 
   console.log(`Downloading and re-encoding ${type} cam`)
