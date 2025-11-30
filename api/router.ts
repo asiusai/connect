@@ -30,7 +30,11 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
     if (!props.data) throw new Error('No data in props')
 
     props.segmentCount = 1 // To make it faster at first
-    props.prefetchLogs = true
+    props.prefetchLogs = true // Have to prefetch the data for rendering
+
+    // qcamera can't be rendered
+    if (props.largeCameraType === 'qcameras') props.largeCameraType = 'cameras'
+    if (props.smallCameraType === 'qcameras') props.smallCameraType = 'cameras'
 
     queue[renderId].state = 'generating'
     const generated = await getPreviewGenerated(props)

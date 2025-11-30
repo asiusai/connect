@@ -12,23 +12,27 @@ const headers = {
 const server = Bun.serve({
   port: 8080,
   fetch: async (request) => {
-    if (request.method === 'OPTIONS') return new Response(null, { headers })
+    try {
+      if (request.method === 'OPTIONS') return new Response(null, { headers })
 
-    const path = new URL(request.url).pathname
+      const path = new URL(request.url).pathname
 
-    if (path.startsWith(`/${USER_CONTENT_DIR}`)) return new Response(Bun.file(path.slice(1)), { headers })
+      if (path.startsWith(`/${USER_CONTENT_DIR}`)) return new Response(Bun.file(path.slice(1)), { headers })
 
-    const res = await fetchRequestHandler({
-      contract: renderer,
-      router,
-      request,
-      platformContext: {},
-      options: {},
-    })
+      const res = await fetchRequestHandler({
+        contract: renderer,
+        router,
+        request,
+        platformContext: {},
+        options: {},
+      })
 
-    Object.entries(headers).forEach(([key, value]) => res.headers.set(key, value))
+      Object.entries(headers).forEach(([key, value]) => res.headers.set(key, value))
 
-    return res
+      return res
+    } catch (e) {
+      return new Response(`Server error: ${e}`, { status: 500 })
+    }
   },
 })
 
