@@ -67,7 +67,7 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
     })
 
     queue[renderId].state = 'done'
-    queue[renderId].output = out
+    queue[renderId].output = `${RENDERER_URL}/${out}`
   } catch (e) {
     queue[renderId].error = String(e)
     queue[renderId].state = 'error'
