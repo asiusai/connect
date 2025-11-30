@@ -3,12 +3,20 @@ import { renderer } from '../src/api/contract'
 import { router } from './router'
 import { USER_CONTENT_DIR } from '../src/utils/consts'
 
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': '*',
+}
+
 const server = Bun.serve({
   port: 8080,
   fetch: async (request) => {
+    if (request.method === 'OPTIONS') return new Response(null, { headers })
+
     const path = new URL(request.url).pathname
 
-    if (path.startsWith(`/${USER_CONTENT_DIR}`)) return new Response(Bun.file(path.slice(1)))
+    if (path.startsWith(`/${USER_CONTENT_DIR}`)) return new Response(Bun.file(path.slice(1)), { headers })
 
     const res = await fetchRequestHandler({
       contract: renderer,
@@ -17,6 +25,9 @@ const server = Bun.serve({
       platformContext: {},
       options: {},
     })
+
+    Object.entries(headers).forEach(([key, value]) => res.headers.set(key, value))
+
     return res
   },
 })
