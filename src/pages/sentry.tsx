@@ -33,9 +33,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>
-        Sentry Mode
-      </TopAppBar>
+      <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>Sentry Mode</TopAppBar>
 
       <div className="flex flex-col gap-4 p-4">
         {isLoading && (
@@ -74,10 +72,7 @@ export const Component = () => {
               <h2 className="text-xl font-bold">Take a snapshot</h2>
               <p className="text-sm text-white/60">Capture a real-time view from your device's cameras.</p>
             </div>
-            <ButtonBase
-              onClick={shot}
-              className="px-8 py-3 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-colors"
-            >
+            <ButtonBase onClick={shot} className="px-8 py-3 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-colors">
               Take Snapshot
             </ButtonBase>
           </div>

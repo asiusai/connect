@@ -46,10 +46,7 @@ const RouteCard = ({ route }: { route: Route }) => {
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl bg-background-alt p-4 shadow-sm transition-all hover:bg-background-alt/80 active:scale-[0.99]"
     >
       {/* Color Indicator */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1.5"
-        style={{ backgroundColor: color }}
-      />
+      <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color }} />
 
       <div className="flex flex-col gap-1 pl-3">
         {/* Time and Duration */}
@@ -59,17 +56,13 @@ const RouteCard = ({ route }: { route: Route }) => {
             <span className="text-white/40 text-sm font-normal">•</span>
             <span>{endTime.format('h:mm A')}</span>
           </div>
-          <div className="text-xs font-medium text-white/60 bg-white/10 px-2 py-0.5 rounded-full">
-            {durationStr}
-          </div>
+          <div className="text-xs font-medium text-white/60 bg-white/10 px-2 py-0.5 rounded-full">{durationStr}</div>
         </div>
 
         {/* Location */}
         <div className="flex items-start gap-2 min-h-[24px]">
           <Icon name="location_on" className="mt-0.5 text-[16px] text-white/40 shrink-0" />
-          <span className="text-sm font-medium text-white/80 leading-snug line-clamp-2">
-            {location || 'Loading location...'}
-          </span>
+          <span className="text-sm font-medium text-white/80 leading-snug line-clamp-2">{location || 'Loading location...'}</span>
         </div>
 
         {/* Footer / Stats */}

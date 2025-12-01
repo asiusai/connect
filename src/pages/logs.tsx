@@ -9,7 +9,7 @@ import { BackButton } from '../components/material/BackButton'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { Toggle } from '../components/material/Toggle'
-import clsx from 'clsx'
+import { FILE_INFO } from '../components/RouteFiles'
 
 const LogEvent = z.enum([
   'Sentinel',
@@ -162,7 +162,7 @@ export const Component = () => {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
       <TopAppBar leading={<BackButton fallback={`/${dongleId}/routes/${date}`} />}>
-        <span className="capitalize">{type}</span>
+        <span className="capitalize">{FILE_INFO[type].label}</span>
       </TopAppBar>
 
       {/* Top Controls Bar */}

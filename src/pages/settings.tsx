@@ -358,10 +358,7 @@ const UserManagement = () => {
       <div className="flex items-center justify-between px-2">
         <h2 className="text-xl font-bold">Users</h2>
         {!isAdding && (
-          <div
-            className="p-2 -mr-2 cursor-pointer hover:bg-white/10 rounded-full transition-colors"
-            onClick={() => setIsAdding(true)}
-          >
+          <div className="p-2 -mr-2 cursor-pointer hover:bg-white/10 rounded-full transition-colors" onClick={() => setIsAdding(true)}>
             <Icon name="add" className="text-xl" />
           </div>
         )}
@@ -510,10 +507,7 @@ const UnitSettings = () => {
           <span className="text-xs text-white/60">Use miles instead of kilometers</span>
         </div>
         <div
-          className={clsx(
-            'w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative',
-            imperial ? 'bg-white' : 'bg-white/10',
-          )}
+          className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', imperial ? 'bg-white' : 'bg-white/10')}
           onClick={() => {
             const newVal = !imperial
             setImperial(newVal)
@@ -540,9 +534,7 @@ export const Component = () => {
   if (!device) return null
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>
-        Settings
-      </TopAppBar>
+      <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>Settings</TopAppBar>
 
       <div className="flex flex-col gap-8 px-4 py-6 pb-20 max-w-2xl mx-auto w-full">
         <DeviceSettingsForm />

@@ -187,14 +187,7 @@ const DownloadSegment = ({ type, files, segment }: { segment: number; type: File
   const { routeName } = useParams()
   const file = files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
   if (!file) return null
-  return (
-    <FileAction
-      label={FILE_INFO[type].raw}
-      icon="raw_on"
-      href={file}
-      download={`${routeName}--${segment}--${FILE_INFO[type].name}`}
-    />
-  )
+  return <FileAction label={FILE_INFO[type].raw} icon="raw_on" href={file} download={`${routeName}--${segment}--${FILE_INFO[type].name}`} />
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
@@ -339,9 +332,9 @@ export const RouteFiles = ({ route }: { route: Route }) => {
   return (
     <div className="flex flex-col gap-4">
       <SegmentGrid totalSegments={totalSegments} files={files} route={route} selectedSegment={segment} onSelect={setSegment} />
-      
+
       <div className="h-px bg-white/5 my-2" />
-      
+
       <SegmentDetails segment={segment} files={files} route={route} />
     </div>
   )

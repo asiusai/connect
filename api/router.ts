@@ -39,6 +39,7 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
 
     queue[renderId].state = 'generating'
     const generated = await getPreviewGenerated(props)
+    if (!generated) throw new Error(`Props generation failed!`)
 
     queue[renderId].state = 'downloading'
     console.log('Downloading files')

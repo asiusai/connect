@@ -38,7 +38,7 @@ const PAGES = {
   'route-logs': `1d3dc3e03047b0c7/routes/000000dd--455f14369d/logs`,
 }
 
-const pages = keys(PAGES).entries().filter(([_,x]) => !PAGE || PAGE.split(',').includes(x))
+const pages = [...keys(PAGES).entries()].filter(([_, x]) => !PAGE || PAGE.split(',').includes(x))
 const devices = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
 
 const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })

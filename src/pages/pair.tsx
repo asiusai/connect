@@ -33,9 +33,7 @@ const Scanning = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback="/" />}>
-        Pair Device
-      </TopAppBar>
+      <TopAppBar leading={<BackButton fallback="/" />}>Pair Device</TopAppBar>
 
       <div className="flex-1 flex flex-col items-center justify-center p-4 gap-8">
         <div className="relative w-full max-w-sm aspect-square bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10">
@@ -127,10 +125,7 @@ export const Component = () => {
           >
             Try Again
           </ButtonBase>
-          <ButtonBase
-            href="/"
-            className="w-full py-3 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors"
-          >
+          <ButtonBase href="/" className="w-full py-3 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors">
             Cancel
           </ButtonBase>
         </div>
