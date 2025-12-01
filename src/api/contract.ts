@@ -17,7 +17,7 @@ import {
   RenderInfo,
 } from '../types'
 import { z } from 'zod'
-import { ATHENA_URL, BILLING_URL, RENDERER_URL } from '../utils/consts'
+import { env } from '../utils/env'
 
 const c = initContract()
 
@@ -230,7 +230,7 @@ const devices = c.router({
 
 const athena = c.router({
   athena: {
-    metadata: { baseUrl: ATHENA_URL },
+    metadata: { baseUrl: env.ATHENA_URL },
     method: 'POST',
     path: '/:dongleId',
     pathParams: z.object({
@@ -268,7 +268,7 @@ const file = c.router({
 
 const prime = c.router({
   status: {
-    metadata: { baseUrl: BILLING_URL },
+    metadata: { baseUrl: env.BILLING_URL },
     method: 'GET',
     path: '/v1/prime/subscription',
     query: z.object({
@@ -279,7 +279,7 @@ const prime = c.router({
     },
   },
   info: {
-    metadata: { baseUrl: BILLING_URL },
+    metadata: { baseUrl: env.BILLING_URL },
     method: 'GET',
     path: '/v1/prime/subscribe_info',
     query: z.object({
@@ -290,7 +290,7 @@ const prime = c.router({
     },
   },
   cancel: {
-    metadata: { baseUrl: BILLING_URL },
+    metadata: { baseUrl: env.BILLING_URL },
     method: 'POST',
     path: '/v1/prime/cancel',
     body: z.object({
@@ -303,7 +303,7 @@ const prime = c.router({
     },
   },
   getCheckout: {
-    metadata: { baseUrl: BILLING_URL },
+    metadata: { baseUrl: env.BILLING_URL },
     method: 'POST',
     path: '/v1/prime/stripe_checkout',
     body: z.object({
@@ -318,7 +318,7 @@ const prime = c.router({
     },
   },
   getPortal: {
-    metadata: { baseUrl: BILLING_URL },
+    metadata: { baseUrl: env.BILLING_URL },
     method: 'GET',
     path: '/v1/prime/stripe_portal',
     query: z.object({
@@ -329,7 +329,7 @@ const prime = c.router({
     },
   },
   getSession: {
-    metadata: { baseUrl: BILLING_URL },
+    metadata: { baseUrl: env.BILLING_URL },
     method: 'GET',
     path: '/v1/prime/stripe_session',
     query: z.object({
@@ -346,7 +346,7 @@ const prime = c.router({
 
 export const renderer = c.router({
   status: {
-    metadata: { baseUrl: RENDERER_URL },
+    metadata: { baseUrl: env.RENDERER_URL },
     method: 'GET',
     path: '/v1/status',
     responses: {
@@ -354,7 +354,7 @@ export const renderer = c.router({
     },
   },
   render: {
-    metadata: { baseUrl: RENDERER_URL },
+    metadata: { baseUrl: env.RENDERER_URL },
     method: 'POST',
     path: '/v1/render',
     body: z.object({
@@ -368,7 +368,7 @@ export const renderer = c.router({
     },
   },
   progress: {
-    metadata: { baseUrl: RENDERER_URL },
+    metadata: { baseUrl: env.RENDERER_URL },
     method: 'GET',
     path: '/v1/progress',
     query: z.object({

@@ -1,5 +1,5 @@
+import { env } from '../utils/env'
 import { accessToken } from '../utils/helpers'
-import { API_URL } from '../utils/consts'
 import { contract } from './contract'
 import { initTsrReactQuery } from '@ts-rest/react-query/v5'
 
@@ -10,12 +10,12 @@ const objectToFormData = (obj: object) => {
 }
 
 export const api = initTsrReactQuery(contract, {
-  baseUrl: API_URL,
+  baseUrl: env.API_URL,
   api: async (args) => {
     let path = args.path
 
     const baseUrl = (args.route.metadata as any)?.baseUrl
-    if (baseUrl) path = path.replace(API_URL, baseUrl)
+    if (baseUrl) path = path.replace(env.API_URL, baseUrl)
 
     // For some reason otherwise strings have quotes around them
     if (args.contentType === 'multipart/form-data' && args.rawBody) args.body = objectToFormData(args.rawBody)

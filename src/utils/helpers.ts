@@ -1,6 +1,6 @@
 import type { Device, RouteInfo } from '../types'
-import { SHARED_DEVICE } from './consts'
 import { QueryClient } from '@tanstack/react-query'
+import { env } from './env'
 
 export const queryClient = new QueryClient({})
 
@@ -63,7 +63,7 @@ export const signOut = () => {
 
 export const createSharedDevice = (dongleId: string): Device => ({
   dongle_id: dongleId,
-  alias: SHARED_DEVICE,
+  alias: env.SHARED_DEVICE,
   serial: '',
   last_athena_ping: 0,
   ignore_uploads: null,

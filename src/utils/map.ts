@@ -1,6 +1,6 @@
 import polyline from '@mapbox/polyline'
-import { MAPBOX_DARK_STYLE_ID, MAPBOX_LIGHT_STYLE_ID, MAPBOX_TOKEN, MAPBOX_USERNAME } from './consts'
 import type { Position, FeatureCollection, Point } from 'geojson'
+import { env } from './env'
 
 /**
  * @see {@link https://docs.mapbox.com/api/search/geocoding/#geocoding-response-object}
@@ -53,7 +53,7 @@ export type Coord = [number, number]
 const POLYLINE_SAMPLE_SIZE = 50
 const POLYLINE_PRECISION = 4
 
-const getMapStyleId = (themeId: string): string => (themeId === 'light' ? MAPBOX_LIGHT_STYLE_ID : MAPBOX_DARK_STYLE_ID)
+const getMapStyleId = (themeId: string): string => (themeId === 'light' ? env.MAPBOX_LIGHT_STYLE_ID : env.MAPBOX_DARK_STYLE_ID)
 
 const prepareCoords = (coords: Coord[], sampleSize: number): Coord[] => {
   const sample: Coord[] = []
@@ -82,11 +82,11 @@ export const getPathStaticMapUrl = (
   const hidpiStr = hidpi ? '@2x' : ''
   const encodedPolyline = polyline.encode(prepareCoords(coords, POLYLINE_SAMPLE_SIZE), POLYLINE_PRECISION)
   const path = `path-${strokeWidth}+${color}-${opacity}(${encodeURIComponent(encodedPolyline)})`
-  return `https://api.mapbox.com/styles/v1/${MAPBOX_USERNAME}/${styleId}/static/${path}/auto/${width}x${height}${hidpiStr}?logo=false&attribution=false&padding=30,30,30,30&access_token=${MAPBOX_TOKEN}`
+  return `https://api.mapbox.com/styles/v1/${env.MAPBOX_USERNAME}/${styleId}/static/${path}/auto/${width}x${height}${hidpiStr}?logo=false&attribution=false&padding=30,30,30,30&access_token=${env.MAPBOX_TOKEN}`
 }
 
 export const getTileUrl = () =>
-  `https://api.mapbox.com/styles/v1/${MAPBOX_USERNAME}/${getMapStyleId('dark')}/tiles/256/{z}/{x}/{y}@2x?access_token=${MAPBOX_TOKEN}`
+  `https://api.mapbox.com/styles/v1/${env.MAPBOX_USERNAME}/${getMapStyleId('dark')}/tiles/256/{z}/{x}/{y}@2x?access_token=${env.MAPBOX_TOKEN}`
 
 export const reverseGeocode = async (position: Position): Promise<ReverseGeocodingFeature | null> => {
   if (Math.abs(position[0]) < 0.001 && Math.abs(position[1]) < 0.001) {
@@ -96,7 +96,7 @@ export const reverseGeocode = async (position: Position): Promise<ReverseGeocodi
     // 6dp is ~10cm accuracy
     longitude: position[0].toFixed(6),
     latitude: position[1].toFixed(6),
-    access_token: MAPBOX_TOKEN,
+    access_token: env.MAPBOX_TOKEN,
   })
   let resp: Response
   try {

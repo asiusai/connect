@@ -1,8 +1,8 @@
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { setAccessToken } from '../utils/helpers'
-import { DEMO_ACCESS_TOKEN } from '../utils/consts'
+import { env } from '../utils/env'
 
 export const Component = () => {
-  setAccessToken(DEMO_ACCESS_TOKEN)
+  setAccessToken(env.DEMO_ACCESS_TOKEN)
   return <Navigate to="/" />
 }

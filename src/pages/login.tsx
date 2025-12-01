@@ -1,17 +1,17 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
-import { API_URL, HACK_LOGIN_CALLBACK_HOST } from '../utils/consts'
+import { env } from '../utils/env'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
 // Redirecting straight back on localhost, but elsewhere redirect to the HACK url
-const state = `service,${window.location.hostname === 'localhost' ? window.location.host : HACK_LOGIN_CALLBACK_HOST}`
+const state = `service,${window.location.hostname === 'localhost' ? window.location.host : env.HACK_LOGIN_CALLBACK_HOST}`
 
 const GOOGLE_OAUTH_PARAMS = {
   type: 'web_server',
   client_id: '45471411055-ornt4svd2miog6dnopve7qtmh5mnu6id.apps.googleusercontent.com',
-  redirect_uri: `${API_URL}/v2/auth/g/redirect/`,
+  redirect_uri: `${env.API_URL}/v2/auth/g/redirect/`,
   response_type: 'code',
   scope: 'https://www.googleapis.com/auth/userinfo.email',
   prompt: 'select_account',
@@ -22,7 +22,7 @@ const getGoogleAuthUrl = () => `https://accounts.google.com/o/oauth2/auth?${stri
 
 const APPLE_OAUTH_PARAMS = {
   client_id: 'ai.comma.login',
-  redirect_uri: `${API_URL}/v2/auth/a/redirect/`,
+  redirect_uri: `${env.API_URL}/v2/auth/a/redirect/`,
   response_type: 'code',
   response_mode: 'form_post',
   scope: 'name email',
@@ -32,7 +32,7 @@ const getAppleAuthUrl = () => `https://appleid.apple.com/auth/authorize?${string
 
 const GITHUB_OAUTH_PARAMS = {
   client_id: '28c4ecb54bb7272cb5a4',
-  redirect_uri: `${API_URL}/v2/auth/h/redirect/`,
+  redirect_uri: `${env.API_URL}/v2/auth/h/redirect/`,
   scope: 'read:user',
   state,
 }

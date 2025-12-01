@@ -7,12 +7,12 @@ import { formatTime, getRouteDuration } from '../utils/format'
 import { RefObject, useEffect, useRef, useState } from 'react'
 import { useAsyncMemo, useParams } from '../utils/hooks'
 import { api } from '../api'
-import { TEMPLATES_URL } from '../utils/consts'
 import { useRendererStatus, useRenderProgress } from '../api/queries'
 import { IconButton } from './material/IconButton'
 import { Timeline } from './Timeline'
 import { saveFile, storage } from '../utils/helpers'
 import { Icon } from './material/Icon'
+import { env } from '../utils/env'
 
 const FILE_LABELS: Record<FileType, string> = {
   cameras: 'Road',
@@ -42,7 +42,7 @@ const Download = ({ props }: { props: PreviewProps }) => {
       name="download"
       className="ml-auto"
       loading={loading}
-      onClick={() => mutate({ body: { props, serveUrl: TEMPLATES_URL } })}
+      onClick={() => mutate({ body: { props, serveUrl: env.TEMPLATES_URL } })}
     />
   )
 }

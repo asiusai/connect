@@ -1,7 +1,7 @@
 import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
 import { renderer } from '../src/api/contract'
 import { router } from './router'
-import { USER_CONTENT_DIR } from '../src/utils/consts'
+import { env } from '../src/utils/env'
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -18,7 +18,7 @@ const server = Bun.serve({
 
       const path = new URL(request.url).pathname
 
-      if (path.startsWith(`/${USER_CONTENT_DIR}`)) {
+      if (path.startsWith(`/${env.USER_CONTENT_DIR}`)) {
         return new Response(Bun.file(path.slice(1)), {
           headers: { ...headers, 'Content-Disposition': `attachment; filename="${path.split('/').pop()}"` },
         })

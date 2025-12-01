@@ -2,8 +2,8 @@ import '../src/index.css'
 import { Composition } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
 import { Preview, previewCalculateMetadata } from './Preview'
-import { EXAMPLE_ROUTE_NAME } from '../src/utils/consts'
 import { PreviewProps } from '../src/types'
+import { env } from '../src/utils/env'
 
 export const RemotionRoot = () => {
   return (
@@ -17,7 +17,7 @@ export const RemotionRoot = () => {
       schema={PreviewProps}
       calculateMetadata={previewCalculateMetadata}
       defaultProps={{
-        routeName: EXAMPLE_ROUTE_NAME,
+        routeName: env.EXAMPLE_ROUTE_NAME,
         largeCameraType: 'cameras',
         smallCameraType: 'dcameras',
       }}

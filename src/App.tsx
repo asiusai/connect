@@ -6,15 +6,15 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import 'leaflet/dist/leaflet.css'
 import { Toaster } from 'sonner'
 import { api } from './api'
-import { HACK_DEFAULT_REDICT_HOST, HACK_LOGIN_CALLBACK_HOST } from './utils/consts'
 import { queryClient } from './utils/helpers'
+import { env } from './utils/env'
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
 
-  if (window.location.host === HACK_LOGIN_CALLBACK_HOST) {
+  if (window.location.host === env.HACK_LOGIN_CALLBACK_HOST) {
     const newUrl = new URL(window.location.href)
-    newUrl.hostname = HACK_DEFAULT_REDICT_HOST
+    newUrl.hostname = env.HACK_DEFAULT_REDICT_HOST
     window.location.replace(newUrl.toString())
   }
 

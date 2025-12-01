@@ -1,5 +1,5 @@
 import { api } from '.'
-import { DEMO_DONGLE_ID } from '../utils/consts'
+import { env } from '../utils/env'
 import { isSignedIn } from '../utils/helpers'
 
 // TODO:
@@ -19,7 +19,7 @@ export const useDeviceLocation = (dongleId: string) =>
     api.devices.location.useQuery({
       queryKey: ['location', dongleId],
       queryData: { params: { dongleId } },
-      enabled: dongleId !== DEMO_DONGLE_ID,
+      enabled: dongleId !== env.DEMO_DONGLE_ID,
     }),
   )
 

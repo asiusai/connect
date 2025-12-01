@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { api } from '.'
-import { DEMO_DONGLE_ID } from '../utils/consts'
+import { env } from '../utils/env'
 
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
@@ -77,7 +77,7 @@ export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends
   dongleId: string
   expiry?: number
 }): Promise<z.infer<Req['result']> | undefined> => {
-  if (dongleId === DEMO_DONGLE_ID) return undefined
+  if (dongleId === env.DEMO_DONGLE_ID) return undefined
   const req = REQUESTS[type]
 
   // Check params

@@ -3,12 +3,12 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
 import { setAccessToken } from '../utils/helpers'
-import { API_URL } from '../utils/consts'
+import { env } from '../utils/env'
 
 // TODO: move this to API contract
 export const refreshAccessToken = async (code: string, provider: string) => {
   try {
-    const resp = await fetch(`${API_URL}/v2/auth/`, {
+    const resp = await fetch(`${env.API_URL}/v2/auth/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

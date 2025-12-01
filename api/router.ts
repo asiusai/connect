@@ -2,9 +2,9 @@ import { tsr } from '@ts-rest/serverless/fetch'
 import { renderer } from '../src/api/contract'
 import { $ } from 'bun'
 import { CameraType, PreviewProps, RenderInfo } from '../src/types'
-import { RENDERER_URL, USER_CONTENT_DIR } from '../src/utils/consts'
 import { renderMedia, selectComposition } from '@remotion/renderer'
 import { getPreviewGenerated } from '../templates/Preview'
+import { env } from '../src/utils/env'
 
 const generateId = () => (Math.random() * 1_000_000_000).toFixed(0)
 
@@ -16,7 +16,7 @@ const downloadCamFiles = async (folder: string, files: string[], type?: CameraTy
   const replaceFile = async (url: string, name: string) => {
     const file = `${folder}/${name}.mp4`
     await $`curl ${url} | ffmpeg -f hevc -i pipe:0 -c copy ${file} -y`
-    return `${RENDERER_URL}/${file}`
+    return `${env.RENDERER_URL}/${file}`
   }
 
   console.log(`Downloading and re-encoding ${type} cam`)
@@ -24,7 +24,7 @@ const downloadCamFiles = async (folder: string, files: string[], type?: CameraTy
 }
 
 const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; renderId: string; serveUrl: string }) => {
-  const folder = `${USER_CONTENT_DIR}/${renderId}/input`
+  const folder = `${env.USER_CONTENT_DIR}/${renderId}/input`
   await $`mkdir -p ${folder}`
 
   try {
@@ -56,7 +56,7 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
       inputProps: props,
     })
 
-    const out = `${USER_CONTENT_DIR}/${renderId}/output.mp4`
+    const out = `${env.USER_CONTENT_DIR}/${renderId}/output.mp4`
     await renderMedia({
       composition: composition,
       serveUrl,
@@ -72,7 +72,7 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
     })
 
     queue[renderId].state = 'done'
-    queue[renderId].output = `${RENDERER_URL}/${out}`
+    queue[renderId].output = `${env.RENDERER_URL}/${out}`
   } catch (e) {
     queue[renderId].error = String(e)
     queue[renderId].state = 'error'
