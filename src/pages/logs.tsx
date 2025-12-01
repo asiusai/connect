@@ -114,7 +114,7 @@ export const Component = () => {
   const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'
 
   const segment = Number(params.get('segment')) || 0
-  const eventName = (params.get('eventName') as LogEvent) || 'DrivingModelData'
+  const eventName = (params.get('eventName') as LogEvent) || 'CarState'
   const limit = Number(params.get('limit')) || 10
   const prettify = params.get('prettify') !== 'false'
 

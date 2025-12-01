@@ -1,7 +1,8 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
 import { env } from '../utils/env'
+import { useEffect } from 'react'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
@@ -18,8 +19,6 @@ const GOOGLE_OAUTH_PARAMS = {
   state,
 }
 
-const getGoogleAuthUrl = () => `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`
-
 const APPLE_OAUTH_PARAMS = {
   client_id: 'ai.comma.login',
   redirect_uri: `${env.API_URL}/v2/auth/a/redirect/`,
@@ -28,7 +27,6 @@ const APPLE_OAUTH_PARAMS = {
   scope: 'name email',
   state,
 }
-const getAppleAuthUrl = () => `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`
 
 const GITHUB_OAUTH_PARAMS = {
   client_id: '28c4ecb54bb7272cb5a4',
@@ -36,10 +34,35 @@ const GITHUB_OAUTH_PARAMS = {
   scope: 'read:user',
   state,
 }
-const getGitHubAuthUrl = () => `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`
+
+const PROVIDERS = {
+  google: {
+    href: `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`,
+    image: '/images/logo-google.svg',
+    title: 'Google',
+  },
+  apple: {
+    href: `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`,
+    image: '/images/logo-apple.svg',
+    title: 'Apple',
+  },
+  github: {
+    href: `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`,
+    image: '/images/logo-github.svg',
+    title: 'GitHub',
+  },
+}
+type Provider = keyof typeof PROVIDERS
 
 export const Component = () => {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const provider = params.get('provider')
+
+  useEffect(() => {
+    if (provider && provider in PROVIDERS) window.location.href = PROVIDERS[provider as Provider].href
+  }, [provider])
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-6">
       <div className="flex max-w-sm flex-col items-center gap-8">
@@ -51,27 +74,16 @@ export const Component = () => {
         </div>
 
         <div className="flex flex-col items-stretch gap-4 self-stretch">
-          <Button
-            className="h-14 gap-4 min-[411px]:h-16"
-            href={getGoogleAuthUrl()}
-            leading={<img src="/images/logo-google.svg" alt="" width={32} height={32} />}
-          >
-            Sign in with Google
-          </Button>
-          <Button
-            className="h-14 gap-4 min-[411px]:h-16"
-            href={getAppleAuthUrl()}
-            leading={<img src="/images/logo-apple.svg" alt="" width={32} height={32} />}
-          >
-            Sign in with Apple
-          </Button>
-          <Button
-            className="h-14 gap-4 min-[411px]:h-16"
-            href={getGitHubAuthUrl()}
-            leading={<img src="/images/logo-github.svg" alt="" width={32} height={32} />}
-          >
-            Sign in with GitHub
-          </Button>
+          {Object.entries(PROVIDERS).map(([key, { href, image, title }]) => (
+            <Button
+              key={key}
+              className="h-14 gap-4 min-[411px]:h-16"
+              href={href}
+              leading={<img src={image} alt="" width={32} height={32} />}
+            >
+              Sign in with {title}
+            </Button>
+          ))}
         </div>
 
         <div className="flex justify-between gap-4">

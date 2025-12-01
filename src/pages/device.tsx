@@ -7,12 +7,12 @@ import { DeviceLocation } from '../components/DeviceLocation'
 import { Loading } from '../components/material/Loading'
 import { Device, getCommaName, getDeviceName } from '../types'
 import { formatDistance, formatDuration } from '../utils/format'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDevice, useDevices, useProfile, useRoutes, useStats } from '../api/queries'
 import { storage } from '../utils/helpers'
 import { useParams } from '../utils/hooks'
 import { callAthena } from '../api/athena'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Slider } from '../components/material/Slider'
 
 const timeAgo = (time: number): string => {
@@ -156,21 +156,25 @@ const Buttons = ({ dongleId }: { dongleId: string }) => {
 const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-400' : value < 12.4 ? 'text-yellow-400' : 'text-green-400')
 
 const UserMenu = () => {
-  const [open, setOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const open = searchParams.get('user') === 'true'
   const [profile] = useProfile()
+
+  const toggleOpen = () => setSearchParams(!open ? { user: 'true' } : {})
+
   if (!profile) return null
   return (
     <div className="relative">
       <div
         className="flex items-center justify-center w-10 h-10 bg-background backdrop-blur-md rounded-full border border-white/10 cursor-pointer hover:bg-background/80 transition-colors"
-        onClick={() => setOpen(!open)}
+        onClick={toggleOpen}
       >
         <Icon name="person" filled className="text-white" />
       </div>
 
       {open && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-10" onClick={toggleOpen} />
           <div className="absolute top-full right-0 mt-2 bg-background rounded-md shadow-xl z-20 text-background-x overflow-hidden min-w-[180px] animate-in fade-in zoom-in-95 duration-200 p-1 flex flex-col gap-1">
             <span className="text-xs font-medium truncate block px-3 py-2">{profile.email}</span>
             <ButtonBase href="/logout" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-background-alt text-error">
@@ -296,7 +300,10 @@ export const Component = () => {
 
   const [fade, setFade] = useState(1)
   const [battery, setBattery] = useState<number>()
-  const [open, setOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const open = searchParams.get('devices') === 'true'
+
+  const setOpen = (newOpen: boolean) => setSearchParams(newOpen ? { devices: 'true' } : {})
 
   useEffect(() => {
     callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>

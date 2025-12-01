@@ -114,7 +114,7 @@ jobs:
           ref: master
 
       - name: take screenshots
-        run: bun scripts/screenshots.ts https://${{ needs.pr.outputs.number }}.new-connect.dev ${{ github.workspace }}/ci-artifacts
+        run: BASE_URL=https://${{ needs.pr.outputs.number }}.new-connect.dev FOLDER=${{ github.workspace }}/ci-artifacts bun scripts/screenshots.ts  
 
       - name: Push Screenshots
         working-directory: ${{ github.workspace }}/ci-artifacts

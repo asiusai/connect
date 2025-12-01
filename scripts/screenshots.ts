@@ -1,55 +1,67 @@
 import fs from 'node:fs'
-import { chromium, devices, type BrowserContext, type BrowserContextOptions } from 'playwright'
+import { chromium, devices as playDevices } from 'playwright'
+import { keys } from '../src/utils/helpers'
+import { $ } from 'bun'
 
-const baseUrl = process.argv[2]
-const outDir = process.argv[3] || 'screenshots'
-const dongleId = '1d3dc3e03047b0c7'
-const endpoints = {
-  Login: 'login',
-  Pair: 'pair',
-  Home: dongleId,
-  Routes: `${dongleId}/routes`,
-  Route: `${dongleId}/routes/000000dd--455f14369d`,
-  Settings: `${dongleId}/settings`,
-  Sentry: `${dongleId}/sentry`,
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
+const FOLDER = process.env.FOLDER || 'screenshots'
+const PAGE = process.env.PAGE
+const DEVICE = process.env.DEVICE
+const EXECUTABLE = '/usr/bin/chromium'
+
+const DEVICES = {
+  mobile: playDevices['iPhone 13'],
+  desktop: playDevices['Desktop Chrome'],
 }
 
-const takeScreenshots = async (deviceType: string, context: BrowserContext) => {
-  const page = await context.newPage()
-  for (const [route, path] of Object.entries(endpoints)) {
-    await page.goto(`${baseUrl}/${path}`, { waitUntil: 'networkidle' })
-    await page.waitForTimeout(1500)
-    await page.screenshot({ path: `${outDir}/${route}-${deviceType}.playwright.png` })
-    console.log(`${route}-${deviceType}.playwright.png`)
+const PAGES = {
+  login: 'login',
+  'login-google': 'login?provider=google',
+  'login-apple': 'login?provider=apple',
+  'login-github': 'login?provider=github',
 
-    if (route === 'Login') {
-      await page.click("button:has-text('Try the demo')")
+  home: `1d3dc3e03047b0c7`,
+  'home-devices': `1d3dc3e03047b0c7?devices=true`,
+  'home-user': `1d3dc3e03047b0c7?user=true`,
+
+  'first-pair': 'first-pair',
+  pair: 'pair',
+  settings: `1d3dc3e03047b0c7/settings`,
+  sentry: `1d3dc3e03047b0c7/sentry`,
+
+  routes: `1d3dc3e03047b0c7/routes`,
+  'routes-preserved': `1d3dc3e03047b0c7/routes?preserved=true`,
+
+  route: `1d3dc3e03047b0c7/routes/000000dd--455f14369d`,
+  'route-public': `a2a0ccea32023010/routes/2023-07-27--13-01-19`,
+  'route-qlogs': `1d3dc3e03047b0c7/routes/000000dd--455f14369d/qlogs`,
+  'route-logs': `1d3dc3e03047b0c7/routes/000000dd--455f14369d/logs`,
+}
+
+await $`rm -rf ${FOLDER}`
+
+const pages = keys(PAGES).filter((x) => !PAGE || PAGE.split(',').includes(x))
+const devices = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
+console.log(`Taking screenshots of ${pages} pages on ${devices} devices`)
+
+const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
+
+await Promise.all(
+  devices.map(async (device) => {
+    const context = await browser.newContext(DEVICES[device])
+    const page = await context.newPage()
+    await page.goto(`${BASE_URL}/demo`)
+    for (const [i, route] of pages.entries()) {
+      await page.goto(`${BASE_URL}/${PAGES[route]}`, { waitUntil: 'networkidle' })
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(375)
+      const path = `${FOLDER}/${device}-${i + 1}-${route}.png`
+      await page.screenshot({ path, fullPage: true })
+      console.log(path)
     }
-  }
-  await page.close()
-}
+    await page.close()
+    await context.close()
+  }),
+)
 
-const main = async () => {
-  let executablePath: string | undefined = '/usr/bin/chromium'
-  if (!fs.existsSync(executablePath)) executablePath = undefined
-
-  const browser = await chromium.launch({ executablePath, headless: true })
-
-  const contexts: [string, BrowserContextOptions][] = [
-    ['mobile', devices['iPhone 13']],
-    ['desktop', { viewport: { width: 1920, height: 1080 } }],
-  ]
-  await Promise.all(
-    contexts.map(async ([deviceType, options]) => {
-      const context = await browser.newContext(options)
-      await takeScreenshots(deviceType, context)
-      await context.close()
-    }),
-  )
-
-  await browser.close()
-}
-
-main()
+await browser.close()
