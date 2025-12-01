@@ -78,6 +78,7 @@ export const OpenpilotUI = ({
   }
   if (!frame) return null
 
+  const speedMultiplier = 2.23694 * (isImperial ? 1 : MI_TO_KM)
   return (
     <AbsoluteFill>
       {frame.CarState?.CruiseEnabled && (
@@ -89,13 +90,13 @@ export const OpenpilotUI = ({
           <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-[32px] w-56 h-56 flex flex-col items-center justify-center z-20">
             <div className="text-[#00c853] text-4xl font-bold mb-2">MAX</div>
             <div className="text-white text-[100px] leading-none font-bold">
-              {frame.CarState.CruiseEnabled ? (frame.CarState.CruiseSpeed * 2.23694).toFixed(0) : '-'}
+              {frame.CarState.CruiseEnabled ? (frame.CarState.CruiseSpeed * speedMultiplier).toFixed(0) : '-'}
             </div>
           </div>
 
           <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
             <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
-              {Math.max(0, frame.CarState.VEgo * 2.23694 * (isImperial ? 1 : MI_TO_KM)).toFixed(0)}
+              {Math.max(0, frame.CarState.VEgo * speedMultiplier).toFixed(0)}
             </div>
             <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">{isImperial ? 'mph' : 'kmh'}</div>
           </div>
