@@ -1,16 +1,18 @@
 import clsx from 'clsx'
 
 import { getDeviceName, type PrimePlan } from '../types'
-import { formatCurrency, formatDate } from '../utils/format'
+import { formatCurrency, formatDate, isImperial } from '../utils/format'
 
 import { ButtonBase } from '../components/material/ButtonBase'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
 import { IconButton } from '../components/material/IconButton'
 import { TopAppBar } from '../components/material/TopAppBar'
+import { Toggle } from '../components/material/Toggle'
 import { ReactNode, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { storage } from '../utils/helpers'
 import { useDevice, useDevices, usePortal, useStripeSession, useSubscribeInfo, useSubscription, useUsers } from '../api/queries'
 import { useParams } from '../utils/hooks'
 import { TextField } from '../components/material/TextField'
@@ -445,6 +447,25 @@ const DeviceSettingsForm = () => {
   )
 }
 
+const UnitSettings = () => {
+  const [imperial, setImperial] = useState(isImperial())
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex flex-col">
+        <span className="text-lg">Imperial units</span>
+        <span className="text-sm text-background-alt-x">Use miles instead of kilometers</span>
+      </div>
+      <Toggle
+        value={imperial}
+        onChange={(v) => {
+          setImperial(v)
+          storage.set('imperial', String(v))
+        }}
+      />
+    </div>
+  )
+}
+
 export const Component = () => {
   const { dongleId } = useParams()
   const [device] = useDevice(dongleId)
@@ -457,6 +478,10 @@ export const Component = () => {
       </TopAppBar>
       <div className="flex flex-col gap-4 px-4 w-full">
         <DeviceSettingsForm />
+
+        <hr className="mx-4 opacity-20" />
+
+        <UnitSettings />
 
         <hr className="mx-4 opacity-20" />
 

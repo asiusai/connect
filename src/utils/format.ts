@@ -4,6 +4,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 import duration, { type Duration } from 'dayjs/plugin/duration'
 
 import type { Route } from '../types'
+import { storage } from './helpers'
 
 dayjs.extend(advanced)
 dayjs.extend(customParseFormat)
@@ -11,11 +12,17 @@ dayjs.extend(duration)
 
 export { dayjs }
 
-const MI_TO_KM = 1.609344
+export const MI_TO_KM = 1.609344
 
-const isImperial = (): boolean => {
-  // TODO: add to user settings
-  return false
+export const isImperial = (): boolean => {
+  const saved = storage.get('imperial')
+  if (saved) return saved === 'true'
+
+  // Getting default value
+  const locale = navigator?.language.toLowerCase()
+  const value = locale.startsWith('en-us') || locale.startsWith('en-gb')
+  storage.set('imperial', String(value))
+  return value
 }
 
 export const formatDistance = (miles: number | undefined): string | undefined => {
@@ -39,14 +46,6 @@ export const formatDuration = (minutes: number | undefined): string | undefined 
     minutes: Math.round(minutes % 60),
   })
   return _formatDuration(duration)
-}
-
-export const formatVideoTime = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60).toString()
-  const remainingSeconds = Math.floor(seconds % 60).toString()
-  if (hours > 0) return `${hours}:${minutes.padStart(2, '0')}:${remainingSeconds.padStart(2, '0')}`
-  return `${minutes}:${remainingSeconds.padStart(2, '0')}`
 }
 
 export const getRouteDuration = (route: Route | undefined): Duration | undefined => {

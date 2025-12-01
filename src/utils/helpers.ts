@@ -11,13 +11,13 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 
 export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
 
-type StorageKey = 'lastSelectedDongleId' | 'auth' | 'largeCameraType' | 'smallCameraType' | 'logType'
+type StorageKey = 'lastSelectedDongleId' | 'auth' | 'largeCameraType' | 'smallCameraType' | 'logType' | 'imperial' | 'imperial'
 export const storage = {
-  getItem: <T extends string>(key: StorageKey): T | undefined => {
+  get: <T extends string>(key: StorageKey): T | undefined => {
     if (typeof localStorage === 'undefined') return undefined
     return (localStorage.getItem(key) as T) ?? undefined
   },
-  setItem: (key: StorageKey, value: string | undefined): void => {
+  set: (key: StorageKey, value: string | undefined): void => {
     if (typeof localStorage === 'undefined') return
     value === undefined ? localStorage.removeItem(key) : localStorage.setItem(key, value)
   },

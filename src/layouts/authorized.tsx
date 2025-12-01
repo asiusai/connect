@@ -10,7 +10,7 @@ const RedirectFromHome = () => {
   if (!devices) return null
 
   const getDefaultDongleId = () => {
-    let lastSelectedDongleId = storage.getItem('lastSelectedDongleId')
+    let lastSelectedDongleId = storage.get('lastSelectedDongleId')
     if (devices.some((device) => device.dongle_id === lastSelectedDongleId)) return lastSelectedDongleId
     return devices[0]?.dongle_id
   }

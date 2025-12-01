@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { getPreviewGenerated, Preview } from '../../templates/Preview'
 import { CameraType, Files, FileType, LogType, PreviewProps, Route } from '../types'
-import { formatTime, getRouteDuration } from '../utils/format'
+import { formatTime, getRouteDuration, isImperial } from '../utils/format'
 import { RefObject, useEffect, useRef, useState } from 'react'
 import { useAsyncMemo, useParams } from '../utils/hooks'
 import { api } from '../api'
@@ -283,15 +283,16 @@ export const RouteVideoPlayer = ({ playerRef, route, files }: { playerRef: RefOb
   const fullscreenRef = useRef<HTMLDivElement>(null)
   const [props, setProps] = useState<PreviewProps>({
     routeName,
-    largeCameraType: storage.getItem('largeCameraType') ?? 'qcameras',
-    smallCameraType: storage.getItem('smallCameraType'),
-    logType: storage.getItem('logType'),
+    largeCameraType: storage.get('largeCameraType') ?? 'qcameras',
+    smallCameraType: storage.get('smallCameraType'),
+    logType: storage.get('logType'),
     data: { files, route },
+    isImperial: isImperial(),
   })
 
-  useEffect(() => storage.setItem('largeCameraType', props.largeCameraType), [props.largeCameraType])
-  useEffect(() => storage.setItem('smallCameraType', props.smallCameraType), [props.smallCameraType])
-  useEffect(() => storage.setItem('logType', props.logType), [props.logType])
+  useEffect(() => storage.set('largeCameraType', props.largeCameraType), [props.largeCameraType])
+  useEffect(() => storage.set('smallCameraType', props.smallCameraType), [props.smallCameraType])
+  useEffect(() => storage.set('logType', props.logType), [props.logType])
 
   useEffect(() => {
     setProps((p) => ({ ...p, data: { files, route } }))

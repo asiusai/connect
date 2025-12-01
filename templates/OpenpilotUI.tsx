@@ -6,6 +6,7 @@ import { DriverStateRenderer } from './DriverStateRenderer'
 import type { FrameData } from '../log-reader/reader'
 import { useAsyncEffect } from '../src/utils/hooks'
 import { LogType } from '../src/types'
+import { MI_TO_KM } from '../src/utils/format'
 
 const db = new DB()
 
@@ -22,12 +23,14 @@ export const OpenpilotUI = ({
   i,
   prefetchedFrames,
   showPath,
+  isImperial,
 }: {
   i: number
   url: string
   routeName: string
   prefetchedFrames?: Record<string, FrameData>
   showPath: boolean
+  isImperial: boolean
 }) => {
   const _frame = useCurrentFrame()
   const [frames, setFrames] = useState<Record<string, FrameData> | undefined>(prefetchedFrames)
@@ -92,9 +95,9 @@ export const OpenpilotUI = ({
 
           <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
             <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
-              {Math.max(0, frame.CarState.VEgo * 2.23694).toFixed(0)}
+              {Math.max(0, frame.CarState.VEgo * 2.23694 * (isImperial ? 1 : MI_TO_KM)).toFixed(0)}
             </div>
-            <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">mph</div>
+            <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">{isImperial ? 'mph' : 'kmh'}</div>
           </div>
 
           <div className="absolute top-12 right-12 z-20">

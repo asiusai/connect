@@ -218,6 +218,7 @@ export const PreviewProps = z.object({
   logType: LogType.optional(),
   prefetchLogs: z.boolean().optional(),
   showPath: z.boolean().optional(),
+  isImperial: z.boolean().optional(),
 
   data: PreviewData.optional(),
   generated: PreviewGenerated.optional(),

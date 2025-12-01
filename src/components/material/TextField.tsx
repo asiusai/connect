@@ -56,7 +56,7 @@ export const TextField = ({ className, label, helperText, error, value, onChange
     <div className={clsx('flex flex-col', className)}>
       <div
         className={clsx(
-          'relative flex rounded-t-xs min-h-[56px] bg-white',
+          'relative flex rounded-t-xs min-h-[56px] bg-white/5 rounded-md',
           hovered && !props.disabled && 'after:absolute after:inset-0 after:bg-background-x after:opacity-[0.08] after:pointer-events-none',
           props.disabled && 'opacity-40',
         )}

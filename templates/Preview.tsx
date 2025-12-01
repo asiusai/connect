@@ -89,30 +89,45 @@ const UI = ({
   routeName,
   prefetchedLogs,
   showPath,
+  isImperial,
 }: {
   files?: string[]
   routeName: string
   prefetchedLogs?: Record<string, FrameData>[]
   showPath: boolean
+  isImperial: boolean
 }) => {
   if (!files) return null
   return (
     <Series>
       {files.map((url, i) => (
         <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
-          <OpenpilotUI i={i} routeName={routeName} url={url} prefetchedFrames={prefetchedLogs?.[i]} showPath={showPath} />
+          <OpenpilotUI
+            i={i}
+            isImperial={isImperial}
+            routeName={routeName}
+            url={url}
+            prefetchedFrames={prefetchedLogs?.[i]}
+            showPath={showPath}
+          />
         </Series.Sequence>
       ))}
     </Series>
   )
 }
 
-export const Preview = ({ generated, routeName, showPath }: PreviewProps) => {
+export const Preview = ({ generated, routeName, showPath, isImperial }: PreviewProps) => {
   if (!generated) return null
   return (
     <AbsoluteFill>
       <Camera files={generated.largeCameraFiles} name="Large" className="inset-0" />
-      <UI files={generated.logFiles} routeName={routeName} prefetchedLogs={generated.prefetchedLogs} showPath={!!showPath} />
+      <UI
+        files={generated.logFiles}
+        routeName={routeName}
+        prefetchedLogs={generated.prefetchedLogs}
+        showPath={!!showPath}
+        isImperial={!!isImperial}
+      />
       <Camera
         files={generated.smallCameraFiles}
         name="Small"

@@ -40,7 +40,7 @@ const DeviceList = ({ close }: { close: () => void }) => {
 
   const onSelect = (device: Device) => {
     close()
-    storage.setItem('lastSelectedDongleId', device.dongle_id)
+    storage.set('lastSelectedDongleId', device.dongle_id)
     navigate(`/${device.dongle_id}`)
   }
 
