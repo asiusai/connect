@@ -87,72 +87,12 @@ const ActionBar = () => {
           href={href}
           disabled={!href}
           className="flex pointer-events-auto items-center justify-center w-12 h-12 rounded-full bg-background-alt hover:bg-background shadow-md transition-all border border-white/5 active:scale-95"
-          className="flex pointer-events-auto items-center justify-center w-12 h-12 rounded-full bg-background-alt hover:bg-background shadow-md transition-all border border-white/5 active:scale-95"
         >
-          <Icon name={name as any} className="text-white text-2xl" />
           <Icon name={name as any} className="text-white text-2xl" />
         </ButtonBase>
       ))}
     </div>
   )
-}
-
-const DetailRow = ({
-  label,
-  value,
-  mono,
-  copyable,
-  href,
-}: {
-  label: string
-  value: React.ReactNode
-  mono?: boolean
-  copyable?: boolean
-  href?: string
-}) => {
-  const [copied, setCopied] = useState(false)
-
-  if (!value) return null
-
-  const handleCopy = (e: React.MouseEvent) => {
-    if (!copyable || typeof value !== 'string') return
-    e.preventDefault()
-    navigator.clipboard.writeText(value)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const content = (
-    <div
-      className={clsx(
-        'flex items-center justify-between py-2 border-b border-white/5 last:border-0 gap-4',
-        (copyable || href) && 'cursor-pointer hover:bg-white/5 -mx-2 px-2 transition-colors rounded-lg',
-      )}
-      onClick={copyable ? handleCopy : undefined}
-    >
-      <span className="text-sm text-white/60 shrink-0">{label}</span>
-      <div className="flex items-center gap-2 min-w-0 justify-end">
-        <span className={clsx('font-medium text-white truncate', mono ? 'font-mono text-xs' : 'text-sm')}>{value}</span>
-        {copyable && (
-          <Icon
-            name={copied ? 'check' : 'file_copy'}
-            className={clsx('text-[14px] shrink-0', copied ? 'text-green-400' : 'text-white/20')}
-          />
-        )}
-        {href && <Icon name="open_in_new" className="text-[14px] text-white/20 shrink-0" />}
-      </div>
-    </div>
-  )
-
-  if (href) {
-    return (
-      <a href={href} target="_blank" rel="noreferrer" className="block">
-        {content}
-      </a>
-    )
-  }
-
-  return content
 }
 
 const DetailRow = ({
@@ -230,10 +170,6 @@ const Statistics = ({ dongleId }: { dongleId: string }) => {
         <DetailRow label="Distance" value={formatDistance(currentStats.distance)} />
         <DetailRow label="Time" value={formatDuration(currentStats.minutes)} />
         <DetailRow label="Drives" value={currentStats.routes.toString()} />
-      <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
-        <DetailRow label="Distance" value={formatDistance(currentStats.distance)} />
-        <DetailRow label="Time" value={formatDuration(currentStats.minutes)} />
-        <DetailRow label="Drives" value={currentStats.routes.toString()} />
       </div>
     </div>
   )
@@ -245,23 +181,6 @@ const Info = ({ dongleId }: { dongleId: string }) => {
   return (
     <div className="flex flex-col gap-4 pb-10">
       <h2 className="text-xl font-bold px-2">Vehicle Info</h2>
-      <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
-        {!!route && (
-          <>
-            <DetailRow label="Repo" value={route.git_remote} href={route.git_remote ? `https://${route.git_remote}` : undefined} />
-            <DetailRow label="Branch" value={route.git_branch} mono copyable />
-            <DetailRow
-              label="Commit"
-              value={route.git_commit ? `${route.git_commit.slice(0, 7)} (${route.git_commit_date?.slice(0, 10) ?? '-'})` : undefined}
-              mono
-              copyable
-            />
-            <DetailRow label="Version" value={route.version} mono copyable />
-            <DetailRow label="Make" value={route.make} copyable />
-            <DetailRow label="Platform" value={route.platform} copyable />
-            <DetailRow label="VIN" value={route.vin} mono copyable />
-          </>
-        )}
       <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
         {!!route && (
           <>

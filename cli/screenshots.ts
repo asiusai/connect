@@ -46,12 +46,12 @@ await Promise.all(
 
     await page.goto(`${BASE_URL}/demo`)
     await page.waitForLoadState('networkidle')
-    
+
     for (const [i, route] of pages) {
       await page.goto(`${BASE_URL}/${PAGES[route]}`, { waitUntil: 'networkidle' })
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(375)
-      
+
       const path = `${FOLDER}/${device}-${i + 1}-${route}.png`
       await page.screenshot({ path, fullPage: true })
       console.log(path)
