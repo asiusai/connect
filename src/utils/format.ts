@@ -19,6 +19,7 @@ export const isImperial = (): boolean => {
   if (saved) return saved === 'true'
 
   // Getting default value
+  if (typeof navigator === 'undefined') return false
   const locale = navigator?.language.toLowerCase()
   const value = locale.startsWith('en-us') || locale.startsWith('en-gb')
   storage.set('imperial', String(value))
