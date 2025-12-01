@@ -22,8 +22,8 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
   return { route, files }
 }
 
-export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewGenerated> => {
-  if (!props.data) throw new Error()
+export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewGenerated | undefined> => {
+  if (!props.data) return undefined
 
   const start = props.startSegment ?? 0
   const end = props.segmentCount ? start + props.segmentCount : props.data.route.maxqlog + 1
@@ -56,7 +56,7 @@ export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> =
   if (!props.generated) props.generated = await getPreviewGenerated(props)
 
   return {
-    durationInFrames: props.generated.duration * FPS,
+    durationInFrames: props.generated!.duration * FPS,
     props: props,
   }
 }

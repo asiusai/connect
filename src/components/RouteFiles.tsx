@@ -6,9 +6,7 @@ import { callAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
-import { formatTime, getRouteDuration } from '../utils/format'
 import { useParams } from '../utils/hooks'
-import { Button } from './material/Button'
 import { Icon } from './material/Icon'
 
 const PRIORITY = 1 // Higher number is lower priority
@@ -86,6 +84,50 @@ export const uploadSegments = async (routeName: string, segments: number[], type
   })
 }
 
+const FileAction = ({
+  icon,
+  label,
+  onClick,
+  href,
+  download,
+  loading,
+}: {
+  icon: string
+  label: string
+  onClick?: () => void
+  href?: string
+  download?: string
+  loading?: number | boolean
+}) => {
+  if (href) {
+    return (
+      <a
+        href={href}
+        download={download}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-xs font-medium text-white"
+      >
+        <Icon name={icon as any} className="text-[16px]" />
+        <span>{label}</span>
+      </a>
+    )
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={!!loading}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-xs font-medium text-white disabled:opacity-50"
+    >
+      {loading ? (
+        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      ) : (
+        <Icon name={icon as any} className="text-[16px]" />
+      )}
+      <span>{label}</span>
+    </button>
+  )
+}
+
 const Upload = ({ type, files, route, segment }: { type: FileType; files: Files; route: Route; segment: number }) => {
   const [isLoading, setIsLoading] = useState(false)
   const totalSegments = route.maxqlog + 1
@@ -94,10 +136,9 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Files;
     segment === -1 ? files[type].length === totalSegments : !!files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
   if (disabled) return null
   return (
-    <Button
-      children="Upload"
-      leading={<Icon name="upload" />}
-      color="secondary"
+    <FileAction
+      label="Upload"
+      icon="upload"
       loading={isLoading}
       onClick={async () => {
         setIsLoading(true)
@@ -119,16 +160,14 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
   if (files[type].length !== totalSegments) return null
 
   if (type === 'logs' || type === 'qlogs')
-    return (
-      <Button children={FILE_INFO[type].processed} leading={<Icon name="open_in_new" />} href={`/${dongleId}/routes/${date}/${type}`} />
-    )
+    return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/routes/${date}/${type}`} />
 
   if (type === 'qcameras') return null
 
   return (
-    <Button
-      children={FILE_INFO[type].processed}
-      leading={<Icon name="movie" />}
+    <FileAction
+      label={FILE_INFO[type].processed || 'Download'}
+      icon="movie"
       loading={loading}
       onClick={async () => {
         setProgress({})
@@ -148,14 +187,7 @@ const DownloadSegment = ({ type, files, segment }: { segment: number; type: File
   const { routeName } = useParams()
   const file = files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
   if (!file) return null
-  return (
-    <Button
-      children={FILE_INFO[type].raw}
-      leading={<Icon name="raw_on" />}
-      href={file}
-      download={`${routeName}--${segment}--${FILE_INFO[type].name}`}
-    />
-  )
+  return <FileAction label={FILE_INFO[type].raw} icon="raw_on" href={file} download={`${routeName}--${segment}--${FILE_INFO[type].name}`} />
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
@@ -169,17 +201,17 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
 
   if (type === 'logs' || type === 'qlogs')
     return (
-      <Button
-        children={FILE_INFO[type].processed}
-        leading={<Icon name="open_in_new" />}
+      <FileAction
+        label={FILE_INFO[type].processed || 'View'}
+        icon="open_in_new"
         href={`/${dongleId}/routes/${date}/${type}?segment=${segment}`}
       />
     )
 
   return (
-    <Button
-      children={FILE_INFO[type].processed}
-      leading={<Icon name="movie" />}
+    <FileAction
+      label={FILE_INFO[type].processed || 'Process'}
+      icon="movie"
       loading={progress}
       onClick={async () => {
         setProgress(0)
@@ -195,25 +227,23 @@ const SegmentDetails = ({ segment, files, route }: { segment: number; files: Fil
   const isRoute = segment === -1
 
   return (
-    <div className="flex flex-col gap-">
+    <div className="flex flex-col gap-2">
       {FileType.options.map((type) => {
         return (
-          <div
-            key={`${type}-${segment}`}
-            className="flex flex-col gap-1 md:flex-row md:items-center justify-between py-2 px-2 rounded-xl hover:bg-white/5 "
-          >
-            <span className="text-base font-medium text-gray-200">{FILE_INFO[type].label}</span>
-
-            <div className="flex gap-2 items-center justify-start">
-              {isRoute ? (
-                <FullRouteDownload type={type} files={files} route={route} />
-              ) : (
-                <>
-                  <DownloadSegment type={type} files={files} segment={segment} />
-                  <ProcessSegment type={type} files={files} segment={segment} />
-                </>
-              )}
-              <Upload type={type} files={files} route={route} segment={segment} />
+          <div key={`${type}-${segment}`} className="flex flex-col gap-2 py-2 border-b border-white/5 last:border-0">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-white/80">{FILE_INFO[type].label}</span>
+              <div className="flex gap-2 items-center">
+                {isRoute ? (
+                  <FullRouteDownload type={type} files={files} route={route} />
+                ) : (
+                  <>
+                    <DownloadSegment type={type} files={files} segment={segment} />
+                    <ProcessSegment type={type} files={files} segment={segment} />
+                  </>
+                )}
+                <Upload type={type} files={files} route={route} segment={segment} />
+              </div>
             </div>
           </div>
         )
@@ -247,22 +277,24 @@ const SegmentGrid = ({
   if (totalCurrentFiles === totalPossibleFiles) allStatus = 'full'
   else if (totalCurrentFiles > 0) allStatus = 'partial'
 
-  const getAllBgClass = (status: string, isSelected: boolean) => {
-    let bg = 'bg-gray-800'
-    if (status === 'full') bg = 'bg-green-900'
-    else if (status === 'partial') bg = 'bg-yellow-900'
-    if (isSelected) bg = 'ring-2 ring-white ' + bg
-    return bg
+  const getStatusColor = (status: string) => {
+    if (status === 'full') return 'bg-green-500/20 text-green-400 border-green-500/30'
+    if (status === 'partial') return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+    return 'bg-white/5 text-white/40 border-white/10'
   }
 
   return (
-    <div className="flex flex-wrap gap-1 p-2">
-      <div
-        className={`h-8 px-3 flex items-center justify-center rounded-3xl cursor-pointer text-xs font-bold ${getAllBgClass(allStatus, selectedSegment === -1)} hover:opacity-80`}
+    <div className="flex flex-wrap gap-1.5 p-1">
+      <button
+        className={clsx(
+          'h-8 px-3 flex items-center justify-center rounded-lg text-xs font-bold border transition-all',
+          getStatusColor(allStatus),
+          selectedSegment === -1 && 'ring-2 ring-white border-transparent bg-white text-black',
+        )}
         onClick={() => onSelect(-1)}
       >
-        Route
-      </div>
+        All
+      </button>
 
       {Array.from({ length: totalSegments }).map((_, i) => {
         let count = 0
@@ -271,20 +303,19 @@ const SegmentGrid = ({
           if (files[type].find((path) => path.includes(key))) count++
         }
         const status = count === FileType.options.length ? 'full' : count > 0 ? 'partial' : 'empty'
-        const bgClass = status === 'full' ? 'bg-green-900' : status === 'partial' ? 'bg-yellow-900' : 'bg-red-800'
 
         return (
-          <div
+          <button
             key={i}
             className={clsx(
-              'h-8 w-8 flex items-center justify-center rounded-3xl cursor-pointer text-xs hover:opacity-80',
-              bgClass,
-              selectedSegment === i && 'ring-2 ring-white ',
+              'h-8 w-8 flex items-center justify-center rounded-lg text-xs font-medium border transition-all',
+              getStatusColor(status),
+              selectedSegment === i && 'ring-2 ring-white border-transparent bg-white text-black',
             )}
             onClick={() => onSelect(i)}
           >
             {i}
-          </div>
+          </button>
         )
       })}
     </div>
@@ -296,19 +327,15 @@ export const RouteFiles = ({ route }: { route: Route }) => {
   const totalSegments = route.maxqlog + 1
   const [segment, setSegment] = useState<number>(-1) // ROUTE= -1
 
-  const isFull = segment === -1
-  const routeDuration = getRouteDuration(route)?.asSeconds()
-  if (!files || !routeDuration) return null
+  if (!files) return null
 
-  const startTime = isFull ? 0 : segment * 60
-  const endTime = isFull ? routeDuration : Math.min((segment + 1) * 60, routeDuration)
   return (
-    <div className="flex flex-col rounded-xl bg-background-alt p-4 gap-3">
-      <h3 className="text-2xl font-bold mb-2">
-        {isFull ? 'Route files' : `Segment ${segment} files`} ({formatTime(startTime)} - {formatTime(endTime)})
-      </h3>
-      <SegmentDetails segment={segment} files={files} route={route} />
+    <div className="flex flex-col gap-4">
       <SegmentGrid totalSegments={totalSegments} files={files} route={route} selectedSegment={segment} onSelect={setSegment} />
+
+      <div className="h-px bg-white/5 my-2" />
+
+      <SegmentDetails segment={segment} files={files} route={route} />
     </div>
   )
 }

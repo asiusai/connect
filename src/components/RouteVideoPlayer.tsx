@@ -2,12 +2,12 @@ import { Player, PlayerRef } from '@remotion/player'
 import clsx from 'clsx'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { getPreviewGenerated, Preview } from '../../templates/Preview'
-import { CameraType, Files, FileType, LogType, PreviewProps, Route } from '../types'
+import { CameraType, FileType, LogType, PreviewProps, Route } from '../types'
 import { formatTime, getRouteDuration, isImperial } from '../utils/format'
 import { RefObject, useEffect, useRef, useState } from 'react'
 import { useAsyncMemo, useParams } from '../utils/hooks'
 import { api } from '../api'
-import { useRendererStatus, useRenderProgress } from '../api/queries'
+import { useFiles, useRendererStatus, useRenderProgress, useRoute } from '../api/queries'
 import { IconButton } from './material/IconButton'
 import { Timeline } from './Timeline'
 import { saveFile, storage } from '../utils/helpers'
@@ -79,19 +79,13 @@ const OptionItem = ({
 )
 
 const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot UI' }
-const SettingsMenu = ({
-  props,
-  setProps,
-  files,
-}: {
-  props: PreviewProps
-  setProps: React.Dispatch<React.SetStateAction<PreviewProps>>
-  files: Files
-}) => {
-  const maxLen = files.qlogs.length
+const SettingsMenu = ({ props, setProps }: { props: PreviewProps; setProps: React.Dispatch<React.SetStateAction<PreviewProps>> }) => {
+  const { routeName } = useParams()
+  const [files] = useFiles(routeName)
+  const maxLen = files?.qlogs.length
   const [view, setView] = useState<'large' | 'small' | 'log'>()
-  const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files[x].length !== maxLen }))
-  const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files[x].length !== maxLen }))
+  const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))
+  const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))
   const onBack = () => setView(undefined)
 
   const title = view ? TITLES[view] : undefined
@@ -175,14 +169,12 @@ const Controls = ({
   props,
   setProps,
   fullscreenRef,
-  files,
 }: {
   fullscreenRef: RefObject<HTMLDivElement | null>
   props: PreviewProps
   setProps: React.Dispatch<React.SetStateAction<PreviewProps>>
   duration: number
   playerRef: RefObject<PlayerRef | null>
-  files: Files
 }) => {
   const player = playerRef.current
 
@@ -262,7 +254,7 @@ const Controls = ({
 
           <Download props={props} />
           <div className="relative" ref={settingsRef}>
-            {showSettings && <SettingsMenu props={props} setProps={setProps} files={files} />}
+            {showSettings && <SettingsMenu props={props} setProps={setProps} />}
             <IconButton title="Settings" name="settings" onClick={() => setShowSettings(!showSettings)} />
           </div>
           <IconButton
@@ -277,16 +269,19 @@ const Controls = ({
   )
 }
 
-export const RouteVideoPlayer = ({ playerRef, route, files }: { playerRef: RefObject<PlayerRef | null>; route: Route; files: Files }) => {
+export const RouteVideoPlayer = ({ playerRef }: { playerRef: RefObject<PlayerRef | null> }) => {
   const { routeName } = useParams()
+  const [route] = useRoute(routeName)
+  const [files] = useFiles(routeName)
   const duration = getRouteDuration(route)!.asSeconds()
   const fullscreenRef = useRef<HTMLDivElement>(null)
+
   const [props, setProps] = useState<PreviewProps>({
     routeName,
     largeCameraType: storage.get('largeCameraType') ?? 'qcameras',
     smallCameraType: storage.get('smallCameraType'),
     logType: storage.get('logType'),
-    data: { files, route },
+    data: files && route ? { files, route } : undefined,
     isImperial: isImperial(),
   })
 
@@ -295,13 +290,13 @@ export const RouteVideoPlayer = ({ playerRef, route, files }: { playerRef: RefOb
   useEffect(() => storage.set('logType', props.logType), [props.logType])
 
   useEffect(() => {
-    setProps((p) => ({ ...p, data: { files, route } }))
+    setProps((p) => ({ ...p, data: files && route ? { files, route } : undefined }))
   }, [files, route])
 
   const generated = useAsyncMemo(() => getPreviewGenerated(props), [props])
 
   return (
-    <div ref={fullscreenRef} className="relative">
+    <div ref={fullscreenRef} className="relative rounded-lg overflow-hidden">
       <Player
         ref={playerRef}
         component={Preview}
@@ -310,12 +305,11 @@ export const RouteVideoPlayer = ({ playerRef, route, files }: { playerRef: RefOb
         durationInFrames={duration * FPS}
         fps={FPS}
         style={{ width: '100%' }}
-        className="rounded-lg"
         inputProps={{ ...props, generated }}
         initiallyMuted
         acknowledgeRemotionLicense
       />
-      <Controls playerRef={playerRef} fullscreenRef={fullscreenRef} duration={duration} props={props} setProps={setProps} files={files} />
+      <Controls playerRef={playerRef} fullscreenRef={fullscreenRef} duration={duration} props={props} setProps={setProps} />
     </div>
   )
 }

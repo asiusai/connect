@@ -64,6 +64,7 @@ export const Icons = [
   'volume_off',
   'fullscreen',
   'fullscreen_exit',
+  'share',
 ] as const
 
 export type IconName = (typeof Icons)[number]

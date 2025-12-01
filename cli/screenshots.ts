@@ -38,11 +38,8 @@ const PAGES = {
   'route-logs': `1d3dc3e03047b0c7/routes/000000dd--455f14369d/logs`,
 }
 
-await $`rm -rf ${FOLDER}`
-
-const pages = keys(PAGES).filter((x) => !PAGE || PAGE.split(',').includes(x))
+const pages = [...keys(PAGES).entries()].filter(([_, x]) => !PAGE || PAGE.split(',').includes(x))
 const devices = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
-console.log(`Taking screenshots of ${pages} pages on ${devices} devices`)
 
 const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
 
@@ -51,7 +48,7 @@ await Promise.all(
     const context = await browser.newContext(DEVICES[device])
     const page = await context.newPage()
     await page.goto(`${BASE_URL}/demo`)
-    for (const [i, route] of pages.entries()) {
+    for (const [i, route] of pages) {
       await page.goto(`${BASE_URL}/${PAGES[route]}`, { waitUntil: 'networkidle' })
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(375)

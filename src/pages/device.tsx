@@ -46,40 +46,44 @@ const DeviceList = ({ close }: { close: () => void }) => {
 
   return (
     <div className="flex flex-col w-full bg-background text-background-x animate-in slide-in-from-top-5 fade-in duration-200 overflow-hidden max-h-[60vh]">
-      <div className="flex items-center justify-between px-4 py-4">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={close}>
-          <h2 className="text-2xl font-bold">Devices</h2>
-          <Icon name="keyboard_arrow_up" className="text-xl" />
+      <div className="flex items-center justify-between px-4 py-4 border-b border-white/5">
+        <h2 className="text-lg font-bold">Switch Device</h2>
+        <div className="p-2 -mr-2 cursor-pointer hover:bg-white/5 rounded-full" onClick={close}>
+          <Icon name="close" className="text-xl" />
         </div>
       </div>
 
-      <div className="flex flex-col gap-1 px-3 pb-3 overflow-y-auto">
+      <div className="flex flex-col gap-1 p-2 overflow-y-auto">
         {devices?.map((device) => (
           <div
             key={device.dongle_id}
             className={clsx(
-              'flex items-center justify-between p-3 rounded-lg cursor-pointer shrink-0 relative overflow-hidden',
-              device.dongle_id === dongleId ? 'bg-background-alt' : 'hover:bg-background-alt',
+              'flex items-center justify-between p-3 rounded-xl cursor-pointer shrink-0 relative overflow-hidden transition-colors',
+              device.dongle_id === dongleId ? 'bg-white/10' : 'hover:bg-white/5',
             )}
             onClick={() => onSelect(device)}
           >
-            <div className="flex flex-col z-10">
-              <span className="text-sm font-bold">{getDeviceName(device)}</span>
-              <Active device={device} className="text-sm" />
+            <div className="flex flex-col gap-0.5 z-10">
+              <span className="text-sm font-bold text-white">{getDeviceName(device)}</span>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-white/60">{getCommaName(device)}</span>
+                <span className="text-white/40">•</span>
+                <Active device={device} className="text-xs" />
+              </div>
             </div>
-            <div>{getCommaName(device)}</div>
+            {device.dongle_id === dongleId && <Icon name="check" className="text-green-400" />}
           </div>
         ))}
 
         <div
-          className="flex items-center gap-3 p-3 rounded-lg hover:bg-background-alt cursor-pointer text-background-alt-x hover:text-background-x mt-1"
+          className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer text-white/60 hover:text-white mt-1 transition-colors border border-dashed border-white/10"
           onClick={() => {
             close()
             navigate('/pair')
           }}
         >
           <Icon name="add" className="text-xl" />
-          <span className="font-medium text-sm">Pair device</span>
+          <span className="font-medium text-sm">Pair new device</span>
         </div>
       </div>
     </div>
@@ -96,39 +100,39 @@ const Buttons = ({ dongleId }: { dongleId: string }) => {
           subtitle: `${stats?.all.routes || 0} drives`,
           icon: 'directions_car',
           href: `/${dongleId}/routes`,
-          color: 'bg-blue-500/10 text-blue-400',
+          color: 'text-blue-400',
         },
         {
           title: 'Sentry',
           subtitle: 'View clips',
           icon: 'photo_camera',
           href: `/${dongleId}/sentry`,
-          color: 'bg-red-500/10 text-red-400',
+          color: 'text-red-400',
         },
         {
           title: 'Actions',
           subtitle: 'Trigger controls',
           icon: 'infrared',
-          color: 'bg-zinc-500/10 text-zinc-500',
+          color: 'text-zinc-500',
         },
         {
           title: 'Teleop',
           subtitle: 'Remote control',
           icon: 'gamepad',
-          color: 'bg-zinc-500/10 text-zinc-500',
+          color: 'text-zinc-500',
         },
         {
           title: 'Analyze',
           subtitle: 'See CAN data',
           icon: 'bar_chart',
-          color: 'bg-zinc-500/10 text-zinc-500',
+          color: 'text-zinc-500',
         },
         {
           title: 'Settings',
           subtitle: 'Device config',
           icon: 'settings',
           href: `/${dongleId}/settings`,
-          color: 'bg-yellow-500/10 text-yellow-400',
+          color: 'text-yellow-400',
         },
       ].map(({ title, href, icon, subtitle, color }) => (
         <ButtonBase
@@ -136,16 +140,16 @@ const Buttons = ({ dongleId }: { dongleId: string }) => {
           href={href}
           disabled={!href}
           className={clsx(
-            'flex flex-col gap-3 p-4 bg-background-alt text-left rounded-md',
-            href ? 'hover:bg-background-alt/70' : 'opacity-50',
+            'flex flex-col gap-3 p-4 bg-background-alt text-left rounded-xl transition-all active:scale-[0.98]',
+            href ? 'hover:bg-background-alt/80' : 'opacity-50 cursor-not-allowed',
           )}
         >
-          <div className={clsx('h-10 w-10 rounded-full flex items-center justify-center', color)}>
-            <Icon name={icon as any} />
+          <div className={clsx('h-10 w-10 rounded-full flex items-center justify-center bg-white/5', color)}>
+            <Icon name={icon as any} className="text-2xl" />
           </div>
           <div>
-            <div className="text-lg font-medium">{title}</div>
-            {subtitle && <div className="text-background-alt-x">{subtitle}</div>}
+            <div className="text-lg font-medium text-white">{title}</div>
+            {subtitle && <div className="text-xs text-white/60 font-medium">{subtitle}</div>}
           </div>
         </ButtonBase>
       ))}
@@ -175,11 +179,17 @@ const UserMenu = () => {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={toggleOpen} />
-          <div className="absolute top-full right-0 mt-2 bg-background rounded-md shadow-xl z-20 text-background-x overflow-hidden min-w-[180px] animate-in fade-in zoom-in-95 duration-200 p-1 flex flex-col gap-1">
-            <span className="text-xs font-medium truncate block px-3 py-2">{profile.email}</span>
-            <ButtonBase href="/logout" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-background-alt text-error">
-              <Icon name="logout" className="text-xl" />
-              <span className="font-medium text-xs">Log out</span>
+          <div className="absolute top-full right-0 mt-2 bg-background-alt border border-white/5 rounded-xl shadow-xl z-20 overflow-hidden min-w-[200px] animate-in fade-in zoom-in-95 duration-200 p-1 flex flex-col gap-1">
+            <div className="px-3 py-2 border-b border-white/5 mb-1">
+              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Signed in as</span>
+              <span className="text-sm font-medium truncate block text-white">{profile.email}</span>
+            </div>
+            <ButtonBase
+              href="/logout"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 text-red-400 transition-colors"
+            >
+              <Icon name="logout" className="text-lg" />
+              <span className="font-medium text-sm">Log out</span>
             </ButtonBase>
           </div>
         </>
@@ -211,13 +221,71 @@ const ActionBar = () => {
           key={name}
           href={href}
           disabled={!href}
-          className="flex pointer-events-auto items-center justify-center w-12 h-12 rounded-full bg-background-alt hover:bg-background shadow-md transition-all border border-white/5"
+          className="flex pointer-events-auto items-center justify-center w-12 h-12 rounded-full bg-background-alt hover:bg-background shadow-md transition-all border border-white/5 active:scale-95"
         >
-          <Icon name={name as any} className="text-background-x text-2xl" />
+          <Icon name={name as any} className="text-white text-2xl" />
         </ButtonBase>
       ))}
     </div>
   )
+}
+
+const DetailRow = ({
+  label,
+  value,
+  mono,
+  copyable,
+  href,
+}: {
+  label: string
+  value: React.ReactNode
+  mono?: boolean
+  copyable?: boolean
+  href?: string
+}) => {
+  const [copied, setCopied] = useState(false)
+
+  if (!value) return null
+
+  const handleCopy = (e: React.MouseEvent) => {
+    if (!copyable || typeof value !== 'string') return
+    e.preventDefault()
+    navigator.clipboard.writeText(value)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const content = (
+    <div
+      className={clsx(
+        'flex items-center justify-between py-2 border-b border-white/5 last:border-0 gap-4',
+        (copyable || href) && 'cursor-pointer hover:bg-white/5 -mx-2 px-2 transition-colors rounded-lg',
+      )}
+      onClick={copyable ? handleCopy : undefined}
+    >
+      <span className="text-sm text-white/60 shrink-0">{label}</span>
+      <div className="flex items-center gap-2 min-w-0 justify-end">
+        <span className={clsx('font-medium text-white truncate', mono ? 'font-mono text-xs' : 'text-sm')}>{value}</span>
+        {copyable && (
+          <Icon
+            name={copied ? 'check' : 'file_copy'}
+            className={clsx('text-[14px] shrink-0', copied ? 'text-green-400' : 'text-white/20')}
+          />
+        )}
+        {href && <Icon name="open_in_new" className="text-[14px] text-white/20 shrink-0" />}
+      </div>
+    </div>
+  )
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className="block">
+        {content}
+      </a>
+    )
+  }
+
+  return content
 }
 
 const Statistics = ({ dongleId }: { dongleId: string }) => {
@@ -233,17 +301,10 @@ const Statistics = ({ dongleId }: { dongleId: string }) => {
         <h2 className="text-xl font-bold">Statistics</h2>
         <Slider options={{ all: 'All time', week: 'This week' }} value={timeRange} onChange={setTimeRange} />
       </div>
-      <div className="bg-background-alt rounded-md p-5 flex flex-col gap-2">
-        {[
-          { label: 'Distance', value: formatDistance(currentStats.distance) },
-          { label: 'Time', value: formatDuration(currentStats.minutes) },
-          { label: 'Drives', value: currentStats.routes },
-        ].map(({ value, label }, i) => (
-          <div key={label} className="flex flex-col">
-            <span className={clsx(i === 0 ? 'text-2xl' : 'text-base', 'font-bold')}>{value}</span>
-            <span className="text-base text-background-alt-x">{label}</span>
-          </div>
-        ))}
+      <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
+        <DetailRow label="Distance" value={formatDistance(currentStats.distance)} />
+        <DetailRow label="Time" value={formatDuration(currentStats.minutes)} />
+        <DetailRow label="Drives" value={currentStats.routes.toString()} />
       </div>
     </div>
   )
@@ -255,40 +316,23 @@ const Info = ({ dongleId }: { dongleId: string }) => {
   return (
     <div className="flex flex-col gap-4 pb-10">
       <h2 className="text-xl font-bold px-2">Vehicle Info</h2>
-      <div className="bg-background-alt rounded-md p-1 overflow-hidden">
-        {!!route &&
-          [
-            {
-              label: 'Repo',
-              value: route.git_remote ? (
-                <a href={`https://${route.git_remote}`} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                  {route.git_remote}
-                </a>
-              ) : undefined,
-            },
-            { label: 'Branch', value: route.git_branch },
-            {
-              label: 'Commit',
-              value: route.git_commit ? `${route.git_commit.slice(0, 7)} (${route.git_commit_date?.slice(0, 10) ?? '-'})` : undefined,
-            },
-            { label: 'Version', value: route.version },
-            { label: 'Make', value: route.make },
-            { label: 'Platform', value: route.platform },
-            { label: 'VIN', value: route.vin },
-          ]
-            .filter((x) => x.value)
-            .map(({ label, value }, i, arr) => (
-              <div
-                key={label}
-                className={clsx(
-                  'flex justify-between items-center p-4 hover:bg-background-alt transition-colors',
-                  i !== arr.length - 1 && 'border-b border-background/50',
-                )}
-              >
-                <span className="text-background-alt-x text-sm">{label}</span>
-                <span className="font-medium text-sm text-right truncate max-w-[60%]">{value}</span>
-              </div>
-            ))}
+      <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
+        {!!route && (
+          <>
+            <DetailRow label="Repo" value={route.git_remote} href={route.git_remote ? `https://${route.git_remote}` : undefined} />
+            <DetailRow label="Branch" value={route.git_branch} mono copyable />
+            <DetailRow
+              label="Commit"
+              value={route.git_commit ? `${route.git_commit.slice(0, 7)} (${route.git_commit_date?.slice(0, 10) ?? '-'})` : undefined}
+              mono
+              copyable
+            />
+            <DetailRow label="Version" value={route.version} mono copyable />
+            <DetailRow label="Make" value={route.make} copyable />
+            <DetailRow label="Platform" value={route.platform} copyable />
+            <DetailRow label="VIN" value={route.vin} mono copyable />
+          </>
+        )}
       </div>
     </div>
   )

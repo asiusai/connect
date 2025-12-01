@@ -19,3 +19,7 @@ trigger: always_on
 - only add comments to parts that really do need explanation, like hacks or hard formulas or things that aren't understandable by reading the code
 - try to only use undefined instead of null. Only use null if some API or library needs it
 - never use `interface` only use `type`
+
+
+You can take screenshots of desired page by running 
+`PAGE=home,routes DEVICE=mobile,desktop bun run cli/screenshots.ts`
