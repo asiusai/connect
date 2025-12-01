@@ -37,13 +37,21 @@ const Download = ({ props }: { props: PreviewProps }) => {
   if (!status) return <div>Renderer is offline</div>
   const loading = data?.body.renderId ? (progress?.progress?.progress ?? true) : false
   return (
-    <IconButton
-      title="Download (1st segment only for now)"
-      name="download"
-      className="ml-auto"
-      loading={loading}
-      onClick={() => mutate({ body: { props, serveUrl: env.TEMPLATES_URL } })}
-    />
+    <div className="ml-auto flex items-center gap-2">
+      {progress && (
+        <span className="text-xs hidden md:inline-block opacity-70">
+          {progress?.state}
+          {progress.progress && <span> {(progress.progress.progress * 100).toFixed()}%</span>}
+        </span>
+      )}
+
+      <IconButton
+        title={progress?.state ? `Downloading` : 'Download (1st segment only for now)'}
+        name="download"
+        loading={loading}
+        onClick={() => mutate({ body: { props, serveUrl: env.TEMPLATES_URL } })}
+      />
+    </div>
   )
 }
 
@@ -183,6 +191,7 @@ const Controls = ({
   const [fullscreen, setFullscreen] = useState(false)
   const [frame, setFrame] = useState(player?.getCurrentFrame() ?? 0)
   const [showSettings, setShowSettings] = useState(false)
+  const [hovering, setHovering] = useState(false)
   const settingsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -227,9 +236,19 @@ const Controls = ({
 
   const seconds = frame / FPS
   return (
-    <div className="absolute inset-0">
+    <div
+      className="absolute inset-0"
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      onMouseMove={() => setHovering(true)}
+    >
       <div className="absolute inset-0 cursor-pointer" onClick={() => player?.toggle()} />
-      <div className="absolute bottom-0 left-0 w-full gap-2 flex flex-col py-4 px-3">
+      <div
+        className={clsx(
+          'absolute bottom-0 left-0 w-full gap-2 flex flex-col py-4 px-3 transition-opacity duration-300',
+          playing && !hovering && 'opacity-0 pointer-events-none',
+        )}
+      >
         <div className="flex items-center gap-2 w-full">
           <IconButton title={playing ? 'Pause' : 'Play'} name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
           <IconButton

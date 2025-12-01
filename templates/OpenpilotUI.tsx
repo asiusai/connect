@@ -19,7 +19,6 @@ const CAM_HEIGHT = 1.5
 export const OpenpilotUI = ({
   url,
   routeName,
-  logType,
   i,
   prefetchedFrames,
   showPath,
@@ -28,12 +27,11 @@ export const OpenpilotUI = ({
   url: string
   routeName: string
   prefetchedFrames?: Record<string, FrameData>
-  logType: LogType
   showPath: boolean
 }) => {
   const _frame = useCurrentFrame()
   const [frames, setFrames] = useState<Record<string, FrameData> | undefined>(prefetchedFrames)
-
+  const logType: LogType = url.includes('qlog') ? 'qlogs' : 'logs'
   useAsyncEffect(async () => {
     if (frames) return
 

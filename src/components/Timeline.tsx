@@ -9,7 +9,7 @@ import { useAsyncMemo, useCurrentPlayerFrame, useParams } from '../utils/hooks'
 import { useRoute } from '../api/queries'
 
 const getEventInfo = (event: TimelineEvent) => {
-  if (event.type === 'engaged') return ['Engaged', 'bg-[#00c853] min-w-[1px]', '1']
+  if (event.type === 'engaged') return ['Engaged', 'bg-green-600 min-w-[1px]', '1']
   if (event.type === 'overriding') return ['Overriding', 'bg-gray-500 min-w-[1px]', '2']
   if (event.type === 'user_flag') return ['User flag', 'bg-yellow-400 min-w-[2px]', '4']
   if (event.type === 'alert') {

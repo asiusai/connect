@@ -1,6 +1,6 @@
 import { AbsoluteFill, CalculateMetadataFunction, Sequence, Series } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { CameraType, LogType, PreviewData, PreviewGenerated, PreviewProps } from '../src/types'
+import { FileType, PreviewData, PreviewGenerated, PreviewProps } from '../src/types'
 import { api } from '../src/api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
@@ -28,9 +28,19 @@ export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewG
   const start = props.startSegment ?? 0
   const end = props.segmentCount ? start + props.segmentCount : props.data.route.maxqlog + 1
 
-  let largeCameraFiles = props.data.files[props.largeCameraType].slice(start, end)
-  let smallCameraFiles = props.smallCameraType ? props.data.files[props.smallCameraType].slice(start, end) : undefined
-  let logFiles = props.logType ? props.data.files[props.logType].slice(start, end) : undefined
+  const max = props.data.route.maxqlog + 1
+  const getFiles = (type?: FileType, fallback?: FileType) => {
+    if (!type || !props.data) return undefined
+
+    let files = props.data.files[type]
+    // only use the files if all are uploaded
+    if (files.length === max) return files
+
+    return fallback ? props.data.files[fallback] : undefined
+  }
+  let largeCameraFiles = getFiles(props.largeCameraType, 'qcameras')!.slice(start, end)
+  let smallCameraFiles = getFiles(props.smallCameraType)?.slice(start, end)
+  let logFiles = getFiles(props.logType)?.slice(start, end)
 
   const prefetchedLogData = logFiles && props.prefetchLogs ? await Promise.all(logFiles.map((url) => readLogs({ url }))) : undefined
 
@@ -51,7 +61,7 @@ export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> =
   }
 }
 
-const Camera = ({ className, files, type, name }: { name: string; files?: string[]; type: CameraType; className?: string }) => {
+const Camera = ({ className, files, name }: { name: string; files?: string[]; className?: string }) => {
   if (!files) return null
   return (
     <div className={clsx('absolute', className)} style={{ aspectRatio: WIDTH / HEIGHT }}>
@@ -66,7 +76,7 @@ const Camera = ({ className, files, type, name }: { name: string; files?: string
             premountFor={60 * FPS}
             postmountFor={60 * FPS}
           >
-            {type === 'qcameras' ? <HlsVideo src={src} /> : <HevcVideo src={src} />}
+            {src.includes('.ts') ? <HlsVideo src={src} /> : <HevcVideo src={src} />}
           </Sequence>
         ))}
       </div>
@@ -76,13 +86,11 @@ const Camera = ({ className, files, type, name }: { name: string; files?: string
 
 const UI = ({
   files,
-  logType,
   routeName,
   prefetchedLogs,
   showPath,
 }: {
   files?: string[]
-  logType: LogType
   routeName: string
   prefetchedLogs?: Record<string, FrameData>[]
   showPath: boolean
@@ -92,28 +100,21 @@ const UI = ({
     <Series>
       {files.map((url, i) => (
         <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
-          <OpenpilotUI i={i} logType={logType} routeName={routeName} url={url} prefetchedFrames={prefetchedLogs?.[i]} showPath={showPath} />
+          <OpenpilotUI i={i} routeName={routeName} url={url} prefetchedFrames={prefetchedLogs?.[i]} showPath={showPath} />
         </Series.Sequence>
       ))}
     </Series>
   )
 }
 
-export const Preview = ({ generated, largeCameraType, smallCameraType, routeName, logType, showPath }: PreviewProps) => {
+export const Preview = ({ generated, routeName, showPath }: PreviewProps) => {
   if (!generated) return null
   return (
     <AbsoluteFill>
-      <Camera files={generated.largeCameraFiles} type={largeCameraType} name="Large" className="inset-0" />
-      <UI
-        files={generated.logFiles}
-        routeName={routeName}
-        logType={logType!}
-        prefetchedLogs={generated.prefetchedLogs}
-        showPath={!!showPath}
-      />
+      <Camera files={generated.largeCameraFiles} name="Large" className="inset-0" />
+      <UI files={generated.logFiles} routeName={routeName} prefetchedLogs={generated.prefetchedLogs} showPath={!!showPath} />
       <Camera
         files={generated.smallCameraFiles}
-        type={smallCameraType!}
         name="Small"
         className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden"
       />
