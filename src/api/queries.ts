@@ -2,8 +2,6 @@ import { api } from '.'
 import { env } from '../utils/env'
 import { isSignedIn } from '../utils/helpers'
 
-// TODO:
-// wrapper
 const w = <Res extends { data?: { status: number; body: any } }>(res: Res): [NonNullable<Res['data']>['body'] | undefined, Res] => {
   return [res.data?.body, res] as any
 }

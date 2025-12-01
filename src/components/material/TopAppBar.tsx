@@ -11,7 +11,6 @@ type TopAppBarProps = {
 }
 
 export const TopAppBar = (props: TopAppBarProps) => {
-  // TODO: handle component
   return (
     <>
       <header

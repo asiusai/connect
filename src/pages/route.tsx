@@ -14,6 +14,7 @@ import { Route } from '../types'
 import { Copy } from '../components/Copy'
 import { useParams } from '../utils/hooks'
 import { BackButton } from '../components/material/BackButton'
+import { callAthena } from '../api/athena'
 
 const useIsPreserved = (route: Route) => {
   const [profile] = useProfile()
@@ -72,17 +73,21 @@ const Top = ({ route }: { route: Route }) => {
   )
 }
 
-// TODO: get start and end time from URL
+// TODO: get start time from URL ?t=
 export const Component = () => {
   const playerRef = useRef<PlayerRef>(null)
-  const { routeName } = useParams()
+  const { routeName, dongleId, date } = useParams()
 
   const [route] = useRoute(routeName)
   const [files] = useFiles(routeName)
+  const [profile] = useProfile()
+
+  const ifIsOwner = route && profile && route.user_id === profile.id
+  useEffect(() => {
+    if (ifIsOwner) callAthena({ type: 'setRouteViewed', dongleId, params: { route: date } })
+  }, [ifIsOwner])
 
   if (!route) return null
-
-  // TODO: set route viewed
 
   return (
     <>

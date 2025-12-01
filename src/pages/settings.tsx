@@ -244,7 +244,6 @@ const PrimeManage = () => {
 
   const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
 
-  // TODO: we should wait for the session to be paid before fetching subscription
   const [subscription, { refetch }] = useSubscription(dongleId)
   const [cancelDialog, setCancelDialog] = useState(false)
 
