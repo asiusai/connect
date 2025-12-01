@@ -5,13 +5,13 @@ import { env } from './env'
 /**
  * @see {@link https://docs.mapbox.com/api/search/geocoding/#geocoding-response-object}
  */
-export interface ReverseGeocodingResponse extends FeatureCollection<Point, ReverseGeocodingFeatureProperties> {
+export type ReverseGeocodingResponse = FeatureCollection<Point, ReverseGeocodingFeatureProperties> & {
   attribution: string
 }
 
 export type ReverseGeocodingFeature = ReverseGeocodingResponse['features'][number]
 
-interface ReverseGeocodingFeatureProperties {
+type ReverseGeocodingFeatureProperties = {
   feature_type: 'country' | 'region' | 'postcode' | 'district' | 'place' | 'locality' | 'neighborhood' | 'street' | 'address'
   name: string
   name_preferred: string
@@ -23,7 +23,7 @@ interface ReverseGeocodingFeatureProperties {
 /**
  * @see {@link https://docs.mapbox.com/api/search/geocoding/#the-context-object}
  */
-interface ReverseGeocodingContextObject<S = ReverseGeocodingContextSubObject> {
+type ReverseGeocodingContextObject<S = ReverseGeocodingContextSubObject> = {
   country?: S & {
     country_code: string
     country_code_alpha_3: string
@@ -44,9 +44,7 @@ interface ReverseGeocodingContextObject<S = ReverseGeocodingContextSubObject> {
   }
 }
 
-interface ReverseGeocodingContextSubObject {
-  name: string
-}
+type ReverseGeocodingContextSubObject = { name: string }
 
 export type Coord = [number, number]
 

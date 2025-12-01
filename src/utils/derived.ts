@@ -1,14 +1,6 @@
 import type { Route } from '../types'
 import { getRouteDuration } from '../utils/format'
 
-export type GPSPathPoint = {
-  t: number
-  lng: number
-  lat: number
-  speed: number
-  dist: number
-}
-
 type OpenpilotState = 'disabled' | 'preEnabled' | 'enabled' | 'softDisabling' | 'overriding'
 type AlertStatus = 0 | 1 | 2
 
@@ -31,12 +23,11 @@ export type TimelineEvent = { route_offset_millis: number } & (
   | { type: 'user_flag' }
 )
 
-export interface RouteStatistics {
+export type RouteStatistics = {
   routeDurationMs: number
   engagedDurationMs: number
   userFlags: number
 }
-
 const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
   if (!route) return []
   const urls = Array.from({ length: route.maxqlog + 1 }, (_, i) => `${route.url}/${i}/${fn}`)
@@ -51,17 +42,8 @@ const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
   return (await Promise.all(results)).filter((it) => it !== undefined)
 }
 
-export const getCoords = async (route: Route): Promise<GPSPathPoint[]> => {
-  const res = await getDerived<GPSPathPoint[]>(route, 'coords.json')
-  return res.flat()
-}
-
-const getDriveEvents = async (route: Route): Promise<DriveEvent[]> => {
-  const res = await getDerived<DriveEvent[]>(route, 'events.json')
-  return res.flat()
-}
-
-const generateTimelineEvents = (route: Route, events: DriveEvent[]): TimelineEvent[] => {
+export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> => {
+  const events = await getDerived<DriveEvent[]>(route, 'events.json').then((x) => x.flat())
   const routeDuration = getRouteDuration(route)?.asMilliseconds() ?? 0
 
   // sort events by timestamp
@@ -126,11 +108,6 @@ const generateTimelineEvents = (route: Route, events: DriveEvent[]): TimelineEve
   return res
 }
 
-export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> => {
-  const events = await getDriveEvents(route)
-  return generateTimelineEvents(route, events)
-}
-
 export const generateRouteStatistics = (route: Route | undefined, timeline: TimelineEvent[]): RouteStatistics => {
   let engagedDurationMs = 0
   let userFlags = 0
@@ -146,7 +123,14 @@ export const generateRouteStatistics = (route: Route | undefined, timeline: Time
   }
 }
 
-export const getRouteStatistics = async (route: Route): Promise<RouteStatistics> => {
-  const events = await getTimelineEvents(route)
-  return generateRouteStatistics(route, events)
+export type GPSPathPoint = {
+  t: number
+  lng: number
+  lat: number
+  speed: number
+  dist: number
+}
+export const getCoords = async (route: Route): Promise<GPSPathPoint[]> => {
+  const res = await getDerived<GPSPathPoint[]>(route, 'coords.json')
+  return res.flat()
 }

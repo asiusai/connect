@@ -1,11 +1,11 @@
 import { $ } from 'bun'
 
-interface FileStats {
+type FileStats = {
   path: string
   lines: number
 }
 
-interface FileStatsDiff extends FileStats {
+type FileStatsDiff = FileStats & {
   diff: number
 }
 
