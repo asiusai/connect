@@ -4,6 +4,7 @@ import { useParams } from '../utils/hooks'
 import { Loading } from '../components/material/Loading'
 import { Button } from '../components/material/Button'
 import { Icon } from '../components/material/Icon'
+import { Sidebar } from '../components/Sidebar'
 
 const RouteNotFound = () => {
   const { routeName } = useParams()
@@ -34,5 +35,14 @@ export const Component = () => {
 
   if (!route) return <RouteNotFound />
 
-  return <Outlet />
+  if (!route) return <RouteNotFound />
+
+  return (
+    <div className="flex min-h-screen bg-background text-foreground">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Outlet />
+      </div>
+    </div>
+  )
 }

@@ -12,9 +12,9 @@ import { Icon } from '../components/material/Icon'
 import { TopAppBar } from '../components/material/TopAppBar'
 import { BackButton } from '../components/material/BackButton'
 import clsx from 'clsx'
-import { useNavigate } from 'react-router-dom'
 import { callAthena } from '../api/athena'
 import { RouteStaticMap } from '../components/RouteStaticMap'
+import { getPlaceName } from '../utils/map'
 
 const formatDate = (date: string) => dayjs(date).format('ddd, MMM D, YYYY h:mm A')
 
@@ -148,15 +148,29 @@ const DetailRow = ({
   )
 }
 
-// TODO: get start time from URL ?t=
+const getLocation = async (route: Route) => {
+  const startPos = [route.start_lng || 0, route.start_lat || 0]
+  const endPos = [route.end_lng || 0, route.end_lat || 0]
+  const startPlace = await getPlaceName(startPos)
+  const endPlace = await getPlaceName(endPos)
+  if (!startPlace && !endPlace) return 'Drive Details'
+  if (!endPlace || startPlace === endPlace) return `Drive in ${startPlace}`
+  if (!startPlace) return `Drive in ${endPlace}`
+  return `${startPlace} to ${endPlace}`
+}
+
 export const Component = () => {
-  const navigate = useNavigate()
   const playerRef = useRef<PlayerRef>(null)
   const { routeName, dongleId, date } = useParams()
 
   const [route] = useRoute(routeName)
   const [files] = useFiles(routeName)
   const [profile] = useProfile()
+  const [title, setTitle] = useState('Drive Details')
+
+  useEffect(() => {
+    if (route) getLocation(route).then(setTitle)
+  }, [route])
 
   const ifIsOwner = route && profile && route.user_id === profile.id
   useEffect(() => {
@@ -167,47 +181,66 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback={`/${route.dongle_id}/routes`} />}>
+      <div className="md:hidden">
+        <TopAppBar leading={<BackButton fallback={`/${route.dongle_id}`} />}>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold leading-tight">{title}</span>
+            <span className="text-xs font-medium text-white/60 leading-tight">{formatDate(route.start_time!)}</span>
+          </div>
+        </TopAppBar>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:flex items-center gap-4 px-8 py-6">
+        <BackButton fallback={`/${route.dongle_id}`} />
         <div className="flex flex-col">
-          <span className="text-sm font-bold leading-tight">Drive Details</span>
-          <span className="text-xs font-medium text-white/60 leading-tight">{formatDate(route.start_time!)}</span>
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <span className="text-sm font-medium text-white/60">{formatDate(route.start_time!)}</span>
         </div>
-      </TopAppBar>
+      </div>
 
-      <div className="flex flex-col gap-6 px-4 py-4 pb-10">
-        {/* Video Player */}
-        <div className="overflow-hidden rounded-xl shadow-lg bg-black">
-          <RouteVideoPlayer playerRef={playerRef} />
-        </div>
+      <div className="flex flex-col gap-6 px-4 md:px-8 py-4 pb-10 max-w-7xl w-full">
+        <div className="lg:grid lg:grid-cols-3 lg:gap-6 flex flex-col gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            {/* Video Player */}
+            <div className="overflow-hidden rounded-xl shadow-lg bg-black">
+              <RouteVideoPlayer playerRef={playerRef} />
+            </div>
 
-        {/* Statistics */}
-        <div className="bg-background-alt rounded-xl overflow-hidden">
-          <RouteStatisticsBar className="p-5" route={route} />
-        </div>
+            {/* Files */}
+            <div className="bg-background-alt rounded-xl p-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-4">Files</h3>
+              <RouteFiles route={route} />
+            </div>
+          </div>
 
-        {/* Actions */}
-        <RouteActions route={route} />
+          {/* Right Column */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            {/* Map */}
+            <div className="aspect-square overflow-hidden rounded-2xl shadow-lg">
+              <RouteStaticMap route={route} />
+            </div>
 
-        {/* Details Card */}
-        <div className="bg-background-alt rounded-xl p-4 flex flex-col">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Details</h3>
-          <DetailRow label="Route" value={routeName.replace('|', '/')} mono copyable />
-          <DetailRow label="Vehicle" value={route.make || route.platform} copyable />
-          <DetailRow label="Dongle ID" value={route.dongle_id} mono copyable />
-          <DetailRow label="Version" value={route.version} mono copyable />
-          <DetailRow label="Git Branch" value={route.git_branch} mono copyable />
-          <DetailRow label="Git Commit" value={route.git_commit?.substring(0, 7)} mono copyable />
-        </div>
+            {/* Statistics */}
+            <div className="bg-background-alt rounded-xl overflow-hidden">
+              <RouteStatisticsBar className="p-5" route={route} />
+            </div>
 
-        {/* Files */}
-        <div className="bg-background-alt rounded-xl p-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-4">Files</h3>
-          <RouteFiles route={route} />
-        </div>
+            {/* Actions */}
+            <RouteActions route={route} />
 
-        {/* Map */}
-        <div className="aspect-square overflow-hidden rounded-2xl shadow-lg">
-          <RouteStaticMap route={route} />
+            {/* Details Card */}
+            <div className="bg-background-alt rounded-xl p-4 flex flex-col">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Details</h3>
+              <DetailRow label="Route" value={routeName.replace('|', '/')} mono copyable />
+              <DetailRow label="Vehicle" value={route.make || route.platform} copyable />
+              <DetailRow label="Dongle ID" value={route.dongle_id} mono copyable />
+              <DetailRow label="Version" value={route.version} mono copyable />
+              <DetailRow label="Git Branch" value={route.git_branch} mono copyable />
+              <DetailRow label="Git Commit" value={route.git_commit?.substring(0, 7)} mono copyable />
+            </div>
+          </div>
         </div>
       </div>
     </div>

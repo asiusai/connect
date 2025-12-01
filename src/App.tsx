@@ -103,10 +103,6 @@ const router = createBrowserRouter([
             lazy: () => import('./pages/settings'),
           },
           {
-            path: 'routes',
-            lazy: () => import('./pages/routes'),
-          },
-          {
             path: 'sentry',
             lazy: () => import('./pages/sentry'),
           },

@@ -105,3 +105,21 @@ export const formatTime = (seconds: number) => {
   const sec = String(seconds % 60).padStart(2, '0')
   return `${min}:${sec}`
 }
+
+export const timeAgo = (time: number): string => {
+  const diff = Math.floor(Date.now() / 1000) - time
+
+  if (diff < 120) return 'active now'
+
+  const minutes = Math.floor(diff / 60)
+  if (minutes < 60) return `active ${minutes}m ago`
+
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `active ${hours}h ago`
+
+  const days = Math.floor(hours / 24)
+  if (days < 365) return `active ${days}d ago`
+
+  const years = Math.floor(days / 365)
+  return `active ${years}y ago`
+}

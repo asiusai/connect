@@ -3,105 +3,23 @@ import clsx from 'clsx'
 import { ButtonBase } from '../components/material/ButtonBase'
 import { Icon } from '../components/material/Icon'
 import { DeviceLocation } from '../components/DeviceLocation'
+import { DeviceList, Active } from '../components/DeviceList'
+import { DriveList } from '../components/DriveList'
+import { UserMenu } from '../components/UserMenu'
 
 import { Loading } from '../components/material/Loading'
-import { Device, getCommaName, getDeviceName } from '../types'
+import { getDeviceName } from '../types'
 import { formatDistance, formatDuration } from '../utils/format'
 import { useEffect, useState } from 'react'
-import { useDevice, useDevices, useProfile, useRoutes, useStats } from '../api/queries'
-import { storage } from '../utils/helpers'
-import { useParams } from '../utils/hooks'
+import { useDevice, useRoutes, useStats } from '../api/queries'
 import { callAthena } from '../api/athena'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { Slider } from '../components/material/Slider'
 
-const timeAgo = (time: number): string => {
-  const diff = Math.floor(Date.now() / 1000) - time
-
-  if (diff < 120) return 'active now'
-
-  const minutes = Math.floor(diff / 60)
-  if (minutes < 60) return `active ${minutes}m ago`
-
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `active ${hours}h ago`
-
-  const days = Math.floor(hours / 24)
-  if (days < 365) return `active ${days}d ago`
-
-  const years = Math.floor(days / 365)
-  return `active ${years}y ago`
-}
-
-const DeviceList = ({ close }: { close: () => void }) => {
-  const [devices] = useDevices()
-  const navigate = useNavigate()
-  const { dongleId } = useParams()
-
-  const onSelect = (device: Device) => {
-    close()
-    storage.set('lastSelectedDongleId', device.dongle_id)
-    navigate(`/${device.dongle_id}`)
-  }
-
-  return (
-    <div className="flex flex-col w-full bg-background text-background-x animate-in slide-in-from-top-5 fade-in duration-200 overflow-hidden max-h-[60vh]">
-      <div className="flex items-center justify-between px-4 py-4 border-b border-white/5">
-        <h2 className="text-lg font-bold">Switch Device</h2>
-        <div className="p-2 -mr-2 cursor-pointer hover:bg-white/5 rounded-full" onClick={close}>
-          <Icon name="close" className="text-xl" />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-1 p-2 overflow-y-auto">
-        {devices?.map((device) => (
-          <div
-            key={device.dongle_id}
-            className={clsx(
-              'flex items-center justify-between p-3 rounded-xl cursor-pointer shrink-0 relative overflow-hidden transition-colors',
-              device.dongle_id === dongleId ? 'bg-white/10' : 'hover:bg-white/5',
-            )}
-            onClick={() => onSelect(device)}
-          >
-            <div className="flex flex-col gap-0.5 z-10">
-              <span className="text-sm font-bold text-white">{getDeviceName(device)}</span>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-white/60">{getCommaName(device)}</span>
-                <span className="text-white/40">•</span>
-                <Active device={device} className="text-xs" />
-              </div>
-            </div>
-            {device.dongle_id === dongleId && <Icon name="check" className="text-green-400" />}
-          </div>
-        ))}
-
-        <div
-          className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer text-white/60 hover:text-white mt-1 transition-colors border border-dashed border-white/10"
-          onClick={() => {
-            close()
-            navigate('/pair')
-          }}
-        >
-          <Icon name="add" className="text-xl" />
-          <span className="font-medium text-sm">Pair new device</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 const Buttons = ({ dongleId }: { dongleId: string }) => {
-  const [stats] = useStats(dongleId)
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
       {[
-        {
-          title: 'Drives',
-          subtitle: `${stats?.all.routes || 0} drives`,
-          icon: 'directions_car',
-          href: `/${dongleId}/routes`,
-          color: 'text-blue-400',
-        },
         {
           title: 'Sentry',
           subtitle: 'View clips',
@@ -119,12 +37,6 @@ const Buttons = ({ dongleId }: { dongleId: string }) => {
           title: 'Teleop',
           subtitle: 'Remote control',
           icon: 'gamepad',
-          color: 'text-zinc-500',
-        },
-        {
-          title: 'Analyze',
-          subtitle: 'See CAN data',
-          icon: 'bar_chart',
           color: 'text-zinc-500',
         },
         {
@@ -159,56 +71,9 @@ const Buttons = ({ dongleId }: { dongleId: string }) => {
 
 const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-400' : value < 12.4 ? 'text-yellow-400' : 'text-green-400')
 
-const UserMenu = () => {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const open = searchParams.get('user') === 'true'
-  const [profile] = useProfile()
-
-  const toggleOpen = () => setSearchParams(!open ? { user: 'true' } : {})
-
-  if (!profile) return null
-  return (
-    <div className="relative">
-      <div
-        className="flex items-center justify-center w-10 h-10 bg-background backdrop-blur-md rounded-full border border-white/10 cursor-pointer hover:bg-background/80 transition-colors"
-        onClick={toggleOpen}
-      >
-        <Icon name="person" filled className="text-white" />
-      </div>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={toggleOpen} />
-          <div className="absolute top-full right-0 mt-2 bg-background-alt border border-white/5 rounded-xl shadow-xl z-20 overflow-hidden min-w-[200px] animate-in fade-in zoom-in-95 duration-200 p-1 flex flex-col gap-1">
-            <div className="px-3 py-2 border-b border-white/5 mb-1">
-              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Signed in as</span>
-              <span className="text-sm font-medium truncate block text-white">{profile.email}</span>
-            </div>
-            <ButtonBase
-              href="/logout"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 text-red-400 transition-colors"
-            >
-              <Icon name="logout" className="text-lg" />
-              <span className="font-medium text-sm">Log out</span>
-            </ButtonBase>
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-const Active = ({ device, className }: { device: Device; className?: string }) => {
-  return (
-    <p className={clsx(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70', className)}>
-      {timeAgo(device.last_athena_ping)}
-    </p>
-  )
-}
-
 const ActionBar = () => {
   const { dongleId } = useParams()
-  const icons = [
+  const icons: { name: string; label: string; href?: string }[] = [
     { name: 'power_settings_new', label: 'Shutdown' },
     { name: 'home', label: 'Home' },
     { name: 'work', label: 'Work' },
@@ -299,7 +164,7 @@ const Statistics = ({ dongleId }: { dongleId: string }) => {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between px-2">
         <h2 className="text-xl font-bold">Statistics</h2>
-        <Slider options={{ all: 'All time', week: 'This week' }} value={timeRange} onChange={setTimeRange} />
+        <Slider options={{ all: 'All', week: 'Weekly' }} value={timeRange} onChange={setTimeRange} />
       </div>
       <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
         <DetailRow label="Distance" value={formatDistance(currentStats.distance)} />
@@ -340,7 +205,7 @@ const Info = ({ dongleId }: { dongleId: string }) => {
 
 export const Component = () => {
   const { dongleId } = useParams()
-  const [device] = useDevice(dongleId)
+  const [device] = useDevice(dongleId || '')
 
   const [fade, setFade] = useState(1)
   const [battery, setBattery] = useState<number>()
@@ -350,10 +215,12 @@ export const Component = () => {
   const setOpen = (newOpen: boolean) => setSearchParams(newOpen ? { devices: 'true' } : {})
 
   useEffect(() => {
-    callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
-      setBattery(x ? x.peripheralState.voltage / 1000 : undefined),
-    )
-  }, [])
+    if (dongleId) {
+      callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
+        setBattery(x ? x.peripheralState.voltage / 1000 : undefined),
+      )
+    }
+  }, [dongleId])
 
   useEffect(() => {
     const onScroll = () => setFade(Math.max(0, 1 - window.scrollY / 300))
@@ -365,7 +232,8 @@ export const Component = () => {
   if (!device) return <Loading className="h-screen w-screen" />
   return (
     <>
-      <div className="fixed top-0 w-full h-[500px] overflow-hidden" style={{ opacity: fade }}>
+      {/* Mobile Header & Hero */}
+      <div className="md:hidden fixed top-0 w-full h-[500px] overflow-hidden" style={{ opacity: fade }}>
         <div className="inset-x-0 top-0 flex items-start justify-between px-4 py-4 text-white absolute z-[999]">
           <div className="flex justify-between items-start w-full">
             <div className="flex flex-col">
@@ -390,7 +258,7 @@ export const Component = () => {
           </div>
         </div>
 
-        <DeviceLocation dongleId={dongleId} device={device} className="h-full w-full absolute" />
+        <DeviceLocation dongleId={dongleId || ''} device={device} className="h-full w-full absolute" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent pointer-events-none " />
         {fade !== 1 && (
           <div
@@ -403,12 +271,45 @@ export const Component = () => {
         )}
       </div>
 
-      <div className="h-[430px] pointer-events-none"></div>
-      <ActionBar />
-      <div className="bg-background flex flex-col gap-6 shrink-0 p-6 w-full relative">
-        <Buttons dongleId={dongleId} />
-        <Statistics dongleId={dongleId} />
-        <Info dongleId={dongleId} />
+      {/* Desktop Layout Container */}
+      <div className="flex flex-col min-h-screen bg-background text-foreground">
+        {/* Desktop Hero (Map) */}
+        <div className="hidden md:block w-full h-[400px] relative overflow-hidden">
+          <DeviceLocation dongleId={dongleId || ''} device={device} className="h-full w-full absolute" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+        </div>
+
+        <div className="md:hidden h-[430px] pointer-events-none"></div>
+
+        <div className="w-full flex flex-col gap-6 p-6 relative z-10">
+          <div className="md:hidden">
+            <ActionBar />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 flex flex-col gap-6">
+              <div className="md:hidden">
+                <Buttons dongleId={dongleId || ''} />
+              </div>
+              {/* Desktop: Drive List */}
+              <div className="hidden md:block">
+                <DriveList dongleId={dongleId || ''} />
+              </div>
+              {/* Mobile: Statistics */}
+              <div className="md:hidden">
+                <Statistics dongleId={dongleId || ''} />
+              </div>
+            </div>
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              {/* Desktop: Statistics (moved to right column) */}
+              <div className="hidden md:block">
+                <Statistics dongleId={dongleId || ''} />
+              </div>
+              <Info dongleId={dongleId || ''} />
+            </div>
+          </div>
+        </div>
       </div>
 
       {open && (
