@@ -6,6 +6,7 @@ import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
 import { Device, getDeviceName } from '../types'
 import { useDeviceLocation } from '../api/queries'
+import { IconButton } from './material/IconButton'
 
 type Location = {
   lat: number
@@ -85,8 +86,6 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
     effect()
   }, [position, device, location])
 
-  useEffect(() => requestPosition(), [])
-
   return (
     <div className={clsx(className)}>
       <MapContainer
@@ -117,7 +116,14 @@ export const DeviceLocation = ({ dongleId, device, className }: { dongleId: stri
         ))}
         <FitBounds markers={markers} />
       </MapContainer>
-
+      {!position && (
+        <IconButton
+          name="my_location"
+          title="Request location"
+          className="absolute bottom-4 right-2 bg-background p-2 z-[999]"
+          onClick={() => requestPosition()}
+        />
+      )}
       {!markers.length && (
         <div className="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-background-alt px-4 py-2 shadow">
           <div className="mr-2 size-4 animate-spin rounded-full border-2 border-background-alt-x border-t-transparent" />
