@@ -4,11 +4,9 @@ import timezone from 'dayjs/plugin/timezone.js'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import type { Route } from '../types'
-import { dateTimeToColorBetween } from '../utils/format'
+import { dateTimeToColorBetween, formatDistance, formatDuration } from '../utils/format'
 import { Fragment, useEffect, useState } from 'react'
-import { TopAppBar } from '../components/material/TopAppBar'
 import { BackButton } from '../components/material/BackButton'
 import { api } from '../api'
 import { Button } from '../components/material/Button'
@@ -37,26 +35,54 @@ const RouteCard = ({ route }: { route: Route }) => {
 
   const [location, setLocation] = useState<string | null>(null)
   useEffect(() => void getLocation(route).then(setLocation), [route])
+
+  const duration = endTime.diff(startTime)
+  const durationStr = formatDuration(duration / (60 * 1000))
+  const distanceStr = formatDistance(route.distance)
+
   return (
     <Link
       to={`/${route.dongle_id}/routes/${route.fullname.slice(17)}`}
-      className="w-full overflow-hidden rounded-xl bg-background-alt text-background-x shadow-sm transition-all hover:bg-background-alt/50 hover:shadow-md"
-      style={{ borderLeft: `6px solid ${color}` }}
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl bg-background-alt p-4 shadow-sm transition-all hover:bg-background-alt/80 active:scale-[0.99]"
     >
-      <div className="flex flex-col gap-3 p-4 pl-5">
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          <div className="flex items-center gap-1.5">
-            <span className="text-lg md:text-xl font-semibold tracking-tight">{startTime.format('h:mm A')}</span>
-            <span className="text-background-alt-x/50">→</span>
-            <span className="font-medium text-background-alt-x">{endTime.format('h:mm A')}</span>
-            <Icon name="location_on" className="text-[18px] text-background-alt-x" />
-            <span className="text-base font-medium leading-snug text-background-alt-x">{location || 'Loading...'}</span>
-          </div>
+      {/* Color Indicator */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1.5"
+        style={{ backgroundColor: color }}
+      />
 
-          <Icon name={route.is_public ? 'public' : 'public_off'} />
+      <div className="flex flex-col gap-1 pl-3">
+        {/* Time and Duration */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-base font-semibold text-white">
+            <span>{startTime.format('h:mm A')}</span>
+            <span className="text-white/40 text-sm font-normal">•</span>
+            <span>{endTime.format('h:mm A')}</span>
+          </div>
+          <div className="text-xs font-medium text-white/60 bg-white/10 px-2 py-0.5 rounded-full">
+            {durationStr}
+          </div>
         </div>
 
-        <RouteStatisticsBar route={route} />
+        {/* Location */}
+        <div className="flex items-start gap-2 min-h-[24px]">
+          <Icon name="location_on" className="mt-0.5 text-[16px] text-white/40 shrink-0" />
+          <span className="text-sm font-medium text-white/80 leading-snug line-clamp-2">
+            {location || 'Loading location...'}
+          </span>
+        </div>
+
+        {/* Footer / Stats */}
+        <div className="mt-2 flex items-center gap-4 border-t border-white/5 pt-3">
+          <div className="flex items-center gap-1.5">
+            <Icon name="directions_car" className="text-[16px] text-white/40" />
+            <span className="text-xs font-medium text-white/70">{distanceStr}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Icon name={route.is_public ? 'public' : 'public_off'} className="text-[16px] text-white/40" />
+            <span className="text-xs font-medium text-white/70">{route.is_public ? 'Public' : 'Private'}</span>
+          </div>
+        </div>
       </div>
     </Link>
   )
@@ -91,21 +117,38 @@ export const Component = () => {
 
   const routes = show === 'all' ? query.data?.pages.flatMap((x) => x.body) : preserved
   const hasNextPage = show === 'all' ? query.hasNextPage : false
+
   return (
-    <>
-      <TopAppBar
-        leading={<BackButton fallback={`/${dongleId}`} />}
-        trailing={
-          <Slider
-            options={{ all: 'All', preserved: 'Preserved' }}
-            value={show}
-            onChange={(val) => setParams(val === 'all' ? undefined : { preserved: 'true' }, { replace: true })}
-          />
-        }
-      >
-        Routes
-      </TopAppBar>
-      <div className="flex w-full flex-col justify-items-stretch gap-4 px-4 pb-4">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-3">
+          <BackButton fallback={`/${dongleId}`} />
+          <div className="flex bg-background-alt rounded-lg p-1">
+            <button
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                show === 'all' ? 'bg-white text-black shadow-sm' : 'text-background-alt-x hover:text-white'
+              }`}
+              onClick={() => setParams(undefined, { replace: true })}
+            >
+              All
+            </button>
+            <button
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${
+                show === 'preserved' ? 'bg-white text-black shadow-sm' : 'text-background-alt-x hover:text-white'
+              }`}
+              onClick={() => setParams({ preserved: 'true' }, { replace: true })}
+            >
+              Preserved
+            </button>
+          </div>
+          <div className="w-10" /> {/* Spacer for balance */}
+        </div>
+        <div className="px-6 pb-4">
+          <h1 className="text-3xl font-bold tracking-tight">Drives</h1>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 p-4">
         {routes?.map((route) => {
           let dayHeader: string | null = getDayHeader(route)
 
@@ -113,13 +156,21 @@ export const Component = () => {
           else prevDayHeader = dayHeader
           return (
             <Fragment key={`${route.id}-${route.start_time}`}>
-              {dayHeader && <h2 className="px-4 text-lg font-bold text-background-alt-x">{dayHeader}</h2>}
+              {dayHeader && (
+                <div className="sticky top-[120px] z-0 py-2 bg-background/95 backdrop-blur-sm -mx-4 px-8 border-b border-white/5 mb-2">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-background-alt-x">{dayHeader}</h2>
+                </div>
+              )}
               <RouteCard route={route} />
             </Fragment>
           )
         })}
-        {hasNextPage && <Button onClick={() => query.fetchNextPage()}>Load more</Button>}
+        {hasNextPage && (
+          <div className="py-8 flex justify-center">
+            <Button onClick={() => query.fetchNextPage()}>Load more</Button>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   )
 }

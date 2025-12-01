@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { LogReader } from '../../log-reader'
 import { useFiles } from '../api/queries'
 import { useAsyncEffect, useParams } from '../utils/hooks'
-import { TopAppBar } from '../components/material/TopAppBar'
-import { BackButton } from '../components/material/BackButton'
 import { Icon } from '../components/material/Icon'
-import { useLocation, useSearchParams } from 'react-router-dom'
-import { z } from 'zod'
+import { TopAppBar } from '../components/material/TopAppBar'
 import { Select } from '../components/material/Select'
+import { BackButton } from '../components/material/BackButton'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { z } from 'zod'
 import { Toggle } from '../components/material/Toggle'
+import clsx from 'clsx'
 
 const LogEvent = z.enum([
   'Sentinel',
@@ -111,6 +112,7 @@ export const Component = () => {
   const { routeName, dongleId, date } = useParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'
 
   const segment = Number(params.get('segment')) || 0
@@ -158,19 +160,19 @@ export const Component = () => {
 
   if (!files) return null
   return (
-    <div className="flex flex-col h-screen bg-surface text-background-x">
-      <TopAppBar leading={<BackButton fallback={`/${dongleId}/routes/${date}`} />}>{type}</TopAppBar>
+    <div className="flex flex-col h-screen bg-background text-foreground">
+      <TopAppBar leading={<BackButton fallback={`/${dongleId}/routes/${date}`} />}>
+        <span className="capitalize">{type}</span>
+      </TopAppBar>
 
       {/* Top Controls Bar */}
-      <div className="flex items-center gap-1 p-2 rounded-xl bg-background-alt shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-3 p-3 bg-background border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar">
         <Select
           value={segment.toString()}
           onChange={(value) => updateParam('segment', value)}
           options={Array.from({ length: files.logs.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
           className="min-w-[120px]"
         />
-
-        <div className="w-px h-6 bg-background/20 shrink-0" />
 
         <Select
           value={eventName}
@@ -179,20 +181,18 @@ export const Component = () => {
           className="min-w-[200px]"
         />
 
-        <div className="w-px h-6 bg-background/20 shrink-0" />
-
         <Select
           value={limit.toString()}
           onChange={(value) => updateParam('limit', value)}
-          options={[10, 100, 500, 1000, 2000, 5000].map((x) => ({ value: x.toString(), label: x }))}
-          className="min-w-[100px]"
+          options={[10, 100, 500, 1000, 2000, 5000].map((x) => ({ value: x.toString(), label: `${x} items` }))}
+          className="min-w-[120px]"
         />
 
-        <div className="w-px h-6 bg-background/20 shrink-0" />
+        <div className="w-px h-6 bg-white/10 shrink-0" />
 
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <Toggle value={prettify} onChange={(v) => updateParam('prettify', String(v))} />
-          <span className="text-xs font-medium text-background-alt-x">Prettify</span>
+          <span className="text-xs font-medium text-white/60">Prettify</span>
         </label>
       </div>
 
@@ -203,22 +203,22 @@ export const Component = () => {
             data.length > 0 ? (
               <div className="flex flex-col pb-4">
                 {data.map((x, i) => (
-                  <div key={i} className="flex hover:bg-background-alt rounded-xl gap-3 px-2 py-2">
-                    <span className="select-none text-background-alt-x/50 w-4 text-right shrink-0">{i + 1}</span>
-                    <span className="break-all text-background-x whitespace-pre-wrap">
+                  <div key={i} className="flex hover:bg-white/5 rounded-lg gap-3 px-2 py-2 transition-colors">
+                    <span className="select-none text-white/20 w-6 text-right shrink-0">{i + 1}</span>
+                    <span className="break-all text-white/80 whitespace-pre-wrap">
                       <SyntaxHighlightedJson json={JSON.stringify(x, null, prettify ? 2 : undefined)} />
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-background-alt-x gap-2">
-                <Icon name="error" className="text-background-alt-x/50 text-4xl" />
+              <div className="flex flex-col items-center justify-center h-full text-white/40 gap-2">
+                <Icon name="error" className="text-white/20 text-4xl" />
                 <span>No events found for {eventName}</span>
               </div>
             )
           ) : (
-            <div className="flex items-center justify-center h-full text-background-alt-x">
+            <div className="flex items-center justify-center h-full text-white/40">
               <span className="animate-pulse">Loading logs...</span>
             </div>
           )}

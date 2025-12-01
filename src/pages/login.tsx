@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Button } from '../components/material/Button'
+import { ButtonBase } from '../components/material/ButtonBase'
 import { Icon } from '../components/material/Icon'
 import { env } from '../utils/env'
 import { useEffect } from 'react'
@@ -64,40 +64,52 @@ export const Component = () => {
   }, [provider])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6">
-      <div className="flex max-w-sm flex-col items-center gap-8">
-        <img src="/images/logo-connect-light.svg" alt="comma connect" width={96} height={96} />
-
-        <div className="flex flex-col items-center gap-2 text-center">
-          <h1 className="text-2xl font-extrabold md:mt-4">comma connect</h1>
-          <p className="text-md">Manage your openpilot experience.</p>
+    <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-background text-foreground">
+      <div className="flex max-w-sm w-full flex-col items-center gap-10">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="w-24 h-24 rounded-3xl bg-white/5 flex items-center justify-center shadow-2xl border border-white/5">
+            <img src="/images/logo-connect-light.svg" alt="comma connect" width={64} height={64} className="opacity-90" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight">comma connect</h1>
+            <p className="text-white/60">Manage your openpilot experience.</p>
+          </div>
         </div>
 
-        <div className="flex flex-col items-stretch gap-4 self-stretch">
+        <div className="flex flex-col items-stretch gap-3 self-stretch">
           {Object.entries(PROVIDERS).map(([key, { href, image, title }]) => (
-            <Button
+            <ButtonBase
               key={key}
-              className="h-14 gap-4 min-[411px]:h-16"
+              className="h-14 gap-4 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-all active:scale-[0.98] flex items-center justify-center relative overflow-hidden group"
               href={href}
-              leading={<img src={image} alt="" width={32} height={32} />}
             >
-              Sign in with {title}
-            </Button>
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center">
+                <img src={image} alt="" className="w-full h-full object-contain" />
+              </div>
+              <span>Sign in with {title}</span>
+            </ButtonBase>
           ))}
         </div>
 
-        <div className="flex justify-between gap-4">
-          <p className="text-sm min-[411px]:text-base">
-            Make sure to sign in with the same account if you have previously paired your comma three.
-          </p>
+        <div className="flex flex-col gap-6 w-full">
+          <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
+            <img src="/images/icon-comma-three-light.svg" alt="" width={24} height={24} className="opacity-80 mt-1" />
+            <p className="text-xs text-white/60 leading-relaxed">
+              Make sure to sign in with the same account if you have previously paired your comma three.
+            </p>
+          </div>
 
-          <img src="/images/icon-comma-three-light.svg" alt="" width={32} height={32} />
+          <ButtonBase
+            onClick={() => navigate('/demo')}
+            className="w-full py-4 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2 group"
+          >
+            <span>Try the demo</span>
+            <Icon
+              name="chevron_right"
+              className="text-white/60 group-hover:translate-x-1 transition-transform"
+            />
+          </ButtonBase>
         </div>
-
-        {/* TODO: Use href instead of onClick */}
-        <Button onClick={() => navigate('/demo')} trailing={<Icon name="chevron_right" />}>
-          Try the demo
-        </Button>
       </div>
     </div>
   )
