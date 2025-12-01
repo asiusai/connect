@@ -48,8 +48,8 @@ jobs:
           VITE_APP_GIT_SHA: ${{ github.event_name == 'push' && github.sha || github.event.pull_request.head.sha }}
 
       - name: Bundle size breakdown
-        run: bun scripts/dependency-report.ts | column -t -s ":"
-      - run: bun scripts/bundle-size.ts ./dist
+        run: bun cli/dependency-report.ts | column -t -s ":"
+      - run: bun cli/bundle-size.ts ./dist
 
       - name: Upload built project
         uses: actions/upload-artifact@v4
