@@ -70,10 +70,7 @@ export const stripMp4Headers = (buffer: Uint8Array<ArrayBuffer>) => {
   return buffer
 }
 
-export async function* createChunker(
-  stream: ReadableStream<Uint8Array>,
-  targetChunkSize = 1024 * 1024, // 1MB default target
-): AsyncGenerator<Uint8Array> {
+export async function* createChunker(stream: ReadableStream<Uint8Array>, targetChunkSize: number): AsyncGenerator<Uint8Array> {
   const reader = stream.getReader()
   let buffer = new Uint8Array(0)
 

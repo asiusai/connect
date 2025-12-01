@@ -34,7 +34,7 @@ export const HevcVideo = ({ src, ...props }: VideoProps) => {
       if (!res.ok || !res.body) return
 
       const stream = res.body
-      const chunker = createChunker(stream, 7 * 1024 * 1024)
+      const chunker = createChunker(stream, 6 * 1024 * 1024)
 
       let count = 0
       let headers: Uint8Array | null = null

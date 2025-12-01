@@ -11,7 +11,7 @@ import { TEMPLATES_URL } from '../utils/consts'
 import { useRendererStatus, useRenderProgress } from '../api/queries'
 import { IconButton } from './material/IconButton'
 import { Timeline } from './Timeline'
-import { saveFile } from '../utils/helpers'
+import { saveFile, storage } from '../utils/helpers'
 import { Icon } from './material/Icon'
 
 const FILE_LABELS: Record<FileType, string> = {
@@ -264,12 +264,15 @@ export const RouteVideoPlayer = ({ playerRef, route, files }: { playerRef: RefOb
   const fullscreenRef = useRef<HTMLDivElement>(null)
   const [props, setProps] = useState<PreviewProps>({
     routeName,
-    largeCameraType: 'qcameras',
-    smallCameraType: undefined,
-    logType: undefined,
+    largeCameraType: storage.getItem('largeCameraType') ?? 'qcameras',
+    smallCameraType: storage.getItem('smallCameraType'),
+    logType: storage.getItem('logType'),
     data: { files, route },
-    showPath: undefined,
   })
+
+  useEffect(() => storage.setItem('largeCameraType', props.largeCameraType), [props.largeCameraType])
+  useEffect(() => storage.setItem('smallCameraType', props.smallCameraType), [props.smallCameraType])
+  useEffect(() => storage.setItem('logType', props.logType), [props.logType])
 
   useEffect(() => {
     setProps((p) => ({ ...p, data: { files, route } }))
