@@ -213,7 +213,7 @@ export const Component = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-background-alt-x gap-2">
-                <Icon name="error" size="40" className="text-background-alt-x/50" />
+                <Icon name="error" className="text-background-alt-x/50 text-4xl" />
                 <span>No events found for {eventName}</span>
               </div>
             )

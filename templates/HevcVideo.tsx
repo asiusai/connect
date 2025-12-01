@@ -5,8 +5,6 @@ import { createChunker, extractHevcHeaders, stripMp4Headers } from '../src/utils
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 
-const cached: Record<string, ArrayBuffer[]> = {}
-
 export const HevcVideo = ({ src, ...props }: VideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   useEffect(() => {
@@ -28,19 +26,10 @@ export const HevcVideo = ({ src, ...props }: VideoProps) => {
         const buffer = queue.shift()
         if (!buffer) throw new Error(`Queue length larger than 0, but buffer undefined`)
 
-        cached[src].push(buffer)
         sourceBuffer.appendBuffer(buffer as ArrayBuffer)
       }
       sourceBuffer.addEventListener('updateend', () => processQueue())
 
-      if (cached[src]?.length) {
-        for (const buffer of cached[src]) {
-          queue.push(buffer)
-          processQueue()
-        }
-        return
-      }
-      cached[src] = []
       const res = await fetch(src)
       if (!res.ok || !res.body) return
 

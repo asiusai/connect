@@ -9,7 +9,7 @@ export const Component = () => {
       <section className="flex flex-col gap-6 items-center w-full max-w-md bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5">
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-            <Icon name="add" className="text-primary" size="40" />
+            <Icon name="add" className="text-primary text-4xl" />
           </div>
           <h2 className="text-2xl font-bold">Pair your device</h2>
           <p className="text-base text-background-alt-x">Hey {profile?.email}, scan the QR code on your device to get started.</p>
@@ -17,7 +17,7 @@ export const Component = () => {
 
         <div className="w-full bg-background-alt rounded-3xl p-4 flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <Icon name="info" className="text-primary" size="20" />
+            <Icon name="info" className="text-primary text-4xl" />
             <span className="text-sm font-medium">Don't see a QR code?</span>
           </div>
           <ul className="text-xs text-background-alt-x flex flex-col gap-1 pl-7">

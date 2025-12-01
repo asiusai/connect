@@ -57,7 +57,7 @@ export const Component = () => {
       {error ? (
         <>
           <div className="flex gap-4 items-center">
-            <Icon className="text-error shrink-0" name="error" size="24" />
+            <Icon className="text-error shrink-0 text-2xl" name="error" />
             <span className="text-md">{error}</span>
           </div>
           <Button color="secondary" href="/login">
@@ -66,7 +66,7 @@ export const Component = () => {
         </>
       ) : (
         <div className="flex items-center gap-3">
-          <Icon className="animate-spin" name="autorenew" size="24" />
+          <Icon className="animate-spin text-2xl" name="autorenew" />
           <p className="text-lg">authenticating</p>
         </div>
       )}

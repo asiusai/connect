@@ -14,6 +14,7 @@ import { api } from '../api'
 import { useDevice, useDevices, usePortal, useStripeSession, useSubscribeInfo, useSubscription, useUsers } from '../api/queries'
 import { useParams } from '../utils/hooks'
 import { TextField } from '../components/material/TextField'
+import { BackButton } from '../components/material/BackButton'
 
 type PlanProps = {
   name: PrimePlan
@@ -158,7 +159,7 @@ const PrimeCheckout = () => {
 
       {stripeCancelled && (
         <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-          <Icon name="error" className="text-error" size="20" />
+          <Icon name="error" className="text-error text-xl" />
           Checkout cancelled
         </div>
       )}
@@ -180,7 +181,7 @@ const PrimeCheckout = () => {
 
       {disabledDataPlanText && (
         <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-          <Icon name="info" size="20" />
+          <Icon name="info" className="text-xl" />
           {disabledDataPlanText}
         </div>
       )}
@@ -210,7 +211,7 @@ const StripeSession = ({ id }: { id: string }) => {
   if (!stripeSession || !subscription)
     return (
       <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-        <Icon className="animate-spin" name="autorenew" size="20" />
+        <Icon className="animate-spin text-xl" name="autorenew" />
         Processing subscription...
       </div>
     )
@@ -218,14 +219,14 @@ const StripeSession = ({ id }: { id: string }) => {
   if (paymentStatus === 'unpaid')
     return (
       <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-        <Icon name="payments" size="20" />
+        <Icon name="payments" className="text-xl" />
         Waiting for confirmed payment...
       </div>
     )
   if (paymentStatus === 'paid' && subscription)
     return (
       <div className="flex gap-2 rounded-lg bg-tertiary-alt p-2 text-sm text-tertiary-x-alt">
-        <Icon name="check" size="20" />
+        <Icon name="check" className="text-xl" />
         <div className="flex flex-col gap-2">
           <p className="font-semibold">comma prime activated</p>
           {subscription.is_prime_sim &&
@@ -255,12 +256,12 @@ const PrimeManage = () => {
 
       {cancel.isError ? (
         <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-          <Icon className="text-error" name="error" size="20" />
+          <Icon className="text-error text-xl" name="error" />
           Failed to cancel subscription: {cancel.error as any}
         </div>
       ) : cancel.isSuccess ? (
         <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-          <Icon name="check" size="20" />
+          <Icon name="check" className="text-xl" />
           Subscription cancelled
         </div>
       ) : null}
@@ -365,7 +366,7 @@ const UserManagement = () => {
 
       {addUser.error && (
         <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-          <Icon className="text-error" name="error" size="20" />
+          <Icon className="text-error text-xl" name="error" />
           {(addUser.error as any) || 'Failed to add user'}
         </div>
       )}
@@ -379,6 +380,7 @@ const UserManagement = () => {
             </div>
             {user.permission !== 'owner' && (
               <IconButton
+                title="Delete"
                 name="delete"
                 className="text-error"
                 onClick={() => {
@@ -427,7 +429,7 @@ const DeviceSettingsForm = () => {
       </div>
       {unpair.error && (
         <div className="flex gap-2 rounded-lg bg-background-alt p-2 text-sm text-background-x">
-          <Icon className="text-error" name="error" size="20" />
+          <Icon className="text-error text-xl" name="error" />
           {(unpair.error as any) || 'Unknown error'}
         </div>
       )}
@@ -450,7 +452,7 @@ export const Component = () => {
   if (!device) return null
   return (
     <>
-      <TopAppBar component="h2" leading={<IconButton className="md:hidden" name="arrow_back" href={`/${dongleId}`} />}>
+      <TopAppBar component="h2" leading={<BackButton fallback={`/${dongleId}`} />}>
         Device Settings
       </TopAppBar>
       <div className="flex flex-col gap-4 px-4 w-full">

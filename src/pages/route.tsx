@@ -53,9 +53,17 @@ const Top = ({ route }: { route: Route }) => {
       trailing={
         <>
           {isPreserved !== undefined && (
-            <IconButton name={isPreserved ? 'bookmark_check' : 'bookmark'} onClick={() => setIsPreserved(!isPreserved)} />
+            <IconButton
+              title={isPreserved ? 'Un-preserve' : 'Preserve'}
+              name={isPreserved ? 'bookmark_check' : 'bookmark'}
+              onClick={() => setIsPreserved(!isPreserved)}
+            />
           )}
-          <IconButton name={isPublic ? 'public' : 'public_off'} onClick={() => setIsPublic(!isPublic)} />
+          <IconButton
+            title={isPublic ? 'Make private' : 'Make public'}
+            name={isPublic ? 'public' : 'public_off'}
+            onClick={() => setIsPublic(!isPublic)}
+          />
         </>
       }
     >
@@ -79,7 +87,7 @@ export const Component = () => {
   return (
     <>
       <Top route={route} />
-      <div className="flex flex-col gap-6 px-4 pb-4">
+      <div className="flex flex-col gap-6 px-6 pb-4">
         {files && <RouteVideoPlayer playerRef={playerRef} route={route} files={files} />}
 
         <div className="bg-background-alt text-sm p-3 rounded-xl flex items-center justify-between">

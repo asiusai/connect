@@ -46,7 +46,7 @@ const Scanning = () => {
         </div>
         <div className="flex flex-col items-center gap-4 text-center max-w-xs">
           <div className="flex flex-col items-center gap-2">
-            <Icon name="camera" size="40" className="text-primary mb-2" />
+            <Icon name="camera" className="text-primary mb-2 text-xl" />
             <h2 className="text-2xl font-bold">Scan QR Code</h2>
             <p className="text-base text-background-alt-x">Point your camera at the QR code displayed on your device screen.</p>
           </div>
@@ -93,7 +93,7 @@ const Pairing = ({ token }: { token: string }) => {
       <div className="bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full">
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-          <Icon name="autorenew" className="animate-spin text-primary relative z-10" size="48" />
+          <Icon name="autorenew" className="animate-spin text-primary relative z-10 text-5xl" />
         </div>
         <div className="flex flex-col items-center gap-1 text-center">
           <h2 className="text-2xl font-bold">Pairing device...</h2>
@@ -115,7 +115,7 @@ export const Component = () => {
       <div className="min-h-screen w-full bg-surface text-background-x flex flex-col items-center justify-center p-4">
         <div className="bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full text-center">
           <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center">
-            <Icon name="error" className="text-error" size="40" />
+            <Icon name="error" className="text-error text-4xl" />
           </div>
           <div className="flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Pairing Failed</h2>

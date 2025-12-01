@@ -35,7 +35,15 @@ export const Component = () => {
     <>
       <TopAppBar
         leading={<BackButton fallback={`/${dongleId}`} />}
-        trailing={<IconButton name="camera" className={clsx(isLoading && 'animate-spin')} onClick={shot} disabled={isLoading} />}
+        trailing={
+          <IconButton
+            title="Take a photo"
+            name="camera"
+            className={clsx(isLoading && 'animate-spin')}
+            onClick={shot}
+            disabled={isLoading}
+          />
+        }
         removePadding
       >
         Sentry mode
@@ -45,6 +53,7 @@ export const Component = () => {
         <div key={img} className="relative">
           <img src={img} />
           <IconButton
+            title="Download"
             className="absolute top-0 right-0 "
             name="download"
             onClick={() => {
@@ -62,7 +71,7 @@ export const Component = () => {
       {!isLoading && !images && (
         <div className="flex flex-col items-center justify-center h-screen gap-6 pb-20">
           <div className="w-24 h-24 rounded-full bg-background-alt flex items-center justify-center mb-4">
-            <Icon name="camera" size="48" className="text-primary" />
+            <Icon name="camera" className="text-primary text-5xl" />
           </div>
           <div className="text-center space-y-2 max-w-xs">
             <h2 className="text-2xl font-bold">Take a snapshot</h2>

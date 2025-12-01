@@ -187,9 +187,10 @@ export const Coord = z.object({
   dist: z.number(),
 })
 
+export const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras', 'logs', 'qlogs'])
 export const CameraType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras'])
+export const LogType = z.enum(['logs', 'qlogs'])
 
-export const LogType = z.enum(['qlogs', 'logs'])
 export const FrameData = z.any()
 
 export const PreviewData = z.object({
@@ -236,8 +237,6 @@ export const AthenaResponse = z.object({
   result: z.any(),
 })
 
-export const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras', 'logs', 'qlogs'])
-export type FileType = z.infer<typeof FileType>
 export const RenderProgress = z.object({
   renderedFrames: z.number(),
   encodedFrames: z.number(),
@@ -274,8 +273,10 @@ export type PrimePlan = z.infer<typeof PrimePlan>
 export type Coord = z.infer<typeof Coord>
 export type RouteEvent = z.infer<typeof RouteEvent>
 
+export type FileType = z.infer<typeof FileType>
 export type CameraType = z.infer<typeof CameraType>
 export type LogType = z.infer<typeof LogType>
+
 export type PreviewData = z.infer<typeof PreviewData>
 export type PreviewGenerated = z.infer<typeof PreviewGenerated>
 export type AthenaRequest = z.infer<typeof AthenaRequest>

@@ -80,7 +80,7 @@ export const OpenpilotUI = ({
   return (
     <AbsoluteFill>
       {frame.CarState?.CruiseEnabled && (
-        <div className="absolute inset-0 border-[30px] border-[#00c853] z-10 pointer-events-none rounded-[40px]" />
+        <div className="absolute -inset-[30px] border-[60px] border-[#00c853] z-10 pointer-events-none rounded-[80px]" />
       )}
 
       {frame.CarState && (

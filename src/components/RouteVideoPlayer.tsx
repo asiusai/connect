@@ -2,17 +2,26 @@ import { Player, PlayerRef } from '@remotion/player'
 import clsx from 'clsx'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { getPreviewGenerated, Preview } from '../../templates/Preview'
-import { CameraType, Files, LogType, PreviewProps, Route } from '../types'
+import { CameraType, Files, FileType, LogType, PreviewProps, Route } from '../types'
 import { formatTime, getRouteDuration } from '../utils/format'
-import { ReactNode, RefObject, useEffect, useRef, useState } from 'react'
+import { RefObject, useEffect, useRef, useState } from 'react'
 import { useAsyncMemo, useParams } from '../utils/hooks'
 import { api } from '../api'
-import { FILE_INFO } from './RouteFiles'
 import { TEMPLATES_URL } from '../utils/consts'
 import { useRendererStatus, useRenderProgress } from '../api/queries'
 import { IconButton } from './material/IconButton'
 import { Timeline } from './Timeline'
 import { saveFile } from '../utils/helpers'
+import { Icon } from './material/Icon'
+
+const FILE_LABELS: Record<FileType, string> = {
+  cameras: 'Road',
+  ecameras: 'Wide',
+  dcameras: 'Driver',
+  qcameras: 'Quantized',
+  logs: 'Full',
+  qlogs: 'Quantized',
+}
 
 const Download = ({ props }: { props: PreviewProps }) => {
   const { data, mutate, reset } = api.renderer.render.useMutation()
@@ -29,6 +38,7 @@ const Download = ({ props }: { props: PreviewProps }) => {
   const loading = data?.body.renderId ? (progress?.progress?.progress ?? true) : false
   return (
     <IconButton
+      title="Download (1st segment only for now)"
       name="download"
       className="ml-auto"
       loading={loading}
@@ -36,16 +46,6 @@ const Download = ({ props }: { props: PreviewProps }) => {
     />
   )
 }
-
-const MenuItem = ({ label, value, onClick }: { label: string; value?: string; onClick: () => void }) => (
-  <div className="flex items-center justify-between px-4 py-3 hover:bg-white/10 cursor-pointer text-sm transition-colors" onClick={onClick}>
-    <span>{label}</span>
-    <div className="flex items-center gap-1 text-white/70">
-      <span>{value}</span>
-      <span className="material-symbols-outlined text-lg">chevron_right</span>
-    </div>
-  </div>
-)
 
 const OptionItem = ({
   label,
@@ -65,25 +65,12 @@ const OptionItem = ({
     )}
     onClick={onClick}
   >
-    <span className={clsx('material-symbols-outlined text-lg', !selected && 'invisible')}>check</span>
+    <Icon name="check" className={clsx('text-lg', !selected && 'invisible')} />
     <span>{label}</span>
   </div>
 )
 
-const SettingsView = ({ title, onBack, children }: { title?: string; onBack?: () => void; children: ReactNode }) => {
-  return (
-    <div className="absolute bottom-10 right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
-      {title && (
-        <div className="flex items-center gap-2 px-2 py-2 border-b border-white/10 mb-1">
-          <IconButton name="arrow_back" size="20" onClick={onBack} />
-          <span className="text-sm font-medium">{title}</span>
-        </div>
-      )}
-      {children}
-    </div>
-  )
-}
-
+const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot UI' }
 const SettingsMenu = ({
   props,
   setProps,
@@ -95,13 +82,42 @@ const SettingsMenu = ({
 }) => {
   const maxLen = files.qlogs.length
   const [view, setView] = useState<'large' | 'small' | 'log'>()
-  const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_INFO[x].short, disabled: files[x].length !== maxLen }))
-  const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_INFO[x].short, disabled: files[x].length !== maxLen }))
+  const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files[x].length !== maxLen }))
+  const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files[x].length !== maxLen }))
+  const onBack = () => setView(undefined)
 
-  if (view === 'large')
-    return (
-      <SettingsView title="Large Camera" onBack={() => setView(undefined)}>
-        {allCameras.map((option) => (
+  const title = view ? TITLES[view] : undefined
+
+  return (
+    <div className="absolute bottom-10 right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
+      {title && (
+        <div className="flex items-center gap-2 px-2 py-2 border-b border-white/10 mb-1">
+          <IconButton title="Back" name="arrow_back" className="text-xl" onClick={onBack} />
+          <span className="text-sm font-medium">{title}</span>
+        </div>
+      )}
+
+      {view === undefined &&
+        [
+          { view: 'large' as const, value: FILE_LABELS[props.largeCameraType] },
+          { view: 'small' as const, value: props.smallCameraType ? FILE_LABELS[props.smallCameraType] : 'Hidden' },
+          { view: 'log' as const, value: props.logType ? FILE_LABELS[props.logType] : 'Hidden' },
+        ].map(({ view, value }) => (
+          <div
+            key={view}
+            className="flex items-center justify-between px-4 py-3 hover:bg-white/10 cursor-pointer text-sm transition-colors"
+            onClick={() => setView(view)}
+          >
+            <span>{TITLES[view]}</span>
+            <div className="flex items-center gap-1 text-white/70">
+              <span>{value}</span>
+              <Icon name="chevron_right" />
+            </div>
+          </div>
+        ))}
+
+      {view === 'large' &&
+        allCameras.map((option) => (
           <OptionItem
             key={option.value}
             label={option.label}
@@ -113,13 +129,9 @@ const SettingsMenu = ({
             }}
           />
         ))}
-      </SettingsView>
-    )
 
-  if (view === 'small')
-    return (
-      <SettingsView title="Small Camera" onBack={() => setView(undefined)}>
-        {[...allCameras, { value: 'none', label: 'Hidden', disabled: false }].map((option) => (
+      {view === 'small' &&
+        [...allCameras, { value: 'none', label: 'Hidden', disabled: false }].map((option) => (
           <OptionItem
             key={option.value}
             label={option.label}
@@ -131,13 +143,9 @@ const SettingsMenu = ({
             }}
           />
         ))}
-      </SettingsView>
-    )
 
-  if (view === 'log')
-    return (
-      <SettingsView title="Logs" onBack={() => setView(undefined)}>
-        {[...allLogs, { value: 'none', label: 'Hidden', disabled: false }].map((option) => (
+      {view === 'log' &&
+        [...allLogs, { value: 'none', label: 'Hidden', disabled: false }].map((option) => (
           <OptionItem
             key={option.value}
             label={option.label}
@@ -149,19 +157,7 @@ const SettingsMenu = ({
             }}
           />
         ))}
-      </SettingsView>
-    )
-
-  return (
-    <SettingsView>
-      <MenuItem label="Large Camera" value={FILE_INFO[props.largeCameraType].short} onClick={() => setView('large')} />
-      <MenuItem
-        label="Small Camera"
-        value={props.smallCameraType ? FILE_INFO[props.smallCameraType].short : 'Hidden'}
-        onClick={() => setView('small')}
-      />
-      <MenuItem label="Log" value={props.logType ? FILE_INFO[props.logType].short : 'Hidden'} onClick={() => setView('log')} />
-    </SettingsView>
+    </div>
   )
 }
 
@@ -231,11 +227,16 @@ const Controls = ({
 
   const seconds = frame / FPS
   return (
-    <div className="absolute inset-0" onClick={() => player?.toggle()}>
+    <div className="absolute inset-0">
+      <div className="absolute inset-0 cursor-pointer" onClick={() => player?.toggle()} />
       <div className="absolute bottom-0 left-0 w-full gap-2 flex flex-col py-4 px-3">
         <div className="flex items-center gap-2 w-full">
-          <IconButton name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
-          <IconButton name={muted ? 'volume_off' : 'volume_up'} onClick={() => (muted ? player?.unmute() : player?.mute())} />
+          <IconButton title={playing ? 'Pause' : 'Play'} name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
+          <IconButton
+            title={muted ? 'Unmute' : 'Mute'}
+            name={muted ? 'volume_off' : 'volume_up'}
+            onClick={() => (muted ? player?.unmute() : player?.mute())}
+          />
           <span className="text-sm ">
             {formatTime(Math.round(seconds))} <span className="hidden md:inline-block">/ {formatTime(duration)}</span>
           </span>
@@ -243,9 +244,10 @@ const Controls = ({
           <Download props={props} />
           <div className="relative" ref={settingsRef}>
             {showSettings && <SettingsMenu props={props} setProps={setProps} files={files} />}
-            <IconButton name="settings" onClick={() => setShowSettings(!showSettings)} />
+            <IconButton title="Settings" name="settings" onClick={() => setShowSettings(!showSettings)} />
           </div>
           <IconButton
+            title={fullscreen ? 'Exit fullscreen' : 'Exit fullscreen'}
             name={fullscreen ? 'fullscreen_exit' : 'fullscreen'}
             onClick={() => (fullscreen ? document.exitFullscreen() : fullscreenRef.current?.requestFullscreen())}
           />

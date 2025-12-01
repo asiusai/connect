@@ -11,6 +11,7 @@ export type ButtonBaseProps = {
   activeClass?: string
   download?: string
   target?: string
+  title?: string
 }
 
 export const ButtonBase = ({ activeClass, href, onClick, ...props }: ButtonBaseProps) => {

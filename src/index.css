@@ -58,30 +58,6 @@
       "FILL" var(--font-filled, 0),
       "OPSZ" var(--font-opsz, 24);
 
-    &.size-20 {
-      --font-opsz: 20;
-      font-size: 20px;
-      max-width: 20px;
-    }
-
-    &.size-24 {
-      --font-opsz: 24;
-      font-size: 24px;
-      max-width: 24px;
-    }
-
-    &.size-40 {
-      --font-opsz: 40;
-      font-size: 40px;
-      max-width: 40px;
-    }
-
-    &.size-48 {
-      --font-opsz: 48;
-      font-size: 48px;
-      max-width: 48px;
-    }
-
     &.icon-outline {
       --font-filled: 0;
     }

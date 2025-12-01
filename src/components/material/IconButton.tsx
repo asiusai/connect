@@ -7,31 +7,23 @@ import { Icon, IconName, IconProps } from './Icon'
 type IconButtonProps = Omit<ButtonBaseProps, 'children'> & {
   name: IconName
   filled?: IconProps['filled']
-  size?: IconProps['size']
   loading?: number | boolean
+  title: string
 }
 
-export const IconButton = ({ className, filled, size = '24', loading, ...props }: IconButtonProps) => {
-  const buttonSize = {
-    '20': 'w-[28px] h-[28px] min-w-[28px] min-h-[28px]',
-    '24': 'w-[32px] h-[32px] min-w-[32px] min-h-[32px]',
-    '40': 'w-[48px] h-[48px] min-w-[48px] min-h-[48px]',
-    '48': 'w-[56px] h-[56px] min-w-[56px] min-h-[56px]',
-  }[size]
-
+export const IconButton = ({ className, filled, loading, ...props }: IconButtonProps) => {
   const isLoading = !!loading || loading === 0
 
   return (
     <ButtonBase
       className={clsx(
-        'state-layer inline-flex items-center justify-center rounded-full before:rounded-full before:bg-background-x',
-        buttonSize,
+        'state-layer inline-flex items-center justify-center rounded-full before:rounded-full before:bg-background-x min-w-[32px] min-h-[32px]',
         className,
       )}
       disabled={isLoading || props.disabled}
       {...props}
     >
-      {isLoading ? <CircularProgress size={size} loading={loading} /> : <Icon name={props.name} filled={filled} size={size} />}
+      {isLoading ? <CircularProgress loading={loading} /> : <Icon name={props.name} filled={filled} />}
     </ButtonBase>
   )
 }

@@ -72,7 +72,6 @@ export type IconProps = {
   className?: string
   name: IconName
   filled?: boolean
-  size?: '20' | '24' | '40' | '48'
   onClick?: () => void
 }
 
@@ -90,7 +89,7 @@ export const Icon = (props: IconProps) => {
       className={clsx(
         'material-symbols-outlined flex',
         props.filled ? 'icon-filled' : 'icon-outline',
-        `size-${props.size || '24'}`,
+
         props.className,
       )}
     >

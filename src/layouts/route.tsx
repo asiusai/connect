@@ -10,7 +10,7 @@ const RouteNotFound = () => {
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-background text-background-x">
       <div className="flex flex-col items-center gap-2">
-        <Icon name="error" size="48" className="text-error" />
+        <Icon name="error" className="text-error text-5xl" />
         <h1 className="flex flex-col items-center text-center text-2xl font-bold text-primary">Route {routeName} not found!</h1>
         <p className="text-secondary-alt-x">The route you are looking for does not exist or has been made private.</p>
       </div>

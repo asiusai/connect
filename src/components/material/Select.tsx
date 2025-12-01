@@ -33,7 +33,7 @@ export const Select = <T extends string>({
         ))}
       </select>
       <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-background-alt-x">
-        <Icon name="keyboard_arrow_down" size="20" />
+        <Icon name="keyboard_arrow_down" className="text-xl" />
       </div>
     </div>
   )

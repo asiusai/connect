@@ -49,7 +49,7 @@ const DeviceList = ({ close }: { close: () => void }) => {
       <div className="flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-2 cursor-pointer" onClick={close}>
           <h2 className="text-2xl font-bold">Devices</h2>
-          <Icon name="keyboard_arrow_up" size="20" />
+          <Icon name="keyboard_arrow_up" className="text-xl" />
         </div>
       </div>
 
@@ -78,7 +78,7 @@ const DeviceList = ({ close }: { close: () => void }) => {
             navigate('/pair')
           }}
         >
-          <Icon name="add" size="20" />
+          <Icon name="add" className="text-xl" />
           <span className="font-medium text-sm">Pair device</span>
         </div>
       </div>
@@ -174,7 +174,7 @@ const UserMenu = () => {
           <div className="absolute top-full right-0 mt-2 bg-background rounded-md shadow-xl z-20 text-background-x overflow-hidden min-w-[180px] animate-in fade-in zoom-in-95 duration-200 p-1 flex flex-col gap-1">
             <span className="text-xs font-medium truncate block px-3 py-2">{profile.email}</span>
             <ButtonBase href="/logout" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-background-alt text-error">
-              <Icon name="logout" size="20" />
+              <Icon name="logout" className="text-xl" />
               <span className="font-medium text-xs">Log out</span>
             </ButtonBase>
           </div>
@@ -209,7 +209,7 @@ const ActionBar = () => {
           disabled={!href}
           className="flex pointer-events-auto items-center justify-center w-12 h-12 rounded-full bg-background-alt hover:bg-background shadow-md transition-all border border-white/5"
         >
-          <Icon name={name as any} className="text-background-x" size="24" />
+          <Icon name={name as any} className="text-background-x text-2xl" />
         </ButtonBase>
       ))}
     </div>
