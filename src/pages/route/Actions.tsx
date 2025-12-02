@@ -5,9 +5,8 @@ import clsx from 'clsx'
 import { usePreservedRoutes, useProfile } from '../../api/queries'
 import { api } from '../../api'
 
-const useIsPreserved = (route: Route) => {
-  const [profile] = useProfile()
-  const [preserved] = usePreservedRoutes(route.dongle_id, route.user_id === profile?.id)
+const useIsPreserved = (route: Route, isOwner: boolean) => {
+  const [preserved] = usePreservedRoutes(route.dongle_id, isOwner)
   const [isPreserved, setIsPreserved] = useState<boolean>()
   useEffect(() => setIsPreserved(preserved ? preserved.some((p) => p.fullname === route.fullname) : undefined), [preserved, route.fullname])
   return [
@@ -60,7 +59,9 @@ const ActionButton = ({
 )
 
 export const Actions = ({ route, className }: { route: Route; className?: string }) => {
-  const [isPreserved, setIsPreserved] = useIsPreserved(route)
+  const [profile] = useProfile()
+  const isOwner = !!profile && route.user_id === profile?.id
+  const [isPreserved, setIsPreserved] = useIsPreserved(route, isOwner)
   const [isPublic, setIsPublic] = useIsPublic(route)
   const [copied, setCopied] = useState(false)
 
@@ -78,13 +79,14 @@ export const Actions = ({ route, className }: { route: Route; className?: string
         label={isPreserved ? 'Preserved' : 'Preserve'}
         active={isPreserved}
         onClick={() => setIsPreserved(!isPreserved)}
-        disabled={isPreserved === undefined}
+        disabled={!isOwner}
       />
       <ActionButton
         icon={isPublic ? 'public' : 'public_off'}
         label={isPublic ? 'Public' : 'Private'}
         active={isPublic}
         onClick={() => setIsPublic(!isPublic)}
+        disabled={!isOwner}
       />
       <ActionButton icon={copied ? 'check' : 'share'} label={copied ? 'Copied' : 'Share'} onClick={handleShare} />
     </div>
