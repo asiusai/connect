@@ -108,7 +108,7 @@ const router = createBrowserRouter([
           },
           {
             path: '',
-            lazy: () => import('./pages/device'),
+            lazy: () => import('./pages/device/index'),
           },
         ],
       },

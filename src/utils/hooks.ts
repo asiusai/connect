@@ -1,5 +1,4 @@
-import { PlayerRef } from '@remotion/player'
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams as useParamsRouter } from 'react-router-dom'
 
 type Dimensions = { width: number; height: number }
