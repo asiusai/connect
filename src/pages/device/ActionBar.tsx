@@ -9,8 +9,8 @@ export const ActionBar = ({ className }: { className?: string }) => {
     <div className={clsx('grid grid-cols-4 gap-2', className)}>
       {[
         { name: 'power_settings_new', label: 'Shutdown' },
-        { name: 'home', label: 'Navigate to Home' },
-        { name: 'work', label: 'Navigate to Work' },
+        { name: 'lock', label: 'Lock car' },
+        { name: 'heat', label: 'Heat car' },
         { name: 'camera', label: 'Take snapshot', href: `/${dongleId}/sentry?instant=1` },
       ].map(({ label, name, href }) => (
         <ButtonBase

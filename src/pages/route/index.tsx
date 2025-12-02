@@ -57,7 +57,7 @@ export const Component = () => {
         <Stats route={route} className="md:order-3" />
         <Actions route={route} className="md:order-5" />
         <RouteFiles route={route} className="md:col-span-2 md:row-span-3 md:order-4" />
-        <StaticMap route={route} className="md:row-span-4 md:order-2" />
+        <StaticMap route={route} className="md:row-span-3 md:order-2" />
         <Info route={route} className="md:order-6" />
       </div>
     </div>

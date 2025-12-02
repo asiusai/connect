@@ -47,12 +47,12 @@ export const Navigation = ({ className }: { className?: string }) => {
           href={href}
           disabled={!href}
           className={clsx(
-            'flex md:flex-row bg-background-alt md:bg-transparent items-center p-4 gap-4 md:gap-3 md:px-3 md:py-2  rounded-lg transition-colors md:text-sm font-medium',
+            'flex md:flex-row bg-background-alt md:bg-transparent items-center p-4 gap-4 md:gap-3 md:px-3 md:py-2  rounded-lg transition-colors font-medium',
             href && 'hover:bg-white/10 text-white',
             title === 'Home' && 'hidden md:flex',
           )}
         >
-          <Icon name={icon as any} className={clsx('text-xl md:text-lg', color)} />
+          <Icon name={icon as any} className={clsx('text-xl md:text-2xl', color)} />
           <span>{title}</span>
         </ButtonBase>
       ))}
