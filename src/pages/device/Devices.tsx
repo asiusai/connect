@@ -1,10 +1,10 @@
-import clsx from "clsx";
-import { useNavigate, useParams } from "react-router-dom";
-import { useDevices } from "../../api/queries";
-import { Device, getDeviceName, getCommaName } from "../../types";
-import { timeAgo } from "../../utils/format";
-import { storage } from "../../utils/helpers";
-import { Icon } from "../../components/Icon";
+import clsx from 'clsx'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useDevices } from '../../api/queries'
+import { Device, getDeviceName, getCommaName } from '../../types'
+import { timeAgo } from '../../utils/format'
+import { storage } from '../../utils/helpers'
+import { Icon } from '../../components/Icon'
 
 export const Active = ({ device, className }: { device: Device; className?: string }) => {
   return (

@@ -1,64 +1,19 @@
 import { RouteFiles } from '../../components/RouteFiles'
 import { RouteVideoPlayer } from '../../components/VideoPlayer'
-import { useFiles, useProfile, useRoute } from '../../api/queries'
+import { useProfile, useRoute } from '../../api/queries'
 import { useEffect, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
 import { Route } from '../../types'
 import { useParams } from '../../utils/hooks'
-import { Icon } from '../../components/Icon'
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
-import clsx from 'clsx'
 import { callAthena } from '../../api/athena'
 import { getPlaceName } from '../../utils/map'
 import { StaticMap } from './StaticMap'
 import { Stats } from './Stats'
 import { Actions } from './Actions'
 import { formatDate } from '../../utils/format'
-
-const DetailRow = ({
-  label,
-  value,
-  mono,
-  copyable,
-}: {
-  label: string
-  value: string | null | undefined
-  mono?: boolean
-  copyable?: boolean
-}) => {
-  const [copied, setCopied] = useState(false)
-
-  if (!value) return null
-
-  const handleCopy = () => {
-    if (!copyable) return
-    navigator.clipboard.writeText(value)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  return (
-    <div
-      className={clsx(
-        'flex items-center justify-between py-2 border-b border-white/5 last:border-0 gap-4',
-        copyable && 'cursor-pointer hover:bg-white/5 -mx-2 px-2 transition-colors rounded-lg',
-      )}
-      onClick={handleCopy}
-    >
-      <span className="text-sm text-white/60 shrink-0">{label}</span>
-      <div className="flex items-center gap-2 min-w-0 justify-end">
-        <span className={clsx('font-medium text-white truncate', mono ? 'font-mono text-xs' : 'text-sm')}>{value}</span>
-        {copyable && (
-          <Icon
-            name={copied ? 'check' : 'file_copy'}
-            className={clsx('text-[14px] shrink-0', copied ? 'text-green-400' : 'text-white/20')}
-          />
-        )}
-      </div>
-    </div>
-  )
-}
+import { DetailRow } from '../../components/DetailRow'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
