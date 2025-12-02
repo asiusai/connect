@@ -47,28 +47,14 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <div className="md:hidden">
-        <TopAppBar leading={<BackButton fallback={`/${route.dongle_id}`} />}>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold leading-tight">{title}</span>
-            <span className="text-xs font-medium text-white/60 leading-tight">{formatDate(route.start_time!)}</span>
-          </div>
-        </TopAppBar>
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden md:flex items-center gap-4 px-8 py-6">
-        <BackButton fallback={`/${route.dongle_id}`} />
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <span className="text-sm font-medium text-white/60">{formatDate(route.start_time!)}</span>
-        </div>
-      </div>
+      <TopAppBar leading={<BackButton fallback={`/${route.dongle_id}`} />}>
+        <span>{title}</span>
+        <span className="text-xs md:text-sm font-medium text-white/60">{formatDate(route.start_time!)}</span>
+      </TopAppBar>
 
       <div className="flex flex-col gap-6 px-4 md:px-8 py-4 pb-10 max-w-7xl w-full">
-        <div className="lg:grid lg:grid-cols-3 lg:gap-6 flex flex-col gap-6">
-          {/* Left Column */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className="md:grid md:grid-cols-3 md:gap-6 flex flex-col gap-6">
+          <div className="md:col-span-2 flex flex-col gap-6">
             {/* Video Player */}
             <div className="overflow-hidden rounded-xl shadow-lg bg-black">
               <RouteVideoPlayer playerRef={playerRef} />
@@ -81,8 +67,7 @@ export const Component = () => {
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className="lg:col-span-1 flex flex-col gap-6">
+          <div className="md:col-span-1 flex flex-col gap-6">
             {/* Map */}
             <div className="aspect-square overflow-hidden rounded-2xl shadow-lg">
               <StaticMap route={route} />
