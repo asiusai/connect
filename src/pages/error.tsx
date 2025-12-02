@@ -39,9 +39,7 @@ export const ErrorPage = () => {
       {(error instanceof Error || typeof error === 'object') && (
         <div className="mt-8 w-full max-w-2xl overflow-hidden rounded-lg bg-background-alt p-4 text-left">
           <p className="mb-2 text-sm font-medium text-muted-foreground">Error Details:</p>
-          <pre className="overflow-auto text-xs text-red-400">
-            {error instanceof Error ? error.stack : JSON.stringify(error, null, 2)}
-          </pre>
+          <pre className="overflow-auto text-xs text-red-400">{error instanceof Error ? error.stack : JSON.stringify(error, null, 2)}</pre>
         </div>
       )}
     </div>

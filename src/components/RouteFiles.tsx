@@ -201,11 +201,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
 
   if (type === 'logs' || type === 'qlogs')
     return (
-      <FileAction
-        label={FILE_INFO[type].processed || 'View'}
-        icon="open_in_new"
-        href={`/${dongleId}/${date}/${type}?segment=${segment}`}
-      />
+      <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}?segment=${segment}`} />
     )
 
   return (
