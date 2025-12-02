@@ -7,7 +7,7 @@ import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
 import { useParams } from '../utils/hooks'
-import { Icon } from './material/Icon'
+import { Icon } from './Icon'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline

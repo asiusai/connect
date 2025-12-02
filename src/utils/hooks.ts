@@ -42,23 +42,3 @@ export const useAsyncMemo: UseAsyncMemo = <T>(fn: () => Promise<T>, deps: any[],
 
   return state as T
 }
-
-export const useCurrentPlayerFrame = (ref: React.RefObject<PlayerRef | null>) => {
-  const subscribe = useCallback(
-    (onStoreChange: () => void) => {
-      const { current } = ref
-      if (!current) return () => undefined
-      current.addEventListener('frameupdate', onStoreChange)
-      return () => current.removeEventListener('frameupdate', onStoreChange)
-    },
-    [ref],
-  )
-
-  const data = useSyncExternalStore<number>(
-    subscribe,
-    () => ref.current?.getCurrentFrame() ?? 0,
-    () => 0,
-  )
-
-  return data
-}

@@ -1,4 +1,4 @@
-import { Button } from '../components/material/Button'
+import { Button } from '../components/Button'
 
 export const OfflinePage = () => {
   return (

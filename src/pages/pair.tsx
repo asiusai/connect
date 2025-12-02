@@ -1,9 +1,9 @@
 import QrScanner from 'qr-scanner'
 
-import { ButtonBase } from '../components/material/ButtonBase'
-import { Icon } from '../components/material/Icon'
-import { TopAppBar } from '../components/material/TopAppBar'
-import { BackButton } from '../components/material/BackButton'
+import { ButtonBase } from '../components/ButtonBase'
+import { Icon } from '../components/Icon'
+import { TopAppBar } from '../components/TopAppBar'
+import { BackButton } from '../components/BackButton'
 
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'

@@ -1,20 +1,73 @@
 import clsx from 'clsx'
 
-import { ButtonBase } from '../components/material/ButtonBase'
-import { Icon } from '../components/material/Icon'
-import { DeviceLocation } from '../components/DeviceLocation'
-import { DeviceList, Active } from '../components/DeviceList'
-import { DriveList } from '../components/DriveList'
-import { UserMenu } from '../components/UserMenu'
-
-import { Loading } from '../components/material/Loading'
-import { getDeviceName } from '../types'
-import { formatDistance, formatDuration } from '../utils/format'
+import { ButtonBase } from '../components/ButtonBase'
+import { Icon } from '../components/Icon'
+import { Loading } from '../components/Loading'
+import { Device, getDeviceName } from '../types'
+import { dateTimeToColorBetween, formatDistance, formatDuration } from '../utils/format'
 import { useEffect, useState } from 'react'
 import { useDevice, useRoutes, useStats } from '../api/queries'
 import { callAthena } from '../api/athena'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { Slider } from '../components/material/Slider'
+import { Slider } from '../components/Slider'
+import { useProfile } from '../api/queries'
+import type { IconName } from '../components/Icon'
+import { getFullAddress, getTileUrl } from '../utils/map'
+import L from 'leaflet'
+import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
+import { useDeviceLocation } from '../api/queries'
+import { useCallback } from '../../build/bundle'
+import { IconButton } from '../components/IconButton'
+import { Active, DeviceList } from '../components/Sidebar'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+import { Fragment } from 'react'
+import { api } from '../api'
+import { usePreservedRoutes } from '../api/queries'
+import { Route } from '../types'
+import { Link } from 'react-router-dom'
+import { getPlaceName } from '../utils/map'
+import { Button } from '../components/Button'
+
+const UserMenu = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const open = searchParams.get('user') === 'true'
+  const [profile] = useProfile()
+
+  const toggleOpen = () => setSearchParams(!open ? { user: 'true' } : {})
+
+  if (!profile) return null
+  return (
+    <div className="relative">
+      <div
+        className="flex items-center justify-center w-10 h-10 bg-background backdrop-blur-md rounded-full border border-white/10 cursor-pointer hover:bg-background/80 transition-colors"
+        onClick={toggleOpen}
+      >
+        <Icon name="person" filled className="text-white" />
+      </div>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={toggleOpen} />
+          <div className="absolute top-full right-0 mt-2 bg-background-alt border border-white/5 rounded-xl shadow-xl z-20 overflow-hidden min-w-[200px] animate-in fade-in zoom-in-95 duration-200 p-1 flex flex-col gap-1">
+            <div className="px-3 py-2 border-b border-white/5 mb-1">
+              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Signed in as</span>
+              <span className="text-sm font-medium truncate block text-white">{profile.email}</span>
+            </div>
+            <ButtonBase
+              href="/logout"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 text-red-400 transition-colors"
+            >
+              <Icon name="logout" className="text-lg" />
+              <span className="font-medium text-sm">Log out</span>
+            </ButtonBase>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 const Buttons = ({ dongleId }: { dongleId: string }) => {
   return (
@@ -199,6 +252,267 @@ const Info = ({ dongleId }: { dongleId: string }) => {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+type Location = {
+  lat: number
+  lng: number
+  label: string
+  address: string | null
+  iconName: IconName
+  iconClass?: string
+}
+
+const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
+
+const usePosition = () => {
+  const [position, setPosition] = useState<GeolocationPosition | null>(null)
+
+  const requestPosition = useCallback(() => {
+    navigator.geolocation.getCurrentPosition(setPosition, (err) => {
+      console.log("Error getting user's position", err)
+      setPosition(null)
+    })
+  }, [])
+
+  useEffect(() => {
+    navigator.permissions
+      .query({ name: 'geolocation' })
+      .then((permission) => {
+        permission.addEventListener('change', requestPosition)
+
+        if (permission.state === 'granted') requestPosition()
+      })
+      .catch(() => setPosition(null))
+  }, [requestPosition])
+  return { position, requestPosition }
+}
+
+const FitBounds = ({ markers }: { markers: Location[] }) => {
+  const map = useMap()
+  useEffect(() => {
+    if (!markers.length) return
+
+    const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]))
+    map.fitBounds(bounds, { padding: [50, 50], animate: true })
+  }, [markers, map])
+
+  return null
+}
+
+export const DeviceLocation = ({ dongleId, device, className }: { dongleId: string; device: Device; className?: string }) => {
+  const { position, requestPosition } = usePosition()
+  const [markers, setMarkers] = useState<Location[]>([])
+  const [location] = useDeviceLocation(dongleId)
+
+  useEffect(() => {
+    const effect = async () => {
+      const markers: Location[] = []
+      if (location) {
+        markers.push({
+          address: await getFullAddress([location.lng, location.lat]),
+          lat: location.lat,
+          lng: location.lng,
+          label: getDeviceName(device),
+          iconName: 'directions_car',
+        })
+      }
+      if (position) {
+        markers.push({
+          address: await getFullAddress([position.coords.longitude, position.coords.latitude]),
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          label: 'You',
+          iconName: 'person',
+          iconClass: 'bg-primary',
+        })
+      }
+      setMarkers(markers)
+    }
+    effect()
+  }, [position, device, location])
+
+  return (
+    <div className={clsx(className)}>
+      <MapContainer
+        attributionControl={false}
+        zoomControl={false}
+        center={SAN_DIEGO}
+        zoom={10}
+        className="h-full w-full !bg-background-alt"
+      >
+        <TileLayer url={getTileUrl()} />
+
+        {markers.map((x) => (
+          <Marker
+            key={x.iconName}
+            position={[x.lat, x.lng]}
+            eventHandlers={{
+              click: () => {
+                window.open(`https://www.google.com/maps?q=${x!.lat},${x!.lng}`, '_blank')
+              },
+            }}
+            icon={L.divIcon({
+              className: 'border-none bg-none',
+              html: `<div class="flex size-[40px] items-center justify-center rounded-full bg-primary-alt ${x.iconClass}"><span class="material-symbols-outlined flex icon-outline">${x.iconName}</span></div>`,
+              iconSize: [40, 40],
+              iconAnchor: [20, 20],
+            })}
+          />
+        ))}
+        <FitBounds markers={markers} />
+      </MapContainer>
+      {!position && (
+        <IconButton
+          name="my_location"
+          title="Request location"
+          className="absolute bottom-4 right-2 bg-background p-2 z-[999]"
+          onClick={() => requestPosition()}
+        />
+      )}
+      {!markers.length && (
+        <div className="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-background-alt px-4 py-2 shadow">
+          <div className="mr-2 size-4 animate-spin rounded-full border-2 border-background-alt-x border-t-transparent" />
+          <span className="text-sm">Locating...</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
+const PAGE_SIZE = 10
+
+const getDayHeader = (route: Route) => {
+  const date = dayjs.utc(route.start_time).local()
+  if (date.isSame(dayjs(), 'day')) return `Today – ${date.format('dddd, MMM D')}`
+  else if (date.isSame(dayjs().subtract(1, 'day'), 'day')) return `Yesterday – ${date.format('dddd, MMM D')}`
+  else if (date.year() === dayjs().year()) return date.format('dddd, MMM D')
+  else return date.format('dddd, MMM D, YYYY')
+}
+
+const getLocation = async (route: Route) => {
+  const startPos = [route.start_lng || 0, route.start_lat || 0]
+  const endPos = [route.end_lng || 0, route.end_lat || 0]
+  const startPlace = await getPlaceName(startPos)
+  const endPlace = await getPlaceName(endPos)
+  if (!startPlace && !endPlace) return ''
+  if (!endPlace || startPlace === endPlace) return startPlace
+  if (!startPlace) return endPlace
+  return `${startPlace} to ${endPlace}`
+}
+
+const RouteCard = ({ route }: { route: Route }) => {
+  const startTime = dayjs.utc(route.start_time).local()
+  const endTime = dayjs.utc(route.end_time).local()
+  const color = dateTimeToColorBetween(startTime.toDate(), endTime.toDate(), [30, 57, 138], [218, 161, 28])
+
+  const [location, setLocation] = useState<string | null>(null)
+  useEffect(() => void getLocation(route).then(setLocation), [route])
+
+  const duration = endTime.diff(startTime)
+  const durationStr = formatDuration(duration / (60 * 1000))
+  const distanceStr = formatDistance(route.distance)
+
+  return (
+    <Link
+      to={`/${route.dongle_id}/routes/${route.fullname.slice(17)}`}
+      className="group relative flex flex-col gap-3 overflow-hidden rounded-xl bg-background-alt p-4 shadow-sm transition-all hover:bg-background-alt/80 active:scale-[0.99]"
+    >
+      {/* Color Indicator */}
+      <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color }} />
+
+      <div className="flex flex-col gap-1 pl-3">
+        {/* Time and Duration */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-base font-semibold text-white">
+            <span>{startTime.format('h:mm A')}</span>
+            <span className="text-white/40 text-sm font-normal">•</span>
+            <span>{endTime.format('h:mm A')}</span>
+          </div>
+          <div className="text-xs font-medium text-white/60 bg-white/10 px-2 py-0.5 rounded-full">{durationStr}</div>
+        </div>
+
+        {/* Location */}
+        <div className="flex items-start gap-2 min-h-[24px]">
+          <Icon name="location_on" className="mt-0.5 text-[16px] text-white/40 shrink-0" />
+          <span className="text-sm font-medium text-white/80 leading-snug line-clamp-2">{location || 'Loading location...'}</span>
+        </div>
+
+        {/* Footer / Stats */}
+        <div className="mt-2 flex items-center gap-4 border-t border-white/5 pt-3">
+          <div className="flex items-center gap-1.5">
+            <Icon name="directions_car" className="text-[16px] text-white/40" />
+            <span className="text-xs font-medium text-white/70">{distanceStr}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Icon name={route.is_public ? 'public' : 'public_off'} className="text-[16px] text-white/40" />
+            <span className="text-xs font-medium text-white/70">{route.is_public ? 'Public' : 'Private'}</span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+export const DriveList = ({ dongleId, className }: { dongleId: string; className?: string }) => {
+  const [preserved] = usePreservedRoutes(dongleId)
+  const query = api.routes.allRoutes.useInfiniteQuery({
+    queryKey: ['allRoutes', dongleId],
+    queryData: ({ pageParam }) => ({ query: pageParam as any, params: { dongleId } }),
+    initialPageParam: { created_before: undefined, limit: PAGE_SIZE },
+    getNextPageParam: (lastPage: any) => {
+      if (lastPage.body.length !== PAGE_SIZE) return undefined
+      return { created_before: lastPage.body[lastPage.body.length - 1].create_time, limit: PAGE_SIZE }
+    },
+  })
+
+  let prevDayHeader: string | null = null
+
+  const [params, setParams] = useSearchParams()
+  const show = params.has('preserved') ? 'preserved' : 'all'
+
+  const routes = show === 'all' ? query.data?.pages.flatMap((x) => x.body) : preserved
+  const hasNextPage = show === 'all' ? query.hasNextPage : false
+
+  return (
+    <div className={`relative flex flex-col gap-4 ${className || ''}`}>
+      <div className="flex items-center justify-between px-2">
+        <h2 className="text-xl font-bold">Drives</h2>
+        <Slider
+          options={{ all: 'All', preserved: 'Preserved' }}
+          value={show}
+          onChange={(val) => setParams(val === 'all' ? undefined : { preserved: 'true' }, { replace: true })}
+        />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {routes?.map((route) => {
+          let dayHeader: string | null = getDayHeader(route)
+
+          if (dayHeader === prevDayHeader) dayHeader = null
+          else prevDayHeader = dayHeader
+          return (
+            <Fragment key={`${route.id}-${route.start_time}`}>
+              {dayHeader && (
+                <div className="pt-4 pb-2 px-2">
+                  <h2 className="text-sm font-bold text-white/60">{dayHeader}</h2>
+                </div>
+              )}
+              <RouteCard route={route} />
+            </Fragment>
+          )
+        })}
+      </div>
+      {hasNextPage && (
+        <div className="py-8 flex justify-center col-span-full">
+          <Button onClick={() => query.fetchNextPage()}>Load more</Button>
+        </div>
+      )}
     </div>
   )
 }

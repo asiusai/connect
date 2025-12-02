@@ -1,7 +1,7 @@
 import { useProfile } from '../api/queries'
-import { ButtonBase } from '../components/material/ButtonBase'
-import { Icon } from '../components/material/Icon'
-import { TopAppBar } from '../components/material/TopAppBar'
+import { ButtonBase } from '../components/ButtonBase'
+import { Icon } from '../components/Icon'
+import { TopAppBar } from '../components/TopAppBar'
 
 export const Component = () => {
   const [profile] = useProfile()

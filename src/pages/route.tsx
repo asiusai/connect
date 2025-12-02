@@ -1,20 +1,23 @@
 import { dayjs } from '../utils/format'
-import { RouteStatisticsBar } from '../components/RouteStatisticsBar'
 import { RouteFiles } from '../components/RouteFiles'
-import { RouteVideoPlayer } from '../components/RouteVideoPlayer'
+import { RouteVideoPlayer } from '../components/VideoPlayer'
 import { useFiles, usePreservedRoutes, useProfile, useRoute } from '../api/queries'
 import { useEffect, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
 import { api } from '../api'
 import { Route } from '../types'
 import { useParams } from '../utils/hooks'
-import { Icon } from '../components/material/Icon'
-import { TopAppBar } from '../components/material/TopAppBar'
-import { BackButton } from '../components/material/BackButton'
+import { Icon } from '../components/Icon'
+import { TopAppBar } from '../components/TopAppBar'
+import { BackButton } from '../components/BackButton'
 import clsx from 'clsx'
 import { callAthena } from '../api/athena'
-import { RouteStaticMap } from '../components/RouteStaticMap'
 import { getPlaceName } from '../utils/map'
+import { generateRouteStatistics, getTimelineEvents, type RouteStatistics } from '../utils/derived'
+import { formatDistance, formatDuration, formatRouteDuration } from '../utils/format'
+import { getCoords } from '../utils/derived'
+import { Coord, getPathStaticMapUrl } from '../utils/map'
+import { Loading } from '../components/Loading'
 
 const formatDate = (date: string) => dayjs(date).format('ddd, MMM D, YYYY h:mm A')
 
@@ -43,6 +46,66 @@ const useIsPublic = (route: Route) => {
       setIsPublic(isPublic)
     },
   ] as const
+}
+
+const formatEngagement = (stats?: RouteStatistics) =>
+  !stats?.routeDurationMs ? undefined : `${(100 * (stats.engagedDurationMs / stats.routeDurationMs)).toFixed(0)}%`
+
+const useTimelineEvents = (route: Route) => {
+  const [stats, setStats] = useState<RouteStatistics>()
+  useEffect(() => {
+    getTimelineEvents(route).then((x) => setStats(generateRouteStatistics(route, x)))
+  }, [route])
+  return stats
+}
+
+const RouteStaticMap = ({ route, className }: { className?: string; route?: Route }) => {
+  const [image, setImage] = useState<string>()
+
+  useEffect(() => {
+    if (!route) return
+    const fn = async () => {
+      const coords = await getCoords(route)
+      if (!coords.length) return
+      const paths: Coord[] = coords.map(({ lng, lat }) => [lng, lat])
+      const url = getPathStaticMapUrl('dark', paths, 512, 512, true)
+      const image = await new Promise<string>((resolve, reject) => {
+        const image = new Image()
+        image.src = url
+        image.onload = () => resolve(url)
+        image.onerror = (error) => reject(new Error('Failed to load image', { cause: error }))
+      })
+      setImage(image)
+    }
+    fn()
+  }, [route])
+
+  return (
+    <div className={clsx('relative isolate flex h-full flex-col justify-end self-stretch bg-surface text-background-x', className)}>
+      {image ? <img className="pointer-events-none size-full object-cover" src={image} /> : <Loading className="size-full" />}
+    </div>
+  )
+}
+
+export const RouteStatisticsBar = ({ className, route }: { className?: string; route: Route }) => {
+  const stats = useTimelineEvents(route)
+
+  return (
+    <div className="flex flex-col">
+      <div className={clsx('flex h-auto w-full justify-between gap-8', className)}>
+        {[
+          { label: 'Distance', value: formatDistance(route?.distance) },
+          { label: 'Duration', value: stats ? formatDuration(stats.routeDurationMs / (60 * 1000)) : formatRouteDuration(route) },
+          { label: 'Engaged', value: formatEngagement(stats) },
+        ]?.map((stat) => (
+          <div key={stat.label} className="flex basis-0 grow flex-col justify-between">
+            <span className="text-sm text-background-alt-x">{stat.label}</span>
+            <span className="font-mono text-sm">{stat.value?.toString() ?? '—'}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 const ActionButton = ({

@@ -5,11 +5,11 @@ import { toast } from 'sonner'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import clsx from 'clsx'
 import { HEIGHT, WIDTH } from '../../templates/shared'
-import { Loading } from '../components/material/Loading'
-import { ButtonBase } from '../components/material/ButtonBase'
-import { Icon } from '../components/material/Icon'
-import { TopAppBar } from '../components/material/TopAppBar'
-import { BackButton } from '../components/material/BackButton'
+import { Loading } from '../components/Loading'
+import { ButtonBase } from '../components/ButtonBase'
+import { Icon } from '../components/Icon'
+import { TopAppBar } from '../components/TopAppBar'
+import { BackButton } from '../components/BackButton'
 
 export const Component = () => {
   const { dongleId } = useParams()
