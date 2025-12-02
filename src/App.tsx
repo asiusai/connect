@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { OfflinePage } from './pages/offline'
+import { ErrorPage } from './pages/error'
 import { QueryClientProvider } from '@tanstack/react-query'
 
 import 'leaflet/dist/leaflet.css'
@@ -40,28 +41,34 @@ const router = createBrowserRouter([
   {
     path: 'login',
     lazy: () => import('./pages/login'),
+    errorElement: <ErrorPage />,
   },
   {
     path: 'demo',
     lazy: () => import('./pages/demo'),
+    errorElement: <ErrorPage />,
   },
   {
     path: 'logout',
     lazy: () => import('./pages/logout'),
+    errorElement: <ErrorPage />,
   },
   {
     path: 'auth',
     lazy: () => import('./pages/auth'),
+    errorElement: <ErrorPage />,
   },
   {
     path: 'test',
     lazy: () => import('./pages/test'),
+    errorElement: <ErrorPage />,
   },
 
   // Route pages
   {
-    path: ':dongleId/routes/:date',
+    path: ':dongleId/:date',
     lazy: () => import('./layouts/route'),
+    errorElement: <ErrorPage />,
     children: [
       {
         path: '',
@@ -82,6 +89,7 @@ const router = createBrowserRouter([
   {
     path: '',
     lazy: () => import('./layouts/authorized'),
+    errorElement: <ErrorPage />,
     children: [
       {
         path: 'pair',

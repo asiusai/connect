@@ -249,7 +249,7 @@ const Controls = ({
             onClick={() => (muted ? player?.unmute() : player?.mute())}
           />
           <span className="text-sm ">
-            {formatTime(Math.round(seconds))} <span className="hidden md:inline-block">/ {formatTime(duration)}</span>
+            {formatTime(Math.round(seconds))} / {formatTime(duration)}
           </span>
 
           <Download props={props} />

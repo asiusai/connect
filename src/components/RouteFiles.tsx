@@ -160,7 +160,7 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
   if (files[type].length !== totalSegments) return null
 
   if (type === 'logs' || type === 'qlogs')
-    return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/routes/${date}/${type}`} />
+    return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}`} />
 
   if (type === 'qcameras') return null
 
@@ -204,7 +204,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
       <FileAction
         label={FILE_INFO[type].processed || 'View'}
         icon="open_in_new"
-        href={`/${dongleId}/routes/${date}/${type}?segment=${segment}`}
+        href={`/${dongleId}/${date}/${type}?segment=${segment}`}
       />
     )
 

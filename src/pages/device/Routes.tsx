@@ -38,7 +38,7 @@ const RouteCard = ({ route }: { route: Route }) => {
 
   return (
     <Link
-      to={`/${route.dongle_id}/routes/${route.fullname.slice(17)}`}
+      to={`/${route.dongle_id}/${route.fullname.slice(17)}`}
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl bg-background-alt p-4 shadow-sm transition-all hover:bg-background-alt/80 active:scale-[0.99]"
     >
       {/* Color Indicator */}

@@ -13,11 +13,11 @@ type ButtonProps = ButtonBaseProps & {
 }
 
 const BUTTON_CLASSES = {
-  text: 'text-primary before:bg-primary-x',
-  primary: 'bg-primary before:bg-primary-x text-primary-x',
-  secondary: 'bg-secondary before:bg-secondary-x text-secondary-x',
-  tertiary: 'bg-tertiary before:bg-tertiary-x text-tertiary-x',
-  error: 'bg-error before:bg-error-x text-error-x',
+  text: 'text-white hover:bg-white/10',
+  primary: 'bg-white text-black hover:bg-white/90',
+  secondary: 'bg-white/10 text-white hover:bg-white/20',
+  tertiary: 'bg-transparent text-white border border-white/20 hover:bg-white/10',
+  error: 'bg-red-500 text-white hover:bg-red-600',
 }
 
 export const Button = ({ color, leading, trailing, className, children, disabled, loading, ...props }: ButtonProps) => {
@@ -28,12 +28,8 @@ export const Button = ({ color, leading, trailing, className, children, disabled
   return (
     <ButtonBase
       className={clsx(
-        'state-layer inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full py-1 contrast-100 transition',
+        'inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-6 py-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none',
         colorClasses,
-        disabled && 'cursor-not-allowed opacity-50',
-        !disabled && 'hover:opacity-80',
-        leading ? 'pl-4' : 'pl-6',
-        trailing ? 'pr-4' : 'pr-6',
         className,
       )}
       {...props}

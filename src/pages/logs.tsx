@@ -160,7 +160,7 @@ export const Component = () => {
   if (!files) return null
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback={`/${dongleId}/routes/${date}`} />}>
+      <TopAppBar leading={<BackButton fallback={`/${dongleId}/${date}`} />}>
         <span className="capitalize">{FILE_INFO[type].label}</span>
       </TopAppBar>
 
