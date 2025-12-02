@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { LogReader } from '../../log-reader'
-import { useFiles } from '../api/queries'
+import { useFiles, useRoute } from '../api/queries'
 import { useAsyncEffect, useRouteParams } from '../utils/hooks'
 import { Icon } from '../components/Icon'
 import { TopAppBar } from '../components/TopAppBar'
@@ -121,6 +121,7 @@ export const Component = () => {
 
   const [data, setData] = useState<any[]>()
   const [files] = useFiles(routeName)
+  const [route] = useRoute(routeName)
   const url = files?.[type][segment]
 
   useAsyncEffect(async () => {
@@ -169,7 +170,7 @@ export const Component = () => {
         <Select
           value={segment.toString()}
           onChange={(value) => updateParam('segment', value)}
-          options={Array.from({ length: files.qlogs.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
+          options={Array.from({ length: route ? route.maxqlog + 1 : 0 }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
           className="min-w-[120px]"
         />
 
