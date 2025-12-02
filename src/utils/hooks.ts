@@ -16,7 +16,7 @@ export const useDimensions = (): Dimensions => {
   return dimensions
 }
 
-export const useParams = () => {
+export const useRouteParams = () => {
   const { dongleId, date } = useParamsRouter()
   return { dongleId: dongleId!, date: date!, routeName: `${dongleId}|${date}` }
 }

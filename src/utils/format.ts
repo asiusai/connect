@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import type { Route } from '../types'
 import { storage } from './helpers'
 
@@ -49,19 +50,14 @@ export const formatRouteDuration = (route: Route | undefined): string | undefine
   return duration !== undefined ? formatDurationMs(duration) : undefined
 }
 
-const getOrdinal = (n: number) => {
-  const s = ['th', 'st', 'nd', 'rd']
-  const v = n % 100
-  return n + (s[(v - 20) % 10] || s[v] || s[0])
-}
+export const formatDate = (input: string | number) => {
+  const date = typeof input === 'string' ? DateTime.fromISO(input).toLocal() : DateTime.fromSeconds(input).toLocal()
+  const now = DateTime.now()
 
-export const formatDate = (input: number | string | Date): string => {
-  const date = new Date(typeof input === 'number' && input >= 1e11 ? input : typeof input === 'number' ? input * 1000 : input)
-  const now = new Date()
-  const month = date.toLocaleString('en-US', { month: 'long' })
-  const day = getOrdinal(date.getDate())
-  const yearStr = date.getFullYear() === now.getFullYear() ? '' : `, ${date.getFullYear()}`
-  return `${month} ${day}${yearStr}`
+  if (date.hasSame(now, 'day')) return `Today – ${date.toFormat('cccc, MMM d')}`
+  else if (date.hasSame(now.minus({ days: 1 }), 'day')) return `Yesterday – ${date.toFormat('cccc, MMM d')}`
+  else if (date.hasSame(now, 'year')) return date.toFormat('cccc, MMM d')
+  else return date.toFormat('cccc, MMM d, yyyy')
 }
 
 export const dateTimeToColorBetween = (startTime: Date, endTime: Date, startColor: number[], endColor: number[]): string => {

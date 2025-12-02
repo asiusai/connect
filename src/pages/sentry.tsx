@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from '../utils/hooks'
+import { useRouteParams } from '../utils/hooks'
 import { callAthena } from '../api/athena'
 import { toast } from 'sonner'
 import { useSearchParams } from 'react-router-dom'
@@ -11,7 +11,7 @@ import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 
 export const Component = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const [images, setImages] = useState<string[]>()
   const [params] = useSearchParams()
   const instant = params.get('instant')
@@ -33,7 +33,7 @@ export const Component = () => {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>Sentry Mode</TopAppBar>
 
-      <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-4 p-4 h-full">
         {isLoading && (
           <div className="w-full rounded-xl overflow-hidden bg-white/5 relative" style={{ aspectRatio: WIDTH / HEIGHT }}>
             <Loading className="absolute inset-0" />
@@ -62,7 +62,7 @@ export const Component = () => {
         ))}
 
         {!isLoading && !images && (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
+          <div className="flex flex-col items-center justify-center py-20 gap-6 h-full">
             <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center">
               <Icon name="camera" className="text-white/20 text-5xl" />
             </div>

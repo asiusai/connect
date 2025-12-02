@@ -7,7 +7,7 @@ import { ReactNode, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { api } from '../../api'
 import { useDevice, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../../api/queries'
-import { useParams } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 
 type PlanProps = { name: PrimePlan; amount: number; description: string; disabled?: boolean }
 const PrimePlanName: Record<PrimePlan, string> = {
@@ -48,7 +48,7 @@ const PlanSelector = ({
 }
 
 const PrimeCheckout = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
 
   const [selectedPlan, setSelectedPlan] = useState<PrimePlan | undefined>()
   const [device] = useDevice(dongleId)
@@ -188,7 +188,7 @@ const PrimeCheckout = () => {
 }
 
 const StripeSession = ({ id }: { id: string }) => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const [stripeSession] = useStripeSession(dongleId, id)
   const [subscription] = useSubscription(dongleId)
   const paymentStatus = stripeSession?.payment_status
@@ -223,7 +223,7 @@ const StripeSession = ({ id }: { id: string }) => {
 }
 
 const PrimeManage = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
 
   const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
 
@@ -325,7 +325,7 @@ const PrimeManage = () => {
 }
 
 export const Prime = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const [device] = useDevice(dongleId)
 
   if (!device) return null

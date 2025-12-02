@@ -1,13 +1,13 @@
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
-import { useParams } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
 
 export const Component = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">

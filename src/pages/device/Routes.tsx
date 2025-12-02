@@ -1,5 +1,5 @@
 import { Icon } from '../../components/Icon'
-import { dateTimeToColorBetween, formatDistance, formatDuration } from '../../utils/format'
+import { dateTimeToColorBetween, formatDate, formatDistance, formatDuration } from '../../utils/format'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Slider } from '../../components/Slider'
@@ -11,19 +11,9 @@ import { Route } from '../../types'
 import { Link } from 'react-router-dom'
 import { getPlaceName } from '../../utils/map'
 import { Button } from '../../components/Button'
-import { useParams } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 
 const PAGE_SIZE = 10
-
-const getDayHeader = (route: Route) => {
-  const date = DateTime.fromISO(route.start_time!).toLocal()
-  const now = DateTime.now()
-
-  if (date.hasSame(now, 'day')) return `Today – ${date.toFormat('cccc, MMM d')}`
-  else if (date.hasSame(now.minus({ days: 1 }), 'day')) return `Yesterday – ${date.toFormat('cccc, MMM d')}`
-  else if (date.hasSame(now, 'year')) return date.toFormat('cccc, MMM d')
-  else return date.toFormat('cccc, MMM d, yyyy')
-}
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
@@ -90,7 +80,7 @@ const RouteCard = ({ route }: { route: Route }) => {
 }
 
 export const Routes = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const [preserved] = usePreservedRoutes(dongleId)
   const query = api.routes.allRoutes.useInfiniteQuery({
     queryKey: ['allRoutes', dongleId],
@@ -123,7 +113,7 @@ export const Routes = () => {
 
       <div className="flex flex-col gap-3">
         {routes?.map((route) => {
-          let dayHeader: string | null = getDayHeader(route)
+          let dayHeader: string | null = formatDate(route.start_time!)
 
           if (dayHeader === prevDayHeader) dayHeader = null
           else prevDayHeader = dayHeader

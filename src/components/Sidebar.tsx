@@ -6,21 +6,19 @@ import { ButtonBase } from './ButtonBase'
 import { getDeviceName } from '../types'
 import { useState } from 'react'
 import { Devices } from '../pages/device/Devices'
-import { getNavigationItems } from '../pages/device/Navigation'
-import { getActionItems } from '../pages/device/ActionBar'
-import { useParams } from '../utils/hooks'
+import { Navigation } from '../pages/device/Navigation'
+import { ActionBar } from '../pages/device/ActionBar'
+import { useRouteParams } from '../utils/hooks'
 
 export const Sidebar = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const [device] = useDevice(dongleId || '')
   const [profile] = useProfile()
   const [showDeviceList, setShowDeviceList] = useState(false)
 
-  const navItems = getNavigationItems(dongleId)
-  const actionItems = getActionItems(dongleId)
-
   return (
-    <div className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-white/5 bg-background shrink-0">
+    <div className='hidden md:flex w-64 h-full relative'>
+    <div className="flex flex-col w-64 h-screen top-0 border-r border-white/5 bg-background shrink-0 fixed">
       {/* App Logo / Home */}
       <div className="p-6">
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
@@ -60,38 +58,14 @@ export const Sidebar = () => {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-4 flex flex-col gap-1">
         <div className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2 px-2">Menu</div>
-        {navItems.map((item) => (
-          <ButtonBase
-            key={item.title}
-            href={item.href}
-            disabled={!item.href}
-            className={clsx(
-              'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium',
-              item.href ? 'hover:bg-white/10 text-white' : 'opacity-50 cursor-not-allowed text-white/60',
-            )}
-          >
-            <Icon name={item.icon as any} className={clsx('text-lg', item.color)} />
-            <span>{item.title}</span>
-          </ButtonBase>
-        ))}
+        <Navigation />
       </div>
 
       {/* Bottom Section: Quick Actions & User */}
       <div className="p-4 flex flex-col gap-6 bg-background">
         {/* Quick Actions */}
         <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-4 gap-2">
-            {actionItems.map((item) => (
-              <ButtonBase
-                key={item.name}
-                href={item.href}
-                className="flex items-center justify-center aspect-square rounded-lg bg-background-alt hover:bg-white/10 transition-colors border border-white/5 text-white/80 hover:text-white"
-                title={item.label}
-              >
-                <Icon name={item.name as any} className="text-xl" />
-              </ButtonBase>
-            ))}
-          </div>
+          <ActionBar />
         </div>
 
         {/* User Profile */}
@@ -113,6 +87,7 @@ export const Sidebar = () => {
           </div>
         )}
       </div>
+    </div>
     </div>
   )
 }

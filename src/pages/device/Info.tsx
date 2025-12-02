@@ -1,9 +1,9 @@
 import { useRoutes } from '../../api/queries'
 import { DetailRow } from '../../components/DetailRow'
-import { useParams } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 
 export const Info = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const [routes] = useRoutes(dongleId, 1)
   const route = routes?.[0]
   return (

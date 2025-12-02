@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { LogReader } from '../../log-reader'
 import { useFiles } from '../api/queries'
-import { useAsyncEffect, useParams } from '../utils/hooks'
+import { useAsyncEffect, useRouteParams } from '../utils/hooks'
 import { Icon } from '../components/Icon'
 import { TopAppBar } from '../components/TopAppBar'
 import { Select } from '../components/Select'
@@ -109,7 +109,7 @@ const SyntaxHighlightedJson = ({ json }: { json: string }) => {
 }
 
 export const Component = () => {
-  const { routeName, dongleId, date } = useParams()
+  const { routeName, dongleId, date } = useRouteParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'

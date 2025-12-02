@@ -7,7 +7,7 @@ import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
 import { useDeviceLocation } from '../../api/queries'
 import { IconButton } from '../../components/IconButton'
-import { useParams } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 
 type Location = { lat: number; lng: number; label: string; address: string | null; iconName: IconName; iconClass?: string }
 
@@ -49,7 +49,7 @@ const FitBounds = ({ markers }: { markers: Location[] }) => {
 }
 
 export const Location = ({ device, className }: { device: Device; className?: string }) => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const { position, requestPosition } = usePosition()
   const [markers, setMarkers] = useState<Location[]>([])
   const [location] = useDeviceLocation(dongleId)

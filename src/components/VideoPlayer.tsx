@@ -5,7 +5,7 @@ import { getPreviewGenerated, Preview } from '../../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
 import { formatTime, getRouteDuration, isImperial } from '../utils/format'
 import { RefObject, useEffect, useRef, useState } from 'react'
-import { useAsyncMemo, useParams } from '../utils/hooks'
+import { useAsyncMemo, useRouteParams } from '../utils/hooks'
 import { api } from '../api'
 import { useFiles, useRendererStatus, useRenderProgress, useRoute } from '../api/queries'
 import { IconButton } from './IconButton'
@@ -80,7 +80,7 @@ const OptionItem = ({
 
 const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot UI' }
 const SettingsMenu = ({ props, setProps }: { props: PreviewProps; setProps: React.Dispatch<React.SetStateAction<PreviewProps>> }) => {
-  const { routeName } = useParams()
+  const { routeName } = useRouteParams()
   const [files] = useFiles(routeName)
   const maxLen = files?.qlogs.length
   const [view, setView] = useState<'large' | 'small' | 'log'>()
@@ -283,7 +283,7 @@ const getEventInfo = (event: TimelineEvent) => {
 const MARKER_WIDTH = 3
 
 export const Timeline = ({ playerRef, frame }: { frame: number; className?: string; playerRef: React.RefObject<PlayerRef | null> }) => {
-  const { routeName } = useParams()
+  const { routeName } = useRouteParams()
   const [route] = useRoute(routeName)
   const events = useAsyncMemo(async () => (route ? await getTimelineEvents(route) : undefined), [route])
 
@@ -367,7 +367,7 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
 }
 
 export const RouteVideoPlayer = ({ playerRef }: { playerRef: RefObject<PlayerRef | null> }) => {
-  const { routeName } = useParams()
+  const { routeName } = useRouteParams()
   const [route] = useRoute(routeName)
   const [files] = useFiles(routeName)
   const duration = getRouteDuration(route)! / 1000

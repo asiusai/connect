@@ -2,11 +2,11 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
 import { useState } from 'react'
 import { api } from '../../api'
-import { useParams } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 import { useUsers } from '../../api/queries'
 
 export const Users = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
 
   const [users, { refetch }] = useUsers(dongleId)
   const addUser = api.devices.addUser.useMutation({

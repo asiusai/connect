@@ -4,7 +4,7 @@ import { useProfile, useRoute } from '../../api/queries'
 import { useEffect, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
 import { Route } from '../../types'
-import { useParams } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
 import { callAthena } from '../../api/athena'
@@ -28,7 +28,7 @@ const getLocation = async (route: Route) => {
 
 export const Component = () => {
   const playerRef = useRef<PlayerRef>(null)
-  const { routeName, dongleId, date } = useParams()
+  const { routeName, dongleId, date } = useRouteParams()
 
   const [route] = useRoute(routeName)
   const [profile] = useProfile()
@@ -52,7 +52,7 @@ export const Component = () => {
         <span className="text-xs md:text-sm font-medium text-white/60">{formatDate(route.start_time!)}</span>
       </TopAppBar>
 
-      <div className="flex flex-col gap-6 px-4 md:px-8 py-4 pb-10 max-w-7xl w-full">
+      <div className="flex flex-col gap-6 px-4 md:px-8 py-4 pb-10 max-w-screen-xl w-full">
         <div className="md:grid md:grid-cols-3 md:gap-6 flex flex-col gap-6">
           <div className="md:col-span-2 flex flex-col gap-6">
             {/* Video Player */}

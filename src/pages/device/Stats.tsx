@@ -3,10 +3,10 @@ import { useStats } from '../../api/queries'
 import { Slider } from '../../components/Slider'
 import { DetailRow } from '../../components/DetailRow'
 import { formatDistance, formatDuration } from '../../utils/format'
-import { useParams } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 
 export const Stats = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const [stats] = useStats(dongleId)
   const [timeRange, setTimeRange] = useState<'week' | 'all'>('all')
 

@@ -1,65 +1,58 @@
 import clsx from 'clsx'
 import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
-import { useParams } from '../../utils/hooks'
-
-export const getNavigationItems = (dongleId: string) => [
-  {
-    title: 'Home',
-    subtitle: `View routes`,
-    icon: 'home',
-    href: `/${dongleId}`,
-    color: 'text-blue-400',
-  },
-  {
-    title: 'Sentry',
-    subtitle: 'View clips',
-    icon: 'photo_camera',
-    href: `/${dongleId}/sentry`,
-    color: 'text-red-400',
-  },
-  {
-    title: 'Actions',
-    subtitle: 'Trigger controls',
-    icon: 'infrared',
-    color: 'text-zinc-500',
-  },
-  {
-    title: 'Teleop',
-    subtitle: 'Remote control',
-    icon: 'gamepad',
-    color: 'text-zinc-500',
-  },
-  {
-    title: 'Settings',
-    subtitle: 'Device config',
-    icon: 'settings',
-    href: `/${dongleId}/settings`,
-    color: 'text-yellow-400',
-  },
-]
+import { useRouteParams } from '../../utils/hooks'
 
 export const Navigation = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-      {getNavigationItems(dongleId).map(({ title, href, icon, subtitle, color }) => (
+    <div className="grid grid-cols-2 md:grid-cols-1 ">
+      {[
+        {
+          title: 'Home',
+          subtitle: `View routes`,
+          icon: 'home',
+          href: `/${dongleId}`,
+          color: 'text-blue-400',
+        },
+        {
+          title: 'Sentry',
+          subtitle: 'View clips',
+          icon: 'photo_camera',
+          href: `/${dongleId}/sentry`,
+          color: 'text-red-400',
+        },
+        {
+          title: 'Actions',
+          subtitle: 'Trigger controls',
+          icon: 'infrared',
+          color: 'text-zinc-500',
+        },
+        {
+          title: 'Teleop',
+          subtitle: 'Remote control',
+          icon: 'gamepad',
+          color: 'text-zinc-500',
+        },
+        {
+          title: 'Settings',
+          subtitle: 'Device config',
+          icon: 'settings',
+          href: `/${dongleId}/settings`,
+          color: 'text-yellow-400',
+        },
+      ].map(({ title, href, icon, color }) => (
         <ButtonBase
           key={title}
           href={href}
           disabled={!href}
           className={clsx(
-            'flex flex-col gap-3 p-4 bg-background-alt text-left rounded-xl transition-all active:scale-[0.98]',
-            href ? 'hover:bg-background-alt/80' : 'opacity-50 cursor-not-allowed',
+            'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium',
+            href ? 'hover:bg-white/10 text-white' : 'opacity-50 cursor-not-allowed text-white/60',
           )}
         >
-          <div className={clsx('h-10 w-10 rounded-full flex items-center justify-center bg-white/5', color)}>
-            <Icon name={icon as any} className="text-2xl" />
-          </div>
-          <div>
-            <div className="text-lg font-medium text-white">{title}</div>
-            {subtitle && <div className="text-xs text-white/60 font-medium">{subtitle}</div>}
-          </div>
+          <Icon name={icon as any} className={clsx('text-lg', color)} />
+          <span>{title}</span>
         </ButtonBase>
       ))}
     </div>
