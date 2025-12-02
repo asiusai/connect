@@ -77,7 +77,7 @@ export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends
   dongleId: string
   expiry?: number
 }): Promise<z.infer<Req['result']> | undefined> => {
-  if (dongleId === env.DEMO_DONGLE_ID) return undefined
+  if (dongleId === env.DEMO_DONGLE_ID) return
   const req = REQUESTS[type]
 
   // Check params
@@ -91,8 +91,8 @@ export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends
     },
     params: { dongleId },
   })
-  if (res.status !== 200) return undefined
-  if (res.body.error) return undefined
+  if (res.status !== 200) return
+  if (res.body.error) return
 
   return req.result.parse(res.body.result)
 }

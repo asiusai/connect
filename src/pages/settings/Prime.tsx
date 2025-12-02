@@ -1,18 +1,12 @@
 import clsx from 'clsx'
-
-import { getDeviceName, type PrimePlan } from '../../types'
-import { formatCurrency, formatDate, isImperial } from '../../utils/format'
-
+import { type PrimePlan } from '../../types'
+import { formatCurrency, formatDate } from '../../utils/format'
 import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
-import { TopAppBar } from '../../components/TopAppBar'
-import { Toggle } from '../../components/Toggle'
-import { BackButton } from '../../components/BackButton'
-import { ReactNode, useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { ReactNode, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { api } from '../../api'
-import { storage } from '../../utils/helpers'
-import { useDevice, useDevices, usePortal, useStripeSession, useSubscribeInfo, useSubscription, useUsers } from '../../api/queries'
+import { useDevice, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../../api/queries'
 import { useParams } from '../../utils/hooks'
 
 type PlanProps = { name: PrimePlan; amount: number; description: string; disabled?: boolean }
@@ -109,21 +103,21 @@ const PrimeCheckout = () => {
   } else if (!['blue', 'magenta_new', 'webbing'].includes(subscribeInfo.sim_type!)) {
     disabledDataPlanText = [
       'Standard plan not available, old SIM type detected, new SIM cards are available in the ',
-      <a className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+      <a key="1" className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
         shop
       </a>,
     ]
   } else if (subscribeInfo.sim_usable === false && subscribeInfo.sim_type === 'blue') {
     disabledDataPlanText = [
       'Standard plan not available, SIM has been canceled and is therefore no longer usable, new SIM cards are available in the ',
-      <a className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+      <a key="2" className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
         shop
       </a>,
     ]
   } else if (subscribeInfo.sim_usable === false) {
     disabledDataPlanText = [
       'Standard plan not available, SIM is no longer usable, new SIM cards are available in the ',
-      <a className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+      <a key="3" className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
         shop
       </a>,
     ]

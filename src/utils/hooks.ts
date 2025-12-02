@@ -24,7 +24,7 @@ export const useParams = () => {
 export const useAsyncEffect = (fn: () => Promise<any>, args: any[]) => {
   useEffect(() => {
     fn()
-  }, args)
+  }, [...args])
 }
 
 type UseAsyncMemo = {

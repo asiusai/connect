@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useDevice, useProfile, useStats } from '../api/queries'
+import { useDevice, useProfile } from '../api/queries'
 import { Icon } from './Icon'
 import clsx from 'clsx'
 import { ButtonBase } from './ButtonBase'

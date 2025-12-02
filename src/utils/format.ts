@@ -16,7 +16,7 @@ export const isImperial = (): boolean => {
 }
 
 export const formatDistance = (miles: number | undefined): string | undefined => {
-  if (miles === undefined) return undefined
+  if (miles === undefined) return
   if (isImperial()) return `${miles.toFixed(1)} mi`
   return `${(miles * MI_TO_KM).toFixed(1)} km`
 }
@@ -32,19 +32,19 @@ const formatDurationMs = (ms: number): string => {
 }
 
 export const formatDuration = (minutes: number | undefined): string | undefined => {
-  if (minutes === undefined) return undefined
+  if (minutes === undefined) return
   return formatDurationMs(minutes * 60000)
 }
 
 export const getRouteDuration = (route: Route | undefined): number | undefined => {
-  if (!route || !route.start_time || !route.end_time) return undefined
+  if (!route || !route.start_time || !route.end_time) return
   const startTime = new Date(route.start_time).getTime()
   const endTime = new Date(route.end_time).getTime()
   return endTime - startTime
 }
 
 export const formatRouteDuration = (route: Route | undefined): string | undefined => {
-  if (!route) return undefined
+  if (!route) return
   const duration = getRouteDuration(route)
   return duration !== undefined ? formatDurationMs(duration) : undefined
 }

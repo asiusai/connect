@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from '../utils/hooks'
 import { callAthena } from '../api/athena'
 import { toast } from 'sonner'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import clsx from 'clsx'
+import { useSearchParams } from 'react-router-dom'
 import { HEIGHT, WIDTH } from '../../templates/shared'
 import { Loading } from '../components/Loading'
 import { ButtonBase } from '../components/ButtonBase'
@@ -13,23 +12,22 @@ import { BackButton } from '../components/BackButton'
 
 export const Component = () => {
   const { dongleId } = useParams()
-  const navigate = useNavigate()
   const [images, setImages] = useState<string[]>()
   const [params] = useSearchParams()
   const instant = params.get('instant')
   const [isLoading, setIsLoading] = useState(false)
 
-  const shot = async () => {
+  const shot = useCallback(async () => {
     setIsLoading(true)
     const res = await callAthena({ type: 'takeSnapshot', dongleId, params: undefined })
     if (res) setImages([res.jpegFront, res.jpegBack].filter(Boolean).map((x) => `data:image/jpeg;base64,${x}`) as string[])
     else toast.error('Failed taking a picture')
     setIsLoading(false)
-  }
+  }, [dongleId])
 
   useEffect(() => {
     if (instant && !images) shot()
-  }, [instant])
+  }, [instant, images, shot])
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">

@@ -14,7 +14,7 @@ export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
 type StorageKey = 'lastSelectedDongleId' | 'auth' | 'largeCameraType' | 'smallCameraType' | 'logType' | 'imperial' | 'imperial'
 export const storage = {
   get: <T extends string>(key: StorageKey): T | undefined => {
-    if (typeof localStorage === 'undefined') return undefined
+    if (typeof localStorage === 'undefined') return
     return (localStorage.getItem(key) as T) ?? undefined
   },
   set: (key: StorageKey, value: string | undefined): void => {

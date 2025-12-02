@@ -38,10 +38,10 @@ export const Component = () => {
     if (route) getLocation(route).then(setTitle)
   }, [route])
 
-  const ifIsOwner = route && profile && route.user_id === profile.id
+  const isOwner = route && profile && route.user_id === profile.id
   useEffect(() => {
-    if (ifIsOwner) callAthena({ type: 'setRouteViewed', dongleId, params: { route: date } })
-  }, [ifIsOwner])
+    if (isOwner) callAthena({ type: 'setRouteViewed', dongleId, params: { route: date } })
+  }, [isOwner, date, dongleId])
 
   if (!route) return null
 

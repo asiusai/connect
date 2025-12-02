@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Device, getDeviceName } from '../../types'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { IconName } from '../../components/Icon'
 import { getFullAddress, getTileUrl } from '../../utils/map'
 import L from 'leaflet'
@@ -16,12 +16,12 @@ const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
 const usePosition = () => {
   const [position, setPosition] = useState<GeolocationPosition | null>(null)
 
-  const requestPosition = () => {
+  const requestPosition = useCallback(() => {
     navigator.geolocation.getCurrentPosition(setPosition, (err) => {
       console.log("Error getting user's position", err)
       setPosition(null)
     })
-  }
+  }, [])
 
   useEffect(() => {
     navigator.permissions

@@ -22,21 +22,16 @@
     "rules": {
       "recommended": true,
       "a11y": "off",
+      "nursery": { "noUselessUndefined": "error", "useSortedClasses": "error" },
       "complexity": {
         "noForEach": "off",
         "noBannedTypes": "off"
       },
       "correctness": {
-        "noUnusedImports": "off",
-        "noUnusedVariables": "off",
         "useUniqueElementIds": "off",
-        "useJsxKeyInIterable": "off",
-        "useExhaustiveDependencies": "off",
-        "noChildrenProp": "off"
+        "useExhaustiveDependencies": "off"
       },
-      "performance": {
-        "noBarrelFile": "error"
-      },
+      "performance": {},
       "style": "off",
       "suspicious": {
         "noExplicitAny": "off",

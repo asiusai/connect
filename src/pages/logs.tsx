@@ -6,7 +6,7 @@ import { Icon } from '../components/Icon'
 import { TopAppBar } from '../components/TopAppBar'
 import { Select } from '../components/Select'
 import { BackButton } from '../components/BackButton'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { Toggle } from '../components/Toggle'
 import { FILE_INFO } from '../components/RouteFiles'
@@ -112,7 +112,6 @@ export const Component = () => {
   const { routeName, dongleId, date } = useParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
-  const navigate = useNavigate()
   const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'
 
   const segment = Number(params.get('segment')) || 0

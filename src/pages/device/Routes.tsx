@@ -97,7 +97,7 @@ export const Routes = () => {
     queryData: ({ pageParam }) => ({ query: pageParam as any, params: { dongleId } }),
     initialPageParam: { created_before: undefined, limit: PAGE_SIZE },
     getNextPageParam: (lastPage: any) => {
-      if (lastPage.body.length !== PAGE_SIZE) return undefined
+      if (lastPage.body.length !== PAGE_SIZE) return
       return { created_before: lastPage.body[lastPage.body.length - 1].create_time, limit: PAGE_SIZE }
     },
   })

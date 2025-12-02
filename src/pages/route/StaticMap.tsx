@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useState, useEffect } from 'react'
 import { Loading } from '../../components/Loading'
-import { Coord, Route } from '../../types'
+import { Route } from '../../types'
 import { getCoords } from '../../utils/derived'
 import { getPathStaticMapUrl } from '../../utils/map'
 

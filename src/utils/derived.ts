@@ -36,7 +36,7 @@ const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
       .then((res) => (res.ok ? (res.json() as T) : undefined))
       .catch((err) => {
         console.error('Error parsing file', url, err)
-        return undefined
+        return
       }),
   )
   return (await Promise.all(results)).filter((it) => it !== undefined)

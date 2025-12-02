@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import { chromium, devices as playDevices } from 'playwright'
 import { keys } from '../src/utils/helpers'
-import { $ } from 'bun'
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
 const FOLDER = process.env.FOLDER || 'screenshots'

@@ -198,7 +198,7 @@ const Path = ({ frame }: { frame: FrameData }) => {
     const roadEdges = showLaneLines ? frame.ModelV2.RoadEdges.map((edge) => getPolyline(edge.X, edge.Y, edge.Z)) : undefined
 
     return { path, laneLines, roadEdges }
-  }, [frame, FX, FY, CX, CY, CAM_HEIGHT])
+  }, [frame])
 
   if (!paths) return null
 

@@ -2,7 +2,7 @@ export const findNalUnitStart = (buffer: Uint8Array, offset = 0) => {
   for (let i = offset; i < buffer.length - 2; i++) {
     if (buffer[i] === 0 && buffer[i + 1] === 0 && buffer[i + 2] === 1) return i
   }
-  return undefined
+  return
 }
 
 export const getAllNals = (buffer: Uint8Array) => {

@@ -3,11 +3,9 @@ import { DriverStateV2 } from '../log-reader/reader'
 
 // Constants
 const BTN_SIZE = 192
-const IMG_SIZE = 144
 const ARC_LENGTH = 133
 const ARC_THICKNESS_DEFAULT = 6.7
 const ARC_THICKNESS_EXTEND = 12.0
-const UI_BORDER_SIZE = 30
 
 const SCALES_POS = [0.9, 0.4, 0.4]
 const SCALES_NEG = [0.7, 0.4, 0.4]
@@ -100,7 +98,6 @@ export const DriverStateRenderer = ({ state, isEngaged }: Props) => {
     // Rotation matrix
     // Python: rotation_amount = self.driver_pose_vals * (1.0 - self.dm_fade_state)
     // We assume dm_fade_state is 0 (active) for now if active.
-    const fade_state = isActive ? 0.0 : 1.0 // Or 0.5? Python: fade_target = 0.0 if active else 0.5.
     // If we want the fade effect, we need state. Let's stick to active=0, inactive=0.5 (faded).
     const current_fade = isActive ? 0.0 : 0.5
 
@@ -175,7 +172,6 @@ export const DriverStateRenderer = ({ state, isEngaged }: Props) => {
       if (size <= 0) return null
 
       const thickness = ARC_THICKNESS_DEFAULT + ARC_THICKNESS_EXTEND * Math.min(1.0, diff_val * 5.0)
-      const start_angle = sin_val > 0 ? 90 : -90 // Base angle
       // Wait, python: start_angle = (90 if sin_val > 0 else -90) if is_horizontal else (0 if sin_val > 0 else 180)
       const real_start_angle = is_horizontal ? (sin_val > 0 ? 90 : -90) : sin_val > 0 ? 0 : 180
 
@@ -219,7 +215,7 @@ export const DriverStateRenderer = ({ state, isEngaged }: Props) => {
       hArc: { path: hArcPath, thickness: hArcData?.thickness },
       vArc: { path: vArcPath, thickness: vArcData?.thickness },
     }
-  }, [state.FaceOrientation, isActive, isEngaged]) // faceOrientation changes every frame
+  }, [state.FaceOrientation, isActive]) // faceOrientation changes every frame
 
   const opacity = isActive ? 0.65 : 0.2
   const arcColor = isEngaged ? '#1af242' : '#8b8b8b'
