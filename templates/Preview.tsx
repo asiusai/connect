@@ -8,7 +8,7 @@ import { OpenpilotUI } from './OpenpilotUI'
 import { Loading } from '../src/components/Loading'
 import clsx from 'clsx'
 import { FrameData, readLogs } from '../log-reader/reader'
-import { getRouteDuration } from '../src/utils/format'
+import { getRouteDurationMs } from '../src/utils/format'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const [dongleId] = props.routeName.split('/')
@@ -44,7 +44,7 @@ export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewG
 
   const prefetchedLogData = logFiles && props.prefetchLogs ? await Promise.all(logFiles.map((url) => readLogs({ url }))) : undefined
 
-  const totalDuration = getRouteDuration(props.data.route)! / 1000
+  const totalDuration = getRouteDurationMs(props.data.route)! / 1000
   const lastSegmentDuration = end === props.data.route.maxqlog + 1 ? totalDuration % 60 : 60
   const duration = (end - start - 1) * 60 + lastSegmentDuration
 

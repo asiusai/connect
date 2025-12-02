@@ -1,6 +1,6 @@
 import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
-import { dateTimeToColorBetween, formatDate, formatDistance, formatDuration } from '../../utils/format'
+import { getRouteColor, formatDate, formatDistance, formatDurationMs, getRouteDurationMs } from '../../utils/format'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Slider } from '../../components/Slider'
@@ -28,16 +28,13 @@ const getLocation = async (route: Route) => {
 }
 
 const RouteCard = ({ route }: { route: Route }) => {
-  const startTime = DateTime.fromISO(route.start_time!).toLocal()
-  const endTime = DateTime.fromISO(route.end_time!).toLocal()
-  const color = dateTimeToColorBetween(startTime.toJSDate(), endTime.toJSDate(), [30, 57, 138], [218, 161, 28])
+  const startTime = route.start_time ? DateTime.fromISO(route.start_time).toLocal() : undefined
+  const endTime = route.end_time ? DateTime.fromISO(route.end_time).toLocal() : undefined
+  const color = getRouteColor(startTime, endTime, [30, 57, 138], [218, 161, 28])
+  const duration = getRouteDurationMs(route)
 
   const [location, setLocation] = useState<string | null>(null)
   useEffect(() => void getLocation(route).then(setLocation), [route])
-
-  const duration = endTime.diff(startTime, 'minutes')
-  const durationStr = formatDuration(duration.minutes)
-  const distanceStr = formatDistance(route.distance)
 
   return (
     <Link
@@ -51,11 +48,13 @@ const RouteCard = ({ route }: { route: Route }) => {
         {/* Time and Duration */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-base font-semibold text-white">
-            <span>{startTime.toFormat('h:mm a')}</span>
+            <span>{startTime?.toFormat('h:mm a') ?? '-'}</span>
             <span className="text-white/40 text-sm font-normal">•</span>
-            <span>{endTime.toFormat('h:mm a')}</span>
+            <span>{endTime?.toFormat('h:mm a') ?? '-'}</span>
           </div>
-          <div className="text-xs font-medium text-white/60 bg-white/10 px-2 py-0.5 rounded-full">{durationStr}</div>
+          {duration && (
+            <div className="text-xs font-medium text-white/60 bg-white/10 px-2 py-0.5 rounded-full">{formatDurationMs(duration)}</div>
+          )}
         </div>
 
         {/* Location */}
@@ -68,7 +67,7 @@ const RouteCard = ({ route }: { route: Route }) => {
         <div className="mt-2 flex items-center gap-4 border-t border-white/5 pt-3">
           <div className="flex items-center gap-1.5">
             <Icon name="directions_car" className="text-[16px] text-white/40" />
-            <span className="text-xs font-medium text-white/70">{distanceStr}</span>
+            <span className="text-xs font-medium text-white/70">{formatDistance(route.distance)}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Icon name={route.is_public ? 'public' : 'public_off'} className="text-[16px] text-white/40" />
@@ -93,7 +92,7 @@ export const Routes = ({ className }: { className: string }) => {
     },
   })
 
-  let prevDayHeader: string | null = null
+  let prevDayHeader: string | undefined
 
   const [params, setParams] = useSearchParams()
   const show = params.has('preserved') ? 'preserved' : 'all'
@@ -114,9 +113,9 @@ export const Routes = ({ className }: { className: string }) => {
 
       <div className="flex flex-col gap-3">
         {routes?.map((route) => {
-          let dayHeader: string | null = formatDate(route.start_time!)
+          let dayHeader = route.start_time ? formatDate(route.start_time) : undefined
 
-          if (dayHeader === prevDayHeader) dayHeader = null
+          if (dayHeader === prevDayHeader) dayHeader = undefined
           else prevDayHeader = dayHeader
           return (
             <Fragment key={`${route.id}-${route.start_time}`}>

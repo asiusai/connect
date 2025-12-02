@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { getPreviewGenerated, Preview } from '../../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
-import { formatTime, getRouteDuration, isImperial } from '../utils/format'
+import { formatTime, getRouteDurationMs, isImperial } from '../utils/format'
 import { RefObject, useEffect, useRef, useState } from 'react'
 import { useAsyncMemo, useRouteParams } from '../utils/hooks'
 import { api } from '../api'
@@ -287,7 +287,7 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
   const [route] = useRoute(routeName)
   const events = useAsyncMemo(async () => (route ? await getTimelineEvents(route) : undefined), [route])
 
-  const durationMs = getRouteDuration(route) ?? 0
+  const durationMs = getRouteDurationMs(route) ?? 0
   const duration = durationMs / 1000
   let ref = useRef<HTMLDivElement>(null)
 
@@ -370,7 +370,7 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
   const { routeName } = useRouteParams()
   const [route] = useRoute(routeName)
   const [files] = useFiles(routeName)
-  const duration = getRouteDuration(route)! / 1000
+  const duration = getRouteDurationMs(route)! / 1000
   const fullscreenRef = useRef<HTMLDivElement>(null)
 
   const [props, setProps] = useState<PreviewProps>({

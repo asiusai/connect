@@ -22,13 +22,11 @@ export const formatDistance = (miles: number | undefined): string | undefined =>
   return `${(miles * MI_TO_KM).toFixed(1)} km`
 }
 
-const formatDurationMs = (ms: number): string => {
+export const formatDurationMs = (ms: number): string => {
   const totalMinutes = Math.round(ms / 60000)
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
-  if (hours > 0) {
-    return `${hours} hr ${minutes} min`
-  }
+  if (hours > 0) return `${hours} hr ${minutes} min`
   return `${minutes} min`
 }
 
@@ -37,7 +35,7 @@ export const formatDuration = (minutes: number | undefined): string | undefined 
   return formatDurationMs(minutes * 60000)
 }
 
-export const getRouteDuration = (route: Route | undefined): number | undefined => {
+export const getRouteDurationMs = (route: Route | undefined): number | undefined => {
   if (!route || !route.start_time || !route.end_time) return
   const startTime = new Date(route.start_time).getTime()
   const endTime = new Date(route.end_time).getTime()
@@ -46,7 +44,7 @@ export const getRouteDuration = (route: Route | undefined): number | undefined =
 
 export const formatRouteDuration = (route: Route | undefined): string | undefined => {
   if (!route) return
-  const duration = getRouteDuration(route)
+  const duration = getRouteDurationMs(route)
   return duration !== undefined ? formatDurationMs(duration) : undefined
 }
 
@@ -60,25 +58,30 @@ export const formatDate = (input: string | number) => {
   else return date.toFormat('cccc, MMM d, yyyy')
 }
 
-export const dateTimeToColorBetween = (startTime: Date, endTime: Date, startColor: number[], endColor: number[]): string => {
+export const getRouteColor = (
+  startTime: DateTime | undefined,
+  endTime: DateTime | undefined,
+  startColor: number[],
+  endColor: number[],
+): string => {
+  if (!startTime || !endTime) return 'red'
   // FIXME: adjust based on season
   const sunrise = 5.5 // hours
   const sunset = 6.5 + 12
   const fade = 1.5 // wide transition since this accounts for different seasons
 
-  const startHours = startTime.getHours() + startTime.getMinutes() / 60
-  const endHours = endTime.getHours() + endTime.getMinutes() / 60
+  const startHours = startTime.hour + startTime.minute / 60
+  const endHours = endTime.hour + endTime.minute / 60
   const hours = (startHours + endHours) / 2
 
-  let blendFactor = 0
-  if (sunrise < hours && hours < sunset) {
-    blendFactor = Math.min((hours - sunrise) / fade, 1)
-  } else if (sunset <= hours) {
-    blendFactor = Math.max(1 - (hours - sunset) / fade, 0)
-  }
+  let blendFactor =
+    sunrise < hours && hours < sunset
+      ? Math.min((hours - sunrise) / fade, 1)
+      : sunset <= hours
+        ? Math.max(1 - (hours - sunset) / fade, 0)
+        : 0
 
-  const blended = startColor.map((c, i) => Math.round(c + (endColor[i] - c) * blendFactor))
-  return `rgb(${blended.join(', ')})`
+  return `rgb(${startColor.map((c, i) => Math.round(c + (endColor[i] - c) * blendFactor)).join(', ')})`
 }
 
 export const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`
