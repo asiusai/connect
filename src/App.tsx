@@ -65,7 +65,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: '',
-        lazy: () => import('./pages/route'),
+        lazy: () => import('./pages/route/index'),
       },
       {
         path: 'logs',

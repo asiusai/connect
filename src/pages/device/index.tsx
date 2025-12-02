@@ -2,7 +2,7 @@ import clsx from 'clsx'
 
 import { Icon } from '../../components/Icon'
 import { Loading } from '../../components/Loading'
-import {  getDeviceName } from '../../types'
+import { getDeviceName } from '../../types'
 import { useEffect, useState } from 'react'
 import { useDevice } from '../../api/queries'
 import { callAthena } from '../../api/athena'
@@ -109,11 +109,11 @@ export const Component = () => {
               </div>
               {/* Desktop: Drive List */}
               <div className="hidden md:block">
-                <Routes  />
+                <Routes />
               </div>
               {/* Mobile: Statistics */}
               <div className="md:hidden">
-                <Stats  />
+                <Stats />
               </div>
             </div>
             <div className="lg:col-span-1 flex flex-col gap-6">

@@ -1,7 +1,7 @@
-import { useSearchParams } from "react-router-dom"
-import { useProfile } from "../../api/queries"
-import { Icon } from "../../components/Icon"
-import { ButtonBase } from "../../components/ButtonBase"
+import { useSearchParams } from 'react-router-dom'
+import { useProfile } from '../../api/queries'
+import { Icon } from '../../components/Icon'
+import { ButtonBase } from '../../components/ButtonBase'
 
 export const UserMobileMenu = () => {
   const [searchParams, setSearchParams] = useSearchParams()
