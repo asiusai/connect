@@ -1,27 +1,15 @@
 import clsx from 'clsx'
+import { type PrimePlan } from '../../types'
+import { formatCurrency, formatDate } from '../../utils/format'
+import { ButtonBase } from '../../components/ButtonBase'
+import { Icon } from '../../components/Icon'
+import { ReactNode, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { api } from '../../api'
+import { useDevice, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../../api/queries'
+import { useRouteParams } from '../../utils/hooks'
 
-import { getDeviceName, type PrimePlan } from '../types'
-import { formatCurrency, formatDate, isImperial } from '../utils/format'
-
-import { ButtonBase } from '../components/material/ButtonBase'
-import { Icon } from '../components/material/Icon'
-import { TopAppBar } from '../components/material/TopAppBar'
-import { Toggle } from '../components/material/Toggle'
-import { BackButton } from '../components/material/BackButton'
-import { ReactNode, useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { api } from '../api'
-import { storage } from '../utils/helpers'
-import { useDevice, useDevices, usePortal, useStripeSession, useSubscribeInfo, useSubscription, useUsers } from '../api/queries'
-import { useParams } from '../utils/hooks'
-
-type PlanProps = {
-  name: PrimePlan
-  amount: number
-  description: string
-  disabled?: boolean
-}
-
+type PlanProps = { name: PrimePlan; amount: number; description: string; disabled?: boolean }
 const PrimePlanName: Record<PrimePlan, string> = {
   nodata: 'Lite',
   data: 'Standard',
@@ -60,7 +48,7 @@ const PlanSelector = ({
 }
 
 const PrimeCheckout = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
 
   const [selectedPlan, setSelectedPlan] = useState<PrimePlan | undefined>()
   const [device] = useDevice(dongleId)
@@ -99,7 +87,7 @@ const PrimeCheckout = () => {
   }
 
   let chargeText: string = ''
-  if (selectedPlan && trialClaimable) {
+  if (selectedPlan && trialClaimable && trialEndDate) {
     chargeText = `Your first charge will be on ${formatDate(trialEndDate)}, then monthly thereafter.`
   }
 
@@ -115,21 +103,21 @@ const PrimeCheckout = () => {
   } else if (!['blue', 'magenta_new', 'webbing'].includes(subscribeInfo.sim_type!)) {
     disabledDataPlanText = [
       'Standard plan not available, old SIM type detected, new SIM cards are available in the ',
-      <a className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+      <a key="1" className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
         shop
       </a>,
     ]
   } else if (subscribeInfo.sim_usable === false && subscribeInfo.sim_type === 'blue') {
     disabledDataPlanText = [
       'Standard plan not available, SIM has been canceled and is therefore no longer usable, new SIM cards are available in the ',
-      <a className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+      <a key="2" className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
         shop
       </a>,
     ]
   } else if (subscribeInfo.sim_usable === false) {
     disabledDataPlanText = [
       'Standard plan not available, SIM is no longer usable, new SIM cards are available in the ',
-      <a className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
+      <a key="3" className="text-blue-400 underline" href="https://comma.ai/shop/comma-prime-sim" target="_blank" rel="noopener">
         shop
       </a>,
     ]
@@ -200,7 +188,7 @@ const PrimeCheckout = () => {
 }
 
 const StripeSession = ({ id }: { id: string }) => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
   const [stripeSession] = useStripeSession(dongleId, id)
   const [subscription] = useSubscription(dongleId)
   const paymentStatus = stripeSession?.payment_status
@@ -235,7 +223,7 @@ const StripeSession = ({ id }: { id: string }) => {
 }
 
 const PrimeManage = () => {
-  const { dongleId } = useParams()
+  const { dongleId } = useRouteParams()
 
   const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
 
@@ -336,216 +324,15 @@ const PrimeManage = () => {
   )
 }
 
-const UserManagement = () => {
-  const { dongleId } = useParams()
-
-  const [users, { refetch }] = useUsers(dongleId)
-  const addUser = api.devices.addUser.useMutation({
-    onSuccess: () => {
-      setEmail('')
-      setIsAdding(false)
-      refetch()
-    },
-  })
-  const deleteUser = api.devices.deleteUser.useMutation({
-    onSuccess: () => refetch(),
-  })
-  const [email, setEmail] = useState('')
-  const [isAdding, setIsAdding] = useState(false)
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between px-2">
-        <h2 className="text-xl font-bold">Users</h2>
-        {!isAdding && (
-          <div className="p-2 -mr-2 cursor-pointer hover:bg-white/10 rounded-full transition-colors" onClick={() => setIsAdding(true)}>
-            <Icon name="add" className="text-xl" />
-          </div>
-        )}
-      </div>
-
-      {isAdding && (
-        <div className="flex flex-col gap-3 bg-background-alt p-4 rounded-xl">
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-transparent border-b border-white/20 py-2 text-white placeholder-white/40 focus:outline-none focus:border-white transition-colors"
-            placeholder="Email address"
-            autoFocus
-          />
-          <div className="flex gap-3">
-            <ButtonBase
-              className="flex-1 py-2 rounded-lg bg-white text-black font-medium text-sm text-center"
-              onClick={() => {
-                if (!email) return
-                addUser.mutate({ body: { email }, params: { dongleId } })
-              }}
-              disabled={!email || addUser.isPending}
-            >
-              {addUser.isPending ? 'Adding...' : 'Add'}
-            </ButtonBase>
-            <ButtonBase
-              className="flex-1 py-2 rounded-lg bg-white/10 text-white font-medium text-sm text-center"
-              onClick={() => setIsAdding(false)}
-            >
-              Cancel
-            </ButtonBase>
-          </div>
-        </div>
-      )}
-
-      {addUser.error && (
-        <div className="flex gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-          <Icon className="text-xl" name="error" />
-          {(addUser.error as any) || 'Failed to add user'}
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2">
-        {users?.map((user) => (
-          <div key={user.email} className="flex items-center justify-between rounded-xl bg-background-alt p-4">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{user.email}</span>
-              <span className="text-xs text-white/40 capitalize">{user.permission.replace('_', ' ')}</span>
-            </div>
-            {user.permission !== 'owner' && (
-              <div
-                className="p-2 -mr-2 cursor-pointer hover:bg-white/10 rounded-full text-red-400 transition-colors"
-                onClick={() => {
-                  if (!confirm(`Are you sure you want to remove ${user.email}?`)) return
-                  deleteUser.mutate({ body: { email: user.email }, params: { dongleId } })
-                }}
-              >
-                <Icon name="delete" className="text-xl" />
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-const DeviceSettingsForm = () => {
-  const { dongleId } = useParams()
-  const navigate = useNavigate()
-  const [device, { refetch }] = useDevice(dongleId)
-  const [_, devices] = useDevices()
-  const [alias, setAlias] = useState('')
-  useEffect(() => setAlias(device?.alias || ''), [device?.alias])
-
-  const unpair = api.devices.unpair.useMutation({
-    onSuccess: (res) => {
-      if (res.body.success) navigate(window.location.origin)
-    },
-  })
-  const changeName = api.devices.set.useMutation({
-    onSuccess: () => {
-      refetch()
-      devices.refetch()
-    },
-  })
-
-  if (!device) return null
-  return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold px-2">Device</h2>
-      <div className="bg-background-alt rounded-xl p-4 flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-bold uppercase tracking-wider text-white/40">Alias</label>
-          <div className="flex items-center gap-2">
-            <input
-              value={alias}
-              onChange={(e) => setAlias(e.target.value)}
-              className="w-full bg-transparent border-b border-white/10 py-1 text-white placeholder-white/20 focus:outline-none focus:border-white/40 transition-colors font-medium"
-              placeholder={getDeviceName(device)}
-            />
-            {alias !== device.alias && (
-              <ButtonBase
-                className="px-3 py-1 rounded-md bg-white text-black text-xs font-bold"
-                onClick={() => changeName.mutate({ body: { alias }, params: { dongleId } })}
-                disabled={changeName.isPending}
-              >
-                Save
-              </ButtonBase>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {unpair.error && (
-        <div className="flex gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-          <Icon className="text-xl" name="error" />
-          {(unpair.error as any) || 'Unknown error'}
-        </div>
-      )}
-
-      <ButtonBase
-        className="flex items-center justify-center gap-2 p-4 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors font-medium"
-        onClick={() => {
-          if (confirm('Are you sure you want to unpair this device?')) {
-            unpair.mutate({ body: {}, params: { dongleId } })
-          }
-        }}
-        disabled={unpair.isPending}
-      >
-        <Icon name="delete" />
-        Unpair this device
-      </ButtonBase>
-    </div>
-  )
-}
-
-const UnitSettings = () => {
-  const [imperial, setImperial] = useState(isImperial())
-  return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold px-2">Preferences</h2>
-      <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="font-medium">Imperial units</span>
-          <span className="text-xs text-white/60">Use miles instead of kilometers</span>
-        </div>
-        <div
-          className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', imperial ? 'bg-white' : 'bg-white/10')}
-          onClick={() => {
-            const newVal = !imperial
-            setImperial(newVal)
-            storage.set('imperial', String(newVal))
-          }}
-        >
-          <div
-            className={clsx(
-              'w-5 h-5 rounded-full shadow-sm transition-all absolute top-1',
-              imperial ? 'bg-black left-[24px]' : 'bg-white left-1',
-            )}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export const Component = () => {
-  const { dongleId } = useParams()
+export const Prime = () => {
+  const { dongleId } = useRouteParams()
   const [device] = useDevice(dongleId)
-  const navigate = useNavigate()
 
   if (!device) return null
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>Settings</TopAppBar>
-
-      <div className="flex flex-col gap-8 px-4 py-6 pb-20 max-w-2xl mx-auto w-full">
-        <DeviceSettingsForm />
-        <UnitSettings />
-        <UserManagement />
-
-        <div className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold px-2">comma prime</h2>
-          {!device.prime ? <PrimeCheckout /> : <PrimeManage />}
-        </div>
-      </div>
+    <div className="flex flex-col gap-4">
+      <h2 className="text-xl font-bold px-2">comma prime</h2>
+      {!device.prime ? <PrimeCheckout /> : <PrimeManage />}
     </div>
   )
 }

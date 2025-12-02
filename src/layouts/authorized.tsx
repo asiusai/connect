@@ -2,6 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import { useDevices } from '../api/queries'
 import { isSignedIn, storage } from '../utils/helpers'
+import { Sidebar } from '../components/Sidebar'
 
 const RedirectFromHome = () => {
   const [devices] = useDevices()
@@ -25,5 +26,12 @@ export const Component = () => {
 
   // We never want them to be at /
   if (location.pathname.replace('/', '') === '') return <RedirectFromHome />
-  return <Outlet />
+  return (
+    <div className="flex min-h-screen bg-background text-foreground">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Outlet />
+      </div>
+    </div>
+  )
 }

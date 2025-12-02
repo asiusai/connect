@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { LogReader } from '../../log-reader'
 import { useFiles } from '../api/queries'
-import { useAsyncEffect, useParams } from '../utils/hooks'
-import { Icon } from '../components/material/Icon'
-import { TopAppBar } from '../components/material/TopAppBar'
-import { Select } from '../components/material/Select'
-import { BackButton } from '../components/material/BackButton'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useAsyncEffect, useRouteParams } from '../utils/hooks'
+import { Icon } from '../components/Icon'
+import { TopAppBar } from '../components/TopAppBar'
+import { Select } from '../components/Select'
+import { BackButton } from '../components/BackButton'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
-import { Toggle } from '../components/material/Toggle'
+import { Toggle } from '../components/Toggle'
 import { FILE_INFO } from '../components/RouteFiles'
 
 const LogEvent = z.enum([
@@ -109,10 +109,9 @@ const SyntaxHighlightedJson = ({ json }: { json: string }) => {
 }
 
 export const Component = () => {
-  const { routeName, dongleId, date } = useParams()
+  const { routeName, dongleId, date } = useRouteParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
-  const navigate = useNavigate()
   const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'
 
   const segment = Number(params.get('segment')) || 0
@@ -161,7 +160,7 @@ export const Component = () => {
   if (!files) return null
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback={`/${dongleId}/routes/${date}`} />}>
+      <TopAppBar leading={<BackButton fallback={`/${dongleId}/${date}`} />}>
         <span className="capitalize">{FILE_INFO[type].label}</span>
       </TopAppBar>
 
@@ -170,7 +169,7 @@ export const Component = () => {
         <Select
           value={segment.toString()}
           onChange={(value) => updateParam('segment', value)}
-          options={Array.from({ length: files.logs.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
+          options={Array.from({ length: files.qlogs.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
           className="min-w-[120px]"
         />
 

@@ -1,21 +1,15 @@
 import clsx from 'clsx'
-import type { IconName } from '../components/material/Icon'
-import { getFullAddress, getTileUrl } from '../utils/map'
+import { Device, getDeviceName } from '../../types'
 import { useCallback, useEffect, useState } from 'react'
+import type { IconName } from '../../components/Icon'
+import { getFullAddress, getTileUrl } from '../../utils/map'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
-import { Device, getDeviceName } from '../types'
-import { useDeviceLocation } from '../api/queries'
-import { IconButton } from './material/IconButton'
+import { useDeviceLocation } from '../../api/queries'
+import { IconButton } from '../../components/IconButton'
+import { useRouteParams } from '../../utils/hooks'
 
-type Location = {
-  lat: number
-  lng: number
-  label: string
-  address: string | null
-  iconName: IconName
-  iconClass?: string
-}
+type Location = { lat: number; lng: number; label: string; address: string | null; iconName: IconName; iconClass?: string }
 
 const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
 
@@ -54,7 +48,8 @@ const FitBounds = ({ markers }: { markers: Location[] }) => {
   return null
 }
 
-export const DeviceLocation = ({ dongleId, device, className }: { dongleId: string; device: Device; className?: string }) => {
+export const Location = ({ device, className }: { device: Device; className?: string }) => {
+  const { dongleId } = useRouteParams()
   const { position, requestPosition } = usePosition()
   const [markers, setMarkers] = useState<Location[]>([])
   const [location] = useDeviceLocation(dongleId)

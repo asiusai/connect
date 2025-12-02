@@ -5,10 +5,10 @@ import { api } from '../src/api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
 import { OpenpilotUI } from './OpenpilotUI'
-import { Loading } from '../src/components/material/Loading'
+import { Loading } from '../src/components/Loading'
 import clsx from 'clsx'
 import { FrameData, readLogs } from '../log-reader/reader'
-import { getRouteDuration } from '../src/utils/format'
+import { getRouteDurationMs } from '../src/utils/format'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const [dongleId] = props.routeName.split('/')
@@ -23,14 +23,14 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
 }
 
 export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewGenerated | undefined> => {
-  if (!props.data) return undefined
+  if (!props.data) return
 
   const start = props.startSegment ?? 0
   const end = props.segmentCount ? start + props.segmentCount : props.data.route.maxqlog + 1
 
   const max = props.data.route.maxqlog + 1
   const getFiles = (type?: FileType, fallback?: FileType) => {
-    if (!type || !props.data) return undefined
+    if (!type || !props.data) return
 
     let files = props.data.files[type]
     // only use the files if all are uploaded
@@ -44,7 +44,7 @@ export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewG
 
   const prefetchedLogData = logFiles && props.prefetchLogs ? await Promise.all(logFiles.map((url) => readLogs({ url }))) : undefined
 
-  const totalDuration = getRouteDuration(props.data.route)!.asSeconds()
+  const totalDuration = getRouteDurationMs(props.data.route)! / 1000
   const lastSegmentDuration = end === props.data.route.maxqlog + 1 ? totalDuration % 60 : 60
   const duration = (end - start - 1) * 60 + lastSegmentDuration
 

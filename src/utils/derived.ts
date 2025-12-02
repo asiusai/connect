@@ -1,5 +1,5 @@
 import type { Route } from '../types'
-import { getRouteDuration } from '../utils/format'
+import { getRouteDurationMs } from '../utils/format'
 
 type OpenpilotState = 'disabled' | 'preEnabled' | 'enabled' | 'softDisabling' | 'overriding'
 type AlertStatus = 0 | 1 | 2
@@ -36,7 +36,7 @@ const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
       .then((res) => (res.ok ? (res.json() as T) : undefined))
       .catch((err) => {
         console.error('Error parsing file', url, err)
-        return undefined
+        return
       }),
   )
   return (await Promise.all(results)).filter((it) => it !== undefined)
@@ -44,7 +44,7 @@ const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
 
 export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> => {
   const events = await getDerived<DriveEvent[]>(route, 'events.json').then((x) => x.flat())
-  const routeDuration = getRouteDuration(route)?.asMilliseconds() ?? 0
+  const routeDuration = getRouteDurationMs(route) ?? 0
 
   // sort events by timestamp
   events.sort((a, b) => a.route_offset_millis - b.route_offset_millis)
@@ -117,7 +117,7 @@ export const generateRouteStatistics = (route: Route | undefined, timeline: Time
   })
 
   return {
-    routeDurationMs: getRouteDuration(route)?.asMilliseconds() ?? 0,
+    routeDurationMs: getRouteDurationMs(route) ?? 0,
     engagedDurationMs,
     userFlags,
   }

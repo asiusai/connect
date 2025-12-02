@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
-import { Button } from '../components/material/Button'
-import { Icon } from '../components/material/Icon'
+import { Button } from '../components/Button'
+import { Icon } from '../components/Icon'
 import { setAccessToken } from '../utils/helpers'
 import { env } from '../utils/env'
 

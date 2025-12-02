@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // noinspection ES6PreferShortImport
-import { Icons } from './src/components/material/Icon'
+import { Icons } from './src/components/Icon'
 
 export default defineConfig({
   optimizeDeps: {

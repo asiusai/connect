@@ -1,41 +1,39 @@
-import { useEffect, useState } from 'react'
-import { useParams } from '../utils/hooks'
+import { useCallback, useEffect, useState } from 'react'
+import { useRouteParams } from '../utils/hooks'
 import { callAthena } from '../api/athena'
 import { toast } from 'sonner'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import clsx from 'clsx'
+import { useSearchParams } from 'react-router-dom'
 import { HEIGHT, WIDTH } from '../../templates/shared'
-import { Loading } from '../components/material/Loading'
-import { ButtonBase } from '../components/material/ButtonBase'
-import { Icon } from '../components/material/Icon'
-import { TopAppBar } from '../components/material/TopAppBar'
-import { BackButton } from '../components/material/BackButton'
+import { Loading } from '../components/Loading'
+import { ButtonBase } from '../components/ButtonBase'
+import { Icon } from '../components/Icon'
+import { TopAppBar } from '../components/TopAppBar'
+import { BackButton } from '../components/BackButton'
 
 export const Component = () => {
-  const { dongleId } = useParams()
-  const navigate = useNavigate()
+  const { dongleId } = useRouteParams()
   const [images, setImages] = useState<string[]>()
   const [params] = useSearchParams()
   const instant = params.get('instant')
   const [isLoading, setIsLoading] = useState(false)
 
-  const shot = async () => {
+  const shot = useCallback(async () => {
     setIsLoading(true)
     const res = await callAthena({ type: 'takeSnapshot', dongleId, params: undefined })
     if (res) setImages([res.jpegFront, res.jpegBack].filter(Boolean).map((x) => `data:image/jpeg;base64,${x}`) as string[])
     else toast.error('Failed taking a picture')
     setIsLoading(false)
-  }
+  }, [dongleId])
 
   useEffect(() => {
     if (instant && !images) shot()
-  }, [instant])
+  }, [instant, images, shot])
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>Sentry Mode</TopAppBar>
 
-      <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-4 p-4 h-full">
         {isLoading && (
           <div className="w-full rounded-xl overflow-hidden bg-white/5 relative" style={{ aspectRatio: WIDTH / HEIGHT }}>
             <Loading className="absolute inset-0" />
@@ -64,7 +62,7 @@ export const Component = () => {
         ))}
 
         {!isLoading && !images && (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
+          <div className="flex flex-col items-center justify-center py-20 gap-6 h-full">
             <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center">
               <Icon name="camera" className="text-white/20 text-5xl" />
             </div>

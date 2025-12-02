@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ButtonBase } from '../components/material/ButtonBase'
-import { Icon } from '../components/material/Icon'
+import { ButtonBase } from '../components/ButtonBase'
+import { Icon } from '../components/Icon'
 import { env } from '../utils/env'
 import { useEffect } from 'react'
 

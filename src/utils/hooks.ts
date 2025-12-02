@@ -1,5 +1,4 @@
-import { PlayerRef } from '@remotion/player'
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams as useParamsRouter } from 'react-router-dom'
 
 type Dimensions = { width: number; height: number }
@@ -17,7 +16,7 @@ export const useDimensions = (): Dimensions => {
   return dimensions
 }
 
-export const useParams = () => {
+export const useRouteParams = () => {
   const { dongleId, date } = useParamsRouter()
   return { dongleId: dongleId!, date: date!, routeName: `${dongleId}|${date}` }
 }
@@ -25,7 +24,7 @@ export const useParams = () => {
 export const useAsyncEffect = (fn: () => Promise<any>, args: any[]) => {
   useEffect(() => {
     fn()
-  }, args)
+  }, [...args])
 }
 
 type UseAsyncMemo = {
@@ -43,22 +42,14 @@ export const useAsyncMemo: UseAsyncMemo = <T>(fn: () => Promise<T>, deps: any[],
   return state as T
 }
 
-export const useCurrentPlayerFrame = (ref: React.RefObject<PlayerRef | null>) => {
-  const subscribe = useCallback(
-    (onStoreChange: () => void) => {
-      const { current } = ref
-      if (!current) return () => undefined
-      current.addEventListener('frameupdate', onStoreChange)
-      return () => current.removeEventListener('frameupdate', onStoreChange)
-    },
-    [ref],
-  )
+export const useScroll = () => {
+  const [scroll, setScroll] = useState(1)
 
-  const data = useSyncExternalStore<number>(
-    subscribe,
-    () => ref.current?.getCurrentFrame() ?? 0,
-    () => 0,
-  )
+  useEffect(() => {
+    const onScroll = () => setScroll(window.scrollY)
 
-  return data
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  return scroll
 }

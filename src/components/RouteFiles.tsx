@@ -6,8 +6,8 @@ import { callAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
-import { useParams } from '../utils/hooks'
-import { Icon } from './material/Icon'
+import { useRouteParams } from '../utils/hooks'
+import { Icon } from './Icon'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
@@ -151,7 +151,7 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Files;
 }
 
 const FullRouteDownload = ({ type, files, route }: { type: FileType; files: Files; route: Route }) => {
-  const { dongleId, date, routeName } = useParams()
+  const { dongleId, date, routeName } = useRouteParams()
   const [progress, setProgress] = useState<Record<number, number>>({})
   const totalSegments = route.maxqlog + 1
 
@@ -160,7 +160,7 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
   if (files[type].length !== totalSegments) return null
 
   if (type === 'logs' || type === 'qlogs')
-    return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/routes/${date}/${type}`} />
+    return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}`} />
 
   if (type === 'qcameras') return null
 
@@ -184,14 +184,14 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
 }
 
 const DownloadSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
-  const { routeName } = useParams()
+  const { routeName } = useRouteParams()
   const file = files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
   if (!file) return null
   return <FileAction label={FILE_INFO[type].raw} icon="raw_on" href={file} download={`${routeName}--${segment}--${FILE_INFO[type].name}`} />
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
-  const { dongleId, date, routeName } = useParams()
+  const { dongleId, date, routeName } = useRouteParams()
   const file = files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
   const [progress, setProgress] = useState<number>()
 
@@ -201,11 +201,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
 
   if (type === 'logs' || type === 'qlogs')
     return (
-      <FileAction
-        label={FILE_INFO[type].processed || 'View'}
-        icon="open_in_new"
-        href={`/${dongleId}/routes/${date}/${type}?segment=${segment}`}
-      />
+      <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}?segment=${segment}`} />
     )
 
   return (
@@ -322,7 +318,7 @@ const SegmentGrid = ({
   )
 }
 
-export const RouteFiles = ({ route }: { route: Route }) => {
+export const RouteFiles = ({ route, className }: { route: Route; className?: string }) => {
   const [files] = useFiles(route.fullname)
   const totalSegments = route.maxqlog + 1
   const [segment, setSegment] = useState<number>(-1) // ROUTE= -1
@@ -330,7 +326,8 @@ export const RouteFiles = ({ route }: { route: Route }) => {
   if (!files) return null
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className={clsx('flex flex-col gap-4 bg-background-alt rounded-xl p-4', className)}>
+      <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Files</h3>
       <SegmentGrid totalSegments={totalSegments} files={files} route={route} selectedSegment={segment} onSelect={setSegment} />
 
       <div className="h-px bg-white/5 my-2" />

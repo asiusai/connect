@@ -59,7 +59,7 @@ export const HevcVideo = ({ src, ...props }: VideoProps) => {
     }
 
     ms.addEventListener('sourceopen', onMediaSourceOpen)
-  }, [])
+  }, [src])
 
   if (src.endsWith('.mp4')) return <OffthreadVideo src={src} {...props} />
   return <Html5Video src={src} ref={videoRef} {...props} showInTimeline={false} className="relative" />

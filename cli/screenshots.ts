@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import { chromium, devices as playDevices } from 'playwright'
 import { keys } from '../src/utils/helpers'
-import { $ } from 'bun'
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
 const FOLDER = process.env.FOLDER || 'screenshots'
@@ -21,21 +20,17 @@ const PAGES = {
   'login-github': 'login?provider=github',
 
   home: `1d3dc3e03047b0c7`,
-  'home-devices': `1d3dc3e03047b0c7?devices=true`,
-  'home-user': `1d3dc3e03047b0c7?user=true`,
+  'home-preserved': `1d3dc3e03047b0c7?preserved=true`,
 
   'first-pair': 'first-pair',
   pair: 'pair',
   settings: `1d3dc3e03047b0c7/settings`,
   sentry: `1d3dc3e03047b0c7/sentry`,
 
-  routes: `1d3dc3e03047b0c7/routes`,
-  'routes-preserved': `1d3dc3e03047b0c7/routes?preserved=true`,
-
-  route: `1d3dc3e03047b0c7/routes/000000dd--455f14369d`,
-  'route-public': `a2a0ccea32023010/routes/2023-07-27--13-01-19`,
-  'route-qlogs': `1d3dc3e03047b0c7/routes/000000dd--455f14369d/qlogs`,
-  'route-logs': `1d3dc3e03047b0c7/routes/000000dd--455f14369d/logs`,
+  route: `1d3dc3e03047b0c7/000000dd--455f14369d`,
+  'route-public': `a2a0ccea32023010/2023-07-27--13-01-19`,
+  'route-qlogs': `1d3dc3e03047b0c7/000000dd--455f14369d/qlogs`,
+  'route-logs': `1d3dc3e03047b0c7/000000dd--455f14369d/logs`,
 }
 
 const pages = [...keys(PAGES).entries()].filter(([_, x]) => !PAGE || PAGE.split(',').includes(x))
@@ -47,11 +42,15 @@ await Promise.all(
   devices.map(async (device) => {
     const context = await browser.newContext(DEVICES[device])
     const page = await context.newPage()
+
     await page.goto(`${BASE_URL}/demo`)
+    await page.waitForLoadState('networkidle')
+
     for (const [i, route] of pages) {
       await page.goto(`${BASE_URL}/${PAGES[route]}`, { waitUntil: 'networkidle' })
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(375)
+
       const path = `${FOLDER}/${device}-${i + 1}-${route}.png`
       await page.screenshot({ path, fullPage: true })
       console.log(path)

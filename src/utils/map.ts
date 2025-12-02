@@ -46,21 +46,19 @@ type ReverseGeocodingContextObject<S = ReverseGeocodingContextSubObject> = {
 
 type ReverseGeocodingContextSubObject = { name: string }
 
-export type Coord = [number, number]
-
 const POLYLINE_SAMPLE_SIZE = 50
 const POLYLINE_PRECISION = 4
 
 const getMapStyleId = (themeId: string): string => (themeId === 'light' ? env.MAPBOX_LIGHT_STYLE_ID : env.MAPBOX_DARK_STYLE_ID)
 
-const prepareCoords = (coords: Coord[], sampleSize: number): Coord[] => {
-  const sample: Coord[] = []
+const prepareCoords = (coords: [number, number][], sampleSize: number) => {
+  const sample: [number, number][] = []
   const step = Math.max(Math.floor(coords.length / sampleSize), 1)
   for (let i = 0; i < coords.length; i += step) {
     const point = coords[i]
     // 1. mapbox uses lng,lat order
     // 2. polyline output is off by 10x when precision is 4
-    sample.push([point[1] * 10, point[0] * 10] as Coord)
+    sample.push([point[1] * 10, point[0] * 10] as [number, number])
   }
   return sample
 }
@@ -68,7 +66,7 @@ const prepareCoords = (coords: Coord[], sampleSize: number): Coord[] => {
 // TODO: get path colour from theme
 export const getPathStaticMapUrl = (
   themeId: string,
-  coords: Coord[],
+  coords: [number, number][],
   width: number,
   height: number,
   hidpi: boolean,

@@ -1,12 +1,13 @@
 import { Outlet } from 'react-router-dom'
 import { useRoute } from '../api/queries'
-import { useParams } from '../utils/hooks'
-import { Loading } from '../components/material/Loading'
-import { Button } from '../components/material/Button'
-import { Icon } from '../components/material/Icon'
+import { useRouteParams } from '../utils/hooks'
+import { Loading } from '../components/Loading'
+import { Button } from '../components/Button'
+import { Icon } from '../components/Icon'
+import { Sidebar } from '../components/Sidebar'
 
 const RouteNotFound = () => {
-  const { routeName } = useParams()
+  const { routeName } = useRouteParams()
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-background text-background-x">
       <div className="flex flex-col items-center gap-2">
@@ -27,12 +28,19 @@ const RouteNotFound = () => {
 }
 
 export const Component = () => {
-  const { routeName } = useParams()
+  const { routeName } = useRouteParams()
   const [route, { isLoading }] = useRoute(routeName)
 
   if (isLoading) return <Loading className="h-screen w-screen" />
 
   if (!route) return <RouteNotFound />
 
-  return <Outlet />
+  return (
+    <div className="flex min-h-screen bg-background text-foreground">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Outlet />
+      </div>
+    </div>
+  )
 }
