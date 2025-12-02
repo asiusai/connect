@@ -1,7 +1,7 @@
-import clsx from "clsx"
-import { useState } from "react"
-import { isImperial } from "../../utils/format"
-import { storage } from "../../utils/helpers"
+import clsx from 'clsx'
+import { useState } from 'react'
+import { isImperial } from '../../utils/format'
+import { storage } from '../../utils/helpers'
 
 export const Preferences = () => {
   const [imperial, setImperial] = useState(isImperial())

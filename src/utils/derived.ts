@@ -44,7 +44,7 @@ const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
 
 export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> => {
   const events = await getDerived<DriveEvent[]>(route, 'events.json').then((x) => x.flat())
-  const routeDuration = getRouteDuration(route)?.asMilliseconds() ?? 0
+  const routeDuration = getRouteDuration(route) ?? 0
 
   // sort events by timestamp
   events.sort((a, b) => a.route_offset_millis - b.route_offset_millis)
@@ -117,7 +117,7 @@ export const generateRouteStatistics = (route: Route | undefined, timeline: Time
   })
 
   return {
-    routeDurationMs: getRouteDuration(route)?.asMilliseconds() ?? 0,
+    routeDurationMs: getRouteDuration(route) ?? 0,
     engagedDurationMs,
     userFlags,
   }

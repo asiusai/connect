@@ -1,16 +1,5 @@
-import dayjs from 'dayjs'
-import advanced from 'dayjs/plugin/advancedFormat'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
-import duration, { type Duration } from 'dayjs/plugin/duration'
-
 import type { Route } from '../types'
 import { storage } from './helpers'
-
-dayjs.extend(advanced)
-dayjs.extend(customParseFormat)
-dayjs.extend(duration)
-
-export { dayjs }
 
 export const MI_TO_KM = 1.609344
 
@@ -32,49 +21,47 @@ export const formatDistance = (miles: number | undefined): string | undefined =>
   return `${(miles * MI_TO_KM).toFixed(1)} km`
 }
 
-const _formatDuration = (duration: Duration): string => {
-  if (duration.hours() > 0) {
-    return duration.format('H [hr] m [min]')
-  } else {
-    return duration.format('m [min]')
+const formatDurationMs = (ms: number): string => {
+  const totalMinutes = Math.round(ms / 60000)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  if (hours > 0) {
+    return `${hours} hr ${minutes} min`
   }
+  return `${minutes} min`
 }
 
 export const formatDuration = (minutes: number | undefined): string | undefined => {
   if (minutes === undefined) return undefined
-  const duration = dayjs.duration({
-    hours: Math.floor(minutes / 60),
-    minutes: Math.round(minutes % 60),
-  })
-  return _formatDuration(duration)
+  return formatDurationMs(minutes * 60000)
 }
 
-export const getRouteDuration = (route: Route | undefined): Duration | undefined => {
+export const getRouteDuration = (route: Route | undefined): number | undefined => {
   if (!route || !route.start_time || !route.end_time) return undefined
-  const startTime = dayjs(route.start_time)
-  const endTime = dayjs(route.end_time)
-  return dayjs.duration(endTime.diff(startTime))
+  const startTime = new Date(route.start_time).getTime()
+  const endTime = new Date(route.end_time).getTime()
+  return endTime - startTime
 }
 
 export const formatRouteDuration = (route: Route | undefined): string | undefined => {
   if (!route) return undefined
   const duration = getRouteDuration(route)
-  return duration ? _formatDuration(duration) : undefined
+  return duration !== undefined ? formatDurationMs(duration) : undefined
 }
 
-const parseTimestamp = (input: dayjs.ConfigType): dayjs.Dayjs => {
-  if (typeof input === 'number') {
-    // Assume number is unix timestamp, convert to seconds
-    return dayjs.unix(input >= 1e11 ? input / 1000 : input)
-  }
-  return dayjs(input)
+const getOrdinal = (n: number) => {
+  const s = ['th', 'st', 'nd', 'rd']
+  const v = n % 100
+  return n + (s[(v - 20) % 10] || s[v] || s[0])
 }
 
-export const formatDate = (input: dayjs.ConfigType): string => {
-  const date = parseTimestamp(input)
-  // Hide current year
-  const yearStr = date.year() === dayjs().year() ? '' : ', YYYY'
-  return date.format('MMMM Do' + yearStr)
+export const formatDate = (input: number | string | Date): string => {
+  const date = new Date(typeof input === 'number' && input >= 1e11 ? input : typeof input === 'number' ? input * 1000 : input)
+  const now = new Date()
+  const month = date.toLocaleString('en-US', { month: 'long' })
+  const day = getOrdinal(date.getDate())
+  const yearStr = date.getFullYear() === now.getFullYear() ? '' : `, ${date.getFullYear()}`
+  return `${month} ${day}${yearStr}`
 }
 
 export const dateTimeToColorBetween = (startTime: Date, endTime: Date, startColor: number[], endColor: number[]): string => {

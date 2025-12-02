@@ -287,7 +287,8 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
   const [route] = useRoute(routeName)
   const events = useAsyncMemo(async () => (route ? await getTimelineEvents(route) : undefined), [route])
 
-  const duration = getRouteDuration(route)?.asSeconds() ?? 0
+  const durationMs = getRouteDuration(route) ?? 0
+  const duration = durationMs / 1000
   let ref = useRef<HTMLDivElement>(null)
 
   const updateMarker = (clientX: number) => {
@@ -317,7 +318,6 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
   }
 
   const markerOffset = (frame / FPS / duration) * 100
-  const durationMs = duration * 1000
   return (
     <div
       ref={ref}
@@ -370,7 +370,7 @@ export const RouteVideoPlayer = ({ playerRef }: { playerRef: RefObject<PlayerRef
   const { routeName } = useParams()
   const [route] = useRoute(routeName)
   const [files] = useFiles(routeName)
-  const duration = getRouteDuration(route)!.asSeconds()
+  const duration = getRouteDuration(route)! / 1000
   const fullscreenRef = useRef<HTMLDivElement>(null)
 
   const [props, setProps] = useState<PreviewProps>({

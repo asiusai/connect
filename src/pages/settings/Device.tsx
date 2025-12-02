@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { api } from "../../api"
-import { useDevice, useDevices } from "../../api/queries"
-import { ButtonBase } from "../../components/ButtonBase"
-import { getDeviceName } from "../../types"
-import { useParams } from "../../utils/hooks"
-import { Icon } from "../../components/Icon"
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { api } from '../../api'
+import { useDevice, useDevices } from '../../api/queries'
+import { ButtonBase } from '../../components/ButtonBase'
+import { getDeviceName } from '../../types'
+import { useParams } from '../../utils/hooks'
+import { Icon } from '../../components/Icon'
 
 export const Device = () => {
   const { dongleId } = useParams()

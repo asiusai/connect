@@ -333,7 +333,7 @@ const PrimeManage = () => {
 export const Prime = () => {
   const { dongleId } = useParams()
   const [device] = useDevice(dongleId)
-  
+
   if (!device) return null
   return (
     <div className="flex flex-col gap-4">

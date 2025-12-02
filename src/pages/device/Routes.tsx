@@ -3,9 +3,7 @@ import { dateTimeToColorBetween, formatDistance, formatDuration } from '../../ut
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Slider } from '../../components/Slider'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc.js'
-import timezone from 'dayjs/plugin/timezone.js'
+import { DateTime } from 'luxon'
 import { Fragment } from 'react'
 import { api } from '../../api'
 import { usePreservedRoutes } from '../../api/queries'
@@ -15,17 +13,16 @@ import { getPlaceName } from '../../utils/map'
 import { Button } from '../../components/Button'
 import { useParams } from '../../utils/hooks'
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
-
 const PAGE_SIZE = 10
 
 const getDayHeader = (route: Route) => {
-  const date = dayjs.utc(route.start_time).local()
-  if (date.isSame(dayjs(), 'day')) return `Today – ${date.format('dddd, MMM D')}`
-  else if (date.isSame(dayjs().subtract(1, 'day'), 'day')) return `Yesterday – ${date.format('dddd, MMM D')}`
-  else if (date.year() === dayjs().year()) return date.format('dddd, MMM D')
-  else return date.format('dddd, MMM D, YYYY')
+  const date = DateTime.fromISO(route.start_time!).toLocal()
+  const now = DateTime.now()
+
+  if (date.hasSame(now, 'day')) return `Today – ${date.toFormat('cccc, MMM d')}`
+  else if (date.hasSame(now.minus({ days: 1 }), 'day')) return `Yesterday – ${date.toFormat('cccc, MMM d')}`
+  else if (date.hasSame(now, 'year')) return date.toFormat('cccc, MMM d')
+  else return date.toFormat('cccc, MMM d, yyyy')
 }
 
 const getLocation = async (route: Route) => {
@@ -40,15 +37,15 @@ const getLocation = async (route: Route) => {
 }
 
 const RouteCard = ({ route }: { route: Route }) => {
-  const startTime = dayjs.utc(route.start_time).local()
-  const endTime = dayjs.utc(route.end_time).local()
-  const color = dateTimeToColorBetween(startTime.toDate(), endTime.toDate(), [30, 57, 138], [218, 161, 28])
+  const startTime = DateTime.fromISO(route.start_time!).toLocal()
+  const endTime = DateTime.fromISO(route.end_time!).toLocal()
+  const color = dateTimeToColorBetween(startTime.toJSDate(), endTime.toJSDate(), [30, 57, 138], [218, 161, 28])
 
   const [location, setLocation] = useState<string | null>(null)
   useEffect(() => void getLocation(route).then(setLocation), [route])
 
-  const duration = endTime.diff(startTime)
-  const durationStr = formatDuration(duration / (60 * 1000))
+  const duration = endTime.diff(startTime, 'minutes')
+  const durationStr = formatDuration(duration.minutes)
   const distanceStr = formatDistance(route.distance)
 
   return (
@@ -63,9 +60,9 @@ const RouteCard = ({ route }: { route: Route }) => {
         {/* Time and Duration */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-base font-semibold text-white">
-            <span>{startTime.format('h:mm A')}</span>
+            <span>{startTime.toFormat('h:mm a')}</span>
             <span className="text-white/40 text-sm font-normal">•</span>
-            <span>{endTime.format('h:mm A')}</span>
+            <span>{endTime.toFormat('h:mm a')}</span>
           </div>
           <div className="text-xs font-medium text-white/60 bg-white/10 px-2 py-0.5 rounded-full">{durationStr}</div>
         </div>
