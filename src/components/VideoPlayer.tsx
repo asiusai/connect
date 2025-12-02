@@ -82,7 +82,8 @@ const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot U
 const SettingsMenu = ({ props, setProps }: { props: PreviewProps; setProps: React.Dispatch<React.SetStateAction<PreviewProps>> }) => {
   const { routeName } = useRouteParams()
   const [files] = useFiles(routeName)
-  const maxLen = files?.qlogs.length
+  const [route] = useRoute(routeName)
+  const maxLen = route ? route.maxqlog + 1 : 0
   const [view, setView] = useState<'large' | 'small' | 'log'>()
   const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))
   const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))

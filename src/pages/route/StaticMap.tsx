@@ -4,10 +4,8 @@ import { getCoords } from '../../utils/derived'
 import { getPathStaticMapUrl } from '../../utils/map'
 import { useAsyncMemo } from '../../utils/hooks'
 
-export const StaticMap = ({ route, className }: { className?: string; route?: Route }) => {
+export const StaticMap = ({ route, className }: { className?: string; route: Route }) => {
   const image = useAsyncMemo(async () => {
-    if (!route) return
-
     const coords = await getCoords(route)
     if (!coords.length) return
 
@@ -16,8 +14,8 @@ export const StaticMap = ({ route, className }: { className?: string; route?: Ro
   }, [route])
 
   return (
-    <div className={clsx('relative aspect-square md:aspect-auto rounded-xl overflow-hidden', className)}>
-      <img className="pointer-events-none size-full object-cover" src={image} />
+    <div className={clsx('relative aspect-square md:aspect-auto rounded-xl overflow-hidden shrink-0 bg-background-alt', className)}>
+      {image && <img className="pointer-events-none size-full object-cover" src={image} />}
     </div>
   )
 }

@@ -323,16 +323,18 @@ export const RouteFiles = ({ route, className }: { route: Route; className?: str
   const totalSegments = route.maxqlog + 1
   const [segment, setSegment] = useState<number>(-1) // ROUTE= -1
 
-  if (!files) return null
-
   return (
     <div className={clsx('flex flex-col gap-4 bg-background-alt rounded-xl p-4', className)}>
       <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Files</h3>
-      <SegmentGrid totalSegments={totalSegments} files={files} route={route} selectedSegment={segment} onSelect={setSegment} />
+      {files && (
+        <>
+          <SegmentGrid totalSegments={totalSegments} files={files} route={route} selectedSegment={segment} onSelect={setSegment} />
 
-      <div className="h-px bg-white/5 my-2" />
+          <div className="h-px bg-white/5 my-2" />
 
-      <SegmentDetails segment={segment} files={files} route={route} />
+          <SegmentDetails segment={segment} files={files} route={route} />
+        </>
+      )}
     </div>
   )
 }
