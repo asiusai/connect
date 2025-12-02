@@ -22,16 +22,16 @@
     "rules": {
       "recommended": true,
       "a11y": "off",
-      "nursery": { "noUselessUndefined": "error", "useSortedClasses": "error" },
+      "nursery": {
+        "noUselessUndefined": "error"
+      },
       "complexity": {
-        "noForEach": "off",
         "noBannedTypes": "off"
       },
       "correctness": {
         "useUniqueElementIds": "off",
         "useExhaustiveDependencies": "off"
       },
-      "performance": {},
       "style": "off",
       "suspicious": {
         "noExplicitAny": "off",
