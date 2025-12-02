@@ -73,7 +73,7 @@ export const Location = ({ device, className }: { device: Device; className?: st
           lng: position.coords.longitude,
           label: 'You',
           iconName: 'person',
-          iconClass: 'bg-primary',
+          iconClass: 'bg-tertiary text-tertiary-x',
         })
       }
       setMarkers(markers)
@@ -103,7 +103,7 @@ export const Location = ({ device, className }: { device: Device; className?: st
             }}
             icon={L.divIcon({
               className: 'border-none bg-none',
-              html: `<div class="flex size-[40px] items-center justify-center rounded-full bg-primary-alt ${x.iconClass}"><span class="material-symbols-outlined flex icon-outline">${x.iconName}</span></div>`,
+              html: `<div class="flex size-[40px] items-center justify-center rounded-full shadow-xl border-2 border-white/80 ${x.iconClass || 'bg-primary text-primary-x'}"><span class="material-symbols-outlined flex icon-filled">${x.iconName}</span></div>`,
               iconSize: [40, 40],
               iconAnchor: [20, 20],
             })}
