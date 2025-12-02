@@ -1,13 +1,14 @@
+import clsx from 'clsx'
 import { useRoutes } from '../../api/queries'
 import { DetailRow } from '../../components/DetailRow'
 import { useRouteParams } from '../../utils/hooks'
 
-export const Info = () => {
+export const Info = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
   const [routes] = useRoutes(dongleId, 1)
   const route = routes?.[0]
   return (
-    <div className="flex flex-col gap-4 pb-10">
+    <div className={clsx('flex flex-col gap-4 pb-10', className)}>
       <h2 className="text-xl font-bold px-2">Vehicle Info</h2>
       <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
         {!!route && (

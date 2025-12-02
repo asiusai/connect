@@ -3,10 +3,10 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
 import { useRouteParams } from '../../utils/hooks'
 
-export const Navigation = () => {
+export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
   return (
-    <div className="grid grid-cols-2 md:grid-cols-1 ">
+    <div className={clsx('grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-0', className)}>
       {[
         {
           title: 'Home',
@@ -47,11 +47,12 @@ export const Navigation = () => {
           href={href}
           disabled={!href}
           className={clsx(
-            'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium',
-            href ? 'hover:bg-white/10 text-white' : 'opacity-50 cursor-not-allowed text-white/60',
+            'flex md:flex-row bg-background-alt md:bg-transparent items-center p-4 gap-4 md:gap-3 md:px-3 md:py-2  rounded-lg transition-colors md:text-sm font-medium',
+            href && 'hover:bg-white/10 text-white',
+            title === 'Home' && 'hidden md:flex',
           )}
         >
-          <Icon name={icon as any} className={clsx('text-lg', color)} />
+          <Icon name={icon as any} className={clsx('text-xl md:text-lg', color)} />
           <span>{title}</span>
         </ButtonBase>
       ))}

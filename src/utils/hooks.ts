@@ -41,3 +41,15 @@ export const useAsyncMemo: UseAsyncMemo = <T>(fn: () => Promise<T>, deps: any[],
 
   return state as T
 }
+
+export const useScroll = () => {
+  const [scroll, setScroll] = useState(1)
+
+  useEffect(() => {
+    const onScroll = () => setScroll(window.scrollY)
+
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  return scroll
+}

@@ -1,3 +1,4 @@
+import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
 import { dateTimeToColorBetween, formatDate, formatDistance, formatDuration } from '../../utils/format'
 import { useEffect, useState } from 'react'
@@ -10,8 +11,8 @@ import { usePreservedRoutes } from '../../api/queries'
 import { Route } from '../../types'
 import { Link } from 'react-router-dom'
 import { getPlaceName } from '../../utils/map'
-import { Button } from '../../components/Button'
 import { useRouteParams } from '../../utils/hooks'
+import clsx from 'clsx'
 
 const PAGE_SIZE = 10
 
@@ -79,7 +80,7 @@ const RouteCard = ({ route }: { route: Route }) => {
   )
 }
 
-export const Routes = () => {
+export const Routes = ({ className }: { className: string }) => {
   const { dongleId } = useRouteParams()
   const [preserved] = usePreservedRoutes(dongleId)
   const query = api.routes.allRoutes.useInfiniteQuery({
@@ -101,7 +102,7 @@ export const Routes = () => {
   const hasNextPage = show === 'all' ? query.hasNextPage : false
 
   return (
-    <div className="relative flex flex-col gap-4">
+    <div className={clsx('relative flex flex-col', className)}>
       <div className="flex items-center justify-between px-2">
         <h2 className="text-xl font-bold">Drives</h2>
         <Slider
@@ -130,8 +131,13 @@ export const Routes = () => {
         })}
       </div>
       {hasNextPage && (
-        <div className="py-8 flex justify-center col-span-full">
-          <Button onClick={() => query.fetchNextPage()}>Load more</Button>
+        <div className="py-4 flex justify-center col-span-full px-2">
+          <ButtonBase
+            className="w-full py-3 rounded-xl font-bold text-center bg-white/10 text-white hover:bg-white/20 transition-colors"
+            onClick={() => query.fetchNextPage()}
+          >
+            Load more
+          </ButtonBase>
         </div>
       )}
     </div>

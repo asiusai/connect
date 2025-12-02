@@ -3,10 +3,10 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
 import { useRouteParams } from '../../utils/hooks'
 
-export const ActionBar = () => {
+export const ActionBar = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
   return (
-    <div className="grid grid-cols-4 gap-2">
+    <div className={clsx('grid grid-cols-4 gap-2', className)}>
       {[
         { name: 'power_settings_new', label: 'Shutdown' },
         { name: 'home', label: 'Navigate to Home' },

@@ -55,8 +55,8 @@ export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?:
               <span className="text-sm font-bold text-white">{getDeviceName(device)}</span>
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-white/60">{getCommaName(device)}</span>
-                <span className="text-white/40">•</span>
-                <Active device={device} className="text-xs" />
+                {/* <span className="text-white/40">•</span> */}
+                {/* <Active device={device} className="text-xs" /> */}
               </div>
             </div>
             {device.dongle_id === dongleId && <Icon name="check" className="text-green-400" />}
