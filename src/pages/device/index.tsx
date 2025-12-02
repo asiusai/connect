@@ -21,7 +21,7 @@ export const Component = () => {
     <div className="flex flex-col min-h-screen relative">
       <div className="w-full sticky top-0" style={{ height }}>
         <Location device={device} className="h-full w-full" />
-        <div className="absolute z-[999] top-0 w-full flex justify-between p-4">
+        <div className="absolute z-[999] top-0 w-full flex justify-between p-4 md:hidden">
           <DevicesMobile />
           <UserMobile />
         </div>

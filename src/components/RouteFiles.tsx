@@ -322,7 +322,7 @@ const SegmentGrid = ({
   )
 }
 
-export const RouteFiles = ({ route }: { route: Route }) => {
+export const RouteFiles = ({ route, className }: { route: Route; className?: string }) => {
   const [files] = useFiles(route.fullname)
   const totalSegments = route.maxqlog + 1
   const [segment, setSegment] = useState<number>(-1) // ROUTE= -1
@@ -330,7 +330,8 @@ export const RouteFiles = ({ route }: { route: Route }) => {
   if (!files) return null
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className={clsx('flex flex-col gap-4 bg-background-alt rounded-xl p-4', className)}>
+      <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Files</h3>
       <SegmentGrid totalSegments={totalSegments} files={files} route={route} selectedSegment={segment} onSelect={setSegment} />
 
       <div className="h-px bg-white/5 my-2" />

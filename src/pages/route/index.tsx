@@ -13,7 +13,7 @@ import { StaticMap } from './StaticMap'
 import { Stats } from './Stats'
 import { Actions } from './Actions'
 import { formatDate } from '../../utils/format'
-import { DetailRow } from '../../components/DetailRow'
+import { Info } from './Info'
 
 const getLocation = async (route: Route) => {
   const startPos = [route.start_lng || 0, route.start_lat || 0]
@@ -52,47 +52,13 @@ export const Component = () => {
         <span className="text-xs md:text-sm font-medium text-white/60">{formatDate(route.start_time!)}</span>
       </TopAppBar>
 
-      <div className="flex flex-col gap-6 px-4 md:px-8 py-4 pb-10 max-w-screen-xl w-full">
-        <div className="md:grid md:grid-cols-3 md:gap-6 flex flex-col gap-6">
-          <div className="md:col-span-2 flex flex-col gap-6">
-            {/* Video Player */}
-            <div className="overflow-hidden rounded-xl shadow-lg bg-black">
-              <RouteVideoPlayer playerRef={playerRef} />
-            </div>
-
-            {/* Files */}
-            <div className="bg-background-alt rounded-xl p-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-4">Files</h3>
-              <RouteFiles route={route} />
-            </div>
-          </div>
-
-          <div className="md:col-span-1 flex flex-col gap-6">
-            {/* Map */}
-            <div className="aspect-square overflow-hidden rounded-2xl shadow-lg">
-              <StaticMap route={route} />
-            </div>
-
-            {/* Statistics */}
-            <div className="bg-background-alt rounded-xl overflow-hidden">
-              <Stats className="p-5" route={route} />
-            </div>
-
-            {/* Actions */}
-            <Actions route={route} />
-
-            {/* Details Card */}
-            <div className="bg-background-alt rounded-xl p-4 flex flex-col">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Details</h3>
-              <DetailRow label="Route" value={routeName.replace('|', '/')} mono copyable />
-              <DetailRow label="Vehicle" value={route.make || route.platform} copyable />
-              <DetailRow label="Dongle ID" value={route.dongle_id} mono copyable />
-              <DetailRow label="Version" value={route.version} mono copyable />
-              <DetailRow label="Git Branch" value={route.git_branch} mono copyable />
-              <DetailRow label="Git Commit" value={route.git_commit?.substring(0, 7)} mono copyable />
-            </div>
-          </div>
-        </div>
+      <div className="grid md:grid-cols-3 gap-4 p-4 max-w-screen-xl">
+        <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:row-span-5 md:order-1" />
+        <Stats route={route} className="md:order-3" />
+        <Actions route={route} className="md:order-5" />
+        <RouteFiles route={route} className="md:col-span-2 md:row-span-3 md:order-4" />
+        <StaticMap route={route} className="md:row-span-4 md:order-2" />
+        <Info route={route} className="md:order-6" />
       </div>
     </div>
   )

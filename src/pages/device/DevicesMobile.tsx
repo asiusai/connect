@@ -50,7 +50,7 @@ export const DevicesMobile = () => {
         </div>
         <div className="flex items-center gap-3 text-sm font-medium opacity-90">
           <Active device={device} />
-          <Battery/>
+          <Battery />
         </div>
       </div>
       {open &&

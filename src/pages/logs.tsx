@@ -169,7 +169,7 @@ export const Component = () => {
         <Select
           value={segment.toString()}
           onChange={(value) => updateParam('segment', value)}
-          options={Array.from({ length: files.logs.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
+          options={Array.from({ length: files.qlogs.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
           className="min-w-[120px]"
         />
 

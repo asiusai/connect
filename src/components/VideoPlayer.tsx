@@ -366,7 +366,7 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
   )
 }
 
-export const RouteVideoPlayer = ({ playerRef }: { playerRef: RefObject<PlayerRef | null> }) => {
+export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObject<PlayerRef | null>; className?: string }) => {
   const { routeName } = useRouteParams()
   const [route] = useRoute(routeName)
   const [files] = useFiles(routeName)
@@ -393,7 +393,7 @@ export const RouteVideoPlayer = ({ playerRef }: { playerRef: RefObject<PlayerRef
   const generated = useAsyncMemo(() => getPreviewGenerated(props), [props])
 
   return (
-    <div ref={fullscreenRef} className="relative rounded-lg overflow-hidden">
+    <div ref={fullscreenRef} className={clsx('relative rounded-xl overflow-hidden', className)}>
       <Player
         ref={playerRef}
         component={Preview}

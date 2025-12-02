@@ -35,7 +35,7 @@ export const Sidebar = () => {
               onClick={() => setShowDeviceList(!showDeviceList)}
             >
               <div className="flex flex-col min-w-0">
-                <span className="font-bold text-xl truncate">{device ? getDeviceName(device) : 'Select Device'}</span>
+                <span className="font-bold text-lg truncate">{device ? getDeviceName(device) : 'Select Device'}</span>
                 {device && (
                   <div className="flex items-center gap-3 text-sm font-medium opacity-90">
                     <Active device={device} />

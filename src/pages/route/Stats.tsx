@@ -19,19 +19,17 @@ export const Stats = ({ className, route }: { className?: string; route: Route }
   const stats = useTimelineEvents(route)
 
   return (
-    <div className="flex flex-col">
-      <div className={clsx('flex h-auto w-full justify-between gap-8', className)}>
-        {[
-          { label: 'Distance', value: formatDistance(route?.distance) },
-          { label: 'Duration', value: stats ? formatDuration(stats.routeDurationMs / (60 * 1000)) : formatRouteDuration(route) },
-          { label: 'Engaged', value: formatEngagement(stats) },
-        ]?.map((stat) => (
-          <div key={stat.label} className="flex basis-0 grow flex-col justify-between">
-            <span className="text-sm text-background-alt-x">{stat.label}</span>
-            <span className="font-mono text-sm">{stat.value?.toString() ?? '—'}</span>
-          </div>
-        ))}
-      </div>
+    <div className={clsx('flex w-full justify-between gap-8 p-5 bg-background-alt rounded-xl', className)}>
+      {[
+        { label: 'Distance', value: formatDistance(route?.distance) },
+        { label: 'Duration', value: stats ? formatDuration(stats.routeDurationMs / (60 * 1000)) : formatRouteDuration(route) },
+        { label: 'Engaged', value: formatEngagement(stats) },
+      ]?.map((stat) => (
+        <div key={stat.label} className="flex basis-0 grow flex-col justify-between">
+          <span className="text-sm text-background-alt-x">{stat.label}</span>
+          <span className="font-mono text-sm">{stat.value?.toString() ?? '—'}</span>
+        </div>
+      ))}
     </div>
   )
 }

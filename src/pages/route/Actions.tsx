@@ -59,7 +59,7 @@ const ActionButton = ({
   </button>
 )
 
-export const Actions = ({ route }: { route: Route }) => {
+export const Actions = ({ route, className }: { route: Route; className?: string }) => {
   const [isPreserved, setIsPreserved] = useIsPreserved(route)
   const [isPublic, setIsPublic] = useIsPublic(route)
   const [copied, setCopied] = useState(false)
@@ -72,7 +72,7 @@ export const Actions = ({ route }: { route: Route }) => {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className={clsx('grid grid-cols-3 gap-3', className)}>
       <ActionButton
         icon={isPreserved ? 'bookmark_check' : 'bookmark'}
         label={isPreserved ? 'Preserved' : 'Preserve'}
