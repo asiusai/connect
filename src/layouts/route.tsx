@@ -35,8 +35,6 @@ export const Component = () => {
 
   if (!route) return <RouteNotFound />
 
-  if (!route) return <RouteNotFound />
-
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />

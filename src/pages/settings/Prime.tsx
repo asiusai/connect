@@ -93,7 +93,7 @@ const PrimeCheckout = () => {
   }
 
   let chargeText: string = ''
-  if (selectedPlan && trialClaimable) {
+  if (selectedPlan && trialClaimable && trialEndDate) {
     chargeText = `Your first charge will be on ${formatDate(trialEndDate)}, then monthly thereafter.`
   }
 

@@ -3,38 +3,47 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
 import { useParams } from '../../utils/hooks'
 
-export const Buttons = () => {
+export const getNavigationItems = (dongleId: string) => [
+  {
+    title: 'Home',
+    subtitle: `View routes`,
+    icon: 'home',
+    href: `/${dongleId}`,
+    color: 'text-blue-400',
+  },
+  {
+    title: 'Sentry',
+    subtitle: 'View clips',
+    icon: 'photo_camera',
+    href: `/${dongleId}/sentry`,
+    color: 'text-red-400',
+  },
+  {
+    title: 'Actions',
+    subtitle: 'Trigger controls',
+    icon: 'infrared',
+    color: 'text-zinc-500',
+  },
+  {
+    title: 'Teleop',
+    subtitle: 'Remote control',
+    icon: 'gamepad',
+    color: 'text-zinc-500',
+  },
+  {
+    title: 'Settings',
+    subtitle: 'Device config',
+    icon: 'settings',
+    href: `/${dongleId}/settings`,
+    color: 'text-yellow-400',
+  },
+]
+
+export const Navigation = () => {
   const { dongleId } = useParams()
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-      {[
-        {
-          title: 'Sentry',
-          subtitle: 'View clips',
-          icon: 'photo_camera',
-          href: `/${dongleId}/sentry`,
-          color: 'text-red-400',
-        },
-        {
-          title: 'Actions',
-          subtitle: 'Trigger controls',
-          icon: 'infrared',
-          color: 'text-zinc-500',
-        },
-        {
-          title: 'Teleop',
-          subtitle: 'Remote control',
-          icon: 'gamepad',
-          color: 'text-zinc-500',
-        },
-        {
-          title: 'Settings',
-          subtitle: 'Device config',
-          icon: 'settings',
-          href: `/${dongleId}/settings`,
-          color: 'text-yellow-400',
-        },
-      ].map(({ title, href, icon, subtitle, color }) => (
+      {getNavigationItems(dongleId).map(({ title, href, icon, subtitle, color }) => (
         <ButtonBase
           key={title}
           href={href}

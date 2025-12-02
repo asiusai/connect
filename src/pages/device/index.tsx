@@ -7,14 +7,14 @@ import { useEffect, useState } from 'react'
 import { useDevice } from '../../api/queries'
 import { callAthena } from '../../api/athena'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { Active, DeviceList } from '../../components/Sidebar'
 import { Location } from './Location'
 import { Routes } from './Routes'
 import { Stats } from './Stats'
 import { Info } from './Info'
 import { ActionBar } from './ActionBar'
-import { Buttons } from './Buttons'
+import { Navigation } from './Navigation'
 import { UserMobileMenu } from './UserMobileMenu'
+import { Active, Devices } from './Devices'
 
 const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-400' : value < 12.4 ? 'text-yellow-400' : 'text-green-400')
 
@@ -105,7 +105,7 @@ export const Component = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 flex flex-col gap-6">
               <div className="md:hidden">
-                <Buttons />
+                <Navigation />
               </div>
               {/* Desktop: Drive List */}
               <div className="hidden md:block">
@@ -130,7 +130,7 @@ export const Component = () => {
       {open && (
         <div className="fixed inset-0 z-[999999] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
-            <DeviceList close={() => setOpen(false)} />
+            <Devices close={() => setOpen(false)} />
           </div>
           <div className="absolute inset-0 z-[-1]" onClick={() => setOpen(false)} />
         </div>

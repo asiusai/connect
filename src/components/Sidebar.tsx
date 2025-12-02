@@ -1,141 +1,23 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useDevice, useProfile, useStats } from '../api/queries'
 import { Icon } from './Icon'
 import clsx from 'clsx'
 import { ButtonBase } from './ButtonBase'
 import { getDeviceName } from '../types'
 import { useState } from 'react'
-import { DrivingStatistics } from '../types'
-import { useNavigate } from 'react-router-dom'
-import { useDevices } from '../api/queries'
-import { Device, getCommaName } from '../types'
-import { storage } from '../utils/helpers'
-import { timeAgo } from '../utils/format'
-
-const getNavItems = (dongleId: string, stats?: DrivingStatistics) => [
-  {
-    title: 'Home',
-    subtitle: `${stats?.all.routes || 0} drives`,
-    icon: 'home',
-    href: `/${dongleId}`,
-    color: 'text-blue-400',
-  },
-  {
-    title: 'Sentry',
-    subtitle: 'View clips',
-    icon: 'photo_camera',
-    href: `/${dongleId}/sentry`,
-    color: 'text-red-400',
-  },
-  {
-    title: 'Actions',
-    subtitle: 'Trigger controls',
-    icon: 'infrared',
-    color: 'text-zinc-500',
-  },
-  {
-    title: 'Teleop',
-    subtitle: 'Remote control',
-    icon: 'gamepad',
-    color: 'text-zinc-500',
-  },
-  {
-    title: 'Settings',
-    subtitle: 'Device config',
-    icon: 'settings',
-    href: `/${dongleId}/settings`,
-    color: 'text-yellow-400',
-  },
-]
-
-const getActionItems = (dongleId: string) => [
-  { name: 'power_settings_new', label: 'Shutdown' },
-  { name: 'home', label: 'Home' },
-  { name: 'work', label: 'Work' },
-  { name: 'camera', label: 'Snapshot', href: `/${dongleId}/sentry?instant=1` },
-]
-
-export const Active = ({ device, className }: { device: Device; className?: string }) => {
-  return (
-    <p className={clsx(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70', className)}>
-      {timeAgo(device.last_athena_ping)}
-    </p>
-  )
-}
-
-export const DeviceList = ({ close, isDropdown }: { close: () => void; isDropdown?: boolean }) => {
-  const [devices] = useDevices()
-  const navigate = useNavigate()
-  const { dongleId } = useParams()
-
-  const onSelect = (device: Device) => {
-    close()
-    storage.set('lastSelectedDongleId', device.dongle_id)
-    navigate(`/${device.dongle_id}`)
-  }
-
-  return (
-    <div
-      className={clsx(
-        'flex flex-col w-full bg-background text-background-x overflow-hidden',
-        isDropdown ? 'max-h-[400px]' : 'animate-in slide-in-from-top-5 fade-in duration-200 max-h-[60vh]',
-      )}
-    >
-      {!isDropdown && (
-        <div className="flex items-center justify-between px-4 py-4 border-b border-white/5">
-          <h2 className="text-lg font-bold">Switch Device</h2>
-          <div className="p-2 -mr-2 cursor-pointer hover:bg-white/5 rounded-full" onClick={close}>
-            <Icon name="close" className="text-xl" />
-          </div>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-1 p-2 overflow-y-auto">
-        {devices?.map((device) => (
-          <div
-            key={device.dongle_id}
-            className={clsx(
-              'flex items-center justify-between p-3 rounded-xl cursor-pointer shrink-0 relative overflow-hidden transition-colors',
-              device.dongle_id === dongleId ? 'bg-white/10' : 'hover:bg-white/5',
-            )}
-            onClick={() => onSelect(device)}
-          >
-            <div className="flex flex-col gap-0.5 z-10">
-              <span className="text-sm font-bold text-white">{getDeviceName(device)}</span>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-white/60">{getCommaName(device)}</span>
-                <span className="text-white/40">•</span>
-                <Active device={device} className="text-xs" />
-              </div>
-            </div>
-            {device.dongle_id === dongleId && <Icon name="check" className="text-green-400" />}
-          </div>
-        ))}
-
-        <div
-          className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 cursor-pointer text-white/60 hover:text-white mt-1 transition-colors border border-dashed border-white/10"
-          onClick={() => {
-            close()
-            navigate('/pair')
-          }}
-        >
-          <Icon name="add" className="text-xl" />
-          <span className="font-medium text-sm">Pair new device</span>
-        </div>
-      </div>
-    </div>
-  )
-}
+import { Devices } from '../pages/device/Devices'
+import { getNavigationItems } from '../pages/device/Navigation'
+import { getActionItems } from '../pages/device/ActionBar'
+import { useParams } from '../utils/hooks'
 
 export const Sidebar = () => {
   const { dongleId } = useParams()
   const [device] = useDevice(dongleId || '')
-  const [stats] = useStats(dongleId || '')
   const [profile] = useProfile()
   const [showDeviceList, setShowDeviceList] = useState(false)
 
-  const navItems = getNavItems(dongleId || '', stats)
-  const actionItems = getActionItems(dongleId || '')
+  const navItems = getNavigationItems(dongleId)
+  const actionItems = getActionItems(dongleId)
 
   return (
     <div className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-white/5 bg-background shrink-0">
@@ -168,7 +50,7 @@ export const Sidebar = () => {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowDeviceList(false)} />
               <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-surface rounded-xl shadow-2xl border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-                <DeviceList close={() => setShowDeviceList(false)} isDropdown />
+                <Devices close={() => setShowDeviceList(false)} isDropdown />
               </div>
             </>
           )}

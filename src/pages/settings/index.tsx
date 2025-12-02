@@ -1,7 +1,7 @@
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
 import { useParams } from '../../utils/hooks'
-import { Prime } from './prime'
+import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
