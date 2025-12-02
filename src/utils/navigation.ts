@@ -28,12 +28,6 @@ export const getNavItems = (dongleId: string, stats?: DrivingStatistics) => [
     color: 'text-zinc-500',
   },
   {
-    title: 'Analyze',
-    subtitle: 'See CAN data',
-    icon: 'bar_chart',
-    color: 'text-zinc-500',
-  },
-  {
     title: 'Settings',
     subtitle: 'Device config',
     icon: 'settings',
