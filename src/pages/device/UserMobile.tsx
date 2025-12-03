@@ -1,8 +1,8 @@
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useProfile } from '../../api/queries'
 import { Icon } from '../../components/Icon'
 import { ButtonBase } from '../../components/ButtonBase'
-import { createPortal } from 'react-dom'
 
 export const UserMobile = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -10,6 +10,14 @@ export const UserMobile = () => {
   const [profile] = useProfile()
 
   const toggleOpen = () => setSearchParams(!open ? { user: 'true' } : {})
+
+  useEffect(() => {
+    if (!open) return
+    const handleClickOutside = () => setSearchParams({})
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open, setSearchParams])
 
   if (!profile) return null
   return (
@@ -36,8 +44,6 @@ export const UserMobile = () => {
           </ButtonBase>
         </div>
       )}
-
-      {open && createPortal(<div className="absolute inset-0 z-10" onClick={toggleOpen} />, document.body)}
     </div>
   )
 }
