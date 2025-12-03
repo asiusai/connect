@@ -5,6 +5,7 @@ import { Loading } from '../components/Loading'
 import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
 import { Sidebar } from '../components/Sidebar'
+import { isSignedIn } from '../utils/helpers'
 
 const RouteNotFound = () => {
   const { routeName } = useRouteParams()
@@ -37,7 +38,7 @@ export const Component = () => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
+      {isSignedIn() && <Sidebar />}
       <div className="flex-1 flex flex-col min-w-0">
         <Outlet />
       </div>
