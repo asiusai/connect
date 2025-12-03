@@ -38,41 +38,12 @@
   }
 }
 
-@layer components {
-  .state-layer {
-    @apply relative before:absolute before:inset-0 before:transition before:opacity-0 before:overflow-hidden sm:before:hover:opacity-[.08] sm:before:focus:opacity-[.12] before:active:opacity-[.12] disabled:before:opacity-0 disabled:before:hover:opacity-0;
-  }
+.skeleton-loader {
+  @apply relative isolate overflow-hidden;
 
-  .skeleton-loader {
-    @apply relative isolate overflow-hidden;
-
-    &::after {
-      @apply absolute inset-0 bg-gradient-to-r from-transparent via-rose-100/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite];
-      content: "";
-    }
-  }
-
-  .material-symbols-outlined {
-    transition: font-variation-settings 0.2s;
-    font-variation-settings:
-      "FILL" var(--font-filled, 0),
-      "OPSZ" var(--font-opsz, 24);
-
-    &.icon-outline {
-      --font-filled: 0;
-    }
-
-    &.icon-filled {
-      --font-filled: 1;
-    }
-  }
-}
-
-@layer utilities {
-  @keyframes shimmer {
-    100% {
-      transform: translateX(100%);
-    }
+  &::after {
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-rose-100/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite];
+    content: "";
   }
 }
 

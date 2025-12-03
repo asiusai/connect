@@ -10,6 +10,7 @@ import { Navigation } from '../pages/device/Navigation'
 import { ActionBar } from '../pages/device/ActionBar'
 import { useRouteParams } from '../utils/hooks'
 import { Battery } from '../pages/device/DevicesMobile'
+import { IconButton } from './IconButton'
 
 export const Sidebar = () => {
   const { dongleId } = useRouteParams()
@@ -79,13 +80,12 @@ export const Sidebar = () => {
                   {profile.email}
                 </span>
               </div>
-              <ButtonBase
+              <IconButton
                 href="/logout"
-                className="p-2 -mr-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                className="p-2 -mr-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors text-xl"
                 title="Log out"
-              >
-                <Icon name="logout" className="text-xl" />
-              </ButtonBase>
+                name="logout"              
+              />
             </div>
           )}
         </div>
