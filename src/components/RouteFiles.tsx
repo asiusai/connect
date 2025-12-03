@@ -330,8 +330,6 @@ export const RouteFiles = ({ route, className }: { route: Route; className?: str
         <>
           <SegmentGrid totalSegments={totalSegments} files={files} route={route} selectedSegment={segment} onSelect={setSegment} />
 
-          <div className="h-px bg-white/5 my-2" />
-
           <SegmentDetails segment={segment} files={files} route={route} />
         </>
       )}
