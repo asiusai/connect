@@ -21,7 +21,7 @@ export const ErrorPage = () => {
     errorMessage = error
   } else {
     errorTitle = 'Unexpected Application Error'
-    errorMessage = 'Unknown error'
+    errorMessage = String(error) ?? 'Unknown error'
   }
 
   return (
