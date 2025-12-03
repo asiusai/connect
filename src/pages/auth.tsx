@@ -13,11 +13,13 @@ export const refreshAccessToken = async (code: string, provider: string) => {
     body: new URLSearchParams({ code, provider }),
   })
 
-  if (!resp.ok) throw new Error(`${resp.status}: ${await resp.text()}`)
+  if (!resp.ok) {
+    const text = await resp.text()
+    throw new Error(`${resp.status}: ${text}`)
+  }
 
-  // TODO: validate response
-  const json = (await resp.json()) as Record<string, string>
-  if (!json.access_token) throw new Error('unknown error')
+  const json = await resp.json()
+  if (!json.access_token) throw new Error(`unknown error: ${JSON.stringify(json)}`)
 
   setAccessToken(json.access_token)
 }
