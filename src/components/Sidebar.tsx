@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { useDevice, useProfile } from '../api/queries'
 import { Icon } from './Icon'
 import clsx from 'clsx'
-import { ButtonBase } from './ButtonBase'
 import { getDeviceName } from '../types'
 import { useState } from 'react'
 import { Active, Devices } from '../pages/device/Devices'
@@ -84,7 +83,7 @@ export const Sidebar = () => {
                 href="/logout"
                 className="p-2 -mr-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors text-xl"
                 title="Log out"
-                name="logout"              
+                name="logout"
               />
             </div>
           )}
