@@ -7,25 +7,19 @@ import { env } from '../utils/env'
 
 // TODO: move this to API contract
 export const refreshAccessToken = async (code: string, provider: string) => {
-  try {
-    const resp = await fetch(`${env.API_URL}/v2/auth/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({ code, provider }),
-    })
+  const resp = await fetch(`${env.API_URL}/v2/auth/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ code, provider }),
+  })
 
-    if (!resp.ok) throw new Error(`${resp.status}: ${await resp.text()}`)
+  if (!resp.ok) throw new Error(`${resp.status}: ${await resp.text()}`)
 
-    // TODO: validate response
-    const json = (await resp.json()) as Record<string, string>
-    if (!json.access_token) throw new Error('unknown error')
+  // TODO: validate response
+  const json = (await resp.json()) as Record<string, string>
+  if (!json.access_token) throw new Error('unknown error')
 
-    setAccessToken(json.access_token)
-  } catch (e) {
-    throw new Error('Could not exchange oauth code for access token', { cause: e })
-  }
+  setAccessToken(json.access_token)
 }
 
 export const Component = () => {
