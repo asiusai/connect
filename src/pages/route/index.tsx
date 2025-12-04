@@ -12,7 +12,7 @@ import { getPlaceName } from '../../utils/map'
 import { StaticMap } from './StaticMap'
 import { Stats } from './Stats'
 import { Actions } from './Actions'
-import { formatDate } from '../../utils/format'
+import { formatDate, formatTime } from '../../utils/format'
 import { Info } from './Info'
 
 const getLocation = async (route: Route) => {
@@ -49,7 +49,7 @@ export const Component = () => {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <TopAppBar leading={<BackButton fallback={`/${route.dongle_id}`} />}>
         <span>{title}</span>
-        {route.start_time && <span className="text-xs md:text-sm font-medium text-white/60">{formatDate(route.start_time)}</span>}
+        {route.start_time && <span className="text-xs md:text-sm font-medium text-white/60">{formatDate(route.start_time)} {formatTime(route.start_time)}</span>}
       </TopAppBar>
 
       <div className="grid md:grid-cols-3 gap-4 p-4 max-w-screen-xl">

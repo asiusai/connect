@@ -1,10 +1,17 @@
 import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
-import { getRouteColor, formatDate, formatDistance, formatDurationMs, getRouteDurationMs } from '../../utils/format'
+import {
+  getRouteColor,
+  formatDate,
+  formatDistance,
+  formatDurationMs,
+  getRouteDurationMs,
+  formatTime,
+  getDateTime,
+} from '../../utils/format'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Slider } from '../../components/Slider'
-import { DateTime } from 'luxon'
 import { Fragment } from 'react'
 import { api } from '../../api'
 import { usePreservedRoutes } from '../../api/queries'
@@ -28,8 +35,8 @@ const getLocation = async (route: Route) => {
 }
 
 const RouteCard = ({ route }: { route: Route }) => {
-  const startTime = route.start_time ? DateTime.fromISO(route.start_time).toLocal() : undefined
-  const endTime = route.end_time ? DateTime.fromISO(route.end_time).toLocal() : undefined
+  const startTime = getDateTime(route.start_time)
+  const endTime = getDateTime(route.end_time)
   const color = getRouteColor(startTime, endTime, [30, 57, 138], [218, 161, 28])
   const duration = getRouteDurationMs(route)
 
@@ -48,9 +55,9 @@ const RouteCard = ({ route }: { route: Route }) => {
         {/* Time and Duration */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-base font-semibold text-white">
-            <span>{startTime?.toFormat('h:mm a') ?? '-'}</span>
+            <span>{formatTime(startTime)}</span>
             <span className="text-white/40 text-sm font-normal">•</span>
-            <span>{endTime?.toFormat('h:mm a') ?? '-'}</span>
+            <span>{formatTime(endTime)}</span>
           </div>
           {duration && (
             <div className="text-xs font-medium text-white/60 bg-white/10 px-2 py-0.5 rounded-full">{formatDurationMs(duration)}</div>

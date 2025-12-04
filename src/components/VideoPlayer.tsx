@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { getPreviewGenerated, Preview } from '../../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
-import { formatTime, getRouteDurationMs, isImperial } from '../utils/format'
+import { formatVideoTime, getRouteDurationMs, isImperial } from '../utils/format'
 import { RefObject, useEffect, useRef, useState } from 'react'
 import { useAsyncMemo, useRouteParams } from '../utils/hooks'
 import { api } from '../api'
@@ -250,7 +250,7 @@ const Controls = ({
             onClick={() => (muted ? player?.unmute() : player?.mute())}
           />
           <span className="text-sm ">
-            {formatTime(Math.round(seconds))} / {formatTime(duration)}
+            {formatVideoTime(Math.round(seconds))} / {formatVideoTime(duration)}
           </span>
 
           <Download props={props} />

@@ -11,7 +11,7 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 
 export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
 
-type StorageKey = 'lastSelectedDongleId' | 'auth' | 'largeCameraType' | 'smallCameraType' | 'logType' | 'imperial' | 'imperial'
+type StorageKey = 'lastSelectedDongleId' | 'auth' | 'largeCameraType' | 'smallCameraType' | 'logType' | 'imperial' | '12hTime'
 export const storage = {
   get: <T extends string>(key: StorageKey): T | undefined => {
     if (typeof localStorage === 'undefined') return

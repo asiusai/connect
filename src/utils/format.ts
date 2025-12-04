@@ -6,7 +6,7 @@ export const MI_TO_KM = 1.609344
 
 export const isImperial = (): boolean => {
   const saved = storage.get('imperial')
-  if (saved) return saved === 'true'
+  if (saved !== null) return saved === 'true'
 
   // Getting default value
   if (typeof navigator === 'undefined') return false
@@ -48,8 +48,22 @@ export const formatRouteDuration = (route: Route | undefined): string | undefine
   return duration !== undefined ? formatDurationMs(duration) : undefined
 }
 
-export const formatDate = (input: string | number) => {
-  const date = typeof input === 'string' ? DateTime.fromISO(input).toLocal() : DateTime.fromSeconds(input).toLocal()
+export const use12hTime = () => storage.get('12hTime') === 'true'
+
+type DateTimeInput = string | number | DateTime | null | undefined
+export const getDateTime = (input: DateTimeInput) => {
+  if (!input) return
+  if (typeof input === 'string') return DateTime.fromISO(input, { zone: 'utc' }).toLocal()
+  if (typeof input === 'number') return DateTime.fromSeconds(input, { zone: 'utc' }).toLocal()
+  return input
+}
+
+export const formatTime = (time: DateTimeInput) =>
+  use12hTime() ? getDateTime(time)?.toFormat('h:mm a') : getDateTime(time)?.toFormat('hh:mm')
+
+export const formatDate = (input: DateTimeInput) => {
+  const date = getDateTime(input)
+  if (!date) return
   const now = DateTime.now()
 
   if (date.hasSame(now, 'day')) return `Today – ${date.toFormat('cccc, MMM d')}`
@@ -86,7 +100,7 @@ export const getRouteColor = (
 
 export const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`
 
-export const formatTime = (seconds: number) => {
+export const formatVideoTime = (seconds: number) => {
   const min = Math.floor(seconds / 60)
   const sec = String(seconds % 60).padStart(2, '0')
   return `${min}:${sec}`
