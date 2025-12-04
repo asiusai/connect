@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { api } from '.'
 import { env } from '../utils/env'
+import { AthenaError, Service } from '../types'
 
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
@@ -57,12 +58,8 @@ const REQUESTS = {
     result: z.record(z.string(), z.number().or(z.string())),
   },
   getMessage: {
-    params: z.object({ service: z.enum(['peripheralState']), timeout: z.number() }),
-    result: z.object({
-      logMonoTime: z.number(),
-      peripheralState: z.object({ current: z.number(), fanSpeedRpm: z.number(), pandaType: z.string(), voltage: z.number() }),
-      valid: z.boolean(),
-    }),
+    params: z.object({ service: Service, timeout: z.number() }),
+    result: z.any(),
   },
 }
 
@@ -76,7 +73,7 @@ export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends
   params: z.infer<Req['params']>
   dongleId: string
   expiry?: number
-}): Promise<z.infer<Req['result']> | undefined> => {
+}): Promise<{ error?: AthenaError; result?: z.infer<Req['result']> } | undefined> => {
   if (dongleId === env.DEMO_DONGLE_ID) return
   const req = REQUESTS[type]
 
@@ -92,7 +89,10 @@ export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends
     params: { dongleId },
   })
   if (res.status !== 200) return
-  if (res.body.error) return
-
-  return req.result.parse(res.body.result)
+  return z
+    .object({
+      error: AthenaError.optional(),
+      result: req.result.optional(),
+    })
+    .parse(res.body)
 }
