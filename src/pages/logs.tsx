@@ -12,7 +12,6 @@ import { FILE_INFO } from '../components/RouteFiles'
 import { capitalize } from '../utils/helpers'
 import { Service } from '../types'
 
-
 const SyntaxHighlightedJson = ({ json }: { json: string }) => {
   if (!json) return null
 

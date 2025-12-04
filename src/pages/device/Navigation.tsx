@@ -29,11 +29,18 @@ export const Navigation = ({ className }: { className?: string }) => {
           color: 'text-zinc-500',
         },
         {
-          title: 'Teleop',
-          subtitle: 'Remote control',
-          icon: 'gamepad',
-          color: 'text-zinc-500',
+          title: 'Analyze',
+          subtitle: 'See live car info',
+          icon: 'bar_chart',
+          href: `/${dongleId}/analyze`,
+          color: 'text-green-500',
         },
+        // {
+        //   title: 'Teleop',
+        //   subtitle: 'Remote control',
+        //   icon: 'gamepad',
+        //   color: 'text-zinc-500',
+        // },
         {
           title: 'Settings',
           subtitle: 'Device config',
