@@ -1,46 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
+import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
-import { env } from '../utils/env'
-
-// TODO: move this to API contract
-export const refreshAccessToken = async (code: string, provider: string) => {
-  const resp = await fetch(`${env.API_URL}/v2/auth/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ code, provider }),
-  })
-
-  if (!resp.ok) {
-    const text = await resp.text()
-    throw new Error(`${resp.status}: ${text}`)
-  }
-
-  const json = await resp.json()
-  if (!json.access_token) throw new Error(`unknown error: ${JSON.stringify(json)}`)
-
-  setAccessToken(json.access_token)
-}
 
 export const Component = () => {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const [error, setError] = useState<string>()
+  const { mutate, error } = api.profile.auth.useMutation({
+    onSuccess: ({ body }) => {
+      setAccessToken(body.access_token)
+      navigate('/')
+    },
+  })
 
   const code = params.get('code')
   const provider = params.get('provider')
 
   useEffect(() => {
     if (!code || !provider) return
-    refreshAccessToken(code, provider)
-      .then(() => navigate('/'))
-      .catch((err) => {
-        console.error(err)
-        if (err instanceof Error && err.message) setError(err.message)
-        else setError('Something went wrong')
-      })
+    mutate({ body: { code, provider } })
   }, [code, provider, navigate])
 
   if (!code || !provider) return <Navigate to="/login" />
@@ -54,7 +34,7 @@ export const Component = () => {
         <>
           <div className="flex gap-4 items-center">
             <Icon className="text-error shrink-0 text-2xl" name="error" />
-            <span className="text-md">{error}</span>
+            <span className="text-md">{String(error)}</span>
           </div>
           <Button color="secondary" href="/login">
             Try again

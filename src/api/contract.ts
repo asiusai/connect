@@ -29,6 +29,15 @@ const profile = c.router({
       200: Profile,
     },
   },
+  auth: {
+    method: 'POST',
+    path: '/v2/auth/',
+    body: z.object({ code: z.string(), provider: z.string() }),
+    contentType: 'application/x-www-form-urlencoded',
+    responses: {
+      200: z.object({ access_token: z.string() }),
+    },
+  },
 })
 
 const routes = c.router({

@@ -14,7 +14,7 @@ export const StaticMap = ({ route, className }: { className?: string; route: Rou
   }, [route])
 
   return (
-    <div className={clsx('relative aspect-square md:aspect-auto rounded-xl overflow-hidden shrink-0 bg-background-alt', className)}>
+    <div className={clsx('relative aspect-square hi md:aspect-auto rounded-xl overflow-hidden shrink-0 bg-background-alt', className)}>
       {image ? (
         <img className="pointer-events-none size-full object-cover" src={image} />
       ) : (
