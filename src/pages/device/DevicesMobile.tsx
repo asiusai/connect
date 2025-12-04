@@ -17,7 +17,7 @@ export const Voltage = () => {
   useEffect(() => {
     if (dongleId) {
       callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
-        setVoltage(x ? (x.peripheralState.voltage / 1000).toFixed(1) : undefined),
+        setVoltage(x?.result ? (x.result.peripheralState.voltage / 1000).toFixed(1) : undefined),
       )
     }
   }, [dongleId])

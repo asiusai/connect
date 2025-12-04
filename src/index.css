@@ -37,7 +37,13 @@
     text-align: unset;
   }
 }
-
+@layer utilities {
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
 .skeleton-loader {
   @apply relative isolate overflow-hidden;
 

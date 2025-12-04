@@ -232,10 +232,16 @@ export const AthenaRequest = z.object({
   method: z.string(),
   params: z.any(),
 })
+export const AthenaError = z.object({
+  code: z.number(),
+  message: z.string(),
+  data: z.object({ type: z.string() }).optional(),
+})
+export type AthenaError = z.infer<typeof AthenaError>
 export const AthenaResponse = z.object({
   queued: z.boolean().optional(),
-  error: z.string().optional(),
-  result: z.any(),
+  error: AthenaError.optional(),
+  result: z.any().optional(),
 })
 
 export const RenderProgress = z.object({
