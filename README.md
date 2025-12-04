@@ -26,7 +26,6 @@ bun dev
 
 - ~~Everything working that is in the old connect~~
 - ~~Easy download video files as mp4~~
-- Openpilot video clips
 - Replace snapshot with a live stream
 - [Sentry mode](https://www.youtube.com/watch?v=laO0RzsDzfU)
 - Car mangement: lock doors, EV charge status, and everything else you can do with CAN ()
@@ -39,3 +38,7 @@ bun dev
 - Navigate with OP
 - Waze? (can't be installed in teslas, so I would like comma to notify on cameras and stuff)
 - Chat and manage future comma bodies
+- Open car doors if your phone connects to bluetooth and is close to the car
+- Route OG images and shareble videos for every route
+- Openpilot wrapped, show yearly or all time stats in a video
+- External batterybank that you can connect to the harness so that it during sentry mode it uses that, not the car battery. charges when ignition is on again
