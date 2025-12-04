@@ -106,3 +106,5 @@ export const concatBins = (chunks: Uint8Array[]) => {
 
   return result
 }
+
+export const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1)

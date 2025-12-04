@@ -7,61 +7,11 @@ import { TopAppBar } from '../components/TopAppBar'
 import { Select } from '../components/Select'
 import { BackButton } from '../components/BackButton'
 import { useLocation, useSearchParams } from 'react-router-dom'
-import { z } from 'zod'
 import { Toggle } from '../components/Toggle'
 import { FILE_INFO } from '../components/RouteFiles'
+import { capitalize } from '../utils/helpers'
+import { Service } from '../types'
 
-const LogEvent = z.enum([
-  'Sentinel',
-  'AndroidLog',
-  'Can',
-  'DeviceState',
-  'ErrorLogMessage',
-  'LogMessage',
-  'ManagerState',
-  'PandaStates',
-  'PeripheralState',
-  'ProcLog',
-  'UiDebug',
-  'Accelerometer',
-  'Gyroscope',
-  'Magnetometer',
-  'TemperatureSensor',
-  'Clocks',
-  'SoundPressure',
-  'DriverCameraState',
-  'WideRoadCameraState',
-  'RoadCameraState',
-  'DriverEncodeIdx',
-  'RoadEncodeIdx',
-  'WideRoadEncodeIdx',
-  'QcomGnss',
-  'CarOutput',
-  'CarParams',
-  'CarState',
-  'SelfdriveState',
-  'LiveCalibration',
-  'OnroadEvents',
-  'LiveTracks',
-  'CarControl',
-  'ControlsState',
-  'LiveTorqueParameters',
-  'LiveDelay',
-  'RadarState',
-  'ModelV2',
-  'CameraOdometry',
-  'DrivingModelData',
-  'LivePose',
-  'LongitudinalPlan',
-  'DriverAssistance',
-  'LiveParameters',
-  'DriverStateV2',
-  'DriverMonitoringState',
-  'Sendcan',
-  'Thumbnail',
-  'GpsLocation',
-])
-type LogEvent = z.infer<typeof LogEvent>
 
 const SyntaxHighlightedJson = ({ json }: { json: string }) => {
   if (!json) return null
@@ -115,7 +65,7 @@ export const Component = () => {
   const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'
 
   const segment = Number(params.get('segment')) || 0
-  const eventName = (params.get('eventName') as LogEvent) || 'CarState'
+  const eventName: Service = (params.get('eventName') as Service) || 'carState'
   const limit = Number(params.get('limit')) || 10
   const prettify = params.get('prettify') !== 'false'
 
@@ -136,11 +86,11 @@ export const Component = () => {
     let count = 0
     const data = []
     for await (const event of reader) {
-      if (!(eventName in event)) continue
+      if (!(capitalize(eventName) in event)) continue
       if (count >= limit) break
       console.log()
       const LogMonoTime = Number(new BigUint64Array(event.LogMonoTime.buffer.buffer).at(0)! / 1_000_000n)
-      data.push({ LogMonoTime, ...event[eventName] })
+      data.push({ LogMonoTime, ...event[capitalize(eventName)] })
 
       count++
     }
@@ -177,7 +127,7 @@ export const Component = () => {
         <Select
           value={eventName}
           onChange={(value) => updateParam('eventName', value)}
-          options={LogEvent.options.map((x) => ({ value: x, label: x }))}
+          options={Service.options.map((x) => ({ value: x, label: x }))}
           className="min-w-[200px]"
         />
 
