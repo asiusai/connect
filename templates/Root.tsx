@@ -27,12 +27,12 @@ export const RemotionRoot = () => {
       <Still
         id="OG"
         component={OG}
-        height={HEIGHT}
-        width={WIDTH}
+        height={630}
+        width={1200}
         schema={OGProps}
         calculateMetadata={ogCalculateMetadata}
         defaultProps={{
-          routeName: '9748a98e983e0b39/0000002c--d68dde99ca',
+          routeName: env.EXAMPLE_ROUTE_NAME,
         }}
       />
     </>
