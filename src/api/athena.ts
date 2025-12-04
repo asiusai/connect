@@ -30,7 +30,7 @@ const REQUESTS = {
   },
   setRouteViewed: {
     params: z.object({ route: z.string() }),
-    result: z.void(),
+    result: z.object({ success: z.number() }),
   },
   takeSnapshot: {
     params: z.void(),
