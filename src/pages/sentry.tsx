@@ -9,6 +9,8 @@ import { ButtonBase } from '../components/ButtonBase'
 import { Icon } from '../components/Icon'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
+import { IconButton } from '../components/IconButton'
+import { saveFile } from '../utils/helpers'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
@@ -44,19 +46,12 @@ export const Component = () => {
           <div key={img} className="relative rounded-xl overflow-hidden border border-white/5 shadow-lg group">
             <img src={img} className="w-full" />
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ButtonBase
-                className="p-2 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors"
-                onClick={() => {
-                  const link = document.createElement('a')
-                  link.href = img
-                  link.download = `snapshot${i + 1}.jpg`
-                  document.body.appendChild(link)
-                  link.click()
-                  document.body.removeChild(link)
-                }}
-              >
-                <Icon name="download" className="text-xl" />
-              </ButtonBase>
+              <IconButton
+                className="p-2 rounded-full text-xl bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors"
+                name="download"
+                title="Download"
+                onClick={() => saveFile(img, `snapshot${i + 1}.jpg`)}
+              />
             </div>
           </div>
         ))}
