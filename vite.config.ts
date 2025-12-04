@@ -27,8 +27,16 @@ export default defineConfig({
         config: true,
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+        navigateFallback: null,
+        globPatterns: ['**/*.{js,css,ico,png,svg,webp}'],
         runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+            },
+          },
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com/,
             handler: 'StaleWhileRevalidate',
