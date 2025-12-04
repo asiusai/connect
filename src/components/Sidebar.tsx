@@ -8,7 +8,7 @@ import { Active, Devices } from '../pages/device/Devices'
 import { Navigation } from '../pages/device/Navigation'
 import { ActionBar } from '../pages/device/ActionBar'
 import { useRouteParams } from '../utils/hooks'
-import { Battery } from '../pages/device/DevicesMobile'
+import { Voltage } from '../pages/device/DevicesMobile'
 import { IconButton } from './IconButton'
 
 export const Sidebar = () => {
@@ -39,7 +39,7 @@ export const Sidebar = () => {
                 {device && (
                   <div className="flex items-center gap-3 text-sm font-medium opacity-90">
                     <Active device={device} />
-                    <Battery />
+                    <Voltage />
                   </div>
                 )}
               </div>

@@ -9,29 +9,30 @@ import { Active, Devices } from './Devices'
 import { Icon } from '../../components/Icon'
 import { createPortal } from 'react-dom'
 
-const getBatteryColor = (value: number) => (value < 12.1 ? 'text-red-400' : value < 12.4 ? 'text-yellow-400' : 'text-green-400')
+const getVoltageColor = (voltage: number) => (voltage < 12.1 ? 'text-red-400' : voltage < 12.4 ? 'text-yellow-400' : 'text-green-400')
 
-export const Battery = () => {
+export const Voltage = () => {
   const { dongleId } = useRouteParams()
-  const [battery, setBattery] = useState<number>()
+  const [voltage, setVoltage] = useState<string>()
   useEffect(() => {
     if (dongleId) {
       callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
-        setBattery(x ? x.peripheralState.voltage / 1000 : undefined),
+        setVoltage(x ? (x.peripheralState.voltage / 1000).toFixed(1) : undefined),
       )
     }
   }, [dongleId])
-  if (!battery) return null
+  if (!voltage) return null
   return (
     <>
       <div className="w-1 h-1 rounded-full bg-white/40" />
-      <div className={clsx('flex gap-1 items-center', getBatteryColor(battery))}>
+      <div className={clsx('flex gap-1 items-center', getVoltageColor(Number(voltage)))}>
         <Icon name="battery_5_bar" className="rotate-90 !text-[18px]" />
-        <p>{battery.toFixed(1)}V</p>
+        <p>{voltage}V</p>
       </div>
     </>
   )
 }
+
 export const DevicesMobile = () => {
   const { dongleId } = useRouteParams()
   const [device] = useDevice(dongleId)
@@ -50,7 +51,7 @@ export const DevicesMobile = () => {
         </div>
         <div className="flex items-center gap-3 text-sm font-medium opacity-90">
           <Active device={device} />
-          <Battery />
+          <Voltage />
         </div>
       </div>
       {open &&
