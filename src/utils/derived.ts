@@ -23,11 +23,6 @@ export type TimelineEvent = { route_offset_millis: number } & (
   | { type: 'user_flag' }
 )
 
-export type RouteStatistics = {
-  routeDurationMs: number
-  engagedDurationMs: number
-  userFlags: number
-}
 const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
   if (!route) return []
   const urls = Array.from({ length: route.maxqlog + 1 }, (_, i) => `${route.url}/${i}/${fn}`)
@@ -108,7 +103,14 @@ export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> 
   return res
 }
 
-export const generateRouteStatistics = (route: Route | undefined, timeline: TimelineEvent[]): RouteStatistics => {
+export type RouteStats = {
+  routeDurationMs: number
+  engagedDurationMs: number
+  userFlags: number
+}
+
+export const getRouteStats = async (route: Route): Promise<RouteStats> => {
+  const timeline = await getTimelineEvents(route)
   let engagedDurationMs = 0
   let userFlags = 0
   timeline.forEach((ev) => {
