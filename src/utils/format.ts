@@ -59,7 +59,7 @@ export const getDateTime = (input: DateTimeInput) => {
 }
 
 export const formatTime = (time: DateTimeInput) =>
-  use12hTime() ? getDateTime(time)?.toFormat('h:mm a') : getDateTime(time)?.toFormat('hh:mm')
+  use12hTime() ? getDateTime(time)?.toFormat('h:mm a') : getDateTime(time)?.toFormat('HH:mm')
 
 export const formatDate = (input: DateTimeInput) => {
   const date = getDateTime(input)
