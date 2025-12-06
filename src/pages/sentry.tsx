@@ -34,7 +34,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>Sentry Mode</TopAppBar>
+      <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>Sentry Mode</TopAppBar>
 
       <div className="flex flex-col gap-4 p-4 h-full">
         {isLoading && (

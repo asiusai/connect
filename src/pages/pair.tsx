@@ -129,7 +129,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback="/" />}>Pair Device</TopAppBar>
+      <TopAppBar leading={<BackButton href="/" />}>Pair Device</TopAppBar>
       {error ? <Err error={error} /> : token ? <Pairing token={token} /> : <Scanning />}
     </div>
   )

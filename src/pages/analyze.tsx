@@ -28,7 +28,7 @@ export const Component = () => {
 
   return (
     <>
-      <TopAppBar leading={<BackButton fallback={`/${dongleId}`} />}>Analyze</TopAppBar>
+      <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>Analyze</TopAppBar>
       <div className="p-6 flex flex-col gap-6">
         <Label>
           Service

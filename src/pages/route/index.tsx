@@ -47,7 +47,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton fallback={`/${route.dongle_id}`} />}>
+      <TopAppBar leading={<BackButton href={`/${route.dongle_id}`} />}>
         <span>{title}</span>
         {route.start_time && (
           <span className="text-xs md:text-sm font-medium text-white/60">
