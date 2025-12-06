@@ -1,21 +1,25 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import { useDevices } from '../api/queries'
-import { isSignedIn, storage } from '../utils/helpers'
+import { isSignedIn } from '../utils/helpers'
 import { Sidebar } from '../components/Sidebar'
+import { useStorage } from '../utils/storage'
 
 const RedirectFromHome = () => {
   const [devices] = useDevices()
+  const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
 
   // Wait for the devices to load
   if (!devices) return null
 
-  const getDefaultDongleId = () => {
-    let lastSelectedDongleId = storage.get('lastSelectedDongleId')
-    if (devices.some((device) => device.dongle_id === lastSelectedDongleId)) return lastSelectedDongleId
-    return devices[0]?.dongle_id
+  if (lastDongleId) return <Navigate to={`/${lastDongleId}`} />
+
+  const firstDongleId = devices[0]?.dongle_id
+  if (firstDongleId) {
+    setLastDongleId(firstDongleId)
+    return <Navigate to={`/${firstDongleId}`} />
   }
-  if (getDefaultDongleId()) return <Navigate to={`/${getDefaultDongleId()}`} />
+
   return <Navigate to="/first-pair" />
 }
 

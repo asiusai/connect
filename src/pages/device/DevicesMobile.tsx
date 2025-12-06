@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { callAthena } from '../../api/athena'
 import { useDevice } from '../../api/queries'
 import { getDeviceName } from '../../types'
@@ -36,10 +35,7 @@ export const Voltage = () => {
 export const DevicesMobile = () => {
   const { dongleId } = useRouteParams()
   const [device] = useDevice(dongleId)
-  const [searchParams, setSearchParams] = useSearchParams()
-  const open = searchParams.get('devices') === 'true'
-
-  const setOpen = (newOpen: boolean) => setSearchParams(newOpen ? { devices: 'true' } : {})
+  const [open, setOpen] = useState(false)
 
   if (!device) return
   return (

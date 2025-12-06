@@ -1,4 +1,4 @@
-const STORE_NAME = 'hevc_files'
+const STORE_NAME = 'connect'
 
 export class DB {
   _db!: IDBDatabase

@@ -1,24 +1,12 @@
 import { DateTime } from 'luxon'
 import type { Route } from '../types'
-import { storage } from './helpers'
+import { storage } from './storage'
 
 export const MI_TO_KM = 1.609344
 
-export const isImperial = (): boolean => {
-  const saved = storage.get('imperial')
-  if (saved !== null) return saved === 'true'
-
-  // Getting default value
-  if (typeof navigator === 'undefined') return false
-  const locale = navigator?.language.toLowerCase()
-  const value = locale.startsWith('en-us') || locale.startsWith('en-gb')
-  storage.set('imperial', String(value))
-  return value
-}
-
 export const formatDistance = (miles: number | undefined): string | undefined => {
   if (miles === undefined) return
-  if (isImperial()) return `${miles.toFixed(1)} mi`
+  if (storage.get('unitFormat') === 'imperial') return `${miles.toFixed(1)} mi`
   return `${(miles * MI_TO_KM).toFixed(1)} km`
 }
 
@@ -48,8 +36,6 @@ export const formatRouteDuration = (route: Route | undefined): string | undefine
   return duration !== undefined ? formatDurationMs(duration) : undefined
 }
 
-export const use12hTime = () => storage.get('12hTime') === 'true'
-
 type DateTimeInput = string | number | DateTime | null | undefined
 export const getDateTime = (input: DateTimeInput) => {
   if (!input) return
@@ -59,7 +45,7 @@ export const getDateTime = (input: DateTimeInput) => {
 }
 
 export const formatTime = (time: DateTimeInput) =>
-  use12hTime() ? getDateTime(time)?.toFormat('h:mm a') : getDateTime(time)?.toFormat('HH:mm')
+  storage.get('timeFormat') === '12h' ? getDateTime(time)?.toFormat('h:mm a') : getDateTime(time)?.toFormat('HH:mm')
 
 export const formatDate = (input: DateTimeInput) => {
   const date = getDateTime(input)

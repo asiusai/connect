@@ -1,5 +1,8 @@
 import { z } from 'zod'
 
+export const UnitFormat = z.enum(['metric', 'imperial'])
+export const TimeFormat = z.enum(['24h', '12h'])
+
 export const Profile = z.object({
   email: z.string(),
   id: z.string(),
@@ -218,7 +221,7 @@ export const PreviewProps = z.object({
   logType: LogType.optional(),
   prefetchLogs: z.boolean().optional(),
   showPath: z.boolean().optional(),
-  isImperial: z.boolean().optional(),
+  unitFormat: UnitFormat.optional(),
 
   data: PreviewData.optional(),
   generated: PreviewGenerated.optional(),
@@ -374,3 +377,5 @@ export type AthenaRequest = z.infer<typeof AthenaRequest>
 export type AthenaResponse = z.infer<typeof AthenaResponse>
 export type RenderProgress = z.infer<typeof RenderProgress>
 export type RenderInfo = z.infer<typeof RenderInfo>
+export type TimeFormat = z.infer<typeof TimeFormat>
+export type UnitFormat = z.infer<typeof UnitFormat>

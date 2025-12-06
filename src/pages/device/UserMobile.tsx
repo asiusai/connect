@@ -1,30 +1,26 @@
-import { useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useProfile } from '../../api/queries'
 import { Icon } from '../../components/Icon'
 import { ButtonBase } from '../../components/ButtonBase'
 
 export const UserMobile = () => {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const open = searchParams.get('user') === 'true'
   const [profile] = useProfile()
-
-  const toggleOpen = () => setSearchParams(!open ? { user: 'true' } : {})
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     if (!open) return
-    const handleClickOutside = () => setSearchParams({})
+    const handleClickOutside = () => setOpen(false)
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [open, setSearchParams])
+  }, [open])
 
   if (!profile) return null
   return (
     <div className="relative">
       <div
         className="flex items-center justify-center w-10 h-10 bg-background backdrop-blur-md rounded-full border border-white/10 cursor-pointer hover:bg-background/80 transition-colors"
-        onClick={toggleOpen}
+        onClick={() => setOpen((x) => !x)}
       >
         <Icon name="person" filled className="text-white" />
       </div>

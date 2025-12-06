@@ -10,7 +10,6 @@ import {
   getDateTime,
 } from '../../utils/format'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { Slider } from '../../components/Slider'
 import { Fragment } from 'react'
 import { api } from '../../api'
@@ -20,6 +19,7 @@ import { Link } from 'react-router-dom'
 import { getPlaceName } from '../../utils/map'
 import { useRouteParams } from '../../utils/hooks'
 import clsx from 'clsx'
+import { useStorage } from '../../utils/storage'
 
 const PAGE_SIZE = 10
 
@@ -101,8 +101,7 @@ export const Routes = ({ className }: { className: string }) => {
 
   let prevDayHeader: string | undefined
 
-  const [params, setParams] = useSearchParams()
-  const show = params.has('preserved') ? 'preserved' : 'all'
+  const [show, setShow] = useStorage('routesType')
 
   const routes = show === 'all' ? query.data?.pages.flatMap((x) => x.body) : preserved
   const hasNextPage = show === 'all' ? query.hasNextPage : false
@@ -111,11 +110,7 @@ export const Routes = ({ className }: { className: string }) => {
     <div className={clsx('relative flex flex-col', className)}>
       <div className="flex items-center justify-between px-2">
         <h2 className="text-xl font-bold">Drives</h2>
-        <Slider
-          options={{ all: 'All', preserved: 'Preserved' }}
-          value={show}
-          onChange={(val) => setParams(val === 'all' ? undefined : { preserved: 'true' }, { replace: true })}
-        />
+        <Slider options={{ all: 'All', preserved: 'Preserved' }} value={show} onChange={setShow} />
       </div>
 
       <div className="flex flex-col gap-3">

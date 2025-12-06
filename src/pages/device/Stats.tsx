@@ -1,15 +1,15 @@
-import { useState } from 'react'
 import { useStats } from '../../api/queries'
 import { Slider } from '../../components/Slider'
 import { DetailRow } from '../../components/DetailRow'
 import { formatDistance, formatDuration } from '../../utils/format'
 import { useRouteParams } from '../../utils/hooks'
 import clsx from 'clsx'
+import { useStorage } from '../../utils/storage'
 
 export const Stats = ({ className }: { className: string }) => {
   const { dongleId } = useRouteParams()
   const [stats] = useStats(dongleId)
-  const [timeRange, setTimeRange] = useState<'week' | 'all'>('all')
+  const [timeRange, setTimeRange] = useStorage('statsTime')
 
   if (!stats) return null
 

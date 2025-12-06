@@ -22,9 +22,7 @@
     "rules": {
       "recommended": true,
       "a11y": "off",
-      "nursery": {
-        "noUselessUndefined": "error"
-      },
+      "nursery": {},
       "complexity": {
         "noBannedTypes": "off"
       },

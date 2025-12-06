@@ -2,7 +2,7 @@ import type { Device, FileType, RouteInfo } from '../types'
 import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 
-export const queryClient = new QueryClient({})
+export const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnMount: false } } })
 
 export const parseRouteName = (routeName: string): RouteInfo => {
   const [dongleId, routeId] = routeName.split(/[|/]/)
@@ -10,18 +10,6 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 }
 
 export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
-
-type StorageKey = 'lastSelectedDongleId' | 'auth' | 'largeCameraType' | 'smallCameraType' | 'logType' | 'imperial' | '12hTime'
-export const storage = {
-  get: <T extends string>(key: StorageKey): T | undefined => {
-    if (typeof localStorage === 'undefined') return
-    return (localStorage.getItem(key) as T) ?? undefined
-  },
-  set: (key: StorageKey, value: string | undefined): void => {
-    if (typeof localStorage === 'undefined') return
-    value === undefined ? localStorage.removeItem(key) : localStorage.setItem(key, value)
-  },
-}
 
 export const setCookie = (name: string, token: string | null) => {
   const isLocal = window.location.hostname === 'localhost'

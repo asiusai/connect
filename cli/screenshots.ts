@@ -20,7 +20,6 @@ const PAGES = {
   'login-github': 'login?provider=github',
 
   home: `1d3dc3e03047b0c7`,
-  'home-preserved': `1d3dc3e03047b0c7?preserved=true`,
 
   'first-pair': 'first-pair',
   pair: 'pair',

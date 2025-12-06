@@ -5,7 +5,7 @@ import { DB } from '../src/utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
 import type { FrameData } from '../log-reader/reader'
 import { useAsyncEffect } from '../src/utils/hooks'
-import { LogType } from '../src/types'
+import { LogType, UnitFormat } from '../src/types'
 import { MI_TO_KM } from '../src/utils/format'
 
 const db = new DB()
@@ -23,14 +23,14 @@ export const OpenpilotUI = ({
   i,
   prefetchedFrames,
   showPath,
-  isImperial,
+  unitFormat,
 }: {
   i: number
   url: string
   routeName: string
   prefetchedFrames?: Record<string, FrameData>
   showPath: boolean
-  isImperial: boolean
+  unitFormat?: UnitFormat
 }) => {
   const _frame = useCurrentFrame()
   const [frames, setFrames] = useState<Record<string, FrameData> | undefined>(prefetchedFrames)
@@ -78,7 +78,7 @@ export const OpenpilotUI = ({
   }
   if (!frame) return null
 
-  const speedMultiplier = 2.23694 * (isImperial ? 1 : MI_TO_KM)
+  const speedMultiplier = 2.23694 * (unitFormat === 'imperial' ? 1 : MI_TO_KM)
   return (
     <AbsoluteFill>
       {frame.CarState?.CruiseEnabled && (
@@ -98,7 +98,7 @@ export const OpenpilotUI = ({
             <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
               {Math.max(0, frame.CarState.VEgo * speedMultiplier).toFixed(0)}
             </div>
-            <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">{isImperial ? 'mph' : 'kmh'}</div>
+            <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">{unitFormat === 'imperial' ? 'mph' : 'kmh'}</div>
           </div>
 
           <div className="absolute top-12 right-12 z-20">

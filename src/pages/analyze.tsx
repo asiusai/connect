@@ -9,10 +9,11 @@ import { Service } from '../types'
 import { Loading } from '../components/Loading'
 import clsx from 'clsx'
 import { Label } from '../components/Label'
+import { useStorage } from '../utils/storage'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const [service, setService] = useState<Service>('peripheralState')
+  const [service, setService] = useStorage('analyzeService')
   const [state, setState] = useState<'loading' | 'error' | 'success'>()
 
   const json = useAsyncMemo(async () => {

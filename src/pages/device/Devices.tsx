@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useDevices } from '../../api/queries'
 import { Device, getDeviceName, getCommaName } from '../../types'
 import { timeAgo } from '../../utils/format'
-import { storage } from '../../utils/helpers'
 import { Icon } from '../../components/Icon'
 
 export const Active = ({ device, className }: { device: Device; className?: string }) => {
@@ -18,12 +17,6 @@ export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?:
   const [devices] = useDevices()
   const navigate = useNavigate()
   const { dongleId } = useParams()
-
-  const onSelect = (device: Device) => {
-    close()
-    storage.set('lastSelectedDongleId', device.dongle_id)
-    navigate(`/${device.dongle_id}`)
-  }
 
   return (
     <div
@@ -49,7 +42,10 @@ export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?:
               'flex items-center justify-between p-3 rounded-xl cursor-pointer shrink-0 relative overflow-hidden transition-colors',
               device.dongle_id === dongleId ? 'bg-white/10' : 'hover:bg-white/5',
             )}
-            onClick={() => onSelect(device)}
+            onClick={() => {
+              close()
+              navigate(`/${device.dongle_id}`)
+            }}
           >
             <div className="flex flex-col gap-0.5 z-10">
               <span className="text-sm font-bold text-white">{getDeviceName(device)}</span>

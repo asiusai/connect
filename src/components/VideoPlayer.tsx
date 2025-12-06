@@ -3,16 +3,17 @@ import clsx from 'clsx'
 import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
 import { getPreviewGenerated, Preview } from '../../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
-import { formatVideoTime, getRouteDurationMs, isImperial } from '../utils/format'
-import { RefObject, useEffect, useRef, useState } from 'react'
+import { formatVideoTime, getRouteDurationMs } from '../utils/format'
+import { RefObject, useEffect, useMemo, useRef, useState } from 'react'
 import { useAsyncMemo, useRouteParams } from '../utils/hooks'
 import { api } from '../api'
 import { useFiles, useRendererStatus, useRenderProgress, useRoute } from '../api/queries'
 import { IconButton } from './IconButton'
-import { saveFile, storage } from '../utils/helpers'
+import { saveFile } from '../utils/helpers'
 import { Icon } from './Icon'
 import { env } from '../utils/env'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
+import { useStorage } from '../utils/storage'
 
 const FILE_LABELS: Record<FileType, string> = {
   cameras: 'Road',
@@ -79,7 +80,7 @@ const OptionItem = ({
 )
 
 const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot UI' }
-const SettingsMenu = ({ props, setProps }: { props: PreviewProps; setProps: React.Dispatch<React.SetStateAction<PreviewProps>> }) => {
+const SettingsMenu = () => {
   const { routeName } = useRouteParams()
   const [files] = useFiles(routeName)
   const [route] = useRoute(routeName)
@@ -90,6 +91,10 @@ const SettingsMenu = ({ props, setProps }: { props: PreviewProps; setProps: Reac
   const onBack = () => setView(undefined)
 
   const title = view ? TITLES[view] : undefined
+
+  const [largeCameraType, setLargeCameraType] = useStorage('largeCameraType')
+  const [smallCameraType, setSmallCameraType] = useStorage('smallCameraType')
+  const [logType, setLogType] = useStorage('logType')
 
   return (
     <div className="absolute bottom-10 right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -102,9 +107,9 @@ const SettingsMenu = ({ props, setProps }: { props: PreviewProps; setProps: Reac
 
       {view === undefined &&
         [
-          { view: 'large' as const, value: FILE_LABELS[props.largeCameraType] },
-          { view: 'small' as const, value: props.smallCameraType ? FILE_LABELS[props.smallCameraType] : 'Hidden' },
-          { view: 'log' as const, value: props.logType ? FILE_LABELS[props.logType] : 'Hidden' },
+          { view: 'large' as const, value: FILE_LABELS[largeCameraType] },
+          { view: 'small' as const, value: smallCameraType ? FILE_LABELS[smallCameraType] : 'Hidden' },
+          { view: 'log' as const, value: logType ? FILE_LABELS[logType] : 'Hidden' },
         ].map(({ view, value }) => (
           <div
             key={view}
@@ -124,38 +129,38 @@ const SettingsMenu = ({ props, setProps }: { props: PreviewProps; setProps: Reac
           <OptionItem
             key={option.value}
             label={option.label}
-            selected={props.largeCameraType === option.value}
+            selected={largeCameraType === option.value}
             disabled={option.disabled}
             onClick={() => {
-              setProps((p) => ({ ...p, largeCameraType: option.value as any }))
+              setLargeCameraType(option.value)
               setView(undefined)
             }}
           />
         ))}
 
       {view === 'small' &&
-        [...allCameras, { value: 'none', label: 'Hidden', disabled: false }].map((option) => (
+        [...allCameras, { value: 'none' as const, label: 'Hidden', disabled: false }].map((option) => (
           <OptionItem
             key={option.value}
             label={option.label}
-            selected={(props.smallCameraType ?? 'none') === option.value}
+            selected={(smallCameraType ?? 'none') === option.value}
             disabled={option.disabled}
             onClick={() => {
-              setProps((p) => ({ ...p, smallCameraType: option.value === 'none' ? undefined : (option.value as any) }))
+              setSmallCameraType(option.value === 'none' ? undefined : option.value)
               setView(undefined)
             }}
           />
         ))}
 
       {view === 'log' &&
-        [...allLogs, { value: 'none', label: 'Hidden', disabled: false }].map((option) => (
+        [...allLogs, { value: 'none' as const, label: 'Hidden', disabled: false }].map((option) => (
           <OptionItem
             key={option.value}
             label={option.label}
-            selected={(props.logType ?? 'none') === option.value}
+            selected={(logType ?? 'none') === option.value}
             disabled={option.disabled}
             onClick={() => {
-              setProps((p) => ({ ...p, logType: option.value === 'none' ? undefined : (option.value as any) }))
+              setLogType(option.value === 'none' ? undefined : option.value)
               setView(undefined)
             }}
           />
@@ -167,15 +172,13 @@ const SettingsMenu = ({ props, setProps }: { props: PreviewProps; setProps: Reac
 const Controls = ({
   playerRef,
   duration,
-  props,
-  setProps,
   fullscreenRef,
+  props,
 }: {
   fullscreenRef: RefObject<HTMLDivElement | null>
-  props: PreviewProps
-  setProps: React.Dispatch<React.SetStateAction<PreviewProps>>
   duration: number
   playerRef: RefObject<PlayerRef | null>
+  props: PreviewProps
 }) => {
   const player = playerRef.current
 
@@ -255,7 +258,7 @@ const Controls = ({
 
           <Download props={props} />
           <div className="relative" ref={settingsRef}>
-            {showSettings && <SettingsMenu props={props} setProps={setProps} />}
+            {showSettings && <SettingsMenu />}
             <IconButton title="Settings" name="settings" onClick={() => setShowSettings(!showSettings)} />
           </div>
           <IconButton
@@ -374,22 +377,22 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
   const duration = getRouteDurationMs(route)! / 1000
   const fullscreenRef = useRef<HTMLDivElement>(null)
 
-  const [props, setProps] = useState<PreviewProps>({
-    routeName,
-    largeCameraType: storage.get('largeCameraType') ?? 'qcameras',
-    smallCameraType: storage.get('smallCameraType'),
-    logType: storage.get('logType'),
-    data: files && route ? { files, route } : undefined,
-    isImperial: isImperial(),
-  })
+  const [largeCameraType] = useStorage('largeCameraType')
+  const [smallCameraType] = useStorage('smallCameraType')
+  const [logType] = useStorage('logType')
+  const [unitFormat] = useStorage('unitFormat')
 
-  useEffect(() => storage.set('largeCameraType', props.largeCameraType), [props.largeCameraType])
-  useEffect(() => storage.set('smallCameraType', props.smallCameraType), [props.smallCameraType])
-  useEffect(() => storage.set('logType', props.logType), [props.logType])
-
-  useEffect(() => {
-    setProps((p) => ({ ...p, data: files && route ? { files, route } : undefined }))
-  }, [files, route])
+  const props = useMemo<PreviewProps>(
+    () => ({
+      routeName,
+      largeCameraType,
+      smallCameraType,
+      logType,
+      data: files && route ? { files, route } : undefined,
+      unitFormat,
+    }),
+    [largeCameraType, smallCameraType, logType, files, route],
+  )
 
   const generated = useAsyncMemo(() => getPreviewGenerated(props), [props])
 
@@ -407,7 +410,7 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
         initiallyMuted
         acknowledgeRemotionLicense
       />
-      <Controls playerRef={playerRef} fullscreenRef={fullscreenRef} duration={duration} props={props} setProps={setProps} />
+      <Controls playerRef={playerRef} fullscreenRef={fullscreenRef} duration={duration} props={props} />
     </div>
   )
 }

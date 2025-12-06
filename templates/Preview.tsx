@@ -1,6 +1,6 @@
 import { AbsoluteFill, CalculateMetadataFunction, Sequence, Series } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { FileType, PreviewData, PreviewGenerated, PreviewProps } from '../src/types'
+import { FileType, PreviewData, PreviewGenerated, PreviewProps, UnitFormat } from '../src/types'
 import { api } from '../src/api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
@@ -89,13 +89,13 @@ const UI = ({
   routeName,
   prefetchedLogs,
   showPath,
-  isImperial,
+  unitFormat,
 }: {
   files?: string[]
   routeName: string
   prefetchedLogs?: Record<string, FrameData>[]
   showPath: boolean
-  isImperial: boolean
+  unitFormat?: UnitFormat
 }) => {
   if (!files) return null
   return (
@@ -104,7 +104,7 @@ const UI = ({
         <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
           <OpenpilotUI
             i={i}
-            isImperial={isImperial}
+            unitFormat={unitFormat}
             routeName={routeName}
             url={url}
             prefetchedFrames={prefetchedLogs?.[i]}
@@ -116,7 +116,7 @@ const UI = ({
   )
 }
 
-export const Preview = ({ generated, routeName, showPath, isImperial }: PreviewProps) => {
+export const Preview = ({ generated, routeName, showPath, unitFormat }: PreviewProps) => {
   if (!generated) return null
   return (
     <AbsoluteFill>
@@ -126,7 +126,7 @@ export const Preview = ({ generated, routeName, showPath, isImperial }: PreviewP
         routeName={routeName}
         prefetchedLogs={generated.prefetchedLogs}
         showPath={!!showPath}
-        isImperial={!!isImperial}
+        unitFormat={unitFormat}
       />
       <Camera
         files={generated.smallCameraFiles}
