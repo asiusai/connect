@@ -8,8 +8,6 @@ import { useAsyncEffect } from '../src/utils/hooks'
 import { LogType, UnitFormat } from '../src/types'
 import { MI_TO_KM } from '../src/utils/format'
 
-const db = new DB()
-
 const PATH_WIDTH = 1.8
 const FX = 500
 const FY = 2000
@@ -35,10 +33,10 @@ export const OpenpilotUI = ({
   const _frame = useCurrentFrame()
   const [frames, setFrames] = useState<Record<string, FrameData> | undefined>(prefetchedFrames)
   const logType: LogType = url.includes('qlog') ? 'qlogs' : 'logs'
+
   useAsyncEffect(async () => {
     if (frames) return
-
-    await db.init()
+    const db = await DB.init('logs')
     const workers: Worker[] = []
 
     const cacheKey = `${routeName}--${i}--${logType}`

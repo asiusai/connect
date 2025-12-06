@@ -1,27 +1,26 @@
-const STORE_NAME = 'connect'
+type StoreName = 'logs'
 
 export class DB {
-  _db!: IDBDatabase
-  init = async () => {
-    if (this._db) return this
-
-    this._db = await new Promise((resolve, reject) => {
-      const request = indexedDB.open('VideoCache', 1)
+  constructor(
+    public _db: IDBDatabase,
+    public storeName: StoreName,
+  ) {}
+  static init = async (storeName: StoreName) => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(storeName, 1)
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME)
-        }
+        if (!db.objectStoreNames.contains(storeName)) db.createObjectStore(storeName)
       }
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(request.error)
     })
-    return this
+    return new DB(db, storeName)
   }
   get = async <T extends string | Blob>(key: string) => {
     return new Promise<T | undefined>((resolve) => {
-      const tx = this._db.transaction(STORE_NAME, 'readonly')
-      const store = tx.objectStore(STORE_NAME)
+      const tx = this._db.transaction(this.storeName, 'readonly')
+      const store = tx.objectStore(this.storeName)
       const request = store.get(key)
       request.onsuccess = () => resolve(request.result as T)
       request.onerror = () => resolve(undefined)
@@ -29,8 +28,8 @@ export class DB {
   }
   set = async <T extends string | Blob>(key: string, blob: T) => {
     return new Promise<void>((resolve, reject) => {
-      const tx = this._db.transaction(STORE_NAME, 'readwrite')
-      const store = tx.objectStore(STORE_NAME)
+      const tx = this._db.transaction(this.storeName, 'readwrite')
+      const store = tx.objectStore(this.storeName)
       const request = store.put(blob, key)
       request.onsuccess = () => resolve()
       request.onerror = () => reject(request.error)
