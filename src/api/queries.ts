@@ -36,7 +36,7 @@ export const useShareSignature = (routeName: string) =>
   w(
     api.routes.shareSignature.useQuery({
       queryKey: ['shareSignature', routeName],
-      queryData: { params: { routeName } },
+      queryData: { params: { routeName: routeName.replace('/', '|') } },
     }),
   )
 

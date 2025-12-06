@@ -1,13 +1,14 @@
 import { Files, FileType, Route } from '../types'
 import { useState } from 'react'
-import { concatBins, FILE_INFO, parseRouteName, saveFile } from '../utils/helpers'
+import { concatBins, getQCameraUrl, FILE_INFO, parseRouteName, saveFile } from '../utils/helpers'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
-import { useFiles } from '../api/queries'
+import { useFiles, useShareSignature } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
 import { useRouteParams } from '../utils/hooks'
 import { Icon } from './Icon'
+import { ButtonBase } from './ButtonBase'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
@@ -47,6 +48,7 @@ const FileAction = ({
   href,
   download,
   loading,
+  uploadButton,
 }: {
   icon: string
   label: string
@@ -54,25 +56,18 @@ const FileAction = ({
   href?: string
   download?: string
   loading?: number | boolean
+  uploadButton?: boolean
 }) => {
-  if (href) {
-    return (
-      <a
-        href={href}
-        download={download}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-xs font-medium text-white"
-      >
-        <Icon name={icon as any} className="text-[16px]" />
-        <span>{label}</span>
-      </a>
-    )
-  }
-
   return (
-    <button
+    <ButtonBase
       onClick={onClick}
+      href={href}
+      download={download}
       disabled={!!loading}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-xs font-medium text-white disabled:opacity-50"
+      className={clsx(
+        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium disabled:opacity-50',
+        uploadButton ? 'bg-white text-black hover:bg-white/90' : 'bg-white/5 hover:bg-white/10 text-white',
+      )}
     >
       {loading ? (
         <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -80,7 +75,7 @@ const FileAction = ({
         <Icon name={icon as any} className="text-[16px]" />
       )}
       <span>{label}</span>
-    </button>
+    </ButtonBase>
   )
 }
 
@@ -95,6 +90,7 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Files;
     <FileAction
       label="Upload"
       icon="upload"
+      uploadButton
       loading={isLoading}
       onClick={async () => {
         setIsLoading(true)
@@ -106,6 +102,18 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Files;
   )
 }
 
+const QCameraDownload = () => {
+  const { routeName } = useRouteParams()
+  const [signature] = useShareSignature(routeName)
+  return (
+    <FileAction
+      label={FILE_INFO.qcameras.processed!}
+      icon="movie"
+      download={`${routeName}--${FILE_INFO.qcameras.name}`}
+      href={signature ? getQCameraUrl(routeName, signature) : undefined}
+    />
+  )
+}
 const FullRouteDownload = ({ type, files, route }: { type: FileType; files: Files; route: Route }) => {
   const { dongleId, date, routeName } = useRouteParams()
   const [progress, setProgress] = useState<Record<number, number>>({})
@@ -118,7 +126,7 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
   if (type === 'logs' || type === 'qlogs')
     return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}`} />
 
-  if (type === 'qcameras') return null
+  if (type === 'qcameras') return <QCameraDownload />
 
   return (
     <FileAction
