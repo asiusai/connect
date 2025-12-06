@@ -46,7 +46,7 @@ export const useProfile = () => w(api.profile.me.useQuery({ queryKey: ['me'], en
 export const useRoute = (routeName: string) =>
   w(
     api.routes.get.useQuery({
-      queryKey: ['route', routeName ],
+      queryKey: ['route', routeName],
       queryData: { params: { routeName: routeName.replace('/', '|') } },
     }),
   )
@@ -77,7 +77,13 @@ export const usePortal = (dongleId: string) =>
   w(api.prime.getPortal.useQuery({ queryKey: ['get-portal', dongleId], queryData: { query: { dongle_id: dongleId } } }))
 
 export const useFiles = (routeName: string, refetchInterval?: number) =>
-  w(api.file.files.useQuery({ queryKey: ['files', routeName ], queryData: { params: { routeName:routeName.replace('/', '|') } }, refetchInterval }))
+  w(
+    api.file.files.useQuery({
+      queryKey: ['files', routeName],
+      queryData: { params: { routeName: routeName.replace('/', '|') } },
+      refetchInterval,
+    }),
+  )
 
 export const useUsers = (dongleId: string) =>
   w(api.devices.users.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))
