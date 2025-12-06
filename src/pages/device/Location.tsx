@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 
 type MarkerType = {
+  id: string
   lat: number
   lng: number
   label: string
@@ -60,7 +61,7 @@ export const Location = ({ className, devices }: { className?: string; devices?:
   const { position, requestPosition } = usePosition()
   const navigate = useNavigate()
 
-  const markers = useAsyncMemo(
+  const deviceMarkers = useAsyncMemo(
     async () => {
       if (!devices) return []
 
@@ -69,6 +70,7 @@ export const Location = ({ className, devices }: { className?: string; devices?:
           const res = await api.devices.location.query({ params: { dongleId: x.dongle_id } })
           if (res.status !== 200) return
           return {
+            id: x.dongle_id,
             lat: res.body.lat,
             lng: res.body.lng,
             href: `/${x.dongle_id}`,
@@ -83,15 +85,19 @@ export const Location = ({ className, devices }: { className?: string; devices?:
     [],
   )
 
-  if (position)
-    markers.push({
-      lat: position.coords.latitude,
-      lng: position.coords.longitude,
-      label: 'You',
-      iconName: 'person',
-      iconClass: 'bg-tertiary text-tertiary-x',
-    })
-
+  const markers: MarkerType[] = [
+    ...deviceMarkers,
+    (position
+      ? {
+          id: 'you',
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          label: 'You',
+          iconName: 'person',
+          iconClass: 'bg-tertiary text-tertiary-x',
+        }
+      : undefined) as MarkerType,
+  ].filter(Boolean)
   return (
     <div className={clsx(className)}>
       <MapContainer
@@ -105,8 +111,8 @@ export const Location = ({ className, devices }: { className?: string; devices?:
 
         {markers.map((x) => (
           <Marker
+            key={x.id}
             title={x.label}
-            key={x.iconName}
             position={[x.lat, x.lng]}
             eventHandlers={{
               click: () => {

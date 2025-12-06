@@ -16,7 +16,7 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
   if (segments.status !== 200) throw new Error('Failed getting segments!')
   const route = segments.body[0]
 
-  const res = await api.file.files.query({ params: { routeName: props.routeName.replace('/', '%7C') } })
+  const res = await api.file.files.query({ params: { routeName: props.routeName.replace('/', '|') } })
   if (res.status !== 200) throw new Error()
   let files = res.body
   return { route, files }

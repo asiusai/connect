@@ -18,7 +18,7 @@ export const useDimensions = (): Dimensions => {
 
 export const useRouteParams = () => {
   const { dongleId, date } = useParamsRouter()
-  return { dongleId: dongleId!, date: date!, routeName: `${dongleId}|${date}` }
+  return { dongleId: dongleId!, date: date!, routeName: `${dongleId}/${date}` }
 }
 
 export const useAsyncEffect = (fn: () => Promise<any>, args: any[]) => {

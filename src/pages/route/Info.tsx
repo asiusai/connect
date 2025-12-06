@@ -8,7 +8,7 @@ export const Info = ({ route, className }: { route: Route; className?: string })
   return (
     <div className={clsx('bg-background-alt rounded-xl p-4 flex flex-col', className)}>
       <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Details</h3>
-      <DetailRow label="Route" value={routeName.replace('|', '/')} mono copyable />
+      <DetailRow label="Route" value={routeName} mono copyable />
       <DetailRow label="Vehicle" value={route.make || route.platform} copyable />
       <DetailRow label="Dongle ID" value={route.dongle_id} mono copyable />
       <DetailRow label="Version" value={route.version} mono copyable />
