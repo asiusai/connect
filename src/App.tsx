@@ -131,7 +131,7 @@ const router = createBrowserRouter([
 export const App = () => (
   <QueryClientProvider client={queryClient}>
     <api.ReactQueryProvider>
-      <Toaster theme="dark" />
+      <Toaster theme="dark" toastOptions={{ className: '!bg-background !text-background-x' }} />
       <AppLayout>
         <RouterProvider router={router} />
       </AppLayout>

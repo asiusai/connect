@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { api } from '.'
 import { env } from '../utils/env'
 import { AthenaError, Service } from '../types'
+import { toast } from 'sonner'
 
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
@@ -154,11 +155,15 @@ export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends
     },
     params: { dongleId },
   })
-  if (res.status !== 200) return
-  return z
-    .object({
-      error: AthenaError.optional(),
-      result: req.result.optional(),
-    })
-    .parse(res.body)
+  if (res.status === 202) {
+    toast(res.body.result)
+    return
+  }
+  if (res.status === 200)
+    return z
+      .object({
+        error: AthenaError.optional(),
+        result: req.result.optional(),
+      })
+      .parse(res.body)
 }

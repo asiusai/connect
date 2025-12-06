@@ -13,11 +13,9 @@
         "@remotion/player": "4.0.373",
         "@remotion/tailwind": "4.0.373",
         "@tanstack/react-query": "^5.90.7",
-        "@tanstack/react-query-devtools": "^5.90.2",
         "@ts-rest/core": "3.53.0-rc.1",
         "@ts-rest/react-query": "3.53.0-rc.1",
         "@ts-rest/serverless": "3.53.0-rc.1",
-        "@types/react-dom": "19.2.0",
         "@vitejs/plugin-react": "^5.1.0",
         "capnp-ts": "^0.7.0",
         "clsx": "^2.1.1",
@@ -39,6 +37,7 @@
         "@types/geojson": "^7946.0.16",
         "@types/leaflet": "^1.9.21",
         "@types/mapbox__polyline": "^1.0.5",
+        "@types/react-dom": "19.2.0",
         "@vite-pwa/assets-generator": "^1.0.0",
         "@vitest/browser": "^3.1.1",
         "autoprefixer": "^10.4.21",
@@ -592,11 +591,7 @@
 
     "@tanstack/query-core": ["@tanstack/query-core@5.90.8", "", {}, "sha512-4E0RP/0GJCxSNiRF2kAqE/LQkTJVlL/QNU7gIJSptaseV9HP6kOuA+N11y4bZKZxa3QopK3ZuewwutHx6DqDXQ=="],
 
-    "@tanstack/query-devtools": ["@tanstack/query-devtools@5.90.1", "", {}, "sha512-GtINOPjPUH0OegJExZ70UahT9ykmAhmtNVcmtdnOZbxLwT7R5OmRztR5Ahe3/Cu7LArEmR6/588tAycuaWb1xQ=="],
-
     "@tanstack/react-query": ["@tanstack/react-query@5.90.8", "", { "dependencies": { "@tanstack/query-core": "5.90.8" }, "peerDependencies": { "react": "^18 || ^19" } }, "sha512-/3b9QGzkf4rE5/miL6tyhldQRlLXzMHcySOm/2Tm2OLEFE9P1ImkH0+OviDBSvyAvtAOJocar5xhd7vxdLi3aQ=="],
-
-    "@tanstack/react-query-devtools": ["@tanstack/react-query-devtools@5.90.2", "", { "dependencies": { "@tanstack/query-devtools": "5.90.1" }, "peerDependencies": { "@tanstack/react-query": "^5.90.2", "react": "^18 || ^19" } }, "sha512-vAXJzZuBXtCQtrY3F/yUNJCV4obT/A/n81kb3+YqLbro5Z2+phdAbceO+deU3ywPw8B42oyJlp4FhO0SoivDFQ=="],
 
     "@testing-library/dom": ["@testing-library/dom@10.4.1", "", { "dependencies": { "@babel/code-frame": "^7.10.4", "@babel/runtime": "^7.12.5", "@types/aria-query": "^5.0.1", "aria-query": "5.3.0", "dom-accessibility-api": "^0.5.9", "lz-string": "^1.5.0", "picocolors": "1.1.1", "pretty-format": "^27.0.2" } }, "sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg=="],
 

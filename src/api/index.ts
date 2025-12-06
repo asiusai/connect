@@ -32,14 +32,19 @@ export const api = initTsrReactQuery(contract, {
     const text = await res.text()
 
     try {
-      const schema = args.route.responses[res.status] as any
       const body = JSON.parse(text)
-      const parse = schema.safeParse(body)
-      if (!parse.success) console.error(`API response parsing failed: ${parse.error}`)
+
+      const schema = args.route.responses[res.status] as any | undefined
+      if (!schema) console.warn(`Unexpected return status: ${res.status}, res: ${text}`)
+      else {
+        const parse = schema?.safeParse(body)
+        if (!parse.success) console.warn(`API response parsing failed, status: ${res.status}, error: ${parse.error}`)
+      }
+
       return { status: res.status, headers: res.headers, body }
     } catch (e) {
       console.error(e)
-      console.log(`Parsing body failed: ${text}`)
+      console.log(`Parsing body status: ${res.status}, res: ${text}`)
       return { status: res.status, headers: res.headers, body: undefined }
     }
   },

@@ -1,4 +1,4 @@
-import type { Device, RouteInfo } from '../types'
+import type { Device, FileType, RouteInfo } from '../types'
 import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 
@@ -108,3 +108,47 @@ export const concatBins = (chunks: Uint8Array[]) => {
 }
 
 export const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1)
+
+export const FILE_INFO: Record<FileType, { name: string; raw: string; processed?: string; label: string; short: string }> = {
+  cameras: {
+    label: 'Road camera',
+    short: 'Road',
+    name: 'fcamera.hevc',
+    raw: '.hevc',
+    processed: '.mp4',
+  },
+  ecameras: {
+    label: 'Wide-angle camera',
+    short: 'Wide',
+    name: 'ecamera.hevc',
+    raw: '.hevc',
+    processed: '.mp4',
+  },
+  dcameras: {
+    label: 'Driver camera',
+    short: 'Driver',
+    name: 'dcamera.hevc',
+    raw: '.hevc',
+    processed: '.mp4',
+  },
+  qcameras: {
+    label: 'Quantized camera',
+    short: 'Quantized',
+    name: 'qcamera.ts',
+    raw: '.ts',
+  },
+  logs: {
+    label: 'Logs',
+    short: 'Logs',
+    name: 'rlog.zst',
+    raw: '.zst',
+    processed: 'View',
+  },
+  qlogs: {
+    label: 'Quantized logs',
+    short: 'Quantized',
+    name: 'qlog.zst',
+    raw: '.zst',
+    processed: 'View',
+  },
+}

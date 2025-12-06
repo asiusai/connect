@@ -248,6 +248,7 @@ const athena = c.router({
     body: AthenaRequest,
     responses: {
       200: AthenaResponse,
+      202: AthenaResponse.extend({ result: z.string() }),
     },
   },
 })
