@@ -23,11 +23,11 @@ export const storage = {
   },
 }
 
-export const setAccessToken = (token: string | null) => {
+export const setCookie = (name: string, token: string | null) => {
   const isLocal = window.location.hostname === 'localhost'
 
   const cookie = [
-    `_accessToken=${token ?? ''}`,
+    `${name}=${token ?? ''}`,
     !isLocal && `Domain=.${window.location.host}`,
     !isLocal && `Secure`,
     token === null ? 'Expires=Thu, 01 Jan 1970 00:00:00 GMT' : `Max-Age=${60 * 60 * 24 * 30}`,
@@ -36,7 +36,6 @@ export const setAccessToken = (token: string | null) => {
   ]
     .filter(Boolean)
     .join('; ')
-  console.log(cookie)
   document.cookie = cookie
 }
 
@@ -53,7 +52,7 @@ export const getCookie = (name: string) => {
 }
 
 export const accessToken = () => getCookie('_accessToken')
-
+export const setAccessToken = (cookie: string | null) => setCookie('_accessToken', cookie)
 export const isSignedIn = () => !!accessToken()
 
 export const signOut = () => {
