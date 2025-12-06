@@ -1,4 +1,4 @@
-import type { Device, FileType, RouteInfo, RouteShareSignature } from '../types'
+import type { Device, Files, FileType, RouteInfo, RouteShareSignature } from '../types'
 import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 
@@ -13,6 +13,9 @@ export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
 
 export const getQCameraUrl = (routeName: string, signature: RouteShareSignature): string =>
   `${env.API_URL}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
+
+export const findFile = (files: Files, type: FileType, segment: number) =>
+  files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
 
 export const setCookie = (name: string, token: string | null) => {
   const isLocal = window.location.hostname === 'localhost'
