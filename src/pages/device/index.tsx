@@ -1,5 +1,5 @@
 import { Loading } from '../../components/Loading'
-import { useDevice } from '../../api/queries'
+import { useDevice, useDevices } from '../../api/queries'
 import { Location } from './Location'
 import { Routes } from './Routes'
 import { Stats } from './Stats'
@@ -13,6 +13,7 @@ import { DevicesMobile } from './DevicesMobile'
 export const Component = () => {
   const { dongleId } = useRouteParams()
   const [device] = useDevice(dongleId)
+  const [devices] = useDevices()
 
   const scroll = useScroll()
   if (!device) return <Loading className="h-screen w-screen" />
@@ -20,7 +21,7 @@ export const Component = () => {
   return (
     <div className="flex flex-col min-h-screen relative">
       <div className="w-full sticky top-0" style={{ height }}>
-        <Location device={device} className="h-full w-full" />
+        <Location devices={devices} className="h-full w-full" />
         <div className="absolute z-[999] top-0 w-full flex justify-between p-4 md:hidden">
           <DevicesMobile />
           <UserMobile />

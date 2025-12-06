@@ -2,14 +2,22 @@ import clsx from 'clsx'
 import { Device, getDeviceName } from '../../types'
 import { useCallback, useEffect, useState } from 'react'
 import type { IconName } from '../../components/Icon'
-import { getFullAddress, getTileUrl } from '../../utils/map'
+import { getTileUrl } from '../../utils/map'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
-import { useDeviceLocation } from '../../api/queries'
 import { IconButton } from '../../components/IconButton'
-import { useRouteParams } from '../../utils/hooks'
+import { useAsyncMemo } from '../../utils/hooks'
+import { useNavigate } from 'react-router-dom'
+import { api } from '../../api'
 
-type Location = { lat: number; lng: number; label: string; address: string | null; iconName: IconName; iconClass?: string }
+type MarkerType = {
+  lat: number
+  lng: number
+  label: string
+  iconName: IconName
+  iconClass?: string
+  href?: string
+}
 
 const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
 
@@ -36,7 +44,7 @@ const usePosition = () => {
   return { position, requestPosition }
 }
 
-const FitBounds = ({ markers }: { markers: Location[] }) => {
+const FitBounds = ({ markers }: { markers: MarkerType[] }) => {
   const map = useMap()
   useEffect(() => {
     if (!markers.length) return
@@ -48,38 +56,41 @@ const FitBounds = ({ markers }: { markers: Location[] }) => {
   return null
 }
 
-export const Location = ({ device, className }: { device: Device; className?: string }) => {
-  const { dongleId } = useRouteParams()
+export const Location = ({ className, devices }: { className?: string; devices?: Device[] }) => {
   const { position, requestPosition } = usePosition()
-  const [markers, setMarkers] = useState<Location[]>([])
-  const [location] = useDeviceLocation(dongleId)
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    const effect = async () => {
-      const markers: Location[] = []
-      if (location) {
-        markers.push({
-          address: await getFullAddress([location.lng, location.lat]),
-          lat: location.lat,
-          lng: location.lng,
-          label: getDeviceName(device),
-          iconName: 'directions_car',
-        })
-      }
-      if (position) {
-        markers.push({
-          address: await getFullAddress([position.coords.longitude, position.coords.latitude]),
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          label: 'You',
-          iconName: 'person',
-          iconClass: 'bg-tertiary text-tertiary-x',
-        })
-      }
-      setMarkers(markers)
-    }
-    effect()
-  }, [position, device, location])
+  const markers = useAsyncMemo(
+    async () => {
+      if (!devices) return []
+
+      const markers: (MarkerType | undefined)[] = await Promise.all(
+        devices.map(async (x) => {
+          const res = await api.devices.location.query({ params: { dongleId: x.dongle_id } })
+          if (res.status !== 200) return
+          return {
+            lat: res.body.lat,
+            lng: res.body.lng,
+            href: `/${x.dongle_id}`,
+            label: getDeviceName(x),
+            iconName: 'directions_car',
+          }
+        }),
+      )
+      return markers.filter((x) => x) as MarkerType[]
+    },
+    [devices],
+    [],
+  )
+
+  if (position)
+    markers.push({
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+      label: 'You',
+      iconName: 'person',
+      iconClass: 'bg-tertiary text-tertiary-x',
+    })
 
   return (
     <div className={clsx(className)}>
@@ -94,11 +105,12 @@ export const Location = ({ device, className }: { device: Device; className?: st
 
         {markers.map((x) => (
           <Marker
+            title={x.label}
             key={x.iconName}
             position={[x.lat, x.lng]}
             eventHandlers={{
               click: () => {
-                window.open(`https://www.google.com/maps?q=${x!.lat},${x!.lng}`, '_blank')
+                if (x.href) navigate(x.href)
               },
             }}
             icon={L.divIcon({
