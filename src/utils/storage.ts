@@ -33,9 +33,12 @@ export const storage = {
   get: <K extends StorageKey>(key: K): StorageValue<K> => {
     if (typeof localStorage === 'undefined') return STORAGES[key]() as any
 
-    const item = localStorage.getItem(key)
-    if (item) return JSON.parse(item)
-
+    try {
+      const item = localStorage.getItem(key)
+      if (item) return JSON.parse(item)
+    } catch (e) {
+      console.error(e)
+    }
     return STORAGES[key]() as any
   },
   set: <K extends StorageKey>(key: K, value: StorageValue<K>): void => {
