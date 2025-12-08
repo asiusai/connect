@@ -304,6 +304,7 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
   const onStart = () => {
     const onMouseMove = (ev: MouseEvent) => updateMarker(ev.clientX)
     const onTouchMove = (ev: TouchEvent) => {
+      if (ev.cancelable) ev.preventDefault()
       if (ev.touches.length !== 1) return
       updateMarker(ev.touches[0].clientX)
     }
@@ -315,7 +316,7 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
       window.removeEventListener('touchcancel', onStop)
     }
     window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('touchmove', onTouchMove)
+    window.addEventListener('touchmove', onTouchMove, { passive: false })
     window.addEventListener('mouseup', onStop)
     window.addEventListener('touchend', onStop)
     window.addEventListener('touchcancel', onStop)
