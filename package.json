@@ -11,6 +11,7 @@
   "scripts": {
     "build": "bun run --bun vite build",
     "dev": "bun run --bun vite --open",
+    "konik": "bun run --bun vite --open --mode konik",
     "serve": "vite preview",
     "check": "biome check",
     "fix": "biome check --write",

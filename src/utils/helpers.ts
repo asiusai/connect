@@ -1,6 +1,7 @@
 import type { Device, Files, FileType, RouteInfo, RouteShareSignature } from '../types'
 import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
+import { storage } from './storage'
 
 export const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnMount: false } } })
 
@@ -17,40 +18,12 @@ export const getQCameraUrl = (routeName: string, signature: RouteShareSignature)
 export const findFile = (files: Files, type: FileType, segment: number) =>
   files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
 
-export const setCookie = (name: string, token: string | null) => {
-  const isLocal = window.location.hostname === 'localhost'
-
-  const cookie = [
-    `${name}=${token ?? ''}`,
-    !isLocal && `Domain=.${window.location.host}`,
-    !isLocal && `Secure`,
-    token === null ? 'Expires=Thu, 01 Jan 1970 00:00:00 GMT' : `Max-Age=${60 * 60 * 24 * 30}`,
-    `Path=/`,
-    'SameSite=Lax',
-  ]
-    .filter(Boolean)
-    .join('; ')
-  document.cookie = cookie
-}
-
-export const getCookie = (name: string) => {
-  if (typeof document === 'undefined') return null
-  const nameEQ = name + '='
-  const ca = document.cookie.split(';')
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i]
-    while (c.charAt(0) === ' ') c = c.substring(1, c.length)
-    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length)
-  }
-  return null
-}
-
-export const accessToken = () => getCookie('_accessToken')
-export const setAccessToken = (cookie: string | null) => setCookie('_accessToken', cookie)
+export const accessToken = () => storage.get('accessToken')
+export const setAccessToken = (token: string | undefined) => storage.set('accessToken', token)
 export const isSignedIn = () => !!accessToken()
 
 export const signOut = () => {
-  setAccessToken(null)
+  setAccessToken(undefined)
   queryClient.clear()
 }
 

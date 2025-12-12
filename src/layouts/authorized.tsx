@@ -1,9 +1,10 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
-import { useDevices } from '../api/queries'
-import { isSignedIn } from '../utils/helpers'
+import { useDevices, useProfile } from '../api/queries'
+import { isSignedIn, signOut } from '../utils/helpers'
 import { Sidebar } from '../components/Sidebar'
 import { useStorage } from '../utils/storage'
+import { useEffect } from 'react'
 
 const RedirectFromHome = () => {
   const [devices] = useDevices()
@@ -25,6 +26,14 @@ const RedirectFromHome = () => {
 
 export const Component = () => {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [_, { error }] = useProfile()
+
+  useEffect(() => {
+    if ((error as any)?.status !== 401) return 
+    signOut()
+    navigate("/login")
+  }, [error])
 
   if (!isSignedIn()) return <Navigate to="/login" />
 

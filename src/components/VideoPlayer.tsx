@@ -1,6 +1,6 @@
 import { Player, PlayerRef } from '@remotion/player'
 import clsx from 'clsx'
-import { FPS, HEIGHT, WIDTH } from '../../templates/shared'
+import { FPS, HEIGHT, toFrames, toSeconds, WIDTH } from '../../templates/shared'
 import { getPreviewGenerated, Preview } from '../../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
 import { formatVideoTime, getRouteDurationMs } from '../utils/format'
@@ -230,7 +230,7 @@ const Controls = ({
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
   }, [])
 
-  const seconds = frame / FPS
+  const seconds = toSeconds(frame)
   return (
     <div
       className="absolute inset-0"
@@ -253,7 +253,7 @@ const Controls = ({
             onClick={() => (muted ? player?.unmute() : player?.mute())}
           />
           <span className="text-sm ">
-            {formatVideoTime(Math.round(seconds))} / {formatVideoTime(duration)}
+            {formatVideoTime(Math.round(seconds))} / {formatVideoTime(Math.round(duration))}
           </span>
 
           <Download props={props} />
@@ -298,7 +298,7 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
   const updateMarker = (clientX: number) => {
     const rect = ref.current!.getBoundingClientRect()
     const x = Math.min(Math.max(clientX - rect.left, 0), rect.width - MARKER_WIDTH)
-    playerRef.current?.seekTo(Math.floor((x / rect.width) * duration * FPS))
+    playerRef.current?.seekTo(Math.floor((x / rect.width) * toFrames(duration)))
   }
 
   const onStart = () => {
@@ -322,7 +322,7 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
     window.addEventListener('touchcancel', onStop)
   }
 
-  const markerOffset = (frame / FPS / duration) * 100
+  const markerOffset = (toSeconds(frame) / duration) * 100
   return (
     <div
       ref={ref}
@@ -404,7 +404,7 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
         component={Preview}
         compositionHeight={HEIGHT}
         compositionWidth={WIDTH}
-        durationInFrames={duration * FPS}
+        durationInFrames={toFrames(duration)}
         fps={FPS}
         style={{ width: '100%' }}
         inputProps={{ ...props, generated }}

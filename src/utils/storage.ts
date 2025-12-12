@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../types'
 
 const STORAGES = {
+  accessToken: (): string | undefined => undefined,
   lastDongleId: (): string | undefined => undefined,
   largeCameraType: (): CameraType => 'qcameras',
   smallCameraType: (): CameraType | undefined => undefined,

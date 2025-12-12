@@ -11,7 +11,7 @@ const state = `service,${window.location.hostname === 'localhost' ? window.locat
 
 const GOOGLE_OAUTH_PARAMS = {
   type: 'web_server',
-  client_id: '45471411055-ornt4svd2miog6dnopve7qtmh5mnu6id.apps.googleusercontent.com',
+  client_id: env.GOOGLE_CLIENT_ID,
   redirect_uri: `${env.API_URL}/v2/auth/g/redirect/`,
   response_type: 'code',
   scope: 'https://www.googleapis.com/auth/userinfo.email',
@@ -20,7 +20,7 @@ const GOOGLE_OAUTH_PARAMS = {
 }
 
 const APPLE_OAUTH_PARAMS = {
-  client_id: 'ai.comma.login',
+  client_id: env.APPLE_CLIENT_ID,
   redirect_uri: `${env.API_URL}/v2/auth/a/redirect/`,
   response_type: 'code',
   response_mode: 'form_post',
@@ -29,7 +29,7 @@ const APPLE_OAUTH_PARAMS = {
 }
 
 const GITHUB_OAUTH_PARAMS = {
-  client_id: '28c4ecb54bb7272cb5a4',
+  client_id: env.GITHUB_CLIENT_ID,
   redirect_uri: `${env.API_URL}/v2/auth/h/redirect/`,
   scope: 'read:user',
   state,
@@ -37,16 +37,19 @@ const GITHUB_OAUTH_PARAMS = {
 
 const PROVIDERS = {
   google: {
+    enabled:!!env.GOOGLE_CLIENT_ID,
     href: `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`,
     image: '/images/logo-google.svg',
     title: 'Google',
   },
   apple: {
+    enabled:!!env.APPLE_CLIENT_ID,
     href: `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`,
     image: '/images/logo-apple.svg',
     title: 'Apple',
   },
   github: {
+    enabled:!!env.GITHUB_CLIENT_ID,
     href: `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`,
     image: '/images/logo-github.svg',
     title: 'GitHub',
@@ -77,7 +80,7 @@ export const Component = () => {
         </div>
 
         <div className="flex flex-col items-stretch gap-3 self-stretch">
-          {Object.entries(PROVIDERS).map(([key, { href, image, title }]) => (
+          {Object.entries(PROVIDERS).filter(([_,{enabled}])=>enabled).map(([key, { href, image, title }]) => (
             <ButtonBase
               key={key}
               className="h-14 gap-4 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-all active:scale-[0.98] flex items-center justify-center relative overflow-hidden group"
