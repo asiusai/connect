@@ -58,6 +58,12 @@ const router = createBrowserRouter([
     lazy: () => import('./pages/auth'),
     errorElement: <ErrorPage />,
   },
+  // for konik
+  {
+    path: 'v2/auth',
+    lazy: () => import('./pages/auth'),
+    errorElement: <ErrorPage />,
+  },
   {
     path: 'test',
     lazy: () => import('./pages/test'),
