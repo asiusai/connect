@@ -37,19 +37,19 @@ const GITHUB_OAUTH_PARAMS = {
 
 const PROVIDERS = {
   google: {
-    enabled:!!env.GOOGLE_CLIENT_ID,
+    enabled: !!env.GOOGLE_CLIENT_ID,
     href: `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`,
     image: '/images/logo-google.svg',
     title: 'Google',
   },
   apple: {
-    enabled:!!env.APPLE_CLIENT_ID,
+    enabled: !!env.APPLE_CLIENT_ID,
     href: `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`,
     image: '/images/logo-apple.svg',
     title: 'Apple',
   },
   github: {
-    enabled:!!env.GITHUB_CLIENT_ID,
+    enabled: !!env.GITHUB_CLIENT_ID,
     href: `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`,
     image: '/images/logo-github.svg',
     title: 'GitHub',
@@ -80,18 +80,20 @@ export const Component = () => {
         </div>
 
         <div className="flex flex-col items-stretch gap-3 self-stretch">
-          {Object.entries(PROVIDERS).filter(([_,{enabled}])=>enabled).map(([key, { href, image, title }]) => (
-            <ButtonBase
-              key={key}
-              className="h-14 gap-4 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-all active:scale-[0.98] flex items-center justify-center relative overflow-hidden group"
-              href={href}
-            >
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center">
-                <img src={image} alt="" className="w-full h-full object-contain" />
-              </div>
-              <span>Sign in with {title}</span>
-            </ButtonBase>
-          ))}
+          {Object.entries(PROVIDERS)
+            .filter(([_, { enabled }]) => enabled)
+            .map(([key, { href, image, title }]) => (
+              <ButtonBase
+                key={key}
+                className="h-14 gap-4 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-all active:scale-[0.98] flex items-center justify-center relative overflow-hidden group"
+                href={href}
+              >
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center">
+                  <img src={image} alt="" className="w-full h-full object-contain" />
+                </div>
+                <span>Sign in with {title}</span>
+              </ButtonBase>
+            ))}
         </div>
 
         <div className="flex flex-col gap-6 w-full">

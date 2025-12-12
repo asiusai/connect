@@ -30,9 +30,9 @@ export const Component = () => {
   const [_, { error }] = useProfile()
 
   useEffect(() => {
-    if ((error as any)?.status !== 401) return 
+    if ((error as any)?.status !== 401) return
     signOut()
-    navigate("/login")
+    navigate('/login')
   }, [error])
 
   if (!isSignedIn()) return <Navigate to="/login" />
