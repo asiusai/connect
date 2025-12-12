@@ -24,7 +24,7 @@ const FILE_LABELS: Record<FileType, string> = {
   qlogs: 'Quantized',
 }
 
-const Download = ({ props }: { props: PreviewProps }) => {
+const Render = ({ props }: { props: PreviewProps }) => {
   const { data, mutate, reset } = api.renderer.render.useMutation()
   const [status] = useRendererStatus()
   const [progress] = useRenderProgress(data?.body.renderId)
@@ -35,7 +35,7 @@ const Download = ({ props }: { props: PreviewProps }) => {
     reset()
   }, [progress?.output])
 
-  if (!status) return <div>Renderer is offline</div>
+  if (!status) return null
   const loading = data?.body.renderId ? (progress?.progress?.progress ?? true) : false
   return (
     <div className="ml-auto flex items-center gap-2">
@@ -256,7 +256,7 @@ const Controls = ({
             {formatVideoTime(Math.round(seconds))} / {formatVideoTime(Math.round(duration))}
           </span>
 
-          <Download props={props} />
+          <Render props={props} />
           <div className="relative" ref={settingsRef}>
             {showSettings && <SettingsMenu />}
             <IconButton title="Settings" name="settings" onClick={() => setShowSettings(!showSettings)} />
