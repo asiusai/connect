@@ -7,7 +7,7 @@ import { useEffect } from 'react'
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
 // Redirecting straight back on localhost, but elsewhere redirect to the HACK url
-const state = `service,${window.location.hostname === 'localhost' ? window.location.host : env.HACK_LOGIN_CALLBACK_HOST}`
+const state = `service,${window.location.hostname === 'localhost' || !env.HACK_LOGIN_CALLBACK_HOST ? window.location.host : env.HACK_LOGIN_CALLBACK_HOST}`
 
 const GOOGLE_OAUTH_PARAMS = {
   type: 'web_server',
