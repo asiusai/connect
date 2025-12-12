@@ -5,6 +5,7 @@ const zString = (def?: string) => (def ? z.string().default(def) : z.string())
 export const Environment = z.object({
   ATHENA_URL: zString('https://athena.new-connect.dev'), // Needed cause athena.comma.ai restricts CORS
   API_URL: zString('https://api.comma.ai'),
+  AUTH_URL: zString('https://api.comma.ai'),
   BILLING_URL: zString('https://billing.new-connect.dev'), // Needed cause billing.comma.ai restricts CORS
   USERADMIN_URL: zString('https://useradmin.comma.ai'),
   RENDERER_URL: zString('https://renderer.new-connect.dev'),

@@ -12,7 +12,7 @@ const state = `service,${window.location.hostname === 'localhost' || !env.HACK_L
 const GOOGLE_OAUTH_PARAMS = {
   type: 'web_server',
   client_id: env.GOOGLE_CLIENT_ID,
-  redirect_uri: `${env.API_URL}/v2/auth/g/redirect/`,
+  redirect_uri: `${env.AUTH_URL}/v2/auth/g/redirect/`,
   response_type: 'code',
   scope: 'https://www.googleapis.com/auth/userinfo.email',
   prompt: 'select_account',
@@ -21,7 +21,7 @@ const GOOGLE_OAUTH_PARAMS = {
 
 const APPLE_OAUTH_PARAMS = {
   client_id: env.APPLE_CLIENT_ID,
-  redirect_uri: `${env.API_URL}/v2/auth/a/redirect/`,
+  redirect_uri: `${env.AUTH_URL}/v2/auth/a/redirect/`,
   response_type: 'code',
   response_mode: 'form_post',
   scope: 'name email',
@@ -30,7 +30,7 @@ const APPLE_OAUTH_PARAMS = {
 
 const GITHUB_OAUTH_PARAMS = {
   client_id: env.GITHUB_CLIENT_ID,
-  redirect_uri: `${env.API_URL}/v2/auth/h/redirect/`,
+  redirect_uri: `${env.AUTH_URL}/v2/auth/h/redirect/`,
   scope: 'read:user',
   state,
 }
