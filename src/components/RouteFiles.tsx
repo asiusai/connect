@@ -1,6 +1,6 @@
-import { Files, FileType, Route } from '../types'
+import { FileType, Route, SegmentFiles } from '../types'
 import { useState } from 'react'
-import { concatBins, getQCameraUrl, FILE_INFO, parseRouteName, saveFile, findFile } from '../utils/helpers'
+import { concatBins, getQCameraUrl, FILE_INFO, parseRouteName, saveFile, toSegmentFiles } from '../utils/helpers'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
 import { useFiles, useShareSignature } from '../api/queries'
@@ -13,7 +13,7 @@ import { ButtonBase } from './ButtonBase'
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
-export const uploadSegments = async (routeName: string, segments: number[], types: FileType[], files: Files) => {
+export const uploadSegments = async (routeName: string, segments: number[], types: FileType[], files: SegmentFiles) => {
   const { dongleId, routeId } = parseRouteName(routeName)
 
   // Generating all the missing ones
@@ -21,9 +21,7 @@ export const uploadSegments = async (routeName: string, segments: number[], type
   for (const i of segments) {
     for (const type of types) {
       const name = FILE_INFO[type].name
-      if (!findFile(files, type, i)) {
-        paths.push(`${routeId}--${i}/${name}`)
-      }
+      if (!files[type][i]) paths.push(`${routeId}--${i}/${name}`)
     }
   }
 
@@ -78,11 +76,10 @@ const FileAction = ({
   )
 }
 
-const Upload = ({ type, files, route, segment }: { type: FileType; files: Files; route: Route; segment: number }) => {
+const Upload = ({ type, files, route, segment }: { type: FileType; files: SegmentFiles; route: Route; segment: number }) => {
   const [isLoading, setIsLoading] = useState(false)
-  const totalSegments = route.maxqlog + 1
 
-  const disabled = segment === -1 ? files[type].length === totalSegments : !!findFile(files, type, segment)
+  const disabled = segment === -1 ? files[type].every(Boolean) : !!files[type][segment]
   if (disabled) return null
   return (
     <FileAction
@@ -92,7 +89,7 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Files;
       loading={isLoading}
       onClick={async () => {
         setIsLoading(true)
-        const segments = segment === -1 ? Array.from({ length: totalSegments }, (_, i) => i) : [segment]
+        const segments = segment === -1 ? Array.from({ length: files.length }, (_, i) => i) : [segment]
         await uploadSegments(route.fullname, segments, [type], files)
         setIsLoading(false)
       }}
@@ -112,14 +109,13 @@ const QCameraDownload = () => {
     />
   )
 }
-const FullRouteDownload = ({ type, files, route }: { type: FileType; files: Files; route: Route }) => {
+const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFiles }) => {
   const { dongleId, date, routeName } = useRouteParams()
   const [progress, setProgress] = useState<Record<number, number>>({})
-  const totalSegments = route.maxqlog + 1
 
   const values = Object.values(progress)
   const loading = values.length ? values.reduce((a, b) => a + b, 0) / values.length : undefined
-  if (files[type].length !== totalSegments) return null
+  if (!files[type].every(Boolean)) return null
 
   if (type === 'logs' || type === 'qlogs')
     return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}`} />
@@ -135,7 +131,7 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
         setProgress({})
 
         const bins = await Promise.all(
-          files[type].map((file, i) => downloadFile(file, ({ percent }) => setProgress((old) => ({ ...old, [i]: percent })))),
+          files[type].map((file, i) => downloadFile(file!, ({ percent }) => setProgress((old) => ({ ...old, [i]: percent })))),
         )
         const bin = concatBins(bins)
         const blob = await hevcToMp4(bin, () => {})
@@ -145,16 +141,16 @@ const FullRouteDownload = ({ type, files, route }: { type: FileType; files: File
   )
 }
 
-const DownloadSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
+const DownloadSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
   const { routeName } = useRouteParams()
-  const file = findFile(files, type, segment)
+  const file = files[type][segment]
   if (!file) return null
   return <FileAction label={FILE_INFO[type].raw} icon="raw_on" href={file} download={`${routeName}--${segment}--${FILE_INFO[type].name}`} />
 }
 
-const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: Files }) => {
+const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
   const { dongleId, date, routeName } = useRouteParams()
-  const file = findFile(files, type, segment)
+  const file = files[type][segment]
   const [progress, setProgress] = useState<number>()
 
   if (!file) return null
@@ -188,12 +184,11 @@ const SegmentDetails = ({
   setSegment,
 }: {
   segment: number
-  files: Files
+  files: SegmentFiles
   route: Route
   setSegment: (v: number) => void
 }) => {
   const isRoute = segment === -1
-  const max = route.maxqlog + 1
 
   return (
     <div className="flex flex-col gap-2">
@@ -204,7 +199,7 @@ const SegmentDetails = ({
               <span className="text-sm font-medium text-white/80">{FILE_INFO[type].label}</span>
               <div className="flex gap-2 items-center">
                 {isRoute ? (
-                  <FullRouteDownload type={type} files={files} route={route} />
+                  <FullRouteDownload type={type} files={files} />
                 ) : (
                   <>
                     <DownloadSegment type={type} files={files} segment={segment} />
@@ -214,13 +209,13 @@ const SegmentDetails = ({
                 <Upload type={type} files={files} route={route} segment={segment} />
               </div>
               <div title="1" className="h-[3px] w-full absolute bottom-0 translate-y-1/2 rounded-full overflow-hidden flex">
-                {Array.from({ length: max }).map((_, segment) => (
+                {Array.from({ length: files.length }).map((_, segment) => (
                   <div
                     key={segment}
                     title={`Segment ${segment}`}
                     onClick={() => setSegment(segment)}
-                    className={clsx('h-full cursor-pointer', !findFile(files, type, segment) ? 'bg-white/5' : 'bg-green-400/30')}
-                    style={{ width: `${(1 / max) * 100}%` }}
+                    className={clsx('h-full cursor-pointer', !files[type][segment] ? 'bg-white/5' : 'bg-green-400/30')}
+                    style={{ width: `${(1 / files.length) * 100}%` }}
                   />
                 ))}
               </div>
@@ -234,22 +229,19 @@ const SegmentDetails = ({
 
 const SegmentGrid = ({
   files,
-  route,
   selectedSegment,
   onSelect,
 }: {
-  files: Files
-  route: Route
+  files: SegmentFiles
   selectedSegment: number | null
   onSelect: (i: number) => void
 }) => {
   // Calculate FULL status
-  const max = route.maxqlog + 1
   let allStatus = 'empty'
-  let totalPossibleFiles = max * FileType.options.length
+  let totalPossibleFiles = files.length * FileType.options.length
   let totalCurrentFiles = 0
   for (const type of FileType.options) {
-    totalCurrentFiles += files[type].length
+    totalCurrentFiles += files[type].filter(Boolean).length
   }
   if (totalCurrentFiles === totalPossibleFiles) allStatus = 'full'
   else if (totalCurrentFiles > 0) allStatus = 'partial'
@@ -273,8 +265,8 @@ const SegmentGrid = ({
         All
       </button>
 
-      {Array.from({ length: max }).map((_, i) => {
-        const count = FileType.options.reduce((acc, type) => (findFile(files, type, i) ? acc + 1 : acc), 0)
+      {Array.from({ length: files.length }).map((_, i) => {
+        const count = FileType.options.reduce((acc, type) => (files[type][i] ? acc + 1 : acc), 0)
         const status = count === FileType.options.length ? 'full' : count > 0 ? 'partial' : 'empty'
 
         return (
@@ -298,15 +290,15 @@ const SegmentGrid = ({
 export const RouteFiles = ({ route, className }: { route: Route; className?: string }) => {
   const [files] = useFiles(route.fullname)
   const [segment, setSegment] = useState<number>(-1) // ROUTE= -1
-
+  const segmentFiles = files ? toSegmentFiles(files, route.maxqlog + 1) : undefined
   return (
     <div className={clsx('flex flex-col gap-4 bg-background-alt rounded-xl p-4', className)}>
       <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Files</h3>
-      {files && (
+      {segmentFiles && (
         <>
-          <SegmentGrid files={files} route={route} selectedSegment={segment} onSelect={setSegment} />
+          <SegmentGrid files={segmentFiles} selectedSegment={segment} onSelect={setSegment} />
 
-          <SegmentDetails segment={segment} files={files} route={route} setSegment={setSegment} />
+          <SegmentDetails segment={segment} files={segmentFiles} route={route} setSegment={setSegment} />
         </>
       )}
     </div>

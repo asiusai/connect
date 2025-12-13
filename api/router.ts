@@ -1,7 +1,7 @@
 import { tsr } from '@ts-rest/serverless/fetch'
 import { renderer } from '../src/api/contract'
 import { $ } from 'bun'
-import { CameraType, PreviewProps, RenderInfo } from '../src/types'
+import { PreviewFiles, PreviewProps, RenderInfo } from '../src/types'
 import { renderMedia, selectComposition } from '@remotion/renderer'
 import { getPreviewGenerated } from '../templates/Preview'
 import { env } from '../src/utils/env'
@@ -10,8 +10,8 @@ const generateId = () => (Math.random() * 1_000_000_000).toFixed(0)
 
 const queue: Record<string, RenderInfo> = {}
 
-const downloadCamFiles = async (folder: string, files: string[], type?: CameraType) => {
-  if (!type || type === 'qcameras') throw new Error(`Invalid camera type: ${type}`)
+const downloadCamFiles = async (folder: string, files: PreviewFiles) => {
+  if (!files.type || files.type === 'qcameras') throw new Error(`Invalid camera type: ${files.type}`)
 
   const replaceFile = async (url: string, name: string) => {
     const file = `${folder}/${name}.mp4`
@@ -19,8 +19,11 @@ const downloadCamFiles = async (folder: string, files: string[], type?: CameraTy
     return `${env.RENDERER_URL}/${file}`
   }
 
-  console.log(`Downloading and re-encoding ${type} cam`)
-  return await Promise.all(files.map((file, i) => replaceFile(file, `${type}${i}`)))
+  console.log(`Downloading and re-encoding ${files.type} cam`)
+  return {
+    type: files.type,
+    files: await Promise.all(files.files.map((file, i) => (file ? replaceFile(file, `${files.type}${i}`) : undefined))),
+  }
 }
 
 const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; renderId: string; serveUrl: string }) => {
@@ -44,8 +47,8 @@ const render = async ({ props, renderId, serveUrl }: { props: PreviewProps; rend
     queue[renderId].state = 'downloading'
     console.log('Downloading files')
     const [largeCameraFiles, smallCameraFiles] = await Promise.all([
-      downloadCamFiles(folder, generated.largeCameraFiles, props.largeCameraType),
-      generated.smallCameraFiles ? downloadCamFiles(folder, generated.smallCameraFiles, props.smallCameraType) : undefined,
+      downloadCamFiles(folder, generated.largeCameraFiles),
+      generated.smallCameraFiles ? downloadCamFiles(folder, generated.smallCameraFiles) : undefined,
     ])
     props.generated = { ...generated, largeCameraFiles, smallCameraFiles }
 

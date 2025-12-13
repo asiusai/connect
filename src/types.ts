@@ -129,7 +129,15 @@ export const Files = z.object({
   qcameras: z.string().array(),
   qlogs: z.string().array(),
 })
-
+export const SegmentFiles = z.object({
+  cameras: z.string().optional().array(),
+  dcameras: z.string().optional().array(),
+  ecameras: z.string().optional().array(),
+  logs: z.string().optional().array(),
+  qcameras: z.string().optional().array(),
+  qlogs: z.string().optional().array(),
+  length: z.number(),
+})
 export const UploadFileMetadata = z.object({
   headers: z.record(z.string()),
   url: z.string(),
@@ -198,15 +206,15 @@ export const FrameData = z.any()
 
 export const PreviewData = z.object({
   route: Route,
-  files: Files,
+  files: SegmentFiles,
 })
-
+export const PreviewFiles = z.object({ type: FileType, files: z.string().optional().array() })
 export const PreviewGenerated = z.object({
-  largeCameraFiles: z.string().array(),
-  smallCameraFiles: z.string().array().optional(),
+  largeCameraFiles: PreviewFiles,
+  smallCameraFiles: PreviewFiles.optional(),
 
-  logFiles: z.string().array().optional(),
-  prefetchedLogs: z.record(FrameData).array().optional(),
+  logFiles: PreviewFiles.optional(),
+  prefetchedLogs: z.record(FrameData).optional().array().optional(),
 
   duration: z.number(),
 })
@@ -379,3 +387,5 @@ export type RenderProgress = z.infer<typeof RenderProgress>
 export type RenderInfo = z.infer<typeof RenderInfo>
 export type TimeFormat = z.infer<typeof TimeFormat>
 export type UnitFormat = z.infer<typeof UnitFormat>
+export type SegmentFiles = z.infer<typeof SegmentFiles>
+export type PreviewFiles = z.infer<typeof PreviewFiles>

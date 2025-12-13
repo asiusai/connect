@@ -1,4 +1,4 @@
-import type { Device, Files, FileType, RouteInfo, RouteShareSignature } from '../types'
+import type { Device, Files, FileType, RouteInfo, RouteShareSignature, SegmentFiles } from '../types'
 import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 import { storage } from './storage'
@@ -118,4 +118,12 @@ export const FILE_INFO: Record<FileType, { name: string; raw: string; processed?
     raw: '.zst',
     processed: 'View',
   },
+}
+
+export const toSegmentFiles = (files: Files, length: number): SegmentFiles => {
+  const out: SegmentFiles = { length, cameras: [], dcameras: [], ecameras: [], logs: [], qcameras: [], qlogs: [] }
+  for (const key of keys(files)) {
+    for (let i = 0; i < length; i++) out[key][i] = findFile(files, key, i)
+  }
+  return out
 }

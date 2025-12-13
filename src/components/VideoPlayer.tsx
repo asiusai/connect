@@ -9,7 +9,7 @@ import { useAsyncMemo, useRouteParams } from '../utils/hooks'
 import { api } from '../api'
 import { useFiles, useRendererStatus, useRenderProgress, useRoute } from '../api/queries'
 import { IconButton } from './IconButton'
-import { saveFile } from '../utils/helpers'
+import { saveFile, toSegmentFiles } from '../utils/helpers'
 import { Icon } from './Icon'
 import { env } from '../utils/env'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
@@ -389,7 +389,7 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
       largeCameraType,
       smallCameraType,
       logType,
-      data: files && route ? { files, route } : undefined,
+      data: files && route ? { files: toSegmentFiles(files, route.maxqlog + 1), route } : undefined,
       unitFormat,
     }),
     [largeCameraType, smallCameraType, logType, files, route],
