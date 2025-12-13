@@ -410,6 +410,7 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
         inputProps={{ ...props, generated }}
         initiallyMuted
         acknowledgeRemotionLicense
+        autoPlay
       />
       <Controls playerRef={playerRef} fullscreenRef={fullscreenRef} duration={duration} props={props} />
     </div>
