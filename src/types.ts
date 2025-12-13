@@ -198,7 +198,7 @@ export const Coord = z.object({
   dist: z.number(),
 })
 
-export const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras', 'logs', 'qlogs'])
+export const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'logs', 'qcameras', 'qlogs'])
 export const CameraType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras'])
 export const LogType = z.enum(['logs', 'qlogs'])
 

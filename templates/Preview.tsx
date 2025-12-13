@@ -30,9 +30,9 @@ export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewG
   const start = props.startSegment ?? 0
   const end = props.segmentCount ? start + props.segmentCount : props.data.files.length
 
-  // only use the files if all are uploaded
   const getFiles = (preffered?: FileType, fallback?: FileType) => {
-    const type = !preffered ? undefined : props.data!.files[preffered].every(Boolean) ? preffered : fallback
+    // only use the files if at least some of them are uploaded
+    const type = !preffered ? undefined : props.data!.files[preffered].some(Boolean) ? preffered : fallback
     if (!type) return
     return { type, files: props.data!.files[type].slice(start, end) }
   }
@@ -70,7 +70,7 @@ const Camera = ({ className, files, name }: { name: string; files?: PreviewFiles
         {files.type === 'qcameras' && <HlsVideo files={files} />}
         {files.files.map((src, i) => (
           <Sequence
-            key={src}
+            key={i}
             from={i * 60 * FPS}
             name={`${name} ${i}`}
             durationInFrames={60 * FPS}

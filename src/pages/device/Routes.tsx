@@ -1,14 +1,6 @@
 import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
-import {
-  getRouteColor,
-  formatDate,
-  formatDistance,
-  formatDurationMs,
-  getRouteDurationMs,
-  formatTime,
-  getDateTime,
-} from '../../utils/format'
+import { formatDate, formatDistance, formatDurationMs, getRouteDurationMs, formatTime, getDateTime } from '../../utils/format'
 import { useEffect, useState } from 'react'
 import { Slider } from '../../components/Slider'
 import { Fragment } from 'react'
@@ -37,19 +29,17 @@ const getLocation = async (route: Route) => {
 const RouteCard = ({ route }: { route: Route }) => {
   const startTime = getDateTime(route.start_time)
   const endTime = getDateTime(route.end_time)
-  const color = getRouteColor(startTime, endTime, [30, 57, 138], [218, 161, 28])
   const duration = getRouteDurationMs(route)
 
   const [location, setLocation] = useState<string | null>(null)
   useEffect(() => void getLocation(route).then(setLocation), [route])
-
   return (
     <Link
       to={`/${route.dongle_id}/${route.fullname.slice(17)}`}
       className="group relative flex flex-col gap-3 overflow-hidden rounded-xl bg-background-alt p-4 shadow-sm transition-all hover:bg-background-alt/80 active:scale-[0.99]"
     >
       {/* Color Indicator */}
-      <div className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: color }} />
+      <div className={clsx('absolute left-0 top-0 bottom-0 w-1.5 bg-white/20')} />
 
       <div className="flex flex-col gap-1 pl-3">
         {/* Time and Duration */}

@@ -1,4 +1,4 @@
-import type { Device, Files, FileType, RouteInfo, RouteShareSignature, SegmentFiles } from '../types'
+import { Device, Files, FileType, RouteInfo, RouteShareSignature, SegmentFiles } from '../types'
 import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 import { storage } from './storage'
@@ -126,4 +126,26 @@ export const toSegmentFiles = (files: Files, length: number): SegmentFiles => {
     for (let i = 0; i < length; i++) out[key][i] = findFile(files, key, i)
   }
   return out
+}
+
+export type UploadStatus = 'loading' | 'quantized' | 'all'
+
+export const getSegmentUploadStatus = (files: SegmentFiles, segment: number): UploadStatus => {
+  if (!files.qlogs[segment] || !files.qcameras[segment]) return 'loading'
+
+  for (const type of FileType.options.filter((x) => !x.startsWith('q'))) if (!files[type][segment]) return 'quantized'
+
+  return 'all'
+}
+
+export const getRouteUploadStatus = (files: SegmentFiles): UploadStatus => {
+  let status: UploadStatus = 'all'
+
+  for (let i = 0; i < files.length; i++) {
+    const s = getSegmentUploadStatus(files, i)
+    if (s === 'loading') return 'loading'
+    if (s === 'quantized') status = 'quantized'
+  }
+
+  return status
 }

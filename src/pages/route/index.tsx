@@ -60,7 +60,7 @@ export const Component = () => {
         <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:row-span-5 md:order-1" />
         <Stats route={route} className="md:order-3" />
         <Actions route={route} className="md:order-5" />
-        <RouteFiles route={route} className="md:col-span-2 md:row-span-3 md:order-4" />
+        <RouteFiles playerRef={playerRef} route={route} className="md:col-span-2 md:row-span-3 md:order-4" />
         <StaticMap route={route} className="md:row-span-3 md:order-2" />
         <Info route={route} className="md:order-6" />
       </div>

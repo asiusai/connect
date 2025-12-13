@@ -58,32 +58,6 @@ export const formatDate = (input: DateTimeInput) => {
   else return date.toFormat('cccc, MMM d, yyyy')
 }
 
-export const getRouteColor = (
-  startTime: DateTime | undefined,
-  endTime: DateTime | undefined,
-  startColor: number[],
-  endColor: number[],
-): string => {
-  if (!startTime || !endTime) return 'red'
-  // FIXME: adjust based on season
-  const sunrise = 5.5 // hours
-  const sunset = 6.5 + 12
-  const fade = 1.5 // wide transition since this accounts for different seasons
-
-  const startHours = startTime.hour + startTime.minute / 60
-  const endHours = endTime.hour + endTime.minute / 60
-  const hours = (startHours + endHours) / 2
-
-  let blendFactor =
-    sunrise < hours && hours < sunset
-      ? Math.min((hours - sunrise) / fade, 1)
-      : sunset <= hours
-        ? Math.max(1 - (hours - sunset) / fade, 0)
-        : 0
-
-  return `rgb(${startColor.map((c, i) => Math.round(c + (endColor[i] - c) * blendFactor)).join(', ')})`
-}
-
 export const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(amount % 100 === 0 ? 0 : 2)}`
 
 export const formatVideoTime = (seconds: number) => {

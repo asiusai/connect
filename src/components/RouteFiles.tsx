@@ -1,6 +1,16 @@
 import { FileType, Route, SegmentFiles } from '../types'
-import { useState } from 'react'
-import { concatBins, getQCameraUrl, FILE_INFO, parseRouteName, saveFile, toSegmentFiles } from '../utils/helpers'
+import { RefObject, useState } from 'react'
+import {
+  concatBins,
+  getQCameraUrl,
+  FILE_INFO,
+  parseRouteName,
+  saveFile,
+  toSegmentFiles,
+  getRouteUploadStatus,
+  getSegmentUploadStatus,
+  UploadStatus,
+} from '../utils/helpers'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
 import { useFiles, useShareSignature } from '../api/queries'
@@ -9,6 +19,8 @@ import clsx from 'clsx'
 import { useRouteParams } from '../utils/hooks'
 import { Icon } from './Icon'
 import { ButtonBase } from './ButtonBase'
+import { PlayerRef } from '@remotion/player'
+import { FPS } from '../../templates/shared'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
@@ -209,12 +221,16 @@ const SegmentDetails = ({
                 <Upload type={type} files={files} route={route} segment={segment} />
               </div>
               <div title="1" className="h-[3px] w-full absolute bottom-0 translate-y-1/2 rounded-full overflow-hidden flex">
-                {Array.from({ length: files.length }).map((_, segment) => (
+                {Array.from({ length: files.length }).map((_, i) => (
                   <div
-                    key={segment}
-                    title={`Segment ${segment}`}
-                    onClick={() => setSegment(segment)}
-                    className={clsx('h-full cursor-pointer', !files[type][segment] ? 'bg-white/5' : 'bg-green-400/30')}
+                    key={i}
+                    title={`Segment ${i}`}
+                    onClick={() => setSegment(i)}
+                    className={clsx(
+                      'h-full cursor-pointer',
+                      !files[type][i] ? 'bg-white/80' : type.startsWith('q') ? 'bg-blue-400' : 'bg-green-400',
+                      segment !== i ? 'opacity-40' : 'opacity-80',
+                    )}
                     style={{ width: `${(1 / files.length) * 100}%` }}
                   />
                 ))}
@@ -227,6 +243,14 @@ const SegmentDetails = ({
   )
 }
 
+const getStatusColor = (status: UploadStatus) => {
+  return {
+    all: 'bg-green-500/20 text-green-400 border-green-500/30',
+    quantized: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    loading: 'bg-white/30 text-white/70 border-white/30',
+  }[status]
+}
+
 const SegmentGrid = ({
   files,
   selectedSegment,
@@ -236,28 +260,12 @@ const SegmentGrid = ({
   selectedSegment: number | null
   onSelect: (i: number) => void
 }) => {
-  // Calculate FULL status
-  let allStatus = 'empty'
-  let totalPossibleFiles = files.length * FileType.options.length
-  let totalCurrentFiles = 0
-  for (const type of FileType.options) {
-    totalCurrentFiles += files[type].filter(Boolean).length
-  }
-  if (totalCurrentFiles === totalPossibleFiles) allStatus = 'full'
-  else if (totalCurrentFiles > 0) allStatus = 'partial'
-
-  const getStatusColor = (status: string) => {
-    if (status === 'full') return 'bg-green-500/20 text-green-400 border-green-500/30'
-    if (status === 'partial') return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-    return 'bg-white/5 text-white/40 border-white/10'
-  }
-
   return (
     <div className="flex flex-wrap gap-1.5 p-1">
       <button
         className={clsx(
           'h-8 px-3 flex items-center justify-center rounded-lg text-xs font-bold border transition-all',
-          getStatusColor(allStatus),
+          getStatusColor(getRouteUploadStatus(files)),
           selectedSegment === -1 && 'ring-2 ring-white border-transparent bg-white text-black',
         )}
         onClick={() => onSelect(-1)}
@@ -266,15 +274,12 @@ const SegmentGrid = ({
       </button>
 
       {Array.from({ length: files.length }).map((_, i) => {
-        const count = FileType.options.reduce((acc, type) => (files[type][i] ? acc + 1 : acc), 0)
-        const status = count === FileType.options.length ? 'full' : count > 0 ? 'partial' : 'empty'
-
         return (
           <button
             key={i}
             className={clsx(
               'h-8 w-8 flex items-center justify-center rounded-lg text-xs font-medium border transition-all',
-              getStatusColor(status),
+              getStatusColor(getSegmentUploadStatus(files, i)),
               selectedSegment === i && 'ring-2 ring-white border-transparent bg-white text-black',
             )}
             onClick={() => onSelect(i)}
@@ -287,9 +292,21 @@ const SegmentGrid = ({
   )
 }
 
-export const RouteFiles = ({ route, className }: { route: Route; className?: string }) => {
+export const RouteFiles = ({
+  route,
+  className,
+  playerRef,
+}: {
+  playerRef: RefObject<PlayerRef | null>
+  route: Route
+  className?: string
+}) => {
   const [files] = useFiles(route.fullname)
-  const [segment, setSegment] = useState<number>(-1) // ROUTE= -1
+  const [segment, _setSegment] = useState<number>(-1) // ROUTE= -1
+  const setSegment = (value: number) => {
+    _setSegment(value)
+    if (value !== -1) playerRef.current?.seekTo(value * 60 * FPS)
+  }
   const segmentFiles = files ? toSegmentFiles(files, route.maxqlog + 1) : undefined
   return (
     <div className={clsx('flex flex-col gap-4 bg-background-alt rounded-xl p-4', className)}>
