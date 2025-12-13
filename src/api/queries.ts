@@ -31,6 +31,13 @@ export const useRoutes = (dongleId: string, limit: number) =>
       queryData: { params: { dongleId }, query: { limit } },
     }),
   )
+export const useRoutesSegments = (dongleId: string, query: { start?: number; end?: number; limit?: number; route_str?: string }) =>
+  w(
+    api.routes.routesSegments.useQuery({
+      queryKey: ['allRoutes', dongleId, query],
+      queryData: { params: { dongleId }, query },
+    }),
+  )
 
 export const useShareSignature = (routeName: string) =>
   w(

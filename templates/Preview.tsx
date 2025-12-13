@@ -14,7 +14,7 @@ import { Icon } from '../src/components/Icon'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const [dongleId] = props.routeName.split('/')
-  const segments = await api.routes.segments.query({ params: { dongleId }, query: { route_str: props.routeName } })
+  const segments = await api.routes.routesSegments.query({ params: { dongleId }, query: { route_str: props.routeName } })
   if (segments.status !== 200) throw new Error('Failed getting segments!')
   const route = segments.body[0]
 

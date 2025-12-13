@@ -107,11 +107,16 @@ const routes = c.router({
       200: Route.array(),
     },
   },
-  segments: {
+  routesSegments: {
     method: 'GET',
     path: '/v1/devices/:dongleId/routes_segments',
     pathParams: z.object({ dongleId: z.string() }),
-    query: z.object({ route_str: z.string() }),
+    query: z.object({
+      route_str: z.string().optional(),
+      start: z.number().optional(),
+      end: z.number().optional(),
+      limit: z.number().optional(),
+    }),
     responses: { 200: RouteSegment.array() },
   },
 })

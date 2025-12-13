@@ -1,11 +1,11 @@
 import clsx from 'clsx'
-import { useRoutes } from '../../api/queries'
+import { useRoutesSegments } from '../../api/queries'
 import { DetailRow } from '../../components/DetailRow'
 import { useRouteParams } from '../../utils/hooks'
 
 export const Info = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
-  const [routes] = useRoutes(dongleId, 1)
+  const [routes] = useRoutesSegments(dongleId, { limit: 1 })
   const route = routes?.[0]
   return (
     <div className={clsx('flex flex-col gap-4 pb-10', className)}>

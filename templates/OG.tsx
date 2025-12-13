@@ -27,7 +27,7 @@ export type OGProps = z.infer<typeof OGProps>
 export const getOGData = async (props: OGProps) => {
   const [dongleId] = props.routeName.split('/')
 
-  const segments = await api.routes.segments.query({ params: { dongleId }, query: { route_str: props.routeName } })
+  const segments = await api.routes.routesSegments.query({ params: { dongleId }, query: { route_str: props.routeName } })
   if (segments.status !== 200) throw new Error()
   const route = segments.body[0]
 
