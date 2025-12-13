@@ -32,7 +32,7 @@ export const getOGData = async (props: OGProps) => {
   const route = segments.body[0]
 
   let coords = await getCoords(route).then((x) => x.map(({ lng, lat }) => [lng, lat] as [number, number]))
-  if (!coords.length)
+  if (!coords.length && route.start_lng && route.start_lat && route.end_lng && route.end_lat)
     coords = [
       [route.start_lng, route.start_lat],
       [route.end_lng, route.end_lat],
@@ -173,7 +173,7 @@ export const OG = ({ data }: OGProps) => {
 
         <div className="flex flex-col justify-center gap-12 min-w-[300px]">
           {[
-            { label: 'Distance', icon: Icons.route, value: formatDistance(data.route.distance) },
+            { label: 'Distance', icon: Icons.route, value: data.route.distance ? formatDistance(data.route.distance) : undefined },
             { label: 'Duration', icon: Icons.schedule, value: duration },
             {
               label: 'Engaged',

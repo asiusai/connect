@@ -135,7 +135,7 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
   const engagementPercent = stats ? (stats.engagedDurationMs / stats.routeDurationMs) * 100 : 0
   const routeUrl = `/${route.dongle_id}/${route.fullname.slice(17)}`
 
-  const [distVal, distUnit] = formatDistance(route.distance)!.split(' ')
+  const [distVal, distUnit] = (route.distance ? formatDistance(route.distance)! : '0 km').split(' ')
 
   // Helper for duration
   const durationStr = formatDurationMs(duration)

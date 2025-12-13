@@ -10,7 +10,7 @@ export const Stats = ({ className, route }: { className?: string; route: Route }
   return (
     <div className={clsx('flex w-full justify-between gap-8 p-5 bg-background-alt rounded-xl', className)}>
       {[
-        { label: 'Distance', value: formatDistance(route?.distance) },
+        { label: 'Distance', value: route.distance ? formatDistance(route?.distance) : undefined },
         { label: 'Duration', value: stats ? formatDuration(stats.routeDurationMs / (60 * 1000)) : formatRouteDuration(route) },
         {
           label: 'Engaged',
