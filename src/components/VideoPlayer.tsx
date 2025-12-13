@@ -274,12 +274,12 @@ const Controls = ({
 }
 
 const getEventInfo = (event: TimelineEvent) => {
-  if (event.type === 'engaged') return ['Engaged', 'bg-green-600 min-w-[1px]', '1']
-  if (event.type === 'overriding') return ['Overriding', 'bg-gray-500 min-w-[1px]', '2']
+  if (event.type === 'engaged') return ['Engaged', 'bg-[#32CD32] min-w-[1px]', '1']
+  if (event.type === 'overriding') return ['Overriding', 'bg-blue-500 min-w-[1px]', '2']
   if (event.type === 'user_flag') return ['User flag', 'bg-yellow-400 min-w-[2px]', '4']
   if (event.type === 'alert') {
-    if (event.alertStatus === 1) return ['User prompt alert', 'bg-amber-400 min-w-[2px]', '3']
-    else return ['Critical alert', 'bg-red-600 min-w-[2px]', '3']
+    if (event.alertStatus === 1) return ['User prompt alert', 'bg-orange-500 min-w-[2px]', '3']
+    else return ['Critical alert', 'bg-orange-500 min-w-[2px]', '3']
   }
   throw new Error(`Invalid event type ${JSON.stringify(event)}`)
 }
@@ -337,7 +337,7 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
         onStart()
       }}
       className={clsx(
-        'relative isolate flex h-[10px] cursor-pointer touch-none self-stretch rounded-full bg-blue-900',
+        'relative isolate flex h-[7px] cursor-pointer touch-none self-stretch rounded-full bg-white/40',
         'after:absolute after:inset-0 after:rounded-b-md after:bg-gradient-to-b after:from-black/0 after:via-black/10 after:to-black/30 overflow-hidden',
       )}
       title="Disengaged"
