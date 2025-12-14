@@ -51,7 +51,7 @@ export const Component = () => {
         )}
       </TopAppBar>
 
-      <div className="grid md:grid-cols-3 gap-4 p-4 max-w-screen-xl">
+      <div className="grid md:grid-cols-3 gap-2 md:gap-4 p-4 max-w-screen-xl">
         <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:order-1" />
         <VideoControls playerRef={playerRef} className="md:col-span-2 md:order-3" />
         <Stats route={route} className="md:order-6" />
