@@ -5,7 +5,7 @@ import { getPreviewGenerated, Preview } from '../../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
 import { formatVideoTime, getRouteDurationMs, formatTime, getDateTime } from '../utils/format'
 import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useAsyncMemo, useRouteParams } from '../utils/hooks'
+import { useAsyncMemo, useFullscreen, useRouteParams } from '../utils/hooks'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useFiles, useRendererStatus, useRenderProgress, useRoute } from '../api/queries'
@@ -424,35 +424,31 @@ const Timeline = ({
   )
 }
 
-const BottomControls = ({
-  playerRef,
-  duration,
-  props,
-  selection,
-  onSelectionChange,
-  showSettings,
-  setShowSettings,
-  fullscreen,
-  onFullscreen,
-}: {
-  playerRef: RefObject<PlayerRef | null>
-  duration: number
-  props: PreviewProps
-  selection: { start: number; end: number }
-  onSelectionChange: (sel: { start: number; end: number }) => void
-  showSettings: boolean
-  setShowSettings: (v: boolean) => void
-  fullscreen: boolean
-  onFullscreen: () => void
-}) => {
+export const VideoControls = ({ playerRef, className }: { className?: string; playerRef: RefObject<PlayerRef | null> }) => {
+  const props = useProps()
+  const fullscreen = useFullscreen()
+  const { routeName, start, end, date, dongleId } = useRouteParams()
   const player = playerRef.current
   const [playing, setPlaying] = useState(player?.isPlaying() ?? true)
   const [muted, setMuted] = useState(player?.isMuted() ?? false)
   const [frame, setFrame] = useState(player?.getCurrentFrame() ?? 0)
   const settingsRef = useRef<HTMLDivElement>(null)
-  const { routeName } = useRouteParams()
   const [route] = useRoute(routeName)
+  const [showSettings, setShowSettings] = useState(false)
+  const navigate = useNavigate()
+  const duration = getRouteDurationMs(route)! / 1000
+  const selection = useMemo(
+    () => ({
+      start: start ?? 0,
+      end: end ?? duration,
+    }),
+    [start, end, duration],
+  )
 
+  const onSelectionChange = (sel: { start: number; end: number }) => {
+    if (Math.abs(sel.start) < 1 && Math.abs(sel.end - duration) < 1) navigate(`/${dongleId}/${date}`, { replace: true })
+    else navigate(`/${dongleId}/${date}/${sel.start.toFixed(0)}/${sel.end.toFixed(0)}`, { replace: true })
+  }
   useEffect(() => {
     if (!player) return
     const onMuteChange = () => setMuted(player.isMuted())
@@ -484,7 +480,7 @@ const BottomControls = ({
   const seconds = toSeconds(frame)
 
   return (
-    <div className="flex flex-col gap-2 p-2 bg-black/20 rounded-xl backdrop-blur-md border border-white/5">
+    <div className={clsx('flex flex-col gap-2 p-2 bg-black/20 rounded-xl backdrop-blur-md border border-white/5', className)}>
       <Timeline
         playerRef={playerRef}
         frame={frame}
@@ -517,36 +513,24 @@ const BottomControls = ({
         <IconButton
           title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           name={fullscreen ? 'fullscreen_exit' : 'fullscreen'}
-          onClick={onFullscreen}
+          onClick={() => {
+            if (fullscreen) document.exitFullscreen()
+            else document.querySelector('#fullscreen')?.requestFullscreen()
+          }}
         />
       </div>
     </div>
   )
 }
 
-export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObject<PlayerRef | null>; className?: string }) => {
-  const { routeName, start, end, date, dongleId } = useRouteParams()
+const useProps = () => {
+  const { routeName } = useRouteParams()
   const [route] = useRoute(routeName)
   const [files] = useFiles(routeName)
-
-  const duration = getRouteDurationMs(route)! / 1000
-  const containerRef = useRef<HTMLDivElement>(null)
-  const navigate = useNavigate()
-
-  const [fullscreen, setFullscreen] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
-
   const [largeCameraType] = useStorage('largeCameraType')
   const [smallCameraType] = useStorage('smallCameraType')
   const [logType] = useStorage('logType')
   const [unitFormat] = useStorage('unitFormat')
-  const [playbackRate] = useStorage('playbackRate')
-
-  useEffect(() => {
-    const onFullscreenChange = () => setFullscreen(!!document.fullscreenElement)
-    document.addEventListener('fullscreenchange', onFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
-  }, [])
 
   const props = useMemo<PreviewProps>(
     () => ({
@@ -559,21 +543,19 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
     }),
     [largeCameraType, smallCameraType, logType, files, route],
   )
+  return props
+}
 
+export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObject<PlayerRef | null>; className?: string }) => {
+  const { routeName, start } = useRouteParams()
+  const [route] = useRoute(routeName)
+
+  const duration = getRouteDurationMs(route)! / 1000
+
+  const [playbackRate] = useStorage('playbackRate')
+
+  const props = useProps()
   const generated = useAsyncMemo(() => getPreviewGenerated(props), [props])
-
-  const selection = useMemo(
-    () => ({
-      start: start ?? 0,
-      end: end ?? duration,
-    }),
-    [start, end, duration],
-  )
-
-  const onSelectionChange = (sel: { start: number; end: number }) => {
-    if (Math.abs(sel.start) < 1 && Math.abs(sel.end - duration) < 1) navigate(`/${dongleId}/${date}`, { replace: true })
-    else navigate(`/${dongleId}/${date}/${sel.start.toFixed(0)}/${sel.end.toFixed(0)}`, { replace: true })
-  }
 
   // Current real time display
   const [currentTime, setCurrentTime] = useState<string>()
@@ -589,51 +571,33 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
   }, [route])
 
   return (
-    <div ref={containerRef} className={clsx('relative flex flex-col gap-2', className, fullscreen && 'bg-black p-4 overflow-y-auto')}>
-      <div
-        className={clsx(
-          'relative rounded-xl overflow-hidden bg-black',
-          fullscreen ? 'h-[calc(100vh-140px)] w-full' : 'aspect-video w-full',
-        )}
-      >
-        <Player
-          ref={playerRef}
-          component={Preview}
-          compositionHeight={HEIGHT}
-          compositionWidth={WIDTH}
-          durationInFrames={toFrames(duration)}
-          fps={FPS}
-          style={{ width: '100%', height: '100%' }}
-          inputProps={{ ...props, generated }}
-          initiallyMuted
-          acknowledgeRemotionLicense
-          autoPlay
-          initialFrame={toFrames(start ?? 0)}
-          playbackRate={playbackRate}
-        />
-        <div className="absolute inset-0" onClick={() => playerRef.current?.toggle()} />
-
-        {currentTime && (
-          <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">
-            {currentTime}
-          </div>
-        )}
-      </div>
-
-      <BottomControls
-        playerRef={playerRef}
-        duration={duration}
-        props={props}
-        selection={selection}
-        onSelectionChange={onSelectionChange}
-        showSettings={showSettings}
-        setShowSettings={setShowSettings}
-        fullscreen={fullscreen}
-        onFullscreen={() => {
-          if (fullscreen) document.exitFullscreen()
-          else containerRef.current?.requestFullscreen()
-        }}
+    <div
+      id="fullscreen"
+      className={clsx('relative rounded-xl  overflow-hidden bg-black', className)}
+      style={{ aspectRatio: WIDTH / HEIGHT }}
+    >
+      <Player
+        ref={playerRef}
+        component={Preview}
+        compositionHeight={HEIGHT}
+        compositionWidth={WIDTH}
+        durationInFrames={toFrames(duration)}
+        fps={FPS}
+        style={{ width: '100%', height: '100%' }}
+        inputProps={{ ...props, generated }}
+        initiallyMuted
+        acknowledgeRemotionLicense
+        autoPlay
+        initialFrame={toFrames(start ?? 0)}
+        playbackRate={playbackRate}
       />
+      <div className="absolute inset-0" onClick={() => playerRef.current?.toggle()} />
+
+      {currentTime && (
+        <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">
+          {currentTime}
+        </div>
+      )}
     </div>
   )
 }

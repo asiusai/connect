@@ -1,5 +1,5 @@
 import { RouteFiles } from '../../components/RouteFiles'
-import { RouteVideoPlayer } from '../../components/VideoPlayer'
+import { RouteVideoPlayer, VideoControls } from '../../components/VideoPlayer'
 import { useProfile, useRoute } from '../../api/queries'
 import { useEffect, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
@@ -52,12 +52,13 @@ export const Component = () => {
       </TopAppBar>
 
       <div className="grid md:grid-cols-3 gap-4 p-4 max-w-screen-xl">
-        <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:row-span-5 md:order-1" />
-        <Stats route={route} className="md:order-3" />
-        <Actions route={route} className="md:order-5" />
-        <RouteFiles playerRef={playerRef} route={route} className="md:col-span-2 md:row-span-3 md:order-4" />
-        <DynamicMap route={route} className="md:row-span-3 md:order-2" playerRef={playerRef} />
-        <Info route={route} className="md:order-6" />
+        <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:order-1" />
+        <VideoControls playerRef={playerRef} className="md:col-span-2 md:order-3" />
+        <Stats route={route} className="md:order-6" />
+        <Actions route={route} className="md:order-4" />
+        <RouteFiles playerRef={playerRef} route={route} className="md:col-span-2 md:row-span-3 md:order-5" />
+        <DynamicMap route={route} className="md:order-2" playerRef={playerRef} />
+        <Info route={route} className="md:order-7" />
       </div>
     </div>
   )
