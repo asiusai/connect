@@ -21,11 +21,12 @@ import { Icon } from './Icon'
 import { ButtonBase } from './ButtonBase'
 import { PlayerRef } from '@remotion/player'
 import { FPS } from '../../templates/shared'
+import { IconButton } from './IconButton'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
-export const uploadSegments = async (routeName: string, segments: number[], types: FileType[], files: SegmentFiles) => {
+const uploadSegments = async (routeName: string, segments: number[], types: FileType[], files: SegmentFiles) => {
   const { dongleId, routeId } = parseRouteName(routeName)
 
   // Generating all the missing ones
@@ -301,7 +302,7 @@ export const RouteFiles = ({
   route: Route
   className?: string
 }) => {
-  const [files] = useFiles(route.fullname)
+  const [files, { refetch, isRefetching }] = useFiles(route.fullname)
   const [segment, _setSegment] = useState<number>(-1) // ROUTE= -1
   const setSegment = (value: number) => {
     _setSegment(value)
@@ -309,8 +310,16 @@ export const RouteFiles = ({
   }
   const segmentFiles = files ? toSegmentFiles(files, route.maxqlog + 1) : undefined
   return (
-    <div className={clsx('flex flex-col gap-4 bg-background-alt rounded-xl p-4', className)}>
-      <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Files</h3>
+    <div className={clsx('flex flex-col gap-2 bg-background-alt rounded-xl p-4', className)}>
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Files</h3>
+        <IconButton
+          title="Refresh"
+          onClick={() => void refetch()}
+          name="refresh"
+          className={clsx('text-xl text-white/40 hover:text-white transition-colors', isRefetching && 'animate-spin')}
+        />
+      </div>
       {segmentFiles && (
         <>
           <SegmentGrid files={segmentFiles} selectedSegment={segment} onSelect={setSegment} />
