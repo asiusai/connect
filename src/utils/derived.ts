@@ -118,13 +118,11 @@ export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> 
 }
 
 export type RouteStats = {
-  routeDurationMs: number
   engagedDurationMs: number
   userFlags: number
 }
 
-export const getRouteStats = async (route: Route): Promise<RouteStats> => {
-  const timeline = await getTimelineEvents(route)
+export const getRouteStats = async (timeline: TimelineEvent[]): Promise<RouteStats> => {
   let engagedDurationMs = 0
   let userFlags = 0
   timeline.forEach((ev) => {
@@ -133,7 +131,6 @@ export const getRouteStats = async (route: Route): Promise<RouteStats> => {
   })
 
   return {
-    routeDurationMs: getRouteDurationMs(route) ?? 0,
     engagedDurationMs,
     userFlags,
   }

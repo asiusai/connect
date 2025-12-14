@@ -2,10 +2,10 @@
 import React from 'react'
 import { AbsoluteFill, CalculateMetadataFunction, Img, staticFile } from 'remotion'
 import { z } from 'zod'
-import { getCoords, getRouteStats } from '../src/utils/derived'
+import { getCoords, getRouteStats, getTimelineEvents } from '../src/utils/derived'
 import { api } from '../src/api'
 import { getPathStaticMapUrl } from '../src/utils/map'
-import { formatDistance, formatDuration } from '../src/utils/format'
+import { formatDistance, formatDuration, getRouteDurationMs } from '../src/utils/format'
 import { Route } from '../src/types'
 import { DateTime } from 'luxon'
 import clsx from 'clsx'
@@ -37,11 +37,11 @@ export const getOGData = async (props: OGProps) => {
       [route.start_lng, route.start_lat],
       [route.end_lng, route.end_lat],
     ]
-  const stats = await getRouteStats(route)
+  const stats = await getTimelineEvents(route).then(getRouteStats)
 
   return {
     staticMap: getPathStaticMapUrl('dark', coords, 439, 174, true),
-    routeDurationMs: stats.routeDurationMs,
+    routeDurationMs: getRouteDurationMs(route) ?? 0,
     engagedDurationMs: stats.engagedDurationMs,
     route,
   }

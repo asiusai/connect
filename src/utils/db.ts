@@ -1,7 +1,9 @@
 import type { Derived } from './derived'
 
-type StoreName = 'logs' | Derived
+type StoreName = Derived | 'logs' | 'geocode'
+
 const DB_VERSION = 3
+
 export class DB {
   constructor(
     public _db: IDBDatabase,

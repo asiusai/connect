@@ -3,27 +3,22 @@ import { RouteVideoPlayer } from '../../components/VideoPlayer'
 import { useProfile, useRoute } from '../../api/queries'
 import { useEffect, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
-import { Route } from '../../types'
 import { useRouteParams } from '../../utils/hooks'
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
 import { callAthena } from '../../api/athena'
-import { getPlaceName } from '../../utils/map'
+import { getStartEndPlaceName } from '../../utils/map'
 import { StaticMap } from './StaticMap'
 import { Stats } from './Stats'
 import { Actions } from './Actions'
 import { formatDate, formatTime } from '../../utils/format'
 import { Info } from './Info'
 
-const getLocation = async (route: Route) => {
-  const startPos = [route.start_lng || 0, route.start_lat || 0]
-  const endPos = [route.end_lng || 0, route.end_lat || 0]
-  const startPlace = await getPlaceName(startPos)
-  const endPlace = await getPlaceName(endPos)
-  if (!startPlace && !endPlace) return 'Drive Details'
-  if (!endPlace || startPlace === endPlace) return `Drive in ${startPlace}`
-  if (!startPlace) return `Drive in ${endPlace}`
-  return `${startPlace} to ${endPlace}`
+const getLocationText = ({ start, end }: { start?: string; end?: string }) => {
+  if (!start && !end) return 'Drive Details'
+  if (!end || start === end) return `Drive in ${start}`
+  if (!start) return `Drive in ${end}`
+  return `${start} to ${end}`
 }
 
 export const Component = () => {
@@ -32,10 +27,10 @@ export const Component = () => {
 
   const [route] = useRoute(routeName)
   const [profile] = useProfile()
-  const [title, setTitle] = useState('Drive Details')
+  const [location, setLocation] = useState<{ start?: string; end?: string }>()
 
   useEffect(() => {
-    if (route) getLocation(route).then(setTitle)
+    if (route) getStartEndPlaceName(route).then(setLocation)
   }, [route])
 
   const isOwner = route && profile && route.user_id === profile.id
@@ -48,7 +43,7 @@ export const Component = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <TopAppBar leading={<BackButton href={`/${route.dongle_id}`} />}>
-        <span>{title}</span>
+        <span>{location ? getLocationText(location) : 'Drive details'}</span>
         {route.start_time && (
           <span className="text-xs md:text-sm font-medium text-white/60">
             {formatDate(route.start_time)} {formatTime(route.start_time)}

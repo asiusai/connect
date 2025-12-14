@@ -1,6 +1,8 @@
 import polyline from '@mapbox/polyline'
-import type { Position, FeatureCollection, Point } from 'geojson'
+import type { FeatureCollection, Point } from 'geojson'
 import { env } from './env'
+import { Route } from '../types'
+import { DB } from './db'
 
 /**
  * @see {@link https://docs.mapbox.com/api/search/geocoding/#geocoding-response-object}
@@ -84,49 +86,40 @@ export const getPathStaticMapUrl = (
 export const getTileUrl = () =>
   `https://api.mapbox.com/styles/v1/${env.MAPBOX_USERNAME}/${getMapStyleId('dark')}/tiles/256/{z}/{x}/{y}@2x?access_token=${env.MAPBOX_TOKEN}`
 
-export const reverseGeocode = async (position: Position): Promise<ReverseGeocodingFeature | null> => {
-  if (Math.abs(position[0]) < 0.001 && Math.abs(position[1]) < 0.001) {
-    return null
-  }
-  const query = new URLSearchParams({
-    // 6dp is ~10cm accuracy
-    longitude: position[0].toFixed(6),
-    latitude: position[1].toFixed(6),
-    access_token: env.MAPBOX_TOKEN,
-  })
-  let resp: Response
+type Position = { lng?: number | null; lat?: number | null }
+export const reverseGeocode = async ({ lng, lat }: Position): Promise<ReverseGeocodingFeature | undefined> => {
+  if (!lng || !lat) return
+  if (Math.abs(lng) < 0.001 && Math.abs(lat) < 0.001) return
+
+  const db = await DB.init('geocode')
+  const key = JSON.stringify([lng.toFixed(6), lat.toFixed(6)])
+  const saved = await db.get<ReverseGeocodingFeature>(key)
+  if (saved) return saved
+
   try {
-    resp = await fetch(`https://api.mapbox.com/search/geocode/v6/reverse?${query.toString()}`, { cache: 'force-cache' })
-  } catch (error) {
-    console.error('[geocode] Reverse geocode lookup failed', error)
-    return null
-  }
-  if (!resp.ok) {
-    console.error(new Error(`Reverse geocode lookup failed: ${resp.status} ${resp.statusText}`))
-    return null
-  }
-  try {
+    const query = new URLSearchParams({ longitude: lng.toFixed(6), latitude: lat.toFixed(6), access_token: env.MAPBOX_TOKEN })
+    const resp = await fetch(`https://api.mapbox.com/search/geocode/v6/reverse?${query.toString()}`)
+
+    if (!resp.ok) {
+      console.error(new Error(`Reverse geocode lookup failed: ${resp.status} ${resp.statusText}`))
+      return
+    }
+
     // TODO: validate
     const collection = (await resp.json()) as ReverseGeocodingResponse
-    return collection?.features?.[0] ?? null
+    const res = collection?.features?.[0]
+    if (res) await db.set(key, res)
+    return res
   } catch (error) {
-    console.error(new Error('Could not parse reverse geocode response', { cause: error }))
-    return null
+    console.error('[geocode] Reverse geocode lookup failed', error)
+    return
   }
 }
 
-export const getFullAddress = async (position: Position): Promise<string | null> => {
+export const getPlaceName = async (position: Position): Promise<string | undefined> => {
   const feature = await reverseGeocode(position)
-  if (!feature) return null
-  return feature.properties.full_address
-}
-
-export const getPlaceName = async (position: Position): Promise<string | null> => {
-  const feature = await reverseGeocode(position)
-  if (!feature) return null
-  const {
-    properties: { context },
-  } = feature
+  if (!feature) return
+  const context = feature.properties.context
   return (
     [
       // context.street?.name,
@@ -138,4 +131,12 @@ export const getPlaceName = async (position: Position): Promise<string | null> =
       context.country?.name,
     ].find(Boolean) || ''
   )
+}
+
+export const getStartEndPlaceName = async (route: Route) => {
+  const [start, end] = await Promise.all([
+    getPlaceName({ lng: route.start_lng, lat: route.start_lat }),
+    getPlaceName({ lng: route.end_lng, lat: route.end_lat }),
+  ])
+  return { start, end }
 }

@@ -8,7 +8,7 @@ import { api } from '../../api'
 import { usePreservedRoutes } from '../../api/queries'
 import { Route, RouteSegment } from '../../types'
 import { Link } from 'react-router-dom'
-import { getPlaceName } from '../../utils/map'
+import { getStartEndPlaceName } from '../../utils/map'
 import { useRouteParams } from '../../utils/hooks'
 import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
@@ -16,15 +16,11 @@ import { getRouteStats, getTimelineEvents, RouteStats, TimelineEvent } from '../
 
 const PAGE_SIZE = 10
 
-const getLocation = async (route: Route) => {
-  const startPos = [route.start_lng || 0, route.start_lat || 0]
-  const endPos = [route.end_lng || 0, route.end_lat || 0]
-  const startPlace = await getPlaceName(startPos)
-  const endPlace = await getPlaceName(endPos)
-  if (!startPlace && !endPlace) return ''
-  if (!endPlace || startPlace === endPlace) return startPlace
-  if (!startPlace) return endPlace
-  return `${startPlace} to ${endPlace}`
+const getLocationText = ({ start, end }: { start?: string; end?: string }) => {
+  if (!start && !end) return ''
+  if (!end || start === end) return start
+  if (!start) return end
+  return `${start} to ${end}`
 }
 
 const Timeline = ({ events, duration, baseRouteUrl }: { events: TimelineEvent[]; duration: number; baseRouteUrl: string }) => {
@@ -120,25 +116,27 @@ const Filmstrip = ({ route }: { route: Route }) => {
 const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: true }) }) => {
   const startTime = getDateTime(route.start_time)
   const endTime = getDateTime(route.end_time)
-  const duration = getRouteDurationMs(route) ?? 0
+  const durationMs = getRouteDurationMs(route) ?? 0
 
-  const [location, setLocation] = useState<string | null>(null)
-  const [stats, setStats] = useState<RouteStats | null>(null)
+  const [location, setLocation] = useState<{ start?: string; end?: string }>()
+  const [stats, setStats] = useState<RouteStats>()
   const [timeline, setTimeline] = useState<TimelineEvent[]>([])
 
   useEffect(() => {
-    getLocation(route).then(setLocation)
-    getRouteStats(route).then(setStats)
-    getTimelineEvents(route).then(setTimeline)
+    getStartEndPlaceName(route).then(setLocation)
+    getTimelineEvents(route).then((timeline) => {
+      setTimeline(timeline)
+      getRouteStats(timeline).then(setStats)
+    })
   }, [route])
 
-  const engagementPercent = stats ? (stats.engagedDurationMs / stats.routeDurationMs) * 100 : 0
+  const engagementPercent = stats ? (stats.engagedDurationMs / durationMs) * 100 : 0
   const routeUrl = `/${route.dongle_id}/${route.fullname.slice(17)}`
 
   const [distVal, distUnit] = (route.distance ? formatDistance(route.distance)! : '0 km').split(' ')
 
   // Helper for duration
-  const durationStr = formatDurationMs(duration)
+  const durationStr = formatDurationMs(durationMs)
   const durationVal = durationStr.replace(/[a-z]/g, '').trim()
   const durationUnit = durationStr.replace(/[0-9.]/g, '').trim()
 
@@ -155,7 +153,7 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
 
         <div className="transition-opacity duration-300 opacity-90 group-hover:opacity-100">
           <Filmstrip route={route} />
-          <Timeline events={timeline} duration={duration} baseRouteUrl={routeUrl} />
+          <Timeline events={timeline} duration={durationMs} baseRouteUrl={routeUrl} />
         </div>
       </div>
 
@@ -167,7 +165,7 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
             {formatTime(startTime)} - {formatTime(endTime)}
           </div>
           {/* Location */}
-          <div className="text-xs text-white/50 truncate max-w-[280px]">{location || 'Loading location...'}</div>
+          <div className="text-xs text-white/50 truncate max-w-[280px]">{location ? getLocationText(location) : 'Loading location...'}</div>
         </div>
 
         {/* Stats Grid */}
