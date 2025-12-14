@@ -1,5 +1,6 @@
 import type { Route } from '../types'
 import { getRouteDurationMs } from '../utils/format'
+import { DB } from './db'
 
 type OpenpilotState = 'disabled' | 'preEnabled' | 'enabled' | 'softDisabling' | 'overriding'
 type AlertStatus = 0 | 1 | 2
@@ -23,22 +24,35 @@ export type TimelineEvent = { route_offset_millis: number } & (
   | { type: 'user_flag' }
 )
 
-const getDerived = async <T>(route: Route, fn: string): Promise<T[]> => {
+export type Derived = 'events.json' | 'coords.json'
+const getDerived = async <T>(route: Route, fn: Derived): Promise<T[]> => {
   if (!route) return []
-  const urls = Array.from({ length: route.maxqlog + 1 }, (_, i) => `${route.url}/${i}/${fn}`)
-  const results = urls.map((url) =>
-    fetch(url)
-      .then((res) => (res.ok ? (res.json() as T) : undefined))
-      .catch((err) => {
-        console.error('Error parsing file', url, err)
-        return
-      }),
+
+  const db = await DB.init(fn)
+  const saved = await db.get<T[]>(route.fullname)
+  if (saved) return saved
+
+  const results = await Promise.all(
+    Array.from({ length: route.maxqlog + 1 }).map((_, i) =>
+      fetch(`${route.url}/${i}/${fn}`)
+        .then((res) => (res.ok ? (res.json() as T) : undefined))
+        .catch((err) => {
+          console.error('Error parsing file', err)
+          return
+        }),
+    ),
   )
-  return (await Promise.all(results)).filter((it) => it !== undefined)
+
+  // cache only if all files exist
+  if (results.every(Boolean)) await db.set(route.fullname, results)
+
+  return results.filter((it) => it !== undefined)
 }
 
+const getEvents = async (route: Route) => await getDerived<DriveEvent[]>(route, 'events.json').then((x) => x.flat())
+
 export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> => {
-  const events = await getDerived<DriveEvent[]>(route, 'events.json').then((x) => x.flat())
+  const events = await getEvents(route)
   const routeDuration = getRouteDurationMs(route) ?? 0
 
   // sort events by timestamp
@@ -132,7 +146,5 @@ export type GPSPathPoint = {
   speed: number
   dist: number
 }
-export const getCoords = async (route: Route): Promise<GPSPathPoint[]> => {
-  const res = await getDerived<GPSPathPoint[]>(route, 'coords.json')
-  return res.flat()
-}
+
+export const getCoords = async (route: Route) => await getDerived<GPSPathPoint[]>(route, 'coords.json').then((x) => x.flat())
