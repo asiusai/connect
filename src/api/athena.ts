@@ -141,6 +141,7 @@ export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends
   dongleId: string
   expiry?: number
 }): Promise<{ error?: AthenaError; result?: z.infer<Req['result']> } | undefined> => {
+  if (!env.ATHENA_URL) return
   if (dongleId === env.DEMO_DONGLE_ID) return
   const req = REQUESTS[type]
 

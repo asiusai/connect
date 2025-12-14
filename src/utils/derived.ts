@@ -1,6 +1,7 @@
 import type { Route } from '../types'
 import { getRouteDurationMs } from '../utils/format'
 import { DB } from './db'
+import { getRouteUrl } from './helpers'
 
 type OpenpilotState = 'disabled' | 'preEnabled' | 'enabled' | 'softDisabling' | 'overriding'
 type AlertStatus = 0 | 1 | 2
@@ -34,7 +35,7 @@ const getDerived = async <T>(route: Route, fn: Derived): Promise<T[]> => {
 
   const results = await Promise.all(
     Array.from({ length: route.maxqlog + 1 }).map((_, i) =>
-      fetch(`${route.url}/${i}/${fn}`)
+      fetch(getRouteUrl(route, i, fn))
         .then((res) => (res.ok ? (res.json() as T) : undefined))
         .catch((err) => {
           console.error('Error parsing file', err)

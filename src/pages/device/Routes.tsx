@@ -13,6 +13,7 @@ import { useRouteParams } from '../../utils/hooks'
 import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
 import { getRouteStats, getTimelineEvents, RouteStats, TimelineEvent } from '../../utils/derived'
+import { getRouteUrl } from '../../utils/helpers'
 
 const PAGE_SIZE = 10
 
@@ -82,7 +83,7 @@ const Filmstrip = ({ route }: { route: Route }) => {
     return Array.from({ length: imageCount }).map((_, i) => {
       const index = Math.min(Math.floor(i * (totalImages / imageCount)), totalImages - 1)
       return {
-        src: `${route.url}/${index}/sprite.jpg`,
+        src: getRouteUrl(route, index, 'sprite.jpg'),
         seekTime: index * 60,
       }
     })

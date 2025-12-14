@@ -109,30 +109,28 @@ export const DynamicMap = ({
 }) => {
   const coords = useAsyncMemo(async () => await getCoords(route), [route])
 
-  if (!coords) {
-    return (
-      <div className={clsx('relative aspect-square rounded-xl overflow-hidden shrink-0 bg-background-alt', className)}>
-        <div className="size-full bg-white/5 animate-pulse" />
-      </div>
-    )
-  }
-
-  const positions: [number, number][] = coords.map((p) => [p.lat, p.lng])
-
   return (
-    <div className={clsx('relative aspect-square rounded-xl overflow-hidden shrink-0 bg-background-alt isolate', className)}>
-      <MapContainer
-        center={[coords[0].lat, coords[0].lng]}
-        zoom={13}
-        zoomControl={false}
-        attributionControl={false}
-        className="size-full z-0"
-      >
-        <TileLayer url={getTileUrl()} />
-        <Polyline positions={positions} pathOptions={{ color: '#3b82f6', weight: 4, opacity: 0.7 }} />
-        <CurrentPositionMarker playerRef={playerRef} route={route} coords={coords} />
-        <FitBounds coords={coords} />
-      </MapContainer>
+    <div
+      className={clsx(
+        'relative rounded-xl overflow-hidden shrink-0 bg-background-alt isolate h-full aspect-square md:aspect-auto',
+        className,
+      )}
+    >
+      {!coords && <div className="size-full bg-white/5 animate-pulse" />}
+      {coords && (
+        <MapContainer
+          center={[coords[0].lat, coords[0].lng]}
+          zoom={13}
+          zoomControl={false}
+          attributionControl={false}
+          className="size-full z-0"
+        >
+          <TileLayer url={getTileUrl()} />
+          <Polyline positions={coords.map((p) => [p.lat, p.lng])} pathOptions={{ color: '#3b82f6', weight: 4, opacity: 0.7 }} />
+          <CurrentPositionMarker playerRef={playerRef} route={route} coords={coords} />
+          <FitBounds coords={coords} />
+        </MapContainer>
+      )}
     </div>
   )
 }

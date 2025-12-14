@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useFiles, useRendererStatus, useRenderProgress, useRoute } from '../api/queries'
 import { IconButton } from './IconButton'
-import { saveFile, toSegmentFiles } from '../utils/helpers'
+import { getRouteUrl, saveFile, toSegmentFiles } from '../utils/helpers'
 import { Icon } from './Icon'
 import { env } from '../utils/env'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
@@ -217,7 +217,7 @@ const Filmstrip = ({ route }: { route: Route }) => {
     return Array.from({ length: imageCount }).map((_, i) => {
       const index = Math.min(Math.floor(i * (totalImages / imageCount)), totalImages - 1)
       return {
-        src: `${route.url}/${index}/sprite.jpg`,
+        src: getRouteUrl(route, index, 'sprite.jpg'),
       }
     })
   }, [route, imageCount])
