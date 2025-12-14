@@ -6,6 +6,7 @@ import { timeAgo } from '../../utils/format'
 import { Icon } from '../../components/Icon'
 
 export const Active = ({ device, className }: { device: Device; className?: string }) => {
+  if (!device.last_athena_ping) return <span className={clsx('text-white/30', className)}>Offline</span>
   return (
     <p className={clsx(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70', className)}>
       {timeAgo(device.last_athena_ping)}
