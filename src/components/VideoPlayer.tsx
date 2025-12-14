@@ -555,7 +555,7 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
         initialFrame={toFrames(start ?? 0)}
         playbackRate={playbackRate}
       />
-      <div className="absolute inset-0" onClick={() => playerRef.current?.toggle()} />
+      <div className="absolute inset-0 cursor-pointer" onClick={() => playerRef.current?.toggle()} />
 
       {currentTime && (
         <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">

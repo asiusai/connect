@@ -13,6 +13,8 @@ export const Info = ({ className }: { className?: string }) => {
       <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
         {!!route && (
           <>
+            <DetailRow label="Dongle ID" value={route.dongle_id} mono copyable />
+            <DetailRow label="Vehicle" value={route.platform} copyable />
             <DetailRow label="Repo" value={route.git_remote} href={route.git_remote ? `https://${route.git_remote}` : undefined} />
             <DetailRow label="Branch" value={route.git_branch} mono copyable />
             <DetailRow
@@ -22,9 +24,6 @@ export const Info = ({ className }: { className?: string }) => {
               copyable
             />
             <DetailRow label="Version" value={route.version} mono copyable />
-            <DetailRow label="Make" value={route.make} copyable />
-            <DetailRow label="Platform" value={route.platform} copyable />
-            <DetailRow label="VIN" value={route.vin} mono copyable />
           </>
         )}
       </div>
