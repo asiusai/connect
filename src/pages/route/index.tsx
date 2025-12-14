@@ -8,7 +8,7 @@ import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
 import { callAthena } from '../../api/athena'
 import { getStartEndPlaceName } from '../../utils/map'
-import { StaticMap } from './StaticMap'
+import { DynamicMap } from './Map'
 import { Stats } from './Stats'
 import { Actions } from './Actions'
 import { formatDate, formatTime } from '../../utils/format'
@@ -56,7 +56,7 @@ export const Component = () => {
         <Stats route={route} className="md:order-3" />
         <Actions route={route} className="md:order-5" />
         <RouteFiles playerRef={playerRef} route={route} className="md:col-span-2 md:row-span-3 md:order-4" />
-        <StaticMap route={route} className="md:row-span-3 md:order-2" />
+        <DynamicMap route={route} className="md:row-span-3 md:order-2" playerRef={playerRef} />
         <Info route={route} className="md:order-6" />
       </div>
     </div>

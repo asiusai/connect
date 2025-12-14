@@ -88,7 +88,7 @@ const SettingsMenu = () => {
   const [route] = useRoute(routeName)
   const maxLen = route ? route.maxqlog + 1 : 0
   const [view, setView] = useState<'large' | 'small' | 'log' | 'rate'>()
-  const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))
+  const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: !files || files[x].length === 0 }))
   const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))
   const onBack = () => setView(undefined)
 
@@ -385,7 +385,6 @@ const Timeline = ({
         const val = isStart ? selection.start : selection.end
         const left = (val / duration) * 100
         const showLabel = val > 0 && val < duration
-        console.log({ val, showLabel })
         if (Number.isNaN(left)) return null
         return (
           <div
