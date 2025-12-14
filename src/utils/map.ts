@@ -92,7 +92,7 @@ export const reverseGeocode = async ({ lng, lat }: Position): Promise<ReverseGeo
   if (Math.abs(lng) < 0.001 && Math.abs(lat) < 0.001) return
 
   const db = await DB.init('geocode')
-  const key = JSON.stringify([lng.toFixed(6), lat.toFixed(6)])
+  const key = `${lng.toFixed(6)},${lat.toFixed(6)}`
   const saved = await db.get<ReverseGeocodingFeature>(key)
   if (saved) return saved
 
