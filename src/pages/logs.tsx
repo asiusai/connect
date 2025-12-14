@@ -24,8 +24,8 @@ export const Component = () => {
   const prettify = params.get('prettify') !== 'false'
 
   const [data, setData] = useState<any[]>()
-  const [files] = useFiles(routeName)
   const [route] = useRoute(routeName)
+  const [files] = useFiles(routeName, route)
   const url = files?.[type][segment]
 
   useAsyncEffect(async () => {
@@ -74,7 +74,7 @@ export const Component = () => {
         <Select
           value={segment.toString()}
           onChange={(value) => updateParam('segment', value)}
-          options={Array.from({ length: route ? route.maxqlog + 1 : 0 }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
+          options={Array.from({ length: files.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
           className="min-w-[120px]"
         />
 

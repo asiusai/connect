@@ -45,7 +45,7 @@ export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewG
     logFiles && props.prefetchLogs ? await Promise.all(logFiles.files.map((url) => (url ? readLogs({ url }) : undefined))) : undefined
 
   const totalDuration = getRouteDurationMs(props.data.route)! / 1000
-  const lastSegmentDuration = end === props.data.route.maxqlog + 1 ? totalDuration % 60 : 60
+  const lastSegmentDuration = end === props.data.files.length ? totalDuration % 60 : 60
   const duration = (end - start - 1) * 60 + lastSegmentDuration
 
   return { duration, largeCameraFiles, logFiles, prefetchedLogs, smallCameraFiles }

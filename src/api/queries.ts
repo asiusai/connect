@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
 import { api } from '.'
 import { env } from '../utils/env'
-import { isSignedIn } from '../utils/helpers'
+import { isSignedIn, toSegmentFiles } from '../utils/helpers'
+import { Route } from '../types'
 
 const w = <Res extends { data?: { status: number; body: any } }>(res: Res): [NonNullable<Res['data']>['body'] | undefined, Res] => {
   return [res.data?.body, res] as any
@@ -83,14 +85,17 @@ export const useSubscription = (dongleId: string) =>
 export const usePortal = (dongleId: string) =>
   w(api.prime.getPortal.useQuery({ queryKey: ['get-portal', dongleId], queryData: { query: { dongle_id: dongleId } } }))
 
-export const useFiles = (routeName: string, refetchInterval?: number) =>
-  w(
+export const useFiles = (routeName: string, route: Route | undefined, refetchInterval?: number) => {
+  const [files, res] = w(
     api.file.files.useQuery({
       queryKey: ['files', routeName],
       queryData: { params: { routeName: routeName.replace('/', '|') } },
       refetchInterval,
     }),
   )
+  const files2 = useMemo(() => (files ? toSegmentFiles(files, route ? route.maxqlog + 1 : undefined) : undefined), [files])
+  return [files2, res] as const
+}
 
 export const useUsers = (dongleId: string) =>
   w(api.devices.users.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))

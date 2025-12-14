@@ -6,7 +6,6 @@ import {
   FILE_INFO,
   parseRouteName,
   saveFile,
-  toSegmentFiles,
   getRouteUploadStatus,
   getSegmentUploadStatus,
   UploadStatus,
@@ -307,13 +306,12 @@ export const RouteFiles = ({
   route: Route
   className?: string
 }) => {
-  const [files, { refetch, isRefetching }] = useFiles(route.fullname)
+  const [files, { refetch, isRefetching }] = useFiles(route.fullname, route)
   const [segment, _setSegment] = useState<number>(-1) // ROUTE= -1
   const setSegment = (value: number) => {
     _setSegment(value)
     if (value !== -1) playerRef.current?.seekTo(value * 60 * FPS)
   }
-  const segmentFiles = files ? toSegmentFiles(files, route.maxqlog + 1) : undefined
   return (
     <div className={clsx('flex flex-col gap-2 bg-background-alt rounded-xl p-4', className)}>
       <div className="flex items-center justify-between">
@@ -325,11 +323,11 @@ export const RouteFiles = ({
           className={clsx('text-xl text-white/40 hover:text-white transition-colors', isRefetching && 'animate-spin')}
         />
       </div>
-      {segmentFiles && (
+      {files && (
         <>
-          <SegmentGrid files={segmentFiles} selectedSegment={segment} onSelect={setSegment} />
+          <SegmentGrid files={files} selectedSegment={segment} onSelect={setSegment} />
 
-          <SegmentDetails segment={segment} files={segmentFiles} route={route} setSegment={setSegment} />
+          <SegmentDetails segment={segment} files={files} route={route} setSegment={setSegment} />
         </>
       )}
     </div>

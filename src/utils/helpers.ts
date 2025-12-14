@@ -4,9 +4,8 @@ import { env } from './env'
 import { storage } from './storage'
 import { Derived } from './derived'
 
-export const getRouteUrl = (route: Route, segment: number, fn: Derived | 'sprite.jpg') => {
-  return `${route.url?.replace('https://api.konik.ai', env.API_URL)}/${segment}/${fn}`
-}
+export const getRouteUrl = (route: Route, segment: number, fn: Derived | 'sprite.jpg') =>
+  `${route.url?.replace('https://api.konik.ai', env.API_URL)}/${segment}/${fn}`
 
 export const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnMount: false } } })
 
@@ -125,7 +124,8 @@ export const FILE_INFO: Record<FileType, { name: string; raw: string; processed?
   },
 }
 
-export const toSegmentFiles = (files: Files, length: number): SegmentFiles => {
+export const toSegmentFiles = (files: Files, length: number | undefined): SegmentFiles => {
+  if (!length) length = Math.max(...FileType.options.map((x) => files[x].length))
   const out: SegmentFiles = { length, cameras: [], dcameras: [], ecameras: [], logs: [], qcameras: [], qlogs: [] }
   for (const key of keys(files)) {
     for (let i = 0; i < length; i++) out[key][i] = findFile(files, key, i)?.replace('https://api.konik.ai', env.API_URL)

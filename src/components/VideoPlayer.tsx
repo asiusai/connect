@@ -7,12 +7,10 @@ import { formatVideoTime, getRouteDurationMs, formatTime, getDateTime } from '..
 import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useAsyncMemo, useFullscreen, useRouteParams } from '../utils/hooks'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../api'
-import { useFiles, useRendererStatus, useRenderProgress, useRoute } from '../api/queries'
+import { useFiles, useRoute } from '../api/queries'
 import { IconButton } from './IconButton'
-import { getRouteUrl, saveFile, toSegmentFiles } from '../utils/helpers'
+import { getRouteUrl } from '../utils/helpers'
 import { Icon } from './Icon'
-import { env } from '../utils/env'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useStorage } from '../utils/storage'
 import { Route } from '../types'
@@ -24,38 +22,6 @@ const FILE_LABELS: Record<FileType, string> = {
   qcameras: 'Quantized',
   logs: 'Full',
   qlogs: 'Quantized',
-}
-
-const Render = ({ props }: { props: PreviewProps }) => {
-  const { data, mutate, reset } = api.renderer.render.useMutation()
-  const [status] = useRendererStatus()
-  const [progress] = useRenderProgress(data?.body.renderId)
-
-  useEffect(() => {
-    if (!progress?.output) return
-    saveFile(progress.output, 'out.mp4')
-    reset()
-  }, [progress?.output])
-
-  if (!status) return null
-  const loading = data?.body.renderId ? (progress?.progress?.progress ?? true) : false
-  return (
-    <div className="ml-auto flex items-center gap-2">
-      {progress && (
-        <span className="text-xs hidden md:inline-block opacity-70">
-          {progress?.state}
-          {progress.progress && <span> {(progress.progress.progress * 100).toFixed()}%</span>}
-        </span>
-      )}
-
-      <IconButton
-        title={progress?.state ? `Downloading` : 'Download (1st segment only for now)'}
-        name="download"
-        loading={loading}
-        onClick={() => mutate({ body: { props, serveUrl: env.TEMPLATES_URL } })}
-      />
-    </div>
-  )
 }
 
 const OptionItem = ({
@@ -84,12 +50,11 @@ const OptionItem = ({
 const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot UI', rate: 'Playback Speed' }
 const SettingsMenu = () => {
   const { routeName } = useRouteParams()
-  const [files] = useFiles(routeName)
   const [route] = useRoute(routeName)
-  const maxLen = route ? route.maxqlog + 1 : 0
+  const [files] = useFiles(routeName, route)
   const [view, setView] = useState<'large' | 'small' | 'log' | 'rate'>()
-  const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: !files || files[x].length === 0 }))
-  const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))
+  const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: !files || !files[x].some(Boolean) }))
+  const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: !files || !files[x].some(Boolean) }))
   const onBack = () => setView(undefined)
 
   const title = view ? TITLES[view] : undefined
@@ -425,7 +390,6 @@ const Timeline = ({
 }
 
 export const VideoControls = ({ playerRef, className }: { className?: string; playerRef: RefObject<PlayerRef | null> }) => {
-  const props = useProps()
   const fullscreen = useFullscreen()
   const { routeName, start, end, date, dongleId } = useRouteParams()
   const player = playerRef.current
@@ -504,7 +468,7 @@ export const VideoControls = ({ playerRef, className }: { className?: string; pl
 
         <div className="flex-1" />
 
-        <Render props={props} />
+        {/* <Render props={props} /> */}
 
         <div className="relative" ref={settingsRef}>
           {showSettings && <SettingsMenu />}
@@ -526,7 +490,7 @@ export const VideoControls = ({ playerRef, className }: { className?: string; pl
 const useProps = () => {
   const { routeName } = useRouteParams()
   const [route] = useRoute(routeName)
-  const [files] = useFiles(routeName)
+  const [files] = useFiles(routeName, route)
   const [largeCameraType] = useStorage('largeCameraType')
   const [smallCameraType] = useStorage('smallCameraType')
   const [logType] = useStorage('logType')
@@ -538,7 +502,7 @@ const useProps = () => {
       largeCameraType,
       smallCameraType,
       logType,
-      data: files && route ? { files: toSegmentFiles(files, route.maxqlog + 1), route } : undefined,
+      data: files && route ? { files, route } : undefined,
       unitFormat,
     }),
     [largeCameraType, smallCameraType, logType, files, route],
