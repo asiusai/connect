@@ -1,4 +1,4 @@
-import type { Derived } from "./derived"
+import type { Derived } from './derived'
 
 type StoreName = 'logs' | Derived
 const DB_VERSION = 3
