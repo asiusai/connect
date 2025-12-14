@@ -3,9 +3,10 @@ import clsx from 'clsx'
 import { FPS, HEIGHT, toFrames, toSeconds, WIDTH } from '../../templates/shared'
 import { getPreviewGenerated, Preview } from '../../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
-import { formatVideoTime, getRouteDurationMs } from '../utils/format'
-import { RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import { formatVideoTime, getRouteDurationMs, formatTime, getDateTime } from '../utils/format'
+import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useAsyncMemo, useRouteParams } from '../utils/hooks'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useFiles, useRendererStatus, useRenderProgress, useRoute } from '../api/queries'
 import { IconButton } from './IconButton'
@@ -14,6 +15,7 @@ import { Icon } from './Icon'
 import { env } from '../utils/env'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useStorage } from '../utils/storage'
+import { Route } from '../types'
 
 const FILE_LABELS: Record<FileType, string> = {
   cameras: 'Road',
@@ -79,13 +81,13 @@ const OptionItem = ({
   </div>
 )
 
-const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot UI' }
+const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot UI', rate: 'Playback Speed' }
 const SettingsMenu = () => {
   const { routeName } = useRouteParams()
   const [files] = useFiles(routeName)
   const [route] = useRoute(routeName)
   const maxLen = route ? route.maxqlog + 1 : 0
-  const [view, setView] = useState<'large' | 'small' | 'log'>()
+  const [view, setView] = useState<'large' | 'small' | 'log' | 'rate'>()
   const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))
   const allLogs = LogType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: files?.[x].length !== maxLen }))
   const onBack = () => setView(undefined)
@@ -95,9 +97,10 @@ const SettingsMenu = () => {
   const [largeCameraType, setLargeCameraType] = useStorage('largeCameraType')
   const [smallCameraType, setSmallCameraType] = useStorage('smallCameraType')
   const [logType, setLogType] = useStorage('logType')
+  const [playbackRate, setPlaybackRate] = useStorage('playbackRate')
 
   return (
-    <div className="absolute bottom-10 right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
+    <div className="absolute bottom-12 right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
       {title && (
         <div className="flex items-center gap-2 px-2 py-2 border-b border-white/10 mb-1">
           <IconButton title="Back" name="arrow_back" className="text-xl" onClick={onBack} />
@@ -110,6 +113,7 @@ const SettingsMenu = () => {
           { view: 'large' as const, value: FILE_LABELS[largeCameraType] },
           { view: 'small' as const, value: smallCameraType ? FILE_LABELS[smallCameraType] : 'Hidden' },
           { view: 'log' as const, value: logType ? FILE_LABELS[logType] : 'Hidden' },
+          { view: 'rate' as const, value: `${playbackRate}x` },
         ].map(({ view, value }) => (
           <div
             key={view}
@@ -165,110 +169,19 @@ const SettingsMenu = () => {
             }}
           />
         ))}
-    </div>
-  )
-}
 
-const Controls = ({
-  playerRef,
-  duration,
-  fullscreenRef,
-  props,
-}: {
-  fullscreenRef: RefObject<HTMLDivElement | null>
-  duration: number
-  playerRef: RefObject<PlayerRef | null>
-  props: PreviewProps
-}) => {
-  const player = playerRef.current
-
-  const [playing, setPlaying] = useState(player?.isPlaying() ?? false)
-  const [muted, setMuted] = useState(player?.isMuted() ?? false)
-  const [fullscreen, setFullscreen] = useState(false)
-  const [frame, setFrame] = useState(player?.getCurrentFrame() ?? 0)
-  const [showSettings, setShowSettings] = useState(false)
-  const [hovering, setHovering] = useState(false)
-  const settingsRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
-        setShowSettings(false)
-      }
-    }
-    if (showSettings) document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showSettings])
-
-  useEffect(() => {
-    if (!player) return
-
-    const onMuteChange = () => setMuted(player.isMuted())
-    const onPlayPause = () => setPlaying(player.isPlaying())
-    const onFrame = () => setFrame(player.getCurrentFrame())
-
-    onMuteChange()
-    onPlayPause()
-    onFrame()
-
-    player.addEventListener('mutechange', onMuteChange)
-    player.addEventListener('play', onPlayPause)
-    player.addEventListener('pause', onPlayPause)
-    player.addEventListener('frameupdate', onFrame)
-
-    return () => {
-      player.removeEventListener('mutechange', onMuteChange)
-      player.removeEventListener('play', onPlayPause)
-      player.removeEventListener('pause', onPlayPause)
-      player.removeEventListener('frameupdate', onFrame)
-    }
-  }, [player])
-
-  useEffect(() => {
-    const onFullscreenChange = () => setFullscreen(!!document.fullscreenElement)
-    document.addEventListener('fullscreenchange', onFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
-  }, [])
-
-  const seconds = toSeconds(frame)
-  return (
-    <div
-      className="absolute inset-0"
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
-      onMouseMove={() => setHovering(true)}
-    >
-      <div className="absolute inset-0 cursor-pointer" onClick={() => player?.toggle()} />
-      <div
-        className={clsx(
-          'absolute bottom-0 left-0 w-full gap-2 flex flex-col py-4 px-3 transition-opacity duration-300',
-          playing && !hovering && 'opacity-0 pointer-events-none',
-        )}
-      >
-        <div className="flex items-center gap-2 w-full">
-          <IconButton title={playing ? 'Pause' : 'Play'} name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
-          <IconButton
-            title={muted ? 'Unmute' : 'Mute'}
-            name={muted ? 'volume_off' : 'volume_up'}
-            onClick={() => (muted ? player?.unmute() : player?.mute())}
+      {view === 'rate' &&
+        [0.25, 0.5, 1, 1.5, 2, 3, 4].map((rate) => (
+          <OptionItem
+            key={rate}
+            label={`${rate}x`}
+            selected={playbackRate === rate}
+            onClick={() => {
+              setPlaybackRate(rate)
+              setView(undefined)
+            }}
           />
-          <span className="text-sm ">
-            {formatVideoTime(Math.round(seconds))} / {formatVideoTime(Math.round(duration))}
-          </span>
-
-          <Render props={props} />
-          <div className="relative" ref={settingsRef}>
-            {showSettings && <SettingsMenu />}
-            <IconButton title="Settings" name="settings" onClick={() => setShowSettings(!showSettings)} />
-          </div>
-          <IconButton
-            title={fullscreen ? 'Exit fullscreen' : 'Exit fullscreen'}
-            name={fullscreen ? 'fullscreen_exit' : 'fullscreen'}
-            onClick={() => (fullscreen ? document.exitFullscreen() : fullscreenRef.current?.requestFullscreen())}
-          />
-        </div>
-        <Timeline playerRef={playerRef} frame={frame} />
-      </div>
+        ))}
     </div>
   )
 }
@@ -281,34 +194,113 @@ const getEventInfo = (event: TimelineEvent) => {
     if (event.alertStatus === 1) return ['User prompt alert', 'bg-orange-500 min-w-[2px]', '3']
     else return ['Critical alert', 'bg-orange-500 min-w-[2px]', '3']
   }
-  throw new Error(`Invalid event type ${JSON.stringify(event)}`)
+  return ['Unknown', 'bg-gray-500', '0']
 }
 
-const MARKER_WIDTH = 3
+const Filmstrip = ({ route }: { route: Route }) => {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
 
-export const Timeline = ({ playerRef, frame }: { frame: number; className?: string; playerRef: React.RefObject<PlayerRef | null> }) => {
-  const { routeName } = useRouteParams()
-  const [route] = useRoute(routeName)
+  useLayoutEffect(() => {
+    if (!ref.current) return
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) setWidth(entry.contentRect.width)
+    })
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+
+  const imageCount = width ? Math.max(1, Math.round(width / 72)) : 16
+
+  const images = useMemo(() => {
+    const totalImages = route.maxqlog + 1
+    return Array.from({ length: imageCount }).map((_, i) => {
+      const index = Math.min(Math.floor(i * (totalImages / imageCount)), totalImages - 1)
+      return {
+        src: `${route.url}/${index}/sprite.jpg`,
+      }
+    })
+  }, [route, imageCount])
+
+  return (
+    <div
+      ref={ref}
+      className="absolute inset-0 grid h-full w-full pointer-events-none opacity-60"
+      style={{ gridTemplateColumns: `repeat(${imageCount}, minmax(0, 1fr))` }}
+    >
+      {images.map((img, i) => (
+        <div key={i} className="relative w-full h-full overflow-hidden bg-gray-900 border-r border-white/5 last:border-0">
+          <img
+            src={img.src}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              ;(e.target as HTMLImageElement).style.visibility = 'hidden'
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const Timeline = ({
+  playerRef,
+  frame,
+  selection,
+  onSelectionChange,
+  duration,
+  route,
+}: {
+  frame: number
+  playerRef: React.RefObject<PlayerRef | null>
+  selection: { start: number; end: number }
+  onSelectionChange: (sel: { start: number; end: number }) => void
+  duration: number
+  route?: Route
+}) => {
   const events = useAsyncMemo(async () => (route ? await getTimelineEvents(route) : undefined), [route])
-
-  const durationMs = getRouteDurationMs(route) ?? 0
-  const duration = durationMs / 1000
-  let ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
 
   const updateMarker = (clientX: number) => {
-    const rect = ref.current!.getBoundingClientRect()
-    const x = Math.min(Math.max(clientX - rect.left, 0), rect.width - MARKER_WIDTH)
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    const x = Math.min(Math.max(clientX - rect.left, 0), rect.width)
     playerRef.current?.seekTo(Math.floor((x / rect.width) * toFrames(duration)))
   }
 
-  const onStart = () => {
-    const onMouseMove = (ev: MouseEvent) => updateMarker(ev.clientX)
+  const [draggingHandle, setDraggingHandle] = useState<'start' | 'end' | null>(null)
+
+  const updateHandle = (clientX: number, handleType?: 'start' | 'end') => {
+    if (!onSelectionChange || !ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    const x = Math.min(Math.max(clientX - rect.left, 0), rect.width)
+    const time = (x / rect.width) * duration
+
+    const activeHandle = handleType || draggingHandle
+
+    if (activeHandle === 'start') {
+      onSelectionChange({ ...selection, start: Math.min(time, selection.end - 1) })
+      playerRef.current?.seekTo(toFrames(time))
+    } else if (activeHandle === 'end') {
+      onSelectionChange({ ...selection, end: Math.max(time, selection.start + 1) })
+      playerRef.current?.seekTo(toFrames(time))
+    }
+  }
+
+  const onStart = (handle?: 'start' | 'end') => {
+    const onMouseMove = (ev: MouseEvent) => {
+      if (handle) updateHandle(ev.clientX, handle)
+      else updateMarker(ev.clientX)
+    }
     const onTouchMove = (ev: TouchEvent) => {
       if (ev.cancelable) ev.preventDefault()
       if (ev.touches.length !== 1) return
-      updateMarker(ev.touches[0].clientX)
+      if (handle) updateHandle(ev.touches[0].clientX, handle)
+      else updateMarker(ev.touches[0].clientX)
     }
     const onStop = () => {
+      setDraggingHandle(null)
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('mouseup', onStop)
@@ -323,65 +315,239 @@ export const Timeline = ({ playerRef, frame }: { frame: number; className?: stri
   }
 
   const markerOffset = (toSeconds(frame) / duration) * 100
+
   return (
     <div
       ref={ref}
+      className={clsx(
+        'relative h-14 w-full bg-black/20 rounded-lg overflow-visible cursor-pointer select-none group', // overflow-visible for time labels
+        'ring-1 ring-white/10 hover:ring-white/20 transition-all',
+      )}
       onMouseDown={(ev) => {
-        if (!route) return
+        if (draggingHandle) return
         updateMarker(ev.clientX)
         onStart()
       }}
       onTouchStart={(ev) => {
-        if (ev.touches.length !== 1 || !route) return
+        if (ev.touches.length !== 1) return
+        if (draggingHandle) return
         updateMarker(ev.touches[0].clientX)
         onStart()
       }}
-      className={clsx(
-        'relative isolate flex h-[7px] cursor-pointer touch-none self-stretch rounded-full bg-white/40',
-        'after:absolute after:inset-0 after:rounded-b-md after:bg-gradient-to-b after:from-black/0 after:via-black/10 after:to-black/30 overflow-hidden',
-      )}
-      title="Disengaged"
     >
-      <div className="absolute inset-0 size-full rounded-b-md ">
-        {events?.map((event, i) => {
-          const left = (event.route_offset_millis / durationMs) * 100
-          const width = event.type === 'user_flag' ? (1000 / durationMs) * 100 : (event.end_route_offset_millis / durationMs) * 100 - left
+      <div className="absolute inset-0 overflow-hidden rounded-lg">
+        {route && <Filmstrip route={route} />}
 
-          const [title, classes, zIndex] = getEventInfo(event)
-          return (
-            <div
-              key={i}
-              title={title}
-              className={clsx('absolute top-0 h-full', classes)}
-              style={{ left: `${left}%`, width: `${width}%`, zIndex }}
-            />
-          )
-        })}
+        <div className="absolute inset-x-0 bottom-0 h-1.5 bg-black/40">
+          {events?.map((event, i) => {
+            const durationMs = duration * 1000
+            const left = (event.route_offset_millis / durationMs) * 100
+            const width = event.type === 'user_flag' ? (1000 / durationMs) * 100 : (event.end_route_offset_millis / durationMs) * 100 - left
+            const [title, classes, zIndex] = getEventInfo(event)
+            return (
+              <div
+                key={i}
+                title={title}
+                className={clsx('absolute top-0 h-full hover:brightness-150', classes)}
+                style={{ left: `${left}%`, width: `${width}%`, zIndex }}
+              />
+            )
+          })}
+        </div>
+
+        <div
+          className="absolute top-0 bottom-0 z-10 w-0.5 bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] pointer-events-none"
+          style={{ left: `${markerOffset}%` }}
+        >
+          <div className="absolute -top-1 -translate-x-1/2 w-3 h-3 bg-white rounded-full shadow-sm" />
+        </div>
+
+        <div
+          className="absolute inset-y-0 left-0 bg-black/60 pointer-events-none z-20"
+          style={{ width: `${(selection.start / duration) * 100}%` }}
+        />
+        <div
+          className="absolute inset-y-0 right-0 bg-black/60 pointer-events-none z-20"
+          style={{ width: `${100 - (selection.end / duration) * 100}%` }}
+        />
+
+        <div
+          className="absolute inset-y-0 border-x-2 border-white/50 z-20 pointer-events-none"
+          style={{
+            left: `${(selection.start / duration) * 100}%`,
+            width: `${((selection.end - selection.start) / duration) * 100}%`,
+          }}
+        />
       </div>
-      <div
-        className="absolute top-0 z-10 h-full"
-        style={{
-          width: `${MARKER_WIDTH}px`,
-          left: `${markerOffset}%`,
-        }}
-      >
-        <div className="absolute inset-x-0 h-full bg-white" style={{ width: MARKER_WIDTH }} />
+
+      {['start', 'end'].map((type) => {
+        const isStart = type === 'start'
+        const val = isStart ? selection.start : selection.end
+        const left = (val / duration) * 100
+        const showLabel = val > 0 && val < duration
+        console.log({ val, showLabel })
+        if (Number.isNaN(left)) return null
+        return (
+          <div
+            key={type}
+            className="absolute top-1 bottom-1 w-4 -ml-2 z-30 cursor-ew-resize flex items-center justify-center group/handle"
+            style={{ left: `${left}%` }}
+            onMouseDown={(e) => {
+              e.stopPropagation()
+              setDraggingHandle(isStart ? 'start' : 'end')
+              onStart(isStart ? 'start' : 'end')
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation()
+              setDraggingHandle(isStart ? 'start' : 'end')
+              onStart(isStart ? 'start' : 'end')
+            }}
+          >
+            <div
+              className={clsx(
+                'w-1 h-full bg-white rounded-full shadow-lg transition-transform group-hover/handle:scale-x-150',
+                isStart ? 'translate-x-0.5' : '-translate-x-0.5',
+              )}
+            />
+
+            <div
+              className={clsx(
+                'absolute -top-7 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-mono whitespace-nowrap opacity-100 transition-opacity pointer-events-none',
+                !showLabel && 'hidden',
+              )}
+            >
+              {formatVideoTime(Math.round(val))}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+const BottomControls = ({
+  playerRef,
+  duration,
+  props,
+  selection,
+  onSelectionChange,
+  showSettings,
+  setShowSettings,
+  fullscreen,
+  onFullscreen,
+}: {
+  playerRef: RefObject<PlayerRef | null>
+  duration: number
+  props: PreviewProps
+  selection: { start: number; end: number }
+  onSelectionChange: (sel: { start: number; end: number }) => void
+  showSettings: boolean
+  setShowSettings: (v: boolean) => void
+  fullscreen: boolean
+  onFullscreen: () => void
+}) => {
+  const player = playerRef.current
+  const [playing, setPlaying] = useState(player?.isPlaying() ?? true)
+  const [muted, setMuted] = useState(player?.isMuted() ?? false)
+  const [frame, setFrame] = useState(player?.getCurrentFrame() ?? 0)
+  const settingsRef = useRef<HTMLDivElement>(null)
+  const { routeName } = useRouteParams()
+  const [route] = useRoute(routeName)
+
+  useEffect(() => {
+    if (!player) return
+    const onMuteChange = () => setMuted(player.isMuted())
+    const onPlayPause = () => setPlaying(player.isPlaying())
+    const onFrame = () => setFrame(player.getCurrentFrame())
+
+    player.addEventListener('mutechange', onMuteChange)
+    player.addEventListener('play', onPlayPause)
+    player.addEventListener('pause', onPlayPause)
+    player.addEventListener('frameupdate', onFrame)
+    return () => {
+      player.removeEventListener('mutechange', onMuteChange)
+      player.removeEventListener('play', onPlayPause)
+      player.removeEventListener('pause', onPlayPause)
+      player.removeEventListener('frameupdate', onFrame)
+    }
+  }, [player])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setShowSettings(false)
+      }
+    }
+    if (showSettings) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showSettings])
+
+  const seconds = toSeconds(frame)
+
+  return (
+    <div className="flex flex-col gap-2 p-2 bg-black/20 rounded-xl backdrop-blur-md border border-white/5">
+      <Timeline
+        playerRef={playerRef}
+        frame={frame}
+        selection={selection}
+        onSelectionChange={onSelectionChange}
+        duration={duration}
+        route={route}
+      />
+
+      <div className="flex items-center gap-2 pt-2">
+        <IconButton title={playing ? 'Pause' : 'Play'} name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
+        <IconButton
+          title={muted ? 'Unmute' : 'Mute'}
+          name={muted ? 'volume_off' : 'volume_up'}
+          onClick={() => (muted ? player?.unmute() : player?.mute())}
+        />
+
+        <span className="text-sm font-mono opacity-80 min-w-[100px]">
+          {formatVideoTime(Math.round(seconds))} / {formatVideoTime(Math.round(duration))}
+        </span>
+
+        <div className="flex-1" />
+
+        <Render props={props} />
+
+        <div className="relative" ref={settingsRef}>
+          {showSettings && <SettingsMenu />}
+          <IconButton title="Settings" name="settings" onClick={() => setShowSettings(!showSettings)} />
+        </div>
+        <IconButton
+          title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          name={fullscreen ? 'fullscreen_exit' : 'fullscreen'}
+          onClick={onFullscreen}
+        />
       </div>
     </div>
   )
 }
 
 export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObject<PlayerRef | null>; className?: string }) => {
-  const { routeName } = useRouteParams()
+  const { routeName, start, end, date, dongleId } = useRouteParams()
   const [route] = useRoute(routeName)
   const [files] = useFiles(routeName)
+
   const duration = getRouteDurationMs(route)! / 1000
-  const fullscreenRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
+
+  const [fullscreen, setFullscreen] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   const [largeCameraType] = useStorage('largeCameraType')
   const [smallCameraType] = useStorage('smallCameraType')
   const [logType] = useStorage('logType')
   const [unitFormat] = useStorage('unitFormat')
+  const [playbackRate] = useStorage('playbackRate')
+
+  useEffect(() => {
+    const onFullscreenChange = () => setFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
+  }, [])
 
   const props = useMemo<PreviewProps>(
     () => ({
@@ -397,22 +563,78 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
 
   const generated = useAsyncMemo(() => getPreviewGenerated(props), [props])
 
+  const selection = useMemo(
+    () => ({
+      start: start ?? 0,
+      end: end ?? duration,
+    }),
+    [start, end, duration],
+  )
+
+  const onSelectionChange = (sel: { start: number; end: number }) => {
+    if (Math.abs(sel.start) < 1 && Math.abs(sel.end - duration) < 1) navigate(`/${dongleId}/${date}`, { replace: true })
+    else navigate(`/${dongleId}/${date}/${sel.start.toFixed(0)}/${sel.end.toFixed(0)}`, { replace: true })
+  }
+
+  // Current real time display
+  const [currentTime, setCurrentTime] = useState<string>()
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!playerRef.current || !route) return
+      const frame = playerRef.current.getCurrentFrame()
+      const seconds = toSeconds(frame)
+      const time = getDateTime(route.start_time)?.plus({ seconds })
+      if (time) setCurrentTime(formatTime(time, true))
+    }, 500)
+    return () => clearInterval(interval)
+  }, [route])
+
   return (
-    <div ref={fullscreenRef} className={clsx('relative rounded-xl overflow-hidden', className)}>
-      <Player
-        ref={playerRef}
-        component={Preview}
-        compositionHeight={HEIGHT}
-        compositionWidth={WIDTH}
-        durationInFrames={toFrames(duration)}
-        fps={FPS}
-        style={{ width: '100%' }}
-        inputProps={{ ...props, generated }}
-        initiallyMuted
-        acknowledgeRemotionLicense
-        autoPlay
+    <div ref={containerRef} className={clsx('relative flex flex-col gap-2', className, fullscreen && 'bg-black p-4 overflow-y-auto')}>
+      <div
+        className={clsx(
+          'relative rounded-xl overflow-hidden bg-black',
+          fullscreen ? 'h-[calc(100vh-140px)] w-full' : 'aspect-video w-full',
+        )}
+      >
+        <Player
+          ref={playerRef}
+          component={Preview}
+          compositionHeight={HEIGHT}
+          compositionWidth={WIDTH}
+          durationInFrames={toFrames(duration)}
+          fps={FPS}
+          style={{ width: '100%', height: '100%' }}
+          inputProps={{ ...props, generated }}
+          initiallyMuted
+          acknowledgeRemotionLicense
+          autoPlay
+          initialFrame={toFrames(start ?? 0)}
+          playbackRate={playbackRate}
+        />
+        <div className="absolute inset-0" onClick={() => playerRef.current?.toggle()} />
+
+        {currentTime && (
+          <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">
+            {currentTime}
+          </div>
+        )}
+      </div>
+
+      <BottomControls
+        playerRef={playerRef}
+        duration={duration}
+        props={props}
+        selection={selection}
+        onSelectionChange={onSelectionChange}
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
+        fullscreen={fullscreen}
+        onFullscreen={() => {
+          if (fullscreen) document.exitFullscreen()
+          else containerRef.current?.requestFullscreen()
+        }}
       />
-      <Controls playerRef={playerRef} fullscreenRef={fullscreenRef} duration={duration} props={props} />
     </div>
   )
 }

@@ -44,8 +44,11 @@ export const getDateTime = (input: DateTimeInput) => {
   return input
 }
 
-export const formatTime = (time: DateTimeInput) =>
-  storage.get('timeFormat') === '12h' ? getDateTime(time)?.toFormat('h:mm a') : getDateTime(time)?.toFormat('HH:mm')
+export const formatTime = (time: DateTimeInput, includeSeconds = false) => {
+  const is12h = storage.get('timeFormat') === '12h'
+  const format = [is12h ? 'h:mm' : 'HH:mm', includeSeconds ? ':ss' : '', is12h ? ' a' : ''].join('')
+  return getDateTime(time)?.toFormat(format)
+}
 
 export const formatDate = (input: DateTimeInput) => {
   const date = getDateTime(input)

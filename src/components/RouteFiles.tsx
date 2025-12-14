@@ -80,7 +80,12 @@ const FileAction = ({
       )}
     >
       {loading ? (
-        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        <div
+          className={clsx(
+            'w-4 h-4 border-2 rounded-full animate-spin',
+            uploadButton ? 'border-black/20 border-t-black' : 'border-white/20 border-t-white',
+          )}
+        />
       ) : (
         <Icon name={icon as any} className="text-[16px]" />
       )}

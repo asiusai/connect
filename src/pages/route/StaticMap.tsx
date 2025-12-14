@@ -18,7 +18,7 @@ export const StaticMap = ({ route, className }: { className?: string; route: Rou
       {image ? (
         <img className="pointer-events-none size-full object-cover" src={image} />
       ) : (
-        <img className="size-full p-20" src="/images/comma-white.svg" />
+        <div className="size-full bg-white/5 animate-pulse" />
       )}
     </div>
   )
