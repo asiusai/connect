@@ -67,8 +67,8 @@ export const Icons = [
   'share',
   'lock',
   'heat',
-  "link",
-  "content_cut"
+  'link',
+  'content_cut',
 ] as const
 
 export type IconName = (typeof Icons)[number]
