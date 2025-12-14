@@ -128,7 +128,7 @@ export const FILE_INFO: Record<FileType, { name: string; raw: string; processed?
 export const toSegmentFiles = (files: Files, length: number): SegmentFiles => {
   const out: SegmentFiles = { length, cameras: [], dcameras: [], ecameras: [], logs: [], qcameras: [], qlogs: [] }
   for (const key of keys(files)) {
-    for (let i = 0; i < length; i++) out[key][i] = findFile(files, key, i)
+    for (let i = 0; i < length; i++) out[key][i] = findFile(files, key, i)?.replace('https://api.konik.ai', env.API_URL)
   }
   return out
 }
