@@ -26,7 +26,7 @@ export const Navigation = ({ className }: { className?: string }) => {
       icon: 'infrared',
       color: 'text-zinc-500',
     },
-      {
+    {
       title: 'Live',
       icon: 'play_arrow',
       href: `/${dongleId}/live`,
@@ -45,7 +45,6 @@ export const Navigation = ({ className }: { className?: string }) => {
       href: `/${dongleId}/settings`,
       color: 'text-yellow-400',
     },
-
   ]
   return (
     <div className={clsx('grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-0', className)}>
