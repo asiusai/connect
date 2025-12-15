@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../types'
 
 const STORAGES = {
+  showLivePage: (): boolean => false,
   playbackRate: (): number | undefined => 1,
   accessToken: (): string | undefined => undefined,
   lastDongleId: (): string | undefined => undefined,
