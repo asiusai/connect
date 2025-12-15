@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouteParams } from '../../utils/hooks'
 import { callAthena } from '../../api/athena'
+import { TopAppBar } from '../../components/TopAppBar'
+import { BackButton } from '../../components/BackButton'
+import { Button } from '../../components/Button'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
@@ -12,9 +15,7 @@ export const Component = () => {
 
   useEffect(() => {
     setupRTCConnection()
-    return () => {
-      disconnectRTCConnection()
-    }
+    return () => disconnectRTCConnection()
   }, [dongleId])
 
   const disconnectRTCConnection = () => {
@@ -49,7 +50,6 @@ export const Component = () => {
       })
       rtcConnection.current = pc
 
-      // Add transceivers for 2 expected video streams
       pc.addTransceiver('video', { direction: 'recvonly' })
       pc.addTransceiver('video', { direction: 'recvonly' })
 
@@ -57,7 +57,6 @@ export const Component = () => {
         const newTrack = event.track
         const newStream = new MediaStream([newTrack])
         setStreams((prev) => {
-          // Simple unique ID based on track ID or standard label
           const id = newTrack.id
           if (prev.some((s) => s.label === id)) return prev
           return [...prev, { stream: newStream, label: id }]
@@ -78,11 +77,9 @@ export const Component = () => {
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
 
-      // Wait for ICE gathering to complete (simplest approach for now)
       await new Promise<void>((resolve) => {
-        if (pc.iceGatheringState === 'complete') {
-          resolve()
-        } else {
+        if (pc.iceGatheringState === 'complete') resolve()
+        else {
           const checkState = () => {
             if (pc.iceGatheringState === 'complete') {
               pc.removeEventListener('icegatheringstatechange', checkState)
@@ -111,18 +108,13 @@ export const Component = () => {
         dongleId,
       })
 
-      if (!resp || resp.error) {
-        console.log(resp)
-        throw new Error(resp?.error?.message || 'Unknown error from Athena')
-      }
+      if (!resp || resp.error) throw new Error(resp?.error?.message || 'Unknown error from Athena')
 
       // webrtcd returns the answer SDP directly
       const answerSdp = resp.result?.sdp
       const answerType = resp.result?.type
 
-      if (!answerSdp || !answerType) {
-        throw new Error('Invalid response from webrtcd')
-      }
+      if (!answerSdp || !answerType) throw new Error('Invalid response from webrtcd')
 
       await pc.setRemoteDescription(new RTCSessionDescription({ type: answerType as any, sdp: answerSdp }))
 
@@ -136,35 +128,29 @@ export const Component = () => {
   }
 
   return (
-    <div className="p-5 bg-gray-900 min-h-screen text-white">
-      <div className="flex gap-4 mb-5">
-        <button
-          onClick={setupRTCConnection}
-          disabled={reconnecting}
-          className={`px-4 py-2 rounded ${reconnecting ? 'bg-gray-600' : 'bg-blue-500'} text-white`}
-        >
-          {reconnecting ? 'Reconnect...' : 'Reconnect'}
-        </button>
-      </div>
+    <div className="flex flex-col min-h-screen bg-background text-foreground gap-4">
+      <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>Live</TopAppBar>
+      {status && <div className="text-center">{status}</div>}
+      {error && <div className="text-red-500 text-center">{error}</div>}
 
-      {status && <div className="text-blue-400 text-center mb-4">{status}</div>}
-      {error && <div className="text-red-500 text-center mb-4">{error}</div>}
-
-      <div className="flex flex-col gap-5">
-        {streams.map((item, i) => (
-          <div key={i} className="bg-gray-800 p-3 rounded-lg">
-            <h3 className="text-center mb-2 text-lg">{item.label}</h3>
+      <div className="p-4 flex flex-col gap-4">
+        <div className="grid md:grid-cols-2 gap-4">
+          {streams.map((item, i) => (
             <video
+              key={i}
               autoPlay
               playsInline
               muted
               ref={(video) => {
                 if (video) video.srcObject = item.stream
               }}
-              className="w-full rounded"
+              className="rounded"
             />
-          </div>
-        ))}
+          ))}
+        </div>
+        <Button onClick={setupRTCConnection} loading={reconnecting}>
+          {reconnecting ? 'Reconnect...' : 'Reconnect'}
+        </Button>
       </div>
     </div>
   )
