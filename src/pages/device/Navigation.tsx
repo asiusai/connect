@@ -59,7 +59,7 @@ export const Navigation = ({ className }: { className?: string }) => {
               'flex md:flex-row bg-background-alt md:bg-transparent items-center p-4 gap-4 md:gap-3 md:px-3 md:py-2  rounded-lg transition-colors font-medium',
               href && 'hover:bg-white/10 text-white',
               title === 'Home' && 'hidden md:flex',
-              i === arr.length - 1 && i % 2 !== 0 && 'col-span-2 justify-center',
+              i === arr.length - 1 && i % 2 !== 0 && 'justify-center col-span-2 md:col-span-1 md:justify-start',
             )}
           >
             <Icon name={icon as any} className={clsx('text-xl md:text-2xl', color)} />
