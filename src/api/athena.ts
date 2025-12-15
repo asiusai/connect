@@ -121,17 +121,17 @@ const REQUESTS = {
       })
       .array(),
   },
-  getSdp: {
-    params: z.void(),
-    result: z.any(),
-  },
-  setSdpAnswer: {
-    params: z.object({ answer: z.any() }),
-    result: z.any(),
-  },
-  getIce: {
-    params: z.void(),
-    result: z.any(),
+  webrtc: {
+    params: z.object({
+      sdp: z.string(),
+      cameras: z.string().array(),
+      bridge_services_in: z.string().array(),
+      bridge_services_out: z.string().array(),
+    }),
+    result: z.object({
+      sdp: z.string(),
+      type: z.string(),
+    }),
   },
   startLocalProxy: {
     params: z.object({
