@@ -108,6 +108,10 @@ const router = createBrowserRouter([
       {
         path: ':dongleId',
         children: [
+           {
+            path: 'live',
+            lazy: () => import('./pages/live/index'),
+          },
           {
             path: 'settings',
             lazy: () => import('./pages/settings'),

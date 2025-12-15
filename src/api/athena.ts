@@ -121,6 +121,18 @@ const REQUESTS = {
       })
       .array(),
   },
+  getSdp: {
+    params: z.void(),
+    result: z.any(),
+  },
+  setSdpAnswer: {
+    params: z.object({ answer: z.any() }),
+    result: z.any(),
+  },
+  getIce: {
+    params: z.void(),
+    result: z.any(),
+  },
   startLocalProxy: {
     params: z.object({
       remote_ws_uri: z.string(),
