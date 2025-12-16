@@ -4,8 +4,8 @@ export const UnitFormat = z.enum(['metric', 'imperial'])
 export const TimeFormat = z.enum(['24h', '12h'])
 
 export const Profile = z.object({
-  email: z.string(),
   id: z.string(),
+  email: z.string().nullable(),
   regdate: z.number(),
   superuser: z.boolean(),
   user_id: z.string(),

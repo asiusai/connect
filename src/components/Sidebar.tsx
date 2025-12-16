@@ -75,8 +75,8 @@ export const Sidebar = () => {
             <div className="flex items-center justify-between px-2 pt-6 border-t border-white/5">
               <div className="flex flex-col min-w-0">
                 <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Signed in as</span>
-                <span className="text-sm font-medium truncate text-white/90" title={profile.email}>
-                  {profile.email}
+                <span className="text-sm font-medium truncate text-white/90" title={profile.email ?? profile.id}>
+                  {profile.email ?? profile.id}
                 </span>
               </div>
               <IconButton

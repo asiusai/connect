@@ -22,11 +22,6 @@ export const Navigation = ({ className }: { className?: string }) => {
       color: 'text-red-400',
     },
     {
-      title: 'Actions',
-      icon: 'infrared',
-      color: 'text-zinc-500',
-    },
-    {
       title: 'Live',
       icon: 'play_arrow',
       href: `/${dongleId}/live`,
