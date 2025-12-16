@@ -116,8 +116,8 @@ export const DynamicMap = ({
         className,
       )}
     >
-      {!coords && <div className="size-full bg-white/5 animate-pulse" />}
-      {coords && (
+      {!coords?.length && <div className="size-full bg-white/5 animate-pulse" />}
+      {coords?.length && (
         <MapContainer
           center={[coords[0].lat, coords[0].lng]}
           zoom={13}
