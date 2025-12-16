@@ -5,6 +5,7 @@ import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
+import { env } from '../../utils/env'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
@@ -15,7 +16,7 @@ export const Component = () => {
         <Device />
         <Preferences />
         <Users />
-        <Prime />
+        {!!env.BILLING_URL && <Prime />}
       </div>
     </div>
   )

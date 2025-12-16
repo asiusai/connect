@@ -8,7 +8,11 @@ import { useUsers } from '../../api/queries'
 export const Users = () => {
   const { dongleId } = useRouteParams()
 
-  const [users, { refetch }] = useUsers(dongleId)
+  let [users, { refetch }] = useUsers(dongleId)
+
+  // needed for Konik API
+  if (users && typeof users === 'object' && 'users' in users) users = users.users as any
+
   const addUser = api.devices.addUser.useMutation({
     onSuccess: () => {
       setEmail('')
