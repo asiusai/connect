@@ -1,4 +1,4 @@
-import { Device, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from '../types'
+import { Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from '../types'
 import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 import { storage } from './storage'
@@ -30,30 +30,6 @@ export const signOut = () => {
   setAccessToken(undefined)
   queryClient.clear()
 }
-
-export const createSharedDevice = (dongleId: string): Device => ({
-  dongle_id: dongleId,
-  alias: env.SHARED_DEVICE,
-  serial: '',
-  last_athena_ping: 0,
-  ignore_uploads: null,
-  is_paired: true,
-  is_owner: false,
-  public_key: '',
-  prime: false,
-  prime_type: 0,
-  trial_claimed: false,
-  device_type: '',
-  openpilot_version: '',
-  sim_id: '',
-  sim_type: 0,
-  eligible_features: {
-    prime: false,
-    prime_data: false,
-    nav: false,
-  },
-  athena_host: null,
-})
 
 export const saveFile = (blobOrUrl: Blob | string, fileName: string) => {
   const a = document.createElement('a')

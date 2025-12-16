@@ -21,8 +21,6 @@ export const Environment = z.object({
   MAPBOX_DARK_STYLE_ID: zString('clcgvbi4f000q15t6o2s8gys3'),
   MAPBOX_TOKEN: zString('pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDluMWR4amUydGl5In0.6Vb11S6tdX6Arpj6trRE_g'),
 
-  SHARED_DEVICE: zString('Shared Device'),
-
   HACK_LOGIN_CALLBACK_HOST: zString('612.connect-d5y.pages.dev'),
   HACK_DEFAULT_REDICT_HOST: zString('new-connect.dev'),
 

@@ -100,17 +100,19 @@ export const Component = () => {
           <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
             <img src="/images/icon-comma-three-light.svg" alt="" width={24} height={24} className="opacity-80 mt-1" />
             <p className="text-xs text-white/60 leading-relaxed">
-              Make sure to sign in with the same account if you have previously paired your comma three.
+              Make sure to sign in with the same account if you have previously paired your comma device.
             </p>
           </div>
 
-          <ButtonBase
-            onClick={() => navigate('/demo')}
-            className="w-full py-4 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2 group"
-          >
-            <span>Try the demo</span>
-            <Icon name="chevron_right" className="text-white/60 group-hover:translate-x-1 transition-transform" />
-          </ButtonBase>
+          {env.DEMO_ACCESS_TOKEN && (
+            <ButtonBase
+              onClick={() => navigate('/demo')}
+              className="w-full py-4 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2 group"
+            >
+              <span>Try the demo</span>
+              <Icon name="chevron_right" className="text-white/60 group-hover:translate-x-1 transition-transform" />
+            </ButtonBase>
+          )}
         </div>
       </div>
     </div>
