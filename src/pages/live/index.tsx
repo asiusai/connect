@@ -3,17 +3,21 @@ import { useRouteParams } from '../../utils/hooks'
 import { callAthena } from '../../api/athena'
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
-import { Button } from '../../components/Button'
+import { Icon } from '../../components/Icon'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const [streams, setStreams] = useState<{ stream: MediaStream; label: string }[]>([])
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [reconnecting, setReconnecting] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
+
   const rtcConnection = useRef<RTCPeerConnection | null>(null)
   const localAudioTrack = useRef<MediaStreamTrack | null>(null)
+  const remoteAudioRef = useRef<HTMLAudioElement | null>(null)
+  const driverRef = useRef<HTMLVideoElement | null>(null)
+  const roadRef = useRef<HTMLVideoElement | null>(null)
 
   useEffect(() => {
     setupRTCConnection()
@@ -29,7 +33,8 @@ export const Component = () => {
       localAudioTrack.current.stop()
       localAudioTrack.current = null
     }
-    setStreams([])
+    if (driverRef.current) driverRef.current.srcObject = null
+    if (roadRef.current) roadRef.current.srcObject = null
     setIsSpeaking(false)
   }
 
@@ -75,14 +80,23 @@ export const Component = () => {
         audioTransceiver.sender.replaceTrack(localAudioTrack.current)
       }
 
+      let videoTrackCount = 0
       pc.ontrack = (event) => {
         const newTrack = event.track
         const newStream = new MediaStream([newTrack])
-        setStreams((prev) => {
-          const id = newTrack.id
-          if (prev.some((s) => s.label === id)) return prev
-          return [...prev, { stream: newStream, label: id }]
-        })
+
+        if (newTrack.kind === 'audio') {
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.srcObject = newStream
+          }
+        } else {
+          videoTrackCount++
+          if (videoTrackCount === 1 && driverRef.current) {
+            driverRef.current.srcObject = newStream
+          } else if (videoTrackCount === 2 && roadRef.current) {
+            roadRef.current.srcObject = newStream
+          }
+        }
       }
 
       pc.oniceconnectionstatechange = () => {
@@ -162,42 +176,101 @@ export const Component = () => {
     }
   }
 
-  return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground gap-4">
-      <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>Live</TopAppBar>
-      {status && <div className="text-center">{status}</div>}
-      {error && <div className="text-red-500 text-center">{error}</div>}
+  const toggleMute = () => {
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.muted = !remoteAudioRef.current.muted
+      setIsMuted(remoteAudioRef.current.muted)
+    }
+  }
 
-      <div className="p-4 flex flex-col gap-4 flex-1">
-        <div className="grid md:grid-cols-2 gap-4">
-          {streams.map((item, i) => (
-            <video
-              key={i}
-              autoPlay
-              playsInline
-              ref={(video) => {
-                if (video) video.srcObject = item.stream
-              }}
-              className="rounded w-full bg-black/10"
-            />
+  return (
+    <div className="flex flex-col min-h-screen bg-transparent text-foreground gap-4 relative">
+      <TopAppBar leading={<BackButton href={`/${dongleId}`} />} className="z-10 bg-transparent">
+        Live
+      </TopAppBar>
+
+      {/* Hidden Audio Element */}
+      <audio ref={remoteAudioRef} autoPlay />
+
+      {/* Status Overlay */}
+      {status && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-background-alt p-4 rounded-xl border border-white/10 flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="font-medium">{status}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Error Overlay */}
+      {error && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2 rounded-lg flex items-center gap-2">
+          <Icon name="error" className="text-xl" />
+          {error}
+        </div>
+      )}
+
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        {/* Video Grid */}
+        <div className="flex-1 grid md:grid-cols-2 gap-px bg-black">
+          {[driverRef, roadRef].map((ref, i) => (
+            <div key={i} className="relative bg-black flex items-center justify-center overflow-hidden">
+              <video autoPlay playsInline ref={ref} className="w-full h-full object-contain" />
+            </div>
           ))}
         </div>
 
-        <div className="flex-1 flex flex-col justify-end items-center gap-4">
-          <button
-            className={`w-32 h-32 rounded-full font-bold text-xl transition-all ${
-              isSpeaking ? 'bg-red-500 hover:bg-red-600 scale-110 shadow-[0_0_20px_rgba(239,68,68,0.5)]' : 'bg-primary hover:bg-primary/90'
-            }`}
-            onPointerDown={handleStartSpeaking}
-            onPointerUp={handleStopSpeaking}
-            onPointerLeave={handleStopSpeaking}
-          >
-            {isSpeaking ? 'Speaking' : 'Hold to Speak'}
-          </button>
+        {/* Bottom Control Bar */}
+        <div className="bg-background-alt/80 backdrop-blur-md border-t border-white/5 p-6 pb-8">
+          <div className="max-w-md mx-auto flex items-center justify-between gap-8">
+            {/* Mute Button */}
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onClick={toggleMute}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                  isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-white/5 text-white hover:bg-white/10'
+                }`}
+              >
+                <Icon name={isMuted ? 'volume_off' : 'volume_up'} className="text-2xl" />
+              </button>
+              <span className="text-xs font-medium text-white/40">Audio</span>
+            </div>
 
-          <Button onClick={setupRTCConnection} loading={reconnecting} className="w-full max-w-sm">
-            {reconnecting ? 'Reconnect...' : 'Reconnect'}
-          </Button>
+            {/* Hold to Speak */}
+            <div className="flex flex-col items-center gap-2 -mt-6">
+              <button
+                className={`w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                  isSpeaking
+                    ? 'bg-primary text-black scale-110 shadow-[0_0_30px_rgba(var(--color-primary),0.4)]'
+                    : 'bg-white text-black hover:bg-gray-100 hover:scale-105'
+                }`}
+                onPointerDown={handleStartSpeaking}
+                onPointerUp={handleStopSpeaking}
+                onPointerLeave={handleStopSpeaking}
+              >
+                <Icon name={isSpeaking ? 'mic' : 'mic_off'} className="text-4xl" filled={isSpeaking} />
+              </button>
+              <span
+                className={`text-xs font-bold uppercase tracking-wider transition-colors ${isSpeaking ? 'text-primary' : 'text-white/40'}`}
+              >
+                {isSpeaking ? 'Speaking' : 'Hold to Speak'}
+              </span>
+            </div>
+
+            {/* Reconnect */}
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onClick={setupRTCConnection}
+                disabled={reconnecting}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                  reconnecting ? 'bg-white/5 text-white/20 cursor-wait' : 'bg-white/5 text-white hover:bg-white/10'
+                }`}
+              >
+                <Icon name="refresh" className={`text-2xl ${reconnecting ? 'animate-spin' : ''}`} />
+              </button>
+              <span className="text-xs font-medium text-white/40">Refresh</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

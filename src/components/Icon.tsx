@@ -62,6 +62,8 @@ export const Icons = [
   'file_json',
   'volume_up',
   'volume_off',
+  'mic',
+  'mic_off',
   'fullscreen',
   'fullscreen_exit',
   'share',
@@ -92,7 +94,7 @@ export const Icon = (props: IconProps) => {
   return (
     <span
       className={clsx(
-        'material-symbols-outlined flex',
+        'material-symbols-outlined flex select-none',
         props.filled ? 'icon-filled' : 'icon-outline',
 
         props.className,
