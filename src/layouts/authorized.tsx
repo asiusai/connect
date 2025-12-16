@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import { useDevices, useProfile } from '../api/queries'
+import { useRouteParams } from '../utils/hooks'
 import { isSignedIn, signOut } from '../utils/helpers'
 import { Sidebar } from '../components/Sidebar'
 import { useStorage } from '../utils/storage'
@@ -28,6 +29,14 @@ export const Component = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const [_, { error }] = useProfile()
+  const { dongleId } = useRouteParams()
+  const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
+
+  useEffect(() => {
+    if (dongleId && dongleId !== lastDongleId) {
+      setLastDongleId(dongleId)
+    }
+  }, [dongleId, lastDongleId, setLastDongleId])
 
   useEffect(() => {
     if ((error as any)?.status !== 401) return

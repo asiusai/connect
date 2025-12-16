@@ -6,6 +6,8 @@ import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
 import { Sidebar } from '../components/Sidebar'
 import { isSignedIn } from '../utils/helpers'
+import { useStorage } from '../utils/storage'
+import { useEffect } from 'react'
 
 const RouteNotFound = () => {
   const { routeName } = useRouteParams()
@@ -29,8 +31,15 @@ const RouteNotFound = () => {
 }
 
 export const Component = () => {
-  const { routeName } = useRouteParams()
+  const { routeName, dongleId } = useRouteParams()
   const [route, { isLoading }] = useRoute(routeName)
+  const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
+
+  useEffect(() => {
+    if (dongleId && dongleId !== lastDongleId) {
+      setLastDongleId(dongleId)
+    }
+  }, [dongleId, lastDongleId, setLastDongleId])
 
   if (isLoading) return <Loading className="h-screen w-screen" />
 
