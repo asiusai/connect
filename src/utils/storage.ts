@@ -40,7 +40,7 @@ export const storage = {
       const item = localStorage.getItem(key)
       if (item) return JSON.parse(item)
     } catch (e) {
-      console.error(e)
+      console.warn(e)
     }
     return STORAGES[key]() as any
   },
