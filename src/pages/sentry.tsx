@@ -40,6 +40,9 @@ export const Component = () => {
         {isLoading && (
           <div className="w-full rounded-xl overflow-hidden bg-white/5 relative" style={{ aspectRatio: WIDTH / HEIGHT }}>
             <Loading className="absolute inset-0" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Icon name="progress_activity" className="animate-spin text-4xl" />
+            </div>
           </div>
         )}
 
