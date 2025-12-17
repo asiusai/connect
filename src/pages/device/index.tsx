@@ -9,13 +9,29 @@ import { Navigation } from './Navigation'
 import { UserMobile } from './UserMobile'
 import { useRouteParams, useScroll } from '../../utils/hooks'
 import { DevicesMobile } from './DevicesMobile'
+import { Icon } from '../../components/Icon'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const [device] = useDevice(dongleId)
+  const [device, { isLoading, error }] = useDevice(dongleId)
 
   const scroll = useScroll()
-  if (!device) return <Loading className="h-screen w-screen" />
+
+  if (isLoading) return <Loading className="h-screen w-screen" />
+
+  if (!device || error) {
+    return (
+      <div className="flex flex-1 w-full flex-col items-center justify-center gap-6 bg-background text-background-x p-4">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Icon name="error" className="text-error text-5xl" />
+          <h1 className="text-2xl font-bold text-primary">Device not found</h1>
+          <p className="text-secondary-alt-x">The device you are looking for does not exist or you don't have permission to view it.</p>
+          <p className="text-secondary-alt-x">Select another device from the dropdown list.</p>
+        </div>
+      </div>
+    )
+  }
+
   const height = 400
   return (
     <div className="flex flex-col min-h-screen relative">
