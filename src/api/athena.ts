@@ -140,6 +140,35 @@ const REQUESTS = {
     }),
     result: z.object({ success: z.number() }),
   },
+
+  getAllParams: {
+    params: z.object({}),
+    result: z
+      .object({
+        key: z.string(),
+        type: z.number(),
+        value: z.string().nullable(),
+        metadata: z
+          .object({
+            title: z.string().optional(),
+            description: z.string().optional(),
+            options: z.object({ value: z.number(), label: z.string() }).array().optional(),
+            min: z.number().optional(),
+            max: z.number().optional(),
+            step: z.number().optional(),
+          })
+          .optional(),
+      })
+      .strict()
+      .array(),
+  },
+  saveParams: {
+    params: z.object({
+      params_to_update: z.record(z.string()),
+      compression: z.boolean(),
+    }),
+    result: z.null(),
+  },
 }
 
 export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends (typeof REQUESTS)[Type]>({
@@ -157,13 +186,15 @@ export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends
   if (dongleId === env.DEMO_DONGLE_ID) return
   const req = REQUESTS[type]
 
-  // Check params
+  const parse = req.params.safeParse(params)
+  if (!parse.success) console.error(parse.error)
+
   const res = await api.athena.athena.mutate({
     body: {
       id: 0,
       jsonrpc: '2.0',
       method: type,
-      params: req.params.parse(params),
+      params,
       expiry,
     },
     params: { dongleId },
