@@ -12,12 +12,19 @@ export const Component = () => {
   const [reconnecting, setReconnecting] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [joystickEnabled, setJoystickEnabled] = useState(false)
+  const [joystickPosition, setJoystickPosition] = useState({ x: 0, y: 0 })
+  const [joystickSensitivity, setJoystickSensitivity] = useState(0.25)
 
   const rtcConnection = useRef<RTCPeerConnection | null>(null)
   const localAudioTrack = useRef<MediaStreamTrack | null>(null)
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null)
   const driverRef = useRef<HTMLVideoElement | null>(null)
   const roadRef = useRef<HTMLVideoElement | null>(null)
+  const dataChannelRef = useRef<RTCDataChannel | null>(null)
+  const joystickIntervalRef = useRef<number | null>(null)
+  const joystickBaseRef = useRef<HTMLDivElement | null>(null)
+  const isDraggingRef = useRef(false)
 
   useEffect(() => {
     setupRTCConnection()
@@ -71,6 +78,10 @@ export const Component = () => {
         iceTransportPolicy: 'all',
       })
       rtcConnection.current = pc
+
+      pc.ondatachannel = (event) => {
+        dataChannelRef.current = event.channel
+      }
 
       pc.addTransceiver('video', { direction: 'recvonly' })
       pc.addTransceiver('video', { direction: 'recvonly' })
@@ -138,7 +149,7 @@ export const Component = () => {
         params: {
           sdp: sdp!,
           cameras: ['driver', 'wideRoad'],
-          bridge_services_in: [],
+          bridge_services_in: ['testJoystick'],
           bridge_services_out: [],
         },
         dongleId,
@@ -183,6 +194,69 @@ export const Component = () => {
     }
   }
 
+  const sendJoystickMessage = (x: number, y: number) => {
+    if (dataChannelRef.current?.readyState === 'open') {
+      const message = JSON.stringify({
+        type: 'testJoystick',
+        data: { axes: [y * joystickSensitivity, x * joystickSensitivity], buttons: [false] },
+      })
+      dataChannelRef.current.send(message)
+    }
+  }
+
+  useEffect(() => {
+    if (joystickEnabled) {
+      joystickIntervalRef.current = window.setInterval(() => {
+        sendJoystickMessage(joystickPosition.x, joystickPosition.y)
+      }, 50)
+    } else {
+      if (joystickIntervalRef.current) clearInterval(joystickIntervalRef.current)
+      sendJoystickMessage(0, 0)
+    }
+    return () => {
+      if (joystickIntervalRef.current) clearInterval(joystickIntervalRef.current)
+    }
+  }, [joystickEnabled, joystickPosition])
+
+  const handleJoystickStart = (e: React.PointerEvent) => {
+    if (!joystickBaseRef.current) return
+    isDraggingRef.current = true
+    e.currentTarget.setPointerCapture(e.pointerId)
+    updateJoystickPosition(e)
+  }
+
+  const handleJoystickMove = (e: React.PointerEvent) => {
+    if (!isDraggingRef.current) return
+    updateJoystickPosition(e)
+  }
+
+  const handleJoystickEnd = () => {
+    isDraggingRef.current = false
+    setJoystickPosition({ x: 0, y: 0 })
+  }
+
+  const updateJoystickPosition = (e: React.PointerEvent) => {
+    if (!joystickBaseRef.current) return
+    const rect = joystickBaseRef.current.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    const maxRadius = rect.width / 2 - 32
+
+    let dx = e.clientX - centerX
+    let dy = centerY - e.clientY
+
+    const distance = Math.sqrt(dx * dx + dy * dy)
+    if (distance > maxRadius) {
+      dx = (dx / distance) * maxRadius
+      dy = (dy / distance) * maxRadius
+    }
+
+    setJoystickPosition({
+      x: Math.max(-1, Math.min(1, dx / maxRadius)),
+      y: Math.max(-1, Math.min(1, dy / maxRadius)),
+    })
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-transparent text-foreground gap-4 relative">
       <TopAppBar leading={<BackButton href={`/${dongleId}`} />} className="z-10 bg-transparent">
@@ -212,7 +286,7 @@ export const Component = () => {
 
       <div className="flex-1 flex flex-col relative overflow-hidden">
         {/* Video Grid */}
-        <div className="flex-1 grid md:grid-cols-2 gap-px bg-black">
+        <div className="flex-1 grid md:grid-cols-2 gap-px bg-black relative">
           {[driverRef, roadRef].map((ref, i) => (
             <div key={i} className="relative bg-black flex items-center justify-center overflow-hidden">
               <video autoPlay playsInline ref={ref} className="w-full h-full object-contain" />
@@ -221,54 +295,121 @@ export const Component = () => {
         </div>
 
         {/* Bottom Control Bar */}
-        <div className="bg-background-alt/80 backdrop-blur-md border-t border-white/5 p-6 pb-8">
-          <div className="max-w-md mx-auto flex items-center justify-between gap-8">
-            {/* Mute Button */}
-            <div className="flex flex-col items-center gap-2">
-              <button
-                onClick={toggleMute}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-                  isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-white/5 text-white hover:bg-white/10'
-                }`}
+        <div className="bg-background-alt/80 backdrop-blur-md border-t border-white/5 p-4 pb-6">
+          {joystickEnabled ? (
+            <div className="flex flex-col items-center gap-4">
+              {/* Joystick */}
+              <div
+                className="touch-none"
+                onPointerDown={handleJoystickStart}
+                onPointerMove={handleJoystickMove}
+                onPointerUp={handleJoystickEnd}
+                onPointerLeave={handleJoystickEnd}
+                onPointerCancel={handleJoystickEnd}
               >
-                <Icon name={isMuted ? 'volume_off' : 'volume_up'} className="text-2xl" />
-              </button>
-              <span className="text-xs font-medium text-white/40">Audio</span>
-            </div>
+                <div ref={joystickBaseRef} className="w-36 h-36 rounded-full bg-white/10 border-2 border-white/30 relative">
+                  <div
+                    className="w-14 h-14 rounded-full bg-white/90 absolute top-1/2 left-1/2 pointer-events-none"
+                    style={{
+                      transform: `translate(calc(-50% + ${joystickPosition.x * 44}px), calc(-50% + ${-joystickPosition.y * 44}px))`,
+                    }}
+                  />
+                </div>
+              </div>
 
-            {/* Hold to Speak */}
-            <div className="flex flex-col items-center gap-2 -mt-6">
-              <button
-                className={`w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-xl ${
-                  isSpeaking
-                    ? 'bg-primary text-black scale-110 shadow-[0_0_30px_rgba(var(--color-primary),0.4)]'
-                    : 'bg-white text-black hover:bg-gray-100 hover:scale-105'
-                }`}
-                onPointerDown={handleStartSpeaking}
-                onPointerUp={handleStopSpeaking}
-                onPointerLeave={handleStopSpeaking}
-              >
-                <Icon name={isSpeaking ? 'mic' : 'mic_off'} className="text-4xl" filled={isSpeaking} />
-              </button>
-              <span className={`text-xs font-bold uppercase tracking-wider transition-colors ${isSpeaking ? 'text-primary' : 'text-white/40'}`}>
-                {isSpeaking ? 'Speaking' : 'Hold to Speak'}
-              </span>
-            </div>
+              {/* Controls Row */}
+              <div className="flex items-center gap-8">
+                {/* Speed Slider */}
+                <div className="flex flex-col items-center gap-1">
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="1"
+                    step="0.05"
+                    value={joystickSensitivity}
+                    onChange={(e) => setJoystickSensitivity(Number(e.target.value))}
+                    className="w-24 h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+                  />
+                  <span className="text-[10px] text-white/40">Speed {Math.round(joystickSensitivity * 100)}%</span>
+                </div>
 
-            {/* Reconnect */}
-            <div className="flex flex-col items-center gap-2">
-              <button
-                onClick={setupRTCConnection}
-                disabled={reconnecting}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-                  reconnecting ? 'bg-white/5 text-white/20 cursor-wait' : 'bg-white/5 text-white hover:bg-white/10'
-                }`}
-              >
-                <Icon name="refresh" className={`text-2xl ${reconnecting ? 'animate-spin' : ''}`} />
-              </button>
-              <span className="text-xs font-medium text-white/40">Refresh</span>
+                {/* Status */}
+                <div className="text-xs text-white/50 min-w-[80px] text-center">
+                  {joystickPosition.y > 0.1 ? '▲ Accel' : joystickPosition.y < -0.1 ? '▼ Brake' : ''}
+                  {Math.abs(joystickPosition.x) > 0.1 && Math.abs(joystickPosition.y) > 0.1 ? ' · ' : ''}
+                  {joystickPosition.x > 0.1 ? '→ Right' : joystickPosition.x < -0.1 ? '← Left' : ''}
+                  {Math.abs(joystickPosition.x) <= 0.1 && Math.abs(joystickPosition.y) <= 0.1 ? 'Drag joystick' : ''}
+                </div>
+
+                {/* Exit Button */}
+                <button
+                  onClick={() => setJoystickEnabled(false)}
+                  className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center"
+                >
+                  <Icon name="close" className="text-lg" />
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="max-w-md mx-auto flex items-center justify-between gap-6">
+              {/* Mute Button */}
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={toggleMute}
+                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                    isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Icon name={isMuted ? 'volume_off' : 'volume_up'} className="text-2xl" />
+                </button>
+                <span className="text-xs font-medium text-white/40">Audio</span>
+              </div>
+
+              {/* Hold to Speak */}
+              <div className="flex flex-col items-center gap-2 -mt-4">
+                <button
+                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                    isSpeaking
+                      ? 'bg-primary text-black scale-110 shadow-[0_0_30px_rgba(var(--color-primary),0.4)]'
+                      : 'bg-white text-black hover:bg-gray-100 hover:scale-105'
+                  }`}
+                  onPointerDown={handleStartSpeaking}
+                  onPointerUp={handleStopSpeaking}
+                  onPointerLeave={handleStopSpeaking}
+                >
+                  <Icon name={isSpeaking ? 'mic' : 'mic_off'} className="text-3xl" filled={isSpeaking} />
+                </button>
+                <span className={`text-[10px] font-bold uppercase tracking-wider transition-colors ${isSpeaking ? 'text-primary' : 'text-white/40'}`}>
+                  {isSpeaking ? 'Speaking' : 'Hold to Speak'}
+                </span>
+              </div>
+
+              {/* Joystick Toggle */}
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={() => setJoystickEnabled(true)}
+                  className="w-14 h-14 rounded-full bg-white/5 text-white hover:bg-white/10 flex items-center justify-center transition-all"
+                >
+                  <Icon name="gamepad" className="text-2xl" />
+                </button>
+                <span className="text-xs font-medium text-white/40">Joystick</span>
+              </div>
+
+              {/* Reconnect */}
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={setupRTCConnection}
+                  disabled={reconnecting}
+                  className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
+                    reconnecting ? 'bg-white/5 text-white/20 cursor-wait' : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Icon name="refresh" className={`text-2xl ${reconnecting ? 'animate-spin' : ''}`} />
+                </button>
+                <span className="text-xs font-medium text-white/40">Refresh</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
