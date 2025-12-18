@@ -79,8 +79,12 @@ export const Component = () => {
       })
       rtcConnection.current = pc
 
-      pc.ondatachannel = (event) => {
-        dataChannelRef.current = event.channel
+      const dataChannel = pc.createDataChannel('data', { ordered: true })
+      dataChannel.onopen = () => {
+        dataChannelRef.current = dataChannel
+      }
+      dataChannel.onclose = () => {
+        dataChannelRef.current = null
       }
 
       pc.addTransceiver('video', { direction: 'recvonly' })
@@ -198,7 +202,7 @@ export const Component = () => {
     if (dataChannelRef.current?.readyState === 'open') {
       const message = JSON.stringify({
         type: 'testJoystick',
-        data: { axes: [y * joystickSensitivity, x * joystickSensitivity], buttons: [false] },
+        data: { axes: [y * joystickSensitivity, -x * joystickSensitivity], buttons: [false] },
       })
       dataChannelRef.current.send(message)
     }
