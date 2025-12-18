@@ -1,0 +1,3 @@
+[submodule "sunnypilot"]
+  path = sunnypilot
+  url = https://github.com/karelnagel/sunnypilot.git
