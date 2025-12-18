@@ -6,7 +6,7 @@ import { useStorage } from '../../utils/storage'
 
 export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
-  const [showLivePage] = useStorage('showLivePage')
+  const [usingCorrectFork] = useStorage('usingCorrectFork')
 
   const items = [
     {
@@ -26,14 +26,14 @@ export const Navigation = ({ className }: { className?: string }) => {
       icon: 'play_arrow',
       href: `/${dongleId}/live`,
       color: 'text-orange-400',
-      hide: !showLivePage,
+      hide: !usingCorrectFork,
     },
     {
       title: 'Toggles',
       icon: 'switches',
       href: `/${dongleId}/toggles`,
       color: 'text-purple-400',
-      hide: !showLivePage,
+      hide: !usingCorrectFork,
     },
     {
       title: 'Analyze',

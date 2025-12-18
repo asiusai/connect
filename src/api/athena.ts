@@ -164,10 +164,10 @@ const REQUESTS = {
   },
   saveParams: {
     params: z.object({
-      params_to_update: z.record(z.string()),
+      params_to_update: z.record(z.string().nullable()),
       compression: z.boolean(),
     }),
-    result: z.null(),
+    result: z.record(z.string()),
   },
 }
 

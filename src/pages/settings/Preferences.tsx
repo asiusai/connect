@@ -1,10 +1,20 @@
 import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
 
+const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
+  <div
+    className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', value ? 'bg-white' : 'bg-white/10')}
+    onClick={() => onChange(!value)}
+  >
+    <div className={clsx('w-5 h-5 rounded-full shadow-sm transition-all absolute top-1', value ? 'bg-black left-[24px]' : 'bg-white left-1')} />
+  </div>
+)
+
 export const Preferences = () => {
   const [unitFormat, setUnitFormat] = useStorage('unitFormat')
   const [timeFormat, setTimeFormat] = useStorage('timeFormat')
-  const [showLivePage, setShowLivePage] = useStorage('showLivePage')
+  const [usingCorrectFork, setUsingCorrectFork] = useStorage('usingCorrectFork')
+  const [showAdvanced, setShowAdvanced] = useStorage('showAdvancedSettings')
 
   return (
     <div className="flex flex-col gap-4">
@@ -14,48 +24,28 @@ export const Preferences = () => {
           <span className="font-medium">Imperial units</span>
           <span className="text-xs text-white/60">Use miles instead of kilometers</span>
         </div>
-        <div
-          className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', unitFormat === 'imperial' ? 'bg-white' : 'bg-white/10')}
-          onClick={() => setUnitFormat(unitFormat === 'imperial' ? 'metric' : 'imperial')}
-        >
-          <div
-            className={clsx(
-              'w-5 h-5 rounded-full shadow-sm transition-all absolute top-1',
-              unitFormat === 'imperial' ? 'bg-black left-[24px]' : 'bg-white left-1',
-            )}
-          />
-        </div>
+        <ToggleSwitch value={unitFormat === 'imperial'} onChange={(v) => setUnitFormat(v ? 'imperial' : 'metric')} />
       </div>
       <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
         <div className="flex flex-col">
           <span className="font-medium">12-hour clock</span>
           <span className="text-xs text-white/60">Use 12h (AM/PM) format instead of 24h</span>
         </div>
-        <div
-          className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', timeFormat === '12h' ? 'bg-white' : 'bg-white/10')}
-          onClick={() => setTimeFormat(timeFormat === '12h' ? '24h' : '12h')}
-        >
-          <div
-            className={clsx('w-5 h-5 rounded-full shadow-sm transition-all absolute top-1', timeFormat === '12h' ? 'bg-black left-[24px]' : 'bg-white left-1')}
-          />
-        </div>
+        <ToggleSwitch value={timeFormat === '12h'} onChange={(v) => setTimeFormat(v ? '12h' : '24h')} />
       </div>
       <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="font-medium">Enable live page</span>
-          <span className="text-xs text-white/60">
-            Works with{' '}
-            <a className="text-blue-400" target="_blank" href="https://github.com/karelnagel/sunnypilot/tree/webrtc" rel="noopener">
-              sunnypilot/karelnagel/webrtc
-            </a>
-          </span>
+          <span className="font-medium">Using karelnagel/sunnypilot fork</span>
+          <span className="text-xs text-white/60">Enable if your device runs our fork (required for all features)</span>
         </div>
-        <div
-          className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', showLivePage ? 'bg-white' : 'bg-white/10')}
-          onClick={() => setShowLivePage(!showLivePage)}
-        >
-          <div className={clsx('w-5 h-5 rounded-full shadow-sm transition-all absolute top-1', showLivePage ? 'bg-black left-[24px]' : 'bg-white left-1')} />
+        <ToggleSwitch value={usingCorrectFork} onChange={setUsingCorrectFork} />
+      </div>
+      <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
+        <div className="flex flex-col">
+          <span className="font-medium">Show advanced settings</span>
+          <span className="text-xs text-white/60">Display advanced configuration options in Toggles</span>
         </div>
+        <ToggleSwitch value={showAdvanced} onChange={setShowAdvanced} />
       </div>
     </div>
   )

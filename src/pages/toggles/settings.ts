@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const SettingCategory = z.enum(['device', 'toggles', 'steering', 'cruise', 'visuals', 'developer', 'other'])
+export const SettingCategory = z.enum(['models', 'device', 'toggles', 'steering', 'cruise', 'visuals', 'developer', 'other'])
 export type SettingCategory = z.infer<typeof SettingCategory>
 
 export type SettingDefinition = {
