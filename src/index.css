@@ -6,7 +6,7 @@
   :root,
   .dark,
   [data-theme="dark"] {
-    --color-primary: 188 195 255;
+    --color-primary: 81 255 0;
     --color-primary-x: 36 43 97;
     --color-primary-alt: 59 66 121;
     --color-primary-alt-x: 223 224 255;

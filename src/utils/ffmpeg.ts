@@ -61,21 +61,7 @@ export const hevcStreamToMp4 = async (file: string | Uint8Array, onLoad?: OnDown
   const input = randomName('hevc'),
     output = randomName('mp4')
   await ffmpeg.writeFile(input, new Uint8Array(bin))
-  await ffmpeg.exec([
-    '-r',
-    '20',
-    '-i',
-    input,
-    '-c',
-    'copy',
-    '-movflags',
-    'frag_keyframe+empty_moov+default_base_moof',
-    '-map',
-    '0',
-    '-vtag',
-    'hvc1',
-    output,
-  ])
+  await ffmpeg.exec(['-r', '20', '-i', input, '-c', 'copy', '-movflags', 'frag_keyframe+empty_moov+default_base_moof', '-map', '0', '-vtag', 'hvc1', output])
   const data = await ffmpeg.readFile(output)
   return new Uint8Array<ArrayBuffer>((data as any).buffer)
 }

@@ -158,8 +158,7 @@ export const DriverStateRenderer = ({ state, isEngaged }: Props) => {
     // So we just add an offset to center it in the SVG.
     const centerOffset = BTN_SIZE / 2
 
-    const pathData =
-      'M ' + transformed_kpts.map(([x, y]) => `${(x + centerOffset).toFixed(1)} ${(y + centerOffset).toFixed(1)}`).join(' L ')
+    const pathData = 'M ' + transformed_kpts.map(([x, y]) => `${(x + centerOffset).toFixed(1)} ${(y + centerOffset).toFixed(1)}`).join(' L ')
 
     // Arcs
     // delta_x = -self.driver_pose_sins[1] * ARC_LENGTH / 2.0
@@ -230,22 +229,11 @@ export const DriverStateRenderer = ({ state, isEngaged }: Props) => {
 
       <svg width={BTN_SIZE} height={BTN_SIZE} style={{ overflow: 'visible' }}>
         {/* Face Outline */}
-        <path
-          d={facePath}
-          stroke={`rgba(255, 255, 255, ${opacity})`}
-          strokeWidth={5.2}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <path d={facePath} stroke={`rgba(255, 255, 255, ${opacity})`} strokeWidth={5.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
 
         {/* Arcs */}
-        {hArc.path && (
-          <path d={hArc.path} stroke={arcColor} strokeWidth={hArc.thickness} fill="none" strokeOpacity={arcOpacity} strokeLinecap="round" />
-        )}
-        {vArc.path && (
-          <path d={vArc.path} stroke={arcColor} strokeWidth={vArc.thickness} fill="none" strokeOpacity={arcOpacity} strokeLinecap="round" />
-        )}
+        {hArc.path && <path d={hArc.path} stroke={arcColor} strokeWidth={hArc.thickness} fill="none" strokeOpacity={arcOpacity} strokeLinecap="round" />}
+        {vArc.path && <path d={vArc.path} stroke={arcColor} strokeWidth={vArc.thickness} fill="none" strokeOpacity={arcOpacity} strokeLinecap="round" />}
       </svg>
     </div>
   )

@@ -109,10 +109,7 @@ const Err = ({ error }: { error: string }) => {
           <h2 className="text-xl font-bold">Pairing Failed</h2>
           <p className="text-sm text-white/60">{error}</p>
         </div>
-        <ButtonBase
-          onClick={() => navigate(`/pair`)}
-          className="w-full py-3 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-colors"
-        >
+        <ButtonBase onClick={() => navigate(`/pair`)} className="w-full py-3 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-colors">
           Try Again
         </ButtonBase>
         <ButtonBase href="/" className="w-full py-3 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors">

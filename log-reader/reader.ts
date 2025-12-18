@@ -84,8 +84,7 @@ export const readLogs = async ({ url }: ReadLogsInput) => {
     }
 
     if ('DriverStateV2' in event) {
-      const { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb } =
-        event.DriverStateV2.LeftDriverData
+      const { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb } = event.DriverStateV2.LeftDriverData
       DriverStateV2 = { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb }
     }
 

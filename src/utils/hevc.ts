@@ -54,12 +54,7 @@ export const stripMp4Headers = (buffer: Uint8Array<ArrayBuffer>) => {
 
   while (offset < buffer.length) {
     const size = view.getUint32(offset)
-    const type = String.fromCharCode(
-      view.getUint8(offset + 4),
-      view.getUint8(offset + 5),
-      view.getUint8(offset + 6),
-      view.getUint8(offset + 7),
-    )
+    const type = String.fromCharCode(view.getUint8(offset + 4), view.getUint8(offset + 5), view.getUint8(offset + 6), view.getUint8(offset + 7))
 
     if (type === 'moof') {
       return buffer.slice(offset)

@@ -39,12 +39,7 @@ export const DetailRow = ({
         <span className="text-sm text-white/60 shrink-0">{label}</span>
         <div className="flex items-center gap-2 min-w-0 justify-end">
           <span className={clsx('font-medium text-white truncate', mono ? 'font-mono text-xs' : 'text-sm')}>{value}</span>
-          {copyable && (
-            <Icon
-              name={copied ? 'check' : 'file_copy'}
-              className={clsx('text-[14px] shrink-0', copied ? 'text-green-400' : 'text-white/20')}
-            />
-          )}
+          {copyable && <Icon name={copied ? 'check' : 'file_copy'} className={clsx('text-[14px] shrink-0', copied ? 'text-green-400' : 'text-white/20')} />}
           {href && <Icon name="open_in_new" className="text-[14px] text-white/20 shrink-0" />}
         </div>
       </div>

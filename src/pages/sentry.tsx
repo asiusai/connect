@@ -22,8 +22,7 @@ export const Component = () => {
   const shot = useCallback(async () => {
     setIsLoading(true)
     const res = await callAthena({ type: 'takeSnapshot', dongleId, params: undefined })
-    if (res?.result)
-      setImages([res.result.jpegFront, res.result.jpegBack].filter(Boolean).map((x) => `data:image/jpeg;base64,${x}`) as string[])
+    if (res?.result) setImages([res.result.jpegFront, res.result.jpegBack].filter(Boolean).map((x) => `data:image/jpeg;base64,${x}`) as string[])
     else toast.error('Failed taking a picture')
     setIsLoading(false)
   }, [dongleId])

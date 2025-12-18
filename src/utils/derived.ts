@@ -101,8 +101,7 @@ export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> 
   })
 
   // ensure events have an end timestamp
-  if (lastEngaged)
-    res.push({ type: 'engaged', route_offset_millis: lastEngaged.route_offset_millis, end_route_offset_millis: routeDuration })
+  if (lastEngaged) res.push({ type: 'engaged', route_offset_millis: lastEngaged.route_offset_millis, end_route_offset_millis: routeDuration })
 
   if (lastAlert)
     res.push({
@@ -112,8 +111,7 @@ export const getTimelineEvents = async (route: Route): Promise<TimelineEvent[]> 
       alertStatus: lastAlert.data.alertStatus,
     })
 
-  if (lastOverride)
-    res.push({ type: 'overriding', route_offset_millis: lastOverride.route_offset_millis, end_route_offset_millis: routeDuration })
+  if (lastOverride) res.push({ type: 'overriding', route_offset_millis: lastOverride.route_offset_millis, end_route_offset_millis: routeDuration })
 
   return res
 }

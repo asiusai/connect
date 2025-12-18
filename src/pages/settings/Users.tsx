@@ -57,10 +57,7 @@ export const Users = () => {
             >
               {addUser.isPending ? 'Adding...' : 'Add'}
             </ButtonBase>
-            <ButtonBase
-              className="flex-1 py-2 rounded-lg bg-white/10 text-white font-medium text-sm text-center"
-              onClick={() => setIsAdding(false)}
-            >
+            <ButtonBase className="flex-1 py-2 rounded-lg bg-white/10 text-white font-medium text-sm text-center" onClick={() => setIsAdding(false)}>
               Cancel
             </ButtonBase>
           </div>

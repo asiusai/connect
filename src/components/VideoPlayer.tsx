@@ -24,17 +24,7 @@ const FILE_LABELS: Record<FileType, string> = {
   qlogs: 'Quantized',
 }
 
-const OptionItem = ({
-  label,
-  selected,
-  onClick,
-  disabled,
-}: {
-  label: string
-  selected: boolean
-  onClick: () => void
-  disabled?: boolean
-}) => (
+const OptionItem = ({ label, selected, onClick, disabled }: { label: string; selected: boolean; onClick: () => void; disabled?: boolean }) => (
   <div
     className={clsx(
       'flex items-center gap-3 px-4 py-2 hover:bg-white/10 cursor-pointer text-sm transition-colors',
@@ -327,14 +317,8 @@ const Timeline = ({
           <div className="absolute -top-1 -translate-x-1/2 w-3 h-3 bg-white rounded-full shadow-sm" />
         </div>
 
-        <div
-          className="absolute inset-y-0 left-0 bg-black/60 pointer-events-none z-20"
-          style={{ width: `${(selection.start / duration) * 100}%` }}
-        />
-        <div
-          className="absolute inset-y-0 right-0 bg-black/60 pointer-events-none z-20"
-          style={{ width: `${100 - (selection.end / duration) * 100}%` }}
-        />
+        <div className="absolute inset-y-0 left-0 bg-black/60 pointer-events-none z-20" style={{ width: `${(selection.start / duration) * 100}%` }} />
+        <div className="absolute inset-y-0 right-0 bg-black/60 pointer-events-none z-20" style={{ width: `${100 - (selection.end / duration) * 100}%` }} />
 
         <div
           className="absolute inset-y-0 border-x-2 border-white/50 z-20 pointer-events-none"
@@ -445,22 +429,11 @@ export const VideoControls = ({ playerRef, className }: { className?: string; pl
 
   return (
     <div className={clsx('flex flex-col gap-2 p-2 bg-black/20 rounded-xl backdrop-blur-md border border-white/5', className)}>
-      <Timeline
-        playerRef={playerRef}
-        frame={frame}
-        selection={selection}
-        onSelectionChange={onSelectionChange}
-        duration={duration}
-        route={route}
-      />
+      <Timeline playerRef={playerRef} frame={frame} selection={selection} onSelectionChange={onSelectionChange} duration={duration} route={route} />
 
       <div className="flex items-center gap-2 pt-2">
         <IconButton title={playing ? 'Pause' : 'Play'} name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
-        <IconButton
-          title={muted ? 'Unmute' : 'Mute'}
-          name={muted ? 'volume_off' : 'volume_up'}
-          onClick={() => (muted ? player?.unmute() : player?.mute())}
-        />
+        <IconButton title={muted ? 'Unmute' : 'Mute'} name={muted ? 'volume_off' : 'volume_up'} onClick={() => (muted ? player?.unmute() : player?.mute())} />
 
         <span className="text-sm font-mono opacity-80 min-w-[100px]">
           {formatVideoTime(Math.round(seconds))} / {formatVideoTime(Math.round(duration))}
@@ -535,11 +508,7 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
   }, [route])
 
   return (
-    <div
-      id="fullscreen"
-      className={clsx('relative rounded-xl  overflow-hidden bg-black', className)}
-      style={{ aspectRatio: WIDTH / HEIGHT }}
-    >
+    <div id="fullscreen" className={clsx('relative rounded-xl  overflow-hidden bg-black', className)} style={{ aspectRatio: WIDTH / HEIGHT }}>
       <Player
         ref={playerRef}
         component={Preview}
@@ -558,9 +527,7 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
       <div className="absolute inset-0 cursor-pointer" onClick={() => playerRef.current?.toggle()} />
 
       {currentTime && (
-        <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">
-          {currentTime}
-        </div>
+        <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">{currentTime}</div>
       )}
     </div>
   )

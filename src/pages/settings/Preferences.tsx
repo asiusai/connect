@@ -15,10 +15,7 @@ export const Preferences = () => {
           <span className="text-xs text-white/60">Use miles instead of kilometers</span>
         </div>
         <div
-          className={clsx(
-            'w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative',
-            unitFormat === 'imperial' ? 'bg-white' : 'bg-white/10',
-          )}
+          className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', unitFormat === 'imperial' ? 'bg-white' : 'bg-white/10')}
           onClick={() => setUnitFormat(unitFormat === 'imperial' ? 'metric' : 'imperial')}
         >
           <div
@@ -35,17 +32,11 @@ export const Preferences = () => {
           <span className="text-xs text-white/60">Use 12h (AM/PM) format instead of 24h</span>
         </div>
         <div
-          className={clsx(
-            'w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative',
-            timeFormat === '12h' ? 'bg-white' : 'bg-white/10',
-          )}
+          className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', timeFormat === '12h' ? 'bg-white' : 'bg-white/10')}
           onClick={() => setTimeFormat(timeFormat === '12h' ? '24h' : '12h')}
         >
           <div
-            className={clsx(
-              'w-5 h-5 rounded-full shadow-sm transition-all absolute top-1',
-              timeFormat === '12h' ? 'bg-black left-[24px]' : 'bg-white left-1',
-            )}
+            className={clsx('w-5 h-5 rounded-full shadow-sm transition-all absolute top-1', timeFormat === '12h' ? 'bg-black left-[24px]' : 'bg-white left-1')}
           />
         </div>
       </div>
@@ -63,12 +54,7 @@ export const Preferences = () => {
           className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', showLivePage ? 'bg-white' : 'bg-white/10')}
           onClick={() => setShowLivePage(!showLivePage)}
         >
-          <div
-            className={clsx(
-              'w-5 h-5 rounded-full shadow-sm transition-all absolute top-1',
-              showLivePage ? 'bg-black left-[24px]' : 'bg-white left-1',
-            )}
-          />
+          <div className={clsx('w-5 h-5 rounded-full shadow-sm transition-all absolute top-1', showLivePage ? 'bg-black left-[24px]' : 'bg-white left-1')} />
         </div>
       </div>
     </div>

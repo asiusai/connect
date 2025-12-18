@@ -99,9 +99,7 @@ export const Component = () => {
         <div className="flex flex-col gap-6 w-full">
           <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
             <img src="/images/icon-comma-three-light.svg" alt="" width={24} height={24} className="opacity-80 mt-1" />
-            <p className="text-xs text-white/60 leading-relaxed">
-              Make sure to sign in with the same account if you have previously paired your comma device.
-            </p>
+            <p className="text-xs text-white/60 leading-relaxed">Make sure to sign in with the same account if you have previously paired your comma device.</p>
           </div>
 
           {env.DEMO_ACCESS_TOKEN && (

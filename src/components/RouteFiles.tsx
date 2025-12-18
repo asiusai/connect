@@ -1,15 +1,6 @@
 import { FileType, Route, SegmentFiles } from '../types'
 import { RefObject, useState } from 'react'
-import {
-  concatBins,
-  getQCameraUrl,
-  FILE_INFO,
-  parseRouteName,
-  saveFile,
-  getRouteUploadStatus,
-  getSegmentUploadStatus,
-  UploadStatus,
-} from '../utils/helpers'
+import { concatBins, getQCameraUrl, FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../utils/helpers'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
 import { useFiles, useShareSignature } from '../api/queries'
@@ -80,10 +71,7 @@ const FileAction = ({
     >
       {loading ? (
         <div
-          className={clsx(
-            'w-4 h-4 border-2 rounded-full animate-spin',
-            uploadButton ? 'border-black/20 border-t-black' : 'border-white/20 border-t-white',
-          )}
+          className={clsx('w-4 h-4 border-2 rounded-full animate-spin', uploadButton ? 'border-black/20 border-t-black' : 'border-white/20 border-t-white')}
         />
       ) : (
         <Icon name={icon as any} className="text-[16px]" />
@@ -147,9 +135,7 @@ const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFile
       onClick={async () => {
         setProgress({})
 
-        const bins = await Promise.all(
-          files[type].map((file, i) => downloadFile(file!, ({ percent }) => setProgress((old) => ({ ...old, [i]: percent })))),
-        )
+        const bins = await Promise.all(files[type].map((file, i) => downloadFile(file!, ({ percent }) => setProgress((old) => ({ ...old, [i]: percent })))))
         const bin = concatBins(bins)
         const blob = await hevcToMp4(bin, () => {})
         saveFile(blob, `${routeName}--${FILE_INFO[type].name.replace('.hevc', '.mp4')}`)
@@ -175,9 +161,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
   if (type === 'qcameras') return null
 
   if (type === 'logs' || type === 'qlogs')
-    return (
-      <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}?segment=${segment}`} />
-    )
+    return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}?segment=${segment}`} />
 
   return (
     <FileAction
@@ -194,17 +178,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
   )
 }
 
-const SegmentDetails = ({
-  segment,
-  files,
-  route,
-  setSegment,
-}: {
-  segment: number
-  files: SegmentFiles
-  route: Route
-  setSegment: (v: number) => void
-}) => {
+const SegmentDetails = ({ segment, files, route, setSegment }: { segment: number; files: SegmentFiles; route: Route; setSegment: (v: number) => void }) => {
   const isRoute = segment === -1
 
   return (
@@ -256,15 +230,7 @@ const getStatusColor = (status: UploadStatus) => {
   }[status]
 }
 
-const SegmentGrid = ({
-  files,
-  selectedSegment,
-  onSelect,
-}: {
-  files: SegmentFiles
-  selectedSegment: number | null
-  onSelect: (i: number) => void
-}) => {
+const SegmentGrid = ({ files, selectedSegment, onSelect }: { files: SegmentFiles; selectedSegment: number | null; onSelect: (i: number) => void }) => {
   return (
     <div className="flex flex-wrap gap-1.5 p-1">
       <button
@@ -297,15 +263,7 @@ const SegmentGrid = ({
   )
 }
 
-export const RouteFiles = ({
-  route,
-  className,
-  playerRef,
-}: {
-  playerRef: RefObject<PlayerRef | null>
-  route: Route
-  className?: string
-}) => {
+export const RouteFiles = ({ route, className, playerRef }: { playerRef: RefObject<PlayerRef | null>; route: Route; className?: string }) => {
   const [files, { refetch, isRefetching }] = useFiles(route.fullname, route)
   const [segment, _setSegment] = useState<number>(-1) // ROUTE= -1
   const setSegment = (value: number) => {

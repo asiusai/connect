@@ -29,6 +29,13 @@ export const Navigation = ({ className }: { className?: string }) => {
       hide: !showLivePage,
     },
     {
+      title: 'Toggles',
+      icon: 'switches',
+      href: `/${dongleId}/toggles`,
+      color: 'text-purple-400',
+      hide: !showLivePage,
+    },
+    {
       title: 'Analyze',
       icon: 'bar_chart',
       href: `/${dongleId}/analyze`,

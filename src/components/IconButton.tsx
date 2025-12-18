@@ -16,10 +16,7 @@ export const IconButton = ({ className, filled, loading, ...props }: IconButtonP
 
   return (
     <ButtonBase
-      className={clsx(
-        'inline-flex items-center justify-center rounded-full before:rounded-full before:bg-background-x min-w-[32px] min-h-[32px]',
-        className,
-      )}
+      className={clsx('inline-flex items-center justify-center rounded-full before:rounded-full before:bg-background-x min-w-[32px] min-h-[32px]', className)}
       disabled={isLoading || props.disabled}
       {...props}
     >

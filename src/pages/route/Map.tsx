@@ -20,15 +20,7 @@ const FitBounds = ({ coords }: { coords: GPSPathPoint[] }) => {
   return null
 }
 
-const CurrentPositionMarker = ({
-  playerRef,
-  route,
-  coords,
-}: {
-  playerRef: React.RefObject<PlayerRef | null>
-  route: Route
-  coords: GPSPathPoint[]
-}) => {
+const CurrentPositionMarker = ({ playerRef, route, coords }: { playerRef: React.RefObject<PlayerRef | null>; route: Route; coords: GPSPathPoint[] }) => {
   const markerRef = useRef<L.CircleMarker>(null)
   const startTime = useMemo(() => (route.start_time ? DateTime.fromISO(route.start_time).toMillis() : 0), [route])
 
@@ -98,33 +90,14 @@ const CurrentPositionMarker = ({
   )
 }
 
-export const DynamicMap = ({
-  route,
-  className,
-  playerRef,
-}: {
-  className?: string
-  route: Route
-  playerRef: React.RefObject<PlayerRef | null>
-}) => {
+export const DynamicMap = ({ route, className, playerRef }: { className?: string; route: Route; playerRef: React.RefObject<PlayerRef | null> }) => {
   const coords = useAsyncMemo(async () => await getCoords(route), [route])
 
   return (
-    <div
-      className={clsx(
-        'relative rounded-xl overflow-hidden shrink-0 bg-background-alt isolate h-full aspect-square md:aspect-auto',
-        className,
-      )}
-    >
+    <div className={clsx('relative rounded-xl overflow-hidden shrink-0 bg-background-alt isolate h-full aspect-square md:aspect-auto', className)}>
       {!coords?.length && <div className="size-full bg-white/5 animate-pulse" />}
       {coords?.length && (
-        <MapContainer
-          center={[coords[0].lat, coords[0].lng]}
-          zoom={13}
-          zoomControl={false}
-          attributionControl={false}
-          className="size-full z-0"
-        >
+        <MapContainer center={[coords[0].lat, coords[0].lng]} zoom={13} zoomControl={false} attributionControl={false} className="size-full z-0">
           <TileLayer url={getTileUrl()} />
           <Polyline positions={coords.map((p) => [p.lat, p.lng])} pathOptions={{ color: '#3b82f6', weight: 4, opacity: 0.7 }} />
           <CurrentPositionMarker playerRef={playerRef} route={route} coords={coords} />

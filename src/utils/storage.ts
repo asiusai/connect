@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../types'
+import { SettingCategory } from '../pages/toggles/settings'
 
 const STORAGES = {
+  settingsCategory: (): SettingCategory => 'device',
   showLivePage: (): boolean => false,
   playbackRate: (): number | undefined => 1,
   accessToken: (): string | undefined => undefined,

@@ -13,7 +13,7 @@
     "enabled": true,
     "formatWithErrors": true,
     "indentStyle": "space",
-    "lineWidth": 140,
+    "lineWidth": 160,
     "useEditorconfig": true
   },
   "assist": { "actions": { "source": { "organizeImports": "off" } } },

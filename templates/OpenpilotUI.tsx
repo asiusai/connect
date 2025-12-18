@@ -79,9 +79,7 @@ export const OpenpilotUI = ({
   const speedMultiplier = 2.23694 * (unitFormat === 'imperial' ? 1 : MI_TO_KM)
   return (
     <AbsoluteFill>
-      {frame.CarState?.CruiseEnabled && (
-        <div className="absolute -inset-[30px] border-[60px] border-[#00c853] z-10 pointer-events-none rounded-[80px]" />
-      )}
+      {frame.CarState?.CruiseEnabled && <div className="absolute -inset-[30px] border-[60px] border-[#00c853] z-10 pointer-events-none rounded-[80px]" />}
 
       {frame.CarState && (
         <>
@@ -93,9 +91,7 @@ export const OpenpilotUI = ({
           </div>
 
           <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
-            <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">
-              {Math.max(0, frame.CarState.VEgo * speedMultiplier).toFixed(0)}
-            </div>
+            <div className="text-white text-[220px] leading-none font-bold drop-shadow-lg">{Math.max(0, frame.CarState.VEgo * speedMultiplier).toFixed(0)}</div>
             <div className="text-white/80 text-[60px] font-medium mt-4 leading-none">{unitFormat === 'imperial' ? 'mph' : 'kmh'}</div>
           </div>
 
@@ -180,18 +176,14 @@ const Path = ({ frame }: { frame: FrameData }) => {
 
     const path =
       leftPoints.length > 0
-        ? `M ${leftPoints[0].x.toFixed(0)} ${leftPoints[0].y.toFixed(0)} ${leftPoints
-            .map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`)
-            .join(' ')} ${rightPoints
+        ? `M ${leftPoints[0].x.toFixed(0)} ${leftPoints[0].y.toFixed(0)} ${leftPoints.map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`).join(' ')} ${rightPoints
             .reverse()
             .map((p) => `L ${p.x.toFixed(0)} ${p.y.toFixed(0)}`)
             .join(' ')} Z`
         : undefined
 
     const showLaneLines = frame.ModelV2.LaneLines.some((x) => x.prob && x.prob > 0.1)
-    const laneLines = showLaneLines
-      ? frame.ModelV2.LaneLines.map((line) => ({ d: getPolyline(line.X, line.Y, line.Z), prob: line.prob }))
-      : undefined
+    const laneLines = showLaneLines ? frame.ModelV2.LaneLines.map((line) => ({ d: getPolyline(line.X, line.Y, line.Z), prob: line.prob })) : undefined
 
     const roadEdges = showLaneLines ? frame.ModelV2.RoadEdges.map((edge) => getPolyline(edge.X, edge.Y, edge.Z)) : undefined
 
@@ -205,16 +197,7 @@ const Path = ({ frame }: { frame: FrameData }) => {
       {paths.path && <path d={paths.path} fill="rgba(0, 255, 0, 0.4)" stroke="none" />}
       {paths.laneLines?.map(
         (line, i) =>
-          line.d && (
-            <path
-              key={`lane-${i}`}
-              d={line.d}
-              stroke="white"
-              strokeWidth={4}
-              fill="none"
-              style={{ opacity: Math.max(0.1, line.prob ?? 0) }}
-            />
-          ),
+          line.d && <path key={`lane-${i}`} d={line.d} stroke="white" strokeWidth={4} fill="none" style={{ opacity: Math.max(0.1, line.prob ?? 0) }} />,
       )}
       {paths.roadEdges?.map((edge, i) => edge && <path key={`edge-${i}`} d={edge} stroke="red" strokeWidth={4} fill="none" />)}
     </svg>

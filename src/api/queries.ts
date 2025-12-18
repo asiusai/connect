@@ -8,11 +8,9 @@ const w = <Res extends { data?: { status: number; body: any } }>(res: Res): [Non
   return [res.data?.body, res] as any
 }
 
-export const useDevice = (dongleId: string) =>
-  w(api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } }))
+export const useDevice = (dongleId: string) => w(api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } }))
 
-export const useStats = (dongleId: string) =>
-  w(api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } }))
+export const useStats = (dongleId: string) => w(api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } }))
 
 export const useDeviceLocation = (dongleId: string) =>
   w(
@@ -97,8 +95,7 @@ export const useFiles = (routeName: string, route: Route | undefined, refetchInt
   return [files2, res] as const
 }
 
-export const useUsers = (dongleId: string) =>
-  w(api.devices.users.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))
+export const useUsers = (dongleId: string) => w(api.devices.users.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))
 
 export const useRendererStatus = () => w(api.renderer.status.useQuery({ queryKey: ['renderer-status'] }))
 

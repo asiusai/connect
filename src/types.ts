@@ -53,8 +53,7 @@ export const Device = z.object({
   sim_type: z.number(),
   trial_claimed: z.boolean(),
 })
-export const isDeviceOnline = (device: Device) =>
-  !!device.last_athena_ping && device.last_athena_ping >= Math.floor(Date.now() / 1000) - 120
+export const isDeviceOnline = (device: Device) => !!device.last_athena_ping && device.last_athena_ping >= Math.floor(Date.now() / 1000) - 120
 export const getDeviceName = (device: Device) => device.alias || getCommaName(device)
 
 export const DrivingStatisticsAggregation = z.object({

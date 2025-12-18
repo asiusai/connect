@@ -19,8 +19,7 @@ export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
 export const getQCameraUrl = (routeName: string, signature: RouteShareSignature): string =>
   `${env.API_URL}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
 
-export const findFile = (files: Files, type: FileType, segment: number) =>
-  files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
+export const findFile = (files: Files, type: FileType, segment: number) => files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
 
 export const accessToken = () => storage.get('accessToken')
 export const setAccessToken = (token: string | undefined) => storage.set('accessToken', token)

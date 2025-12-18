@@ -41,8 +41,7 @@ export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewG
   const smallCameraFiles = getFiles(props.smallCameraType)
   const logFiles = getFiles(props.logType)
 
-  const prefetchedLogs =
-    logFiles && props.prefetchLogs ? await Promise.all(logFiles.files.map((url) => (url ? readLogs({ url }) : undefined))) : undefined
+  const prefetchedLogs = logFiles && props.prefetchLogs ? await Promise.all(logFiles.files.map((url) => (url ? readLogs({ url }) : undefined))) : undefined
 
   const totalDuration = getRouteDurationMs(props.data.route)! / 1000
   const lastSegmentDuration = end === props.data.files.length ? totalDuration % 60 : 60
@@ -69,14 +68,7 @@ const Camera = ({ className, files, name }: { name: string; files?: PreviewFiles
       <div className="relative h-full w-full">
         {files.type === 'qcameras' && <HlsVideo files={files} />}
         {files.files.map((src, i) => (
-          <Sequence
-            key={i}
-            from={i * 60 * FPS}
-            name={`${name} ${i}`}
-            durationInFrames={60 * FPS}
-            premountFor={60 * FPS}
-            postmountFor={60 * FPS}
-          >
+          <Sequence key={i} from={i * 60 * FPS} name={`${name} ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
             {files.type !== 'qcameras' && src && <HevcVideo src={src} />}
             {!src && (
               <AbsoluteFill className="bg-black/50 items-center justify-center text-4xl gap-4">
@@ -109,16 +101,7 @@ const UI = ({
     <Series>
       {files.files.map((url, i) => (
         <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
-          {url && (
-            <OpenpilotUI
-              i={i}
-              unitFormat={unitFormat}
-              routeName={routeName}
-              url={url}
-              prefetchedFrames={prefetchedLogs?.[i]}
-              showPath={showPath}
-            />
-          )}
+          {url && <OpenpilotUI i={i} unitFormat={unitFormat} routeName={routeName} url={url} prefetchedFrames={prefetchedLogs?.[i]} showPath={showPath} />}
         </Series.Sequence>
       ))}
     </Series>
@@ -130,18 +113,8 @@ export const Preview = ({ generated, routeName, showPath, unitFormat }: PreviewP
   return (
     <AbsoluteFill>
       <Camera files={generated.largeCameraFiles} name="Large" className="inset-0" />
-      <UI
-        files={generated.logFiles}
-        routeName={routeName}
-        prefetchedLogs={generated.prefetchedLogs}
-        showPath={!!showPath}
-        unitFormat={unitFormat}
-      />
-      <Camera
-        files={generated.smallCameraFiles}
-        name="Small"
-        className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden"
-      />
+      <UI files={generated.logFiles} routeName={routeName} prefetchedLogs={generated.prefetchedLogs} showPath={!!showPath} unitFormat={unitFormat} />
+      <Camera files={generated.smallCameraFiles} name="Small" className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden" />
     </AbsoluteFill>
   )
 }

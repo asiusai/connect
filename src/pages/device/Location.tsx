@@ -100,13 +100,7 @@ export const Location = ({ className, devices }: { className?: string; devices?:
   ].filter(Boolean)
   return (
     <div className={clsx(className)}>
-      <MapContainer
-        attributionControl={false}
-        zoomControl={false}
-        center={SAN_DIEGO}
-        zoom={10}
-        className="h-full w-full !bg-background-alt"
-      >
+      <MapContainer attributionControl={false} zoomControl={false} center={SAN_DIEGO} zoom={10} className="h-full w-full !bg-background-alt">
         <TileLayer url={getTileUrl()} />
 
         {markers.map((x) => (

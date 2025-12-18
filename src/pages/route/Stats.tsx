@@ -29,9 +29,7 @@ export const Stats = ({ className, route }: { className?: string; route: Route }
       </div>
 
       <div className="flex flex-col items-center px-4">
-        <span className="text-2xl font-bold text-[#32CD32] leading-none">
-          {engagementPercent !== undefined ? `${engagementPercent.toFixed(0)}%` : '—'}
-        </span>
+        <span className="text-2xl font-bold text-[#32CD32] leading-none">{engagementPercent !== undefined ? `${engagementPercent.toFixed(0)}%` : '—'}</span>
         <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">Engaged</span>
       </div>
     </div>

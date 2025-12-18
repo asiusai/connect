@@ -250,9 +250,7 @@ export const Component = () => {
               >
                 <Icon name={isSpeaking ? 'mic' : 'mic_off'} className="text-4xl" filled={isSpeaking} />
               </button>
-              <span
-                className={`text-xs font-bold uppercase tracking-wider transition-colors ${isSpeaking ? 'text-primary' : 'text-white/40'}`}
-              >
+              <span className={`text-xs font-bold uppercase tracking-wider transition-colors ${isSpeaking ? 'text-primary' : 'text-white/40'}`}>
                 {isSpeaking ? 'Speaking' : 'Hold to Speak'}
               </span>
             </div>

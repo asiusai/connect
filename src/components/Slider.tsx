@@ -1,14 +1,6 @@
 import clsx from 'clsx'
 
-export const Slider = <Key extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: Record<Key, string>
-  value: Key
-  onChange: (x: Key) => void
-}) => {
+export const Slider = <Key extends string>({ options, value, onChange }: { options: Record<Key, string>; value: Key; onChange: (x: Key) => void }) => {
   const keys = Object.keys(options) as Key[]
 
   return (

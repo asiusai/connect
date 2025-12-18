@@ -36,9 +36,7 @@ export const Component = () => {
             </ul>
           </div>
 
-          <p className="text-xs text-center text-white/40 px-4">
-            If you still cannot see a QR code, your device may already be paired to another account.
-          </p>
+          <p className="text-xs text-center text-white/40 px-4">If you still cannot see a QR code, your device may already be paired to another account.</p>
 
           <div className="flex flex-col gap-3 w-full">
             <ButtonBase
@@ -48,10 +46,7 @@ export const Component = () => {
               <Icon name="camera" />
               Scan QR Code
             </ButtonBase>
-            <ButtonBase
-              className="w-full py-3 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors text-center"
-              href="/logout"
-            >
+            <ButtonBase className="w-full py-3 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors text-center" href="/logout">
               Sign out
             </ButtonBase>
           </div>

@@ -31,10 +31,7 @@ export const UserMobile = () => {
             <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Signed in as</span>
             <span className="text-sm font-medium truncate block text-white">{profile.email}</span>
           </div>
-          <ButtonBase
-            href="/logout"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 text-red-400 transition-colors"
-          >
+          <ButtonBase href="/logout" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 text-red-400 transition-colors">
             <Icon name="logout" className="text-lg" />
             <span className="font-medium text-sm">Log out</span>
           </ButtonBase>

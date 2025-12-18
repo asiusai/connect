@@ -150,11 +150,7 @@ const getSmartLogStream = async (inputStream: ReadableStream<Uint8Array>): Promi
 
   let isZstd = false
   if (firstChunk.length >= 4) {
-    isZstd =
-      firstChunk[0] === ZSTD_MAGIC[0] &&
-      firstChunk[1] === ZSTD_MAGIC[1] &&
-      firstChunk[2] === ZSTD_MAGIC[2] &&
-      firstChunk[3] === ZSTD_MAGIC[3]
+    isZstd = firstChunk[0] === ZSTD_MAGIC[0] && firstChunk[1] === ZSTD_MAGIC[1] && firstChunk[2] === ZSTD_MAGIC[2] && firstChunk[3] === ZSTD_MAGIC[3]
   }
 
   let isBz2 = false
