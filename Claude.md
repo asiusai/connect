@@ -22,4 +22,4 @@ trigger: always_on
 
 
 You can take screenshots of desired page by running 
-`PAGE=home,routes DEVICE=mobile,desktop bun run cli/screenshots.ts`
+`PAGE=home,routes DEVICE=mobile,desktop bun run scripts/screenshots.ts`
