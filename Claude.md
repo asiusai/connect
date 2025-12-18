@@ -2,24 +2,49 @@
 trigger: always_on
 ---
 
-- Use arrow functions whereever possible
-- One-line if conditions if possible
-- When possible use `const` instead of `let`
-- Try to avoid too much nesting, instead return early
-- Less code = better
-- Avoid default exports
-- no `index.ts` to re-export everything from a directory
-- don't try to abstract too early, at first it's okay to just write everything in one file
-- use camelCase for variables, functions, and properties; PascalCase for react components, types, zod types and classes; SCREAMING_SNAKE_CASE for global constants and config
-- avoid object destructoring (`const { name, age } = user`) if those new values aren't used a lot
-- prefer template literals over string concat
-- prefer async/await over .then().catch()
-- prefer .map() over forEach if the calculation inside it is easy
-- avoid explicit type annotation, if it can work also automatically
-- only add comments to parts that really do need explanation, like hacks or hard formulas or things that aren't understandable by reading the code
-- try to only use undefined instead of null. Only use null if some API or library needs it
-- never use `interface` only use `type`
+# Code Style
+
+## Core Philosophy
+- **Less code = better code** - Don't write code you don't need
+- **Simple > clever** - Readable code beats "optimized" complexity
+- **No premature abstraction** - Write it in one file first, refactor when actually needed
+- **No useless comments** - Code should be self-explanatory. Only comment hacks, hard formulas, or non-obvious behavior
+
+## TypeScript Rules
+- Arrow functions over function declarations
+- `const` over `let` (never use `var`)
+- One-line conditions when possible: `if (!user) return`
+- Return early to avoid nesting
+- Template literals over string concatenation
+- `async/await` over `.then().catch()`
+- `.map()` over `.forEach()` for simple transformations
+- No explicit types if TypeScript can infer them
+- `type` over `interface` (always)
+- Avoid object destructuring unless values are used multiple times
+- Use `undefined` over `null` (only use `null` if API requires it)
+
+## Project Structure
+- No default exports
+- No `index.ts` files that just re-export everything
+- Organize by feature, not by type (no `components/`, `utils/`, `types/` folders)
+
+## Naming Conventions
+- `camelCase`: variables, functions, properties
+- `PascalCase`: React components, types, Zod schemas, classes
+- `SCREAMING_SNAKE_CASE`: global constants and config
+
+## Performance
+- **Don't optimize for 1% gains** - Readability > marginal speed improvements
+- Profile before optimizing - measure actual impact
+- Avoid complexity that makes code harder to understand
+
+## Workflow
+- **NEVER commit without explicit approval** - Show diff, wait for user confirmation
+- Run tests before committing
+- Run linters before committing
 
 
-You can take screenshots of desired page by running 
-`PAGE=home,routes DEVICE=mobile,desktop bun run scripts/screenshots.ts`
+## Screenshots
+```bash
+PAGE=home,routes DEVICE=mobile,desktop bun run scripts/screenshots.ts
+```
