@@ -12,6 +12,7 @@ const STORAGES = {
   statsTime: (): 'all' | 'week' => 'all',
   routesType: (): 'all' | 'preserved' => 'all',
   analyzeService: (): Service => 'peripheralState',
+  togglesOpenTab: (): string | null => 'models',
 
   unitFormat: (): UnitFormat => {
     if (typeof navigator === 'undefined') return 'metric'

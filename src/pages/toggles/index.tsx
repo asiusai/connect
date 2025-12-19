@@ -2,6 +2,7 @@ import { callAthena, ParamValue } from '../../api/athena'
 import { BackButton } from '../../components/BackButton'
 import { TopAppBar } from '../../components/TopAppBar'
 import { useAsyncMemo, useRouteParams } from '../../utils/hooks'
+import { useStorage } from '../../utils/storage'
 import { SettingCategory, SettingDefinition, SETTINGS } from './settings'
 import { Button } from '../../components/Button'
 import { Toggle } from '../../components/Toggle'
@@ -465,7 +466,7 @@ export const Component = () => {
   const [changes, setChanges] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [savedValues, setSavedValues] = useState<Record<string, string>>({})
-  const [openSection, setOpenSection] = useState<SettingCategory | null>('models')
+  const [openSection, setOpenSection] = useStorage('togglesOpenTab')
 
   const res = useAsyncMemo(() => callAthena({ type: 'getAllParams', dongleId, params: {} }), [dongleId])
 
@@ -525,7 +526,7 @@ export const Component = () => {
     setSaving(false)
   }
 
-  const toggleSection = (cat: SettingCategory) => setOpenSection((prev) => (prev === cat ? null : cat))
+  const toggleSection = (cat: SettingCategory) => setOpenSection(openSection === cat ? null : cat)
 
   const changeCount = Object.keys(changes).length
   const isLoading = res === undefined
