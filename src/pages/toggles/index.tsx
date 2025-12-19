@@ -3,7 +3,6 @@ import { BackButton } from '../../components/BackButton'
 import { TopAppBar } from '../../components/TopAppBar'
 import { useAsyncMemo, useRouteParams } from '../../utils/hooks'
 import { SettingCategory, SettingDefinition, SETTINGS } from './settings'
-import { useStorage } from '../../utils/storage'
 import { Button } from '../../components/Button'
 import { Toggle } from '../../components/Toggle'
 import { Select } from '../../components/Select'
@@ -250,7 +249,6 @@ const SettingsGrid = ({
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const [showAdvanced] = useStorage('showAdvancedSettings')
   const [changes, setChanges] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [savedValues, setSavedValues] = useState<Record<string, string>>({})
@@ -272,7 +270,7 @@ export const Component = () => {
     }
 
     for (const cat of SettingCategory.options) {
-      const defined: Setting[] = SETTINGS.filter((x) => !x.hidden && x.category === cat && (showAdvanced || !x.advanced))
+      const defined: Setting[] = SETTINGS.filter((x) => !x.hidden && x.category === cat)
         .map((s) => ({
           ...s,
           value: res.result?.find((x) => x.key === s.key),
@@ -288,9 +286,9 @@ export const Component = () => {
         (x): Setting => ({ key: x.key, label: x.metadata?.title ?? x.key, description: x.metadata?.description ?? '', category: 'other', value: x }),
       ),
     ]
-
     return result
-  }, [res, showAdvanced])
+  }, [res])
+  console.log(settingsByCategory)
 
   const getValue = (s: Setting) => {
     if (s.key in changes) return changes[s.key]

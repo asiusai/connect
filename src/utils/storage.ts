@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../types'
 
 const STORAGES = {
-  showAdvancedSettings: (): boolean => false,
   usingCorrectFork: (): boolean => false,
   playbackRate: (): number | undefined => 1,
   accessToken: (): string | undefined => undefined,
