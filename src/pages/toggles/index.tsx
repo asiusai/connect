@@ -165,6 +165,7 @@ const NavigationSection = ({
   dongleId,
   settings,
   changes,
+  savedValues,
   getValue,
   setChanges,
 }: {
@@ -172,6 +173,7 @@ const NavigationSection = ({
   dongleId: string
   settings: Setting[]
   changes: Record<string, string>
+  savedValues: Record<string, string>
   getValue: (s: Setting) => string | null
   setChanges: React.Dispatch<React.SetStateAction<Record<string, string>>>
 }) => {
@@ -180,7 +182,7 @@ const NavigationSection = ({
   const [newFavAddress, setNewFavAddress] = useState('')
 
   const favoritesParam = params.find((p) => p.key === 'MapboxFavorites')
-  const favoritesRaw = decode(favoritesParam?.value)
+  const favoritesRaw = savedValues.MapboxFavorites ?? decode(favoritesParam?.value)
   const favorites: MapboxFavoritesData = useMemo(() => {
     if (!favoritesRaw) return {}
     try {
@@ -582,6 +584,7 @@ export const Component = () => {
                     dongleId={dongleId}
                     settings={settingsByCategory.navigation}
                     changes={changes}
+                    savedValues={savedValues}
                     getValue={getValue}
                     setChanges={setChanges}
                   />
