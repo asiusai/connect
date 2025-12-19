@@ -31,6 +31,8 @@ export const Component = () => {
     return () => disconnectRTCConnection()
   }, [dongleId])
 
+  const audioSenderRef = useRef<RTCRtpSender | null>(null)
+
   const disconnectRTCConnection = () => {
     if (rtcConnection.current) {
       rtcConnection.current.close()
@@ -40,6 +42,7 @@ export const Component = () => {
       localAudioTrack.current.stop()
       localAudioTrack.current = null
     }
+    audioSenderRef.current = null
     if (driverRef.current) driverRef.current.srcObject = null
     if (roadRef.current) roadRef.current.srcObject = null
     setIsSpeaking(false)
@@ -54,15 +57,14 @@ export const Component = () => {
     setStatus('Initiating connection...')
 
     try {
-      // Get local audio stream
-      try {
-        const localStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        localAudioTrack.current = localStream.getAudioTracks()[0]
-        localAudioTrack.current.enabled = false
-      } catch (e) {
-        console.warn('Failed to get user media', e)
-        setError('Microphone access denied or unavailable')
-      }
+      // Create a silent audio track for initial negotiation (avoids mic permission prompt)
+      const audioContext = new AudioContext()
+      const oscillator = audioContext.createOscillator()
+      const destination = audioContext.createMediaStreamDestination()
+      oscillator.connect(destination)
+      oscillator.start()
+      const silentTrack = destination.stream.getAudioTracks()[0]
+      silentTrack.enabled = false
 
       const pc = new RTCPeerConnection({
         iceServers: [
@@ -91,9 +93,8 @@ export const Component = () => {
       pc.addTransceiver('video', { direction: 'recvonly' })
 
       const audioTransceiver = pc.addTransceiver('audio', { direction: 'sendrecv' })
-      if (localAudioTrack.current) {
-        audioTransceiver.sender.replaceTrack(localAudioTrack.current)
-      }
+      audioTransceiver.sender.replaceTrack(silentTrack)
+      audioSenderRef.current = audioTransceiver.sender
 
       let videoTrackCount = 0
       pc.ontrack = (event) => {
@@ -177,18 +178,30 @@ export const Component = () => {
     }
   }
 
-  const handleStartSpeaking = () => {
-    if (localAudioTrack.current) {
-      localAudioTrack.current.enabled = true
-      setIsSpeaking(true)
+  const handleStartSpeaking = async () => {
+    // Request mic on first use
+    if (!localAudioTrack.current) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        localAudioTrack.current = stream.getAudioTracks()[0]
+        if (audioSenderRef.current) {
+          await audioSenderRef.current.replaceTrack(localAudioTrack.current)
+        }
+      } catch (e) {
+        console.warn('Failed to get user media', e)
+        setError('Microphone access denied')
+        return
+      }
     }
+    localAudioTrack.current.enabled = true
+    setIsSpeaking(true)
   }
 
   const handleStopSpeaking = () => {
     if (localAudioTrack.current) {
       localAudioTrack.current.enabled = false
-      setIsSpeaking(false)
     }
+    setIsSpeaking(false)
   }
 
   const toggleMute = () => {
