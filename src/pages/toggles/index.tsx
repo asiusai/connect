@@ -15,6 +15,7 @@ type Setting = SettingDefinition & { value?: ParamValue }
 
 const CATEGORY_LABELS: Record<SettingCategory, string> = {
   models: 'Models',
+  navigation: 'Navigation',
   device: 'Device',
   toggles: 'Toggles',
   steering: 'Steering',
@@ -157,6 +158,208 @@ const ModelsSection = ({ params, dongleId }: { params: ParamValue[]; dongleId: s
   )
 }
 
+type MapboxFavoritesData = { home?: string; work?: string; favorites?: Record<string, string> }
+
+const NavigationSection = ({
+  params,
+  dongleId,
+  settings,
+  changes,
+  getValue,
+  setChanges,
+}: {
+  params: ParamValue[]
+  dongleId: string
+  settings: Setting[]
+  changes: Record<string, string>
+  getValue: (s: Setting) => string | null
+  setChanges: React.Dispatch<React.SetStateAction<Record<string, string>>>
+}) => {
+  const [navigating, setNavigating] = useState<string | null>(null)
+  const [newFavName, setNewFavName] = useState('')
+  const [newFavAddress, setNewFavAddress] = useState('')
+
+  const favoritesParam = params.find((p) => p.key === 'MapboxFavorites')
+  const favoritesRaw = decode(favoritesParam?.value)
+  const favorites: MapboxFavoritesData = useMemo(() => {
+    if (!favoritesRaw) return {}
+    try {
+      return JSON.parse(favoritesRaw)
+    } catch {
+      return {}
+    }
+  }, [favoritesRaw])
+
+  const localFavorites: MapboxFavoritesData = useMemo(() => {
+    if (!('MapboxFavorites' in changes)) return favorites
+    try {
+      return JSON.parse(changes.MapboxFavorites)
+    } catch {
+      return favorites
+    }
+  }, [changes, favorites])
+
+  const updateFavorites = (updated: MapboxFavoritesData) => {
+    setChanges((p) => ({ ...p, MapboxFavorites: JSON.stringify(updated) }))
+  }
+
+  const handleNavigate = async (address: string) => {
+    if (!address) return
+    setNavigating(address)
+    try {
+      const result = await callAthena({
+        type: 'saveParams',
+        dongleId,
+        params: { params_to_update: { MapboxRoute: encode(address) }, compression: false },
+      })
+      if (result?.error) throw new Error(result.error.message)
+      toast.success(`Navigating to ${address}`)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to set route')
+    } finally {
+      setNavigating(null)
+    }
+  }
+
+  const handleAddFavorite = () => {
+    if (!newFavName.trim() || !newFavAddress.trim()) return
+    const updated = { ...localFavorites, favorites: { ...localFavorites.favorites, [newFavName.trim()]: newFavAddress.trim() } }
+    updateFavorites(updated)
+    setNewFavName('')
+    setNewFavAddress('')
+  }
+
+  const handleDeleteFavorite = (name: string) => {
+    const { [name]: _, ...rest } = localFavorites.favorites ?? {}
+    updateFavorites({ ...localFavorites, favorites: rest })
+  }
+
+  const tokenSetting = settings.find((s) => s.key === 'MapboxToken')
+  const routeSetting = settings.find((s) => s.key === 'MapboxRoute')
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid md:grid-cols-2 gap-4">
+        {tokenSetting && (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs uppercase tracking-wider opacity-60">Mapbox Token</label>
+            <input
+              type="text"
+              value={getValue(tokenSetting) ?? ''}
+              onChange={(e) => setChanges((p) => ({ ...p, MapboxToken: e.target.value }))}
+              placeholder="pk.eyJ1..."
+              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 font-mono"
+            />
+          </div>
+        )}
+        {routeSetting && (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs uppercase tracking-wider opacity-60">Current Route</label>
+            <input
+              type="text"
+              value={getValue(routeSetting) ?? ''}
+              onChange={(e) => setChanges((p) => ({ ...p, MapboxRoute: e.target.value }))}
+              placeholder="Enter destination..."
+              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <label className="text-xs uppercase tracking-wider opacity-60">Quick Destinations</label>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="flex flex-col outline outline-white/10 rounded-lg p-4 gap-3">
+            <span className="font-medium">Home</span>
+            <input
+              type="text"
+              value={localFavorites.home ?? ''}
+              onChange={(e) => updateFavorites({ ...localFavorites, home: e.target.value })}
+              placeholder="Home address..."
+              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
+            />
+            <Button
+              onClick={() => handleNavigate(localFavorites.home ?? '')}
+              disabled={!localFavorites.home || navigating === localFavorites.home}
+              className="w-full text-sm"
+            >
+              {navigating === localFavorites.home ? 'Setting...' : 'Navigate'}
+            </Button>
+          </div>
+
+          <div className="flex flex-col outline outline-white/10 rounded-lg p-4 gap-3">
+            <span className="font-medium">Work</span>
+            <input
+              type="text"
+              value={localFavorites.work ?? ''}
+              onChange={(e) => updateFavorites({ ...localFavorites, work: e.target.value })}
+              placeholder="Work address..."
+              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
+            />
+            <Button
+              onClick={() => handleNavigate(localFavorites.work ?? '')}
+              disabled={!localFavorites.work || navigating === localFavorites.work}
+              className="w-full text-sm"
+            >
+              {navigating === localFavorites.work ? 'Setting...' : 'Navigate'}
+            </Button>
+          </div>
+
+          {Object.entries(localFavorites.favorites ?? {}).map(([name, address]) => (
+            <div key={name} className="flex flex-col outline outline-white/10 rounded-lg p-4 gap-3">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{name}</span>
+                <button onClick={() => handleDeleteFavorite(name)} className="text-red-400 hover:text-red-300 text-sm">
+                  Remove
+                </button>
+              </div>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => updateFavorites({ ...localFavorites, favorites: { ...localFavorites.favorites, [name]: e.target.value } })}
+                className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
+              />
+              <Button onClick={() => handleNavigate(address)} disabled={!address || navigating === address} className="w-full text-sm">
+                {navigating === address ? 'Setting...' : 'Navigate'}
+              </Button>
+            </div>
+          ))}
+
+          <div className="flex flex-col border border-dashed border-white/10 rounded-lg p-4 gap-3">
+            <span className="font-medium opacity-60">Add Favorite</span>
+            <input
+              type="text"
+              value={newFavName}
+              onChange={(e) => setNewFavName(e.target.value)}
+              placeholder="Name..."
+              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
+            />
+            <input
+              type="text"
+              value={newFavAddress}
+              onChange={(e) => setNewFavAddress(e.target.value)}
+              placeholder="Address..."
+              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
+            />
+            <Button onClick={handleAddFavorite} disabled={!newFavName.trim() || !newFavAddress.trim()} className="w-full text-sm">
+              Add
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {settings.filter((s) => s.key !== 'MapboxToken' && s.key !== 'MapboxRoute').length > 0 && (
+        <SettingsGrid
+          settings={settings.filter((s) => s.key !== 'MapboxToken' && s.key !== 'MapboxRoute')}
+          changes={changes}
+          getValue={getValue}
+          setChanges={setChanges}
+        />
+      )}
+    </div>
+  )
+}
+
 const SettingInput = ({ setting, value, onChange }: { setting: Setting; value: string | null; onChange: (v: string) => void }) => {
   const type = setting.value?.type
 
@@ -268,6 +471,7 @@ export const Component = () => {
     if (!res?.result) return null
     const result: Record<SettingCategory, Setting[]> = {
       models: [],
+      navigation: [],
       device: [],
       toggles: [],
       steering: [],
@@ -369,8 +573,24 @@ export const Component = () => {
               )}
             </div>
 
+            <div>
+              <SectionHeader label={CATEGORY_LABELS.navigation} isOpen={openSection === 'navigation'} onClick={() => toggleSection('navigation')} />
+              {openSection === 'navigation' && (
+                <div className="pb-6">
+                  <NavigationSection
+                    params={res.result}
+                    dongleId={dongleId}
+                    settings={settingsByCategory.navigation}
+                    changes={changes}
+                    getValue={getValue}
+                    setChanges={setChanges}
+                  />
+                </div>
+              )}
+            </div>
+
             {SettingCategory.options
-              .filter((cat) => cat !== 'models')
+              .filter((cat) => cat !== 'models' && cat !== 'navigation')
               .map((cat) => {
                 const settings = settingsByCategory[cat]
                 if (!settings.length) return null

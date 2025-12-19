@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const SettingCategory = z.enum(['models', 'device', 'toggles', 'steering', 'cruise', 'visuals', 'developer', 'other'])
+export const SettingCategory = z.enum(['models', 'navigation', 'device', 'toggles', 'steering', 'cruise', 'visuals', 'developer', 'other'])
 export type SettingCategory = z.infer<typeof SettingCategory>
 
 export type SettingDefinition = {
@@ -18,6 +18,15 @@ export type SettingDefinition = {
 }
 
 export const SETTINGS: SettingDefinition[] = [
+  // Navigation
+  { key: 'MapboxToken', label: 'Mapbox Token', description: 'API token for Mapbox navigation', category: 'navigation' },
+  { key: 'MapboxRoute', label: 'Current Route', description: 'Current navigation destination', category: 'navigation' },
+  { key: 'MapboxFavorites', label: 'Favorites', description: 'Saved navigation destinations', category: 'navigation', hidden: true },
+  { key: 'NavDesiresAllowed', label: 'Nav Desires', description: 'Allow navigation desires', category: 'navigation' },
+  { key: 'MapboxRecompute', label: 'Recompute Route', description: 'Allow route recomputation', category: 'navigation' },
+  { key: 'AllowNavigation', label: 'Allow Navigation', description: 'Enable navigation features', category: 'navigation' },
+  { key: 'MapboxSettings', label: 'Mapbox Settings', description: 'Mapbox configuration', category: 'navigation', hidden: true },
+
   // Device
   { key: 'DongleId', label: 'Dongle ID', description: 'Unique device identifier', category: 'device', readonly: true },
   { key: 'GitCommit', label: 'Git Commit', description: 'Current software version', category: 'device', readonly: true },
