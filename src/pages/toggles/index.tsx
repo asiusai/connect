@@ -34,7 +34,16 @@ const SectionHeader = ({ label, isOpen, onClick, count }: { label: string; isOpe
 
 type ModelBundle = { index: number; display_name: string; environment: string; runner?: string; generation: number }
 
-const decode = (v: string | null | undefined) => (v ? atob(v) : null)
+const decode = (v: string | null | undefined) => {
+  if (!v) return null
+  try {
+    return new TextDecoder().decode(Uint8Array.from(atob(v), (c) => c.charCodeAt(0)))
+  } catch {
+    return atob(v)
+  }
+}
+
+const encode = (v: string) => btoa(String.fromCharCode(...new TextEncoder().encode(v)))
 
 const parsePythonDict = <T,>(v: string | null | undefined): T | null => {
   if (!v) return null
@@ -294,7 +303,7 @@ export const Component = () => {
     if (!Object.keys(changes).length) return
     setSaving(true)
     try {
-      const params_to_update = Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, btoa(v)]))
+      const params_to_update = Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, encode(v)]))
       const result = await callAthena({ type: 'saveParams', dongleId, params: { params_to_update, compression: false } })
       if (result?.error) throw new Error(result.error.data?.message ?? result.error.message)
 
