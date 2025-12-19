@@ -159,7 +159,7 @@ export const Component = () => {
         dongleId,
       })
 
-      if (!resp || resp.error) throw new Error(resp?.error?.message || 'Unknown error from Athena')
+      if (!resp || resp.error) throw new Error(resp?.error?.data?.message ?? resp?.error?.message ?? 'Unknown error from Athena')
 
       const answerSdp = resp.result?.sdp
       const answerType = resp.result?.type

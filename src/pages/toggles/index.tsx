@@ -150,10 +150,9 @@ const ModelsSection = ({ params, dongleId }: { params: ParamValue[]; dongleId: s
 
 const SettingInput = ({ setting, value, onChange }: { setting: Setting; value: string | null; onChange: (v: string) => void }) => {
   const type = setting.value?.type
-  const meta = setting.value?.metadata
 
-  if (type === 2 && meta?.options) {
-    return <Select value={value ?? ''} onChange={onChange} options={meta.options.map((o) => ({ value: o.value.toString(), label: o.label }))} />
+  if (type === 2 && setting.options) {
+    return <Select value={value ?? ''} onChange={onChange} options={setting.options.map((o) => ({ value: o.value.toString(), label: o.label }))} />
   }
   if (type === 3) {
     return (
@@ -161,15 +160,15 @@ const SettingInput = ({ setting, value, onChange }: { setting: Setting; value: s
         type="number"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
-        min={meta?.min}
-        max={meta?.max}
-        step={meta?.step ?? 1}
+        min={setting.min}
+        max={setting.max}
+        step={setting.step ?? 1}
         className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
       />
     )
   }
   if (type === 1) {
-    const bool = value === '1' || value === 'true'
+    const bool = value === '1'
     return (
       <div className="flex items-center gap-2">
         <Toggle value={bool} onChange={(v) => onChange(v ? '1' : '0')} />
@@ -280,12 +279,7 @@ export const Component = () => {
     }
 
     const leftOver = res.result?.filter((x) => !SETTINGS.some((s) => s.key === x.key)) ?? []
-    result.other = [
-      ...result.other,
-      ...leftOver.map(
-        (x): Setting => ({ key: x.key, label: x.metadata?.title ?? x.key, description: x.metadata?.description ?? '', category: 'other', value: x }),
-      ),
-    ]
+    result.other = [...result.other, ...leftOver.map((x): Setting => ({ key: x.key, label: x.key, description: '', category: 'other', value: x }))]
     return result
   }, [res])
   console.log(settingsByCategory)
@@ -302,20 +296,18 @@ export const Component = () => {
     try {
       const params_to_update = Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, btoa(v)]))
       const result = await callAthena({ type: 'saveParams', dongleId, params: { params_to_update, compression: false } })
-      if (result?.error) throw new Error(result.error.message)
+      if (result?.error) throw new Error(result.error.data?.message ?? result.error.message)
+
       const errors = Object.entries(result?.result ?? {}).filter(([_, v]) => v.startsWith('error:'))
-      if (errors.length) {
-        errors.forEach(([k, v]) => toast.error(`${k}: ${v.replace('error: ', '')}`))
-        return
-      }
+      if (errors.length) return errors.forEach(([k, v]) => toast.error(`${k}: ${v.replace('error: ', '')}`))
+
       setSavedValues((prev) => ({ ...prev, ...changes }))
       toast.success(`Saved ${Object.keys(changes).length} parameter(s)`)
       setChanges({})
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to save')
-    } finally {
-      setSaving(false)
     }
+    setSaving(false)
   }
 
   const toggleSection = (cat: SettingCategory) => setOpenSection((prev) => (prev === cat ? null : cat))
@@ -323,7 +315,6 @@ export const Component = () => {
   const changeCount = Object.keys(changes).length
   const isLoading = res === undefined
   const isError = res?.error || (res && !res.result)
-  const errorMessage = res?.error?.message || 'Device offline or incompatible fork'
 
   return (
     <div className="flex flex-col min-h-screen bg-transparent text-foreground gap-4">
@@ -354,7 +345,7 @@ export const Component = () => {
           <div className="flex flex-col items-center justify-center py-20 gap-2 text-center">
             <span className="text-4xl opacity-40">:(</span>
             <span className="text-lg font-medium">Unable to load parameters</span>
-            <span className="text-sm opacity-60">{errorMessage}</span>
+            <span className="text-sm opacity-60">{res?.error?.data?.message ?? res.error?.message ?? 'Device offline or incompatible fork'}</span>
           </div>
         )}
 

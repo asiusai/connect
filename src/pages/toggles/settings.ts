@@ -11,6 +11,10 @@ export type SettingDefinition = {
   advanced?: boolean
   readonly?: boolean
   hidden?: boolean
+  options?: { value: number; label: string }[]
+  min?: number
+  max?: number
+  step?: number
 }
 
 export const SETTINGS: SettingDefinition[] = [
@@ -29,10 +33,48 @@ export const SETTINGS: SettingDefinition[] = [
   { key: 'Version', label: 'Version', description: 'Software version number', category: 'device', readonly: true },
   { key: 'QuietMode', label: 'Quiet Mode', description: 'Minimize sound notifications', category: 'device' },
   { key: 'MaxTimeOffroad', label: 'Max Time Offroad', description: 'Max idle time before shutdown', category: 'device', advanced: true },
-  { key: 'NetworkMetered', label: 'Network Metered', description: 'Metered connection', category: 'device', advanced: true, hidden: true },
+  {
+    key: 'NetworkMetered',
+    label: 'Network Metered',
+    description: 'Metered connection',
+    category: 'device',
+    advanced: true,
+    hidden: true,
+    options: [
+      {
+        value: 0,
+        label: 'Default',
+      },
+      {
+        value: 1,
+        label: 'Metered',
+      },
+      {
+        value: 2,
+        label: 'Unmetered',
+      },
+    ],
+  },
   { key: 'NetworkType', label: 'Network Type', description: 'Connection type', category: 'device', advanced: true, readonly: true, hidden: true },
   { key: 'BackupManager_CreateBackup', label: 'Create Backup', description: 'Backup current settings', category: 'device', advanced: true },
-  { key: 'DeviceBootMode', label: 'Boot Mode', description: 'Current device boot mode', category: 'device', readonly: true, hidden: true },
+  {
+    key: 'DeviceBootMode',
+    label: 'Boot Mode',
+    description: 'Current device boot mode',
+    category: 'device',
+    readonly: true,
+    hidden: true,
+    options: [
+      {
+        value: 0,
+        label: 'Standard',
+      },
+      {
+        value: 1,
+        label: 'Always Offroad',
+      },
+    ],
+  },
   { key: 'UpdaterLastFetchTime', label: 'Last Update Check', description: 'Time of last update check', category: 'device', readonly: true, hidden: true },
   { key: 'GitRemote', label: 'Git Remote', description: 'Git remote origin URL', category: 'device', readonly: true, hidden: true },
   { key: 'GsmRoaming', label: 'GSM Roaming', description: 'Allow cellular roaming', category: 'device' },
@@ -84,15 +126,73 @@ export const SETTINGS: SettingDefinition[] = [
 
   // Steering
   { key: 'EndToEndLong', label: 'End-to-End Long', description: 'E2E longitudinal control', category: 'steering' },
-  { key: 'LongitudinalPersonality', label: 'Personality', description: 'Driving style preference', category: 'steering' },
+  {
+    key: 'LongitudinalPersonality',
+    label: 'Personality',
+    description: 'Driving style preference',
+    category: 'steering',
+    options: [
+      {
+        value: 0,
+        label: 'Aggressive',
+      },
+      {
+        value: 1,
+        label: 'Standard',
+      },
+      {
+        value: 2,
+        label: 'Relaxed',
+      },
+    ],
+  },
   { key: 'LiveTorqueParamsToggle', label: 'Live Torque Params', description: 'Auto-tune torque parameters', category: 'steering', advanced: true },
   { key: 'EnforceTorqueControl', label: 'Enforce Torque Control', description: 'Force torque controller usage', category: 'steering' },
   { key: 'NeuralNetworkLateralControl', label: 'NN Lateral Control', description: 'Neural network steering control', category: 'steering' },
-  { key: 'MadsSteeringMode', label: 'MADS Steering Mode', description: 'MADS specific steering behavior', category: 'steering' },
+  {
+    key: 'MadsSteeringMode',
+    label: 'MADS Steering Mode',
+    description: 'MADS specific steering behavior',
+    category: 'steering',
+    options: [
+      {
+        value: 0,
+        label: 'Remain Active',
+      },
+      {
+        value: 1,
+        label: 'Pause',
+      },
+      {
+        value: 2,
+        label: 'Disengage',
+      },
+    ],
+  },
   { key: 'MadsMainCruiseAllowed', label: 'MADS Cruise Sync', description: 'Allow MADS with main cruise', category: 'steering' },
   { key: 'Mads', label: 'Enable MADS', description: 'Modular Automated Driving System', category: 'steering' },
   { key: 'MadsUnifiedEngagementMode', label: 'Unified Engagement', description: 'Engage MADS with Cruise', category: 'steering' },
-  { key: 'HyundaiLongitudinalTuning', label: 'Hyundai Long. Tuning', description: 'Longitudinal tuning for Hyundai', category: 'steering', advanced: true },
+  {
+    key: 'HyundaiLongitudinalTuning',
+    label: 'Hyundai Long. Tuning',
+    description: 'Longitudinal tuning for Hyundai',
+    category: 'steering',
+    advanced: true,
+    options: [
+      {
+        value: 0,
+        label: 'Off',
+      },
+      {
+        value: 1,
+        label: 'Dynamic',
+      },
+      {
+        value: 2,
+        label: 'Predictive',
+      },
+    ],
+  },
   { key: 'HkgTuningOverridingCycles', label: 'HKG Override Cycles', description: 'Tuning override cycles', category: 'steering', advanced: true },
   {
     key: 'HkgTuningAngleActiveTorqueReductionGain',
@@ -118,6 +218,9 @@ export const SETTINGS: SettingDefinition[] = [
     category: 'steering',
     advanced: true,
     hidden: true,
+    min: 0.1,
+    max: 5.0,
+    step: 0.1,
   },
   { key: 'CustomTorqueParams', label: 'Custom Torque Params', description: 'Use manual torque values', category: 'steering', advanced: true },
   {
@@ -141,24 +244,153 @@ export const SETTINGS: SettingDefinition[] = [
     category: 'steering',
     advanced: true,
   },
-  { key: 'TorqueParamsOverrideFriction', label: 'Override Friction', description: 'Manual steering friction', category: 'steering', advanced: true },
+  {
+    key: 'TorqueParamsOverrideFriction',
+    label: 'Override Friction',
+    description: 'Manual steering friction',
+    category: 'steering',
+    advanced: true,
+    min: 0.0,
+    max: 1.0,
+    step: 0.01,
+  },
 
   // Cruise
   { key: 'ExperimentalMode', label: 'Experimental Mode', description: 'Enable experimental features', category: 'cruise' },
   { key: 'SmartCruiseControlVision', label: 'SCC-V', description: 'Vision-based smart cruise', category: 'cruise' },
-  { key: 'SpeedLimitPolicy', label: 'Speed Limit Policy', description: 'Policy for speed limit handling', category: 'cruise' },
-  { key: 'SpeedLimitOffsetType', label: 'Speed Limit Offset', description: 'Offset type (fixed/%)', category: 'cruise' },
+  {
+    key: 'SpeedLimitPolicy',
+    label: 'Speed Limit Policy',
+    description: 'Policy for speed limit handling',
+    category: 'cruise',
+    options: [
+      {
+        value: 0,
+        label: 'Car State Only',
+      },
+      {
+        value: 1,
+        label: 'Map Data Only',
+      },
+      {
+        value: 2,
+        label: 'Car State Priority',
+      },
+      {
+        value: 3,
+        label: 'Map Data Priority',
+      },
+      {
+        value: 4,
+        label: 'Combined',
+      },
+    ],
+  },
+  {
+    key: 'SpeedLimitOffsetType',
+    label: 'Speed Limit Offset',
+    description: 'Offset type (fixed/%)',
+    category: 'cruise',
+    options: [
+      {
+        value: 0,
+        label: 'Off',
+      },
+      {
+        value: 1,
+        label: 'Fixed',
+      },
+      {
+        value: 2,
+        label: 'Percentage',
+      },
+    ],
+  },
   { key: 'SmartCruiseControlMap', label: 'SCC-M', description: 'Map-based smart cruise', category: 'cruise' },
   { key: 'MapAdvisorySpeedLimit', label: 'Map Advisory Speed', description: 'Respect map advisory limits', category: 'cruise' },
-  { key: 'CustomAccLongPressIncrement', label: 'Long Press Increment', description: 'Speed change on long press', category: 'cruise' },
+  {
+    key: 'CustomAccLongPressIncrement',
+    label: 'Long Press Increment',
+    description: 'Speed change on long press',
+    category: 'cruise',
+    min: 1,
+    max: 10,
+    step: 1,
+  },
   { key: 'CustomAccIncrementsEnabled', label: 'Custom ACC Increments', description: 'Enable custom speed steps', category: 'cruise' },
   { key: 'AutoLaneChangeBsmDelay', label: 'BSM Safety Delay', description: 'Blind spot monitoring delay', category: 'cruise', advanced: true },
   { key: 'IntelligentCruiseButtonManagement', label: 'Intelligent Cruise Btns', description: 'Enhanced cruise button logic', category: 'cruise' },
   { key: 'AlphaLongitudinalEnabled', label: 'Alpha Longitudinal', description: 'Alpha longitudinal control', category: 'cruise', advanced: true },
-  { key: 'SpeedLimitMode', label: 'Speed Limit Mode', description: 'How speed limits are handled', category: 'cruise' },
-  { key: 'CustomAccShortPressIncrement', label: 'Short Press Increment', description: 'Speed change on short press', category: 'cruise' },
-  { key: 'SpeedLimitValueOffset', label: 'Speed Offset Value', description: 'Value for speed offset', category: 'cruise' },
-  { key: 'AutoLaneChangeTimer', label: 'Auto Lane Change Delay', description: 'Wait time before auto change', category: 'cruise' },
+  {
+    key: 'SpeedLimitMode',
+    label: 'Speed Limit Mode',
+    description: 'How speed limits are handled',
+    category: 'cruise',
+    options: [
+      {
+        value: 0,
+        label: 'Off',
+      },
+      {
+        value: 1,
+        label: 'Information',
+      },
+      {
+        value: 2,
+        label: 'Warning',
+      },
+      {
+        value: 3,
+        label: 'Assist',
+      },
+    ],
+  },
+  {
+    key: 'CustomAccShortPressIncrement',
+    label: 'Short Press Increment',
+    description: 'Speed change on short press',
+    category: 'cruise',
+    min: 1,
+    max: 10,
+    step: 1,
+  },
+  { key: 'SpeedLimitValueOffset', label: 'Speed Offset Value', description: 'Value for speed offset', category: 'cruise', min: -30, max: 30, step: 1 },
+  {
+    key: 'AutoLaneChangeTimer',
+    label: 'Auto Lane Change Delay',
+    description: 'Wait time before auto change',
+    category: 'cruise',
+    options: [
+      {
+        value: -1,
+        label: 'Off',
+      },
+      {
+        value: 0,
+        label: 'Nudge',
+      },
+      {
+        value: 1,
+        label: 'Nudgeless',
+      },
+      {
+        value: 2,
+        label: '0.5s',
+      },
+      {
+        value: 3,
+        label: '1s',
+      },
+      {
+        value: 4,
+        label: '2s',
+      },
+      {
+        value: 5,
+        label: '3s',
+      },
+    ],
+  },
 
   // Visuals
   { key: 'Brightness', label: 'Brightness', description: 'Screen brightness level', category: 'visuals' },
@@ -168,9 +400,17 @@ export const SETTINGS: SettingDefinition[] = [
   { key: 'BlindSpot', label: 'Blind Spot', description: 'Blind spot detection enabled', category: 'visuals', readonly: true },
   { key: 'StandstillTimer', label: 'Standstill Timer', description: 'Display time spent at standstill', category: 'visuals' },
   { key: 'RainbowMode', label: 'Rainbow Mode', description: 'Display rainbow road visualization', category: 'visuals' },
-  { key: 'OnroadScreenOffTimer', label: 'Screen Off Timer', description: 'Time before screen turns off', category: 'visuals' },
+  { key: 'OnroadScreenOffTimer', label: 'Screen Off Timer', description: 'Time before screen turns off', category: 'visuals', min: 0, max: 60, step: 1 },
   { key: 'OnroadScreenOffControl', label: 'Screen Off Control', description: 'Screen off logic control', category: 'visuals' },
-  { key: 'OnroadScreenOffBrightness', label: 'Screen Off Brightness', description: 'Brightness when screen is off', category: 'visuals' },
+  {
+    key: 'OnroadScreenOffBrightness',
+    label: 'Screen Off Brightness',
+    description: 'Brightness when screen is off',
+    category: 'visuals',
+    min: 0,
+    max: 100,
+    step: 5,
+  },
   { key: 'InteractivityTimeout', label: 'Interactivity Timeout', description: 'Timeout for UI interaction', category: 'visuals', advanced: true },
   { key: 'GreenLightAlert', label: 'Green Light Alert', description: 'Alert on green light', category: 'visuals' },
   { key: 'DevUIInfo', label: 'Dev UI Info', description: 'Developer UI overlay data', category: 'visuals', readonly: true, hidden: true },
@@ -300,6 +540,7 @@ export const SETTINGS: SettingDefinition[] = [
   { key: 'ModelManager_ModelsCache', label: 'Model Cache', description: 'Cached model list', category: 'developer', readonly: true, hidden: true },
   { key: 'Offroad_TiciSupport', label: 'TiCi Support', description: 'TiCi hardware support status', category: 'developer', readonly: true, hidden: true },
   { key: 'IsReleaseSpBranch', label: 'SP Release Branch', description: 'On Sunnypilot release branch', category: 'developer', readonly: true, hidden: true },
+  { key: 'SunnylinkEnabled', label: 'sunnylink Enabled', description: 'Enable sunnylink services', category: 'developer', hidden: true },
   { key: 'EnableCopyparty', label: 'Enable File Server', description: 'Start Copyparty file server', category: 'developer', advanced: true },
   { key: 'CarParamsSPCache', label: 'SP Car Params Cache', description: 'Cached Sunnypilot car params', category: 'developer', readonly: true, hidden: true },
   { key: 'CarParamsSP', label: 'SP Car Params', description: 'Sunnypilot vehicle parameters', category: 'developer', readonly: true, hidden: true },
@@ -315,6 +556,8 @@ export const SETTINGS: SettingDefinition[] = [
   { key: 'CameraDebugExpGain', label: 'Cam Debug Gain', description: 'Camera exposure gain', category: 'developer', readonly: true, hidden: true },
   { key: 'ApiCache_FirehoseStats', label: 'Firehose Stats', description: 'Cached streaming stats', category: 'developer', readonly: true, hidden: true },
   { key: 'JoystickDebugMode', label: 'Joystick Debug', description: 'Enable joystick debugging', category: 'developer', advanced: true },
+  { key: 'EnableWebRTC', label: 'Enable WebRTC', description: 'Allow remote live streaming', category: 'developer', advanced: true },
+  { key: 'EnableRemoteParams', label: 'Enable Remote Params', description: 'Allow remote parameter editing', category: 'developer', advanced: true },
   { key: 'ModelManager_LastSyncTime', label: 'Model Sync Time', description: 'Last model list sync', category: 'developer', readonly: true, hidden: true },
   { key: 'IsDevelopmentBranch', label: 'Dev Branch', description: 'On development channel', category: 'developer', readonly: true, hidden: true },
   { key: 'AthenadUploadQueue', label: 'Upload Queue', description: 'Files queued for upload', category: 'developer', readonly: true, hidden: true },
@@ -330,6 +573,7 @@ export const SETTINGS: SettingDefinition[] = [
     readonly: true,
     hidden: true,
   },
+  { key: 'EnableSunnylinkUploader', label: 'sunnylink Uploader', description: 'Upload drives to sunnylink', category: 'developer' },
   { key: 'CameraDebugExpTime', label: 'Cam Debug Time', description: 'Camera exposure time', category: 'developer', readonly: true, hidden: true },
   { key: 'FirmwareQueryDone', label: 'Firmware Query Done', description: 'Firmware check complete', category: 'developer', readonly: true, hidden: true },
   {
@@ -409,15 +653,25 @@ export const SETTINGS: SettingDefinition[] = [
   { key: 'OsmDownloadedDate', label: 'Map Data Date', description: 'Date of downloaded maps', category: 'other', readonly: true, hidden: true },
   { key: 'Offroad_OSMUpdateRequired', label: 'Map Update Required', description: 'OSM maps need update', category: 'other', readonly: true, hidden: true },
   { key: 'MapdVersion', label: 'Mapd Version', description: 'Map daemon version', category: 'other', readonly: true, hidden: true },
+  { key: 'SunnylinkTempFault', label: 'sunnylink Fault', description: 'Temporary connection fault', category: 'other', readonly: true, hidden: true },
+  { key: 'SunnylinkCache_Users', label: 'sunnylink User Cache', description: 'Cached user data', category: 'other', readonly: true, hidden: true },
+  { key: 'SunnylinkCache_Roles', label: 'sunnylink Role Cache', description: 'Cached role data', category: 'other', readonly: true, hidden: true },
+  { key: 'SunnylinkDongleId', label: 'sunnylink ID', description: 'sunnylink device identifier', category: 'other', readonly: true },
   { key: 'MapSpeedLimit', label: 'Map Speed Limit', description: 'Current speed limit from map', category: 'other', readonly: true, hidden: true },
   { key: 'OSMDownloadBounds', label: 'Map Download Bounds', description: 'Map area boundaries', category: 'other', readonly: true, hidden: true },
   { key: 'OsmDbUpdatesCheck', label: 'Map Updates Check', description: 'Last map update check', category: 'other', readonly: true, hidden: true },
   { key: 'AthenadRecentlyViewedRoutes', label: 'Recent Routes', description: 'Recently viewed routes cache', category: 'other', readonly: true, hidden: true },
   { key: 'OsmLocationUrl', label: 'Location URL', description: 'OSM Location Link', category: 'other', readonly: true, hidden: true },
   { key: 'AccessToken', label: 'Access Token', description: 'API Access Token', category: 'other', readonly: true, hidden: true },
+  { key: 'SunnylinkdPid', label: 'sunnylink PID', description: 'sunnylink process ID', category: 'other', readonly: true, hidden: true },
   { key: 'OsmLocal', label: 'Local OSM', description: 'Use local OSM server', category: 'other', advanced: true, hidden: true },
   { key: 'MapTargetVelocities', label: 'Map Target Velocities', description: 'Map-based velocity targets', category: 'other', readonly: true, hidden: true },
   { key: 'OsmWayTest', label: 'OSM Way Test', description: 'Debug OSM way query', category: 'other', advanced: true, hidden: true },
   { key: 'NextMapSpeedLimit', label: 'Next Map Speed', description: 'Upcoming speed limit', category: 'other', readonly: true, hidden: true },
   { key: 'OsmStateTitle', label: 'State Region', description: 'Current OSM region', category: 'other', readonly: true, hidden: true },
+  { key: 'LastSunnylinkPingTime', label: 'LastSunnylinkPingTime', description: 'Unknown setting from device', category: 'other', hidden: true },
+  { key: 'WebRTCOnline', label: '', description: '', category: 'other', hidden: true },
+  { key: 'LastAgnosPowerMonitorShutdown', label: '', description: '', category: 'other', hidden: true },
+  { key: 'CarList', label: '', description: '', category: 'other', hidden: true },
+  { key: '', label: '', description: '', category: 'other', hidden: true },
 ]

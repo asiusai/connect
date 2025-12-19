@@ -245,7 +245,7 @@ export const AthenaRequest = z.object({
 export const AthenaError = z.object({
   code: z.number(),
   message: z.string(),
-  data: z.object({ type: z.string() }).optional(),
+  data: z.object({ type: z.string(), args: z.any().optional(), message: z.string().optional() }).optional(),
 })
 export type AthenaError = z.infer<typeof AthenaError>
 export const AthenaResponse = z.object({

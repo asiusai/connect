@@ -29,16 +29,6 @@ export const ParamValue = z.object({
   key: z.string(),
   type: z.number(),
   value: z.string().nullable(),
-  metadata: z
-    .object({
-      title: z.string().optional(),
-      description: z.string().optional(),
-      options: z.object({ value: z.number(), label: z.string() }).array().optional(),
-      min: z.number().optional(),
-      max: z.number().optional(),
-      step: z.number().optional(),
-    })
-    .optional(),
 })
 export type ParamValue = z.infer<typeof ParamValue>
 
