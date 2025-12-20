@@ -255,6 +255,7 @@ const NavigationSection = ({
   savedValues,
   getValue,
   setChanges,
+  setCurrentRoute,
 }: {
   params: ParamValue[]
   dongleId: string
@@ -263,6 +264,7 @@ const NavigationSection = ({
   savedValues: Record<string, string>
   getValue: (s: Setting) => string | null
   setChanges: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  setCurrentRoute: (route: string | null) => void
 }) => {
   const [navigating, setNavigating] = useState<string | null>(null)
   const [newFavName, setNewFavName] = useState('')
@@ -295,6 +297,7 @@ const NavigationSection = ({
   const handleNavigate = async (address: string) => {
     if (!address) return
     setNavigating(address)
+    setCurrentRoute(address)
     try {
       const result = await callAthena({
         type: 'saveParams',
@@ -530,7 +533,7 @@ const SettingsGrid = ({
 }
 
 export const Component = () => {
-  const { dongleId, params, isLoading, isError } = useDeviceParams()
+  const { dongleId, params, isLoading, isError, setCurrentRoute } = useDeviceParams()
   const [changes, setChanges] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [savedValues, setSavedValues] = useState<Record<string, string>>({})
@@ -652,6 +655,7 @@ export const Component = () => {
                     savedValues={savedValues}
                     getValue={getValue}
                     setChanges={setChanges}
+                    setCurrentRoute={setCurrentRoute}
                   />
                 </div>
               )}

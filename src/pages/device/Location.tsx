@@ -67,14 +67,14 @@ const FitBounds = ({ markers }: { markers: MarkerType[] }) => {
   return null
 }
 
-export const navigateTo = async (address: string, dongleId: string) => {
+export const navigateTo = async (address: string | null, dongleId: string) => {
   const result = await callAthena({
     type: 'saveParams',
     dongleId: dongleId,
-    params: { params_to_update: { MapboxRoute: encode(address) }, compression: false },
+    params: { params_to_update: { MapboxRoute: address ? encode(address) : '' }, compression: false },
   })
   if (result?.error) throw new Error(result.error.message)
-  toast.success(`Navigating to ${address}`)
+  toast.success(address ? `Navigating to ${address}` : 'Navigation cleared')
 
   return result
 }
@@ -90,7 +90,7 @@ export const Location = ({
   searchOpen?: boolean
   onSearchOpenChange?: (open: boolean) => void
 }) => {
-  const { dongleId, favorites } = useDeviceParams()
+  const { dongleId, favorites, setCurrentRoute } = useDeviceParams()
   const { position, requestPosition } = usePosition()
   const navigate = useNavigate()
   const [usingCorrectFork] = useStorage('usingCorrectFork')
@@ -166,6 +166,7 @@ export const Location = ({
   const handleNavigate = async (address: string) => {
     if (!device || !address) return
     setIsSendingNav(true)
+    setCurrentRoute(address)
     try {
       await navigateTo(address, dongleId)
       setIsSearchOpen(false)

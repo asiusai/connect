@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useMemo } from 'react'
+import { createContext, useContext, ReactNode, useMemo, useState, useCallback } from 'react'
 import { useRouteParams, useAsyncMemo } from '../../utils/hooks'
 import { useStorage } from '../../utils/storage'
 import { callAthena, ParamValue } from '../../api/athena'
@@ -18,6 +18,8 @@ type DeviceParamsContextValue = {
   isLoading: boolean
   isError: boolean
   favorites: Record<string, string>
+  currentRoute: string | null
+  setCurrentRoute: (route: string | null) => void
 }
 
 const DeviceParamsContext = createContext<DeviceParamsContextValue | null>(null)
@@ -49,6 +51,19 @@ export const DeviceParamsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [res?.params])
 
+  const routeFromParams = useMemo(() => {
+    if (!res?.params) return null
+    const param = res.params.find((p) => p.key === 'MapboxRoute')
+    return decode(param?.value) || null
+  }, [res?.params])
+
+  const [localRoute, setLocalRoute] = useState<string | null | undefined>(undefined)
+  const currentRoute = localRoute === undefined ? routeFromParams : localRoute
+
+  const setCurrentRoute = useCallback((route: string | null) => {
+    setLocalRoute(route)
+  }, [])
+
   return (
     <DeviceParamsContext.Provider
       value={{
@@ -57,6 +72,8 @@ export const DeviceParamsProvider = ({ children }: { children: ReactNode }) => {
         isLoading: res === undefined,
         isError: res?.error ?? false,
         favorites,
+        currentRoute,
+        setCurrentRoute,
       }}
     >
       {children}
@@ -74,6 +91,8 @@ export const useDeviceParams = () => {
       isLoading: true,
       isError: false,
       favorites: {} as Record<string, string>,
+      currentRoute: null,
+      setCurrentRoute: () => {},
     }
   }
   return context
