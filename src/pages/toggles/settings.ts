@@ -22,9 +22,14 @@ export const SETTINGS: SettingDefinition[] = [
   { key: 'MapboxToken', label: 'Mapbox Token', description: 'API token for Mapbox navigation', category: 'navigation' },
   { key: 'MapboxRoute', label: 'Current Route', description: 'Current navigation destination', category: 'navigation' },
   { key: 'MapboxFavorites', label: 'Favorites', description: 'Saved navigation destinations', category: 'navigation', hidden: true },
-  { key: 'NavDesiresAllowed', label: 'Nav Desires', description: 'Allow navigation desires', category: 'navigation' },
-  { key: 'MapboxRecompute', label: 'Recompute Route', description: 'Allow route recomputation', category: 'navigation' },
   { key: 'AllowNavigation', label: 'Allow Navigation', description: 'Enable navigation features', category: 'navigation' },
+  { key: 'NavDesiresAllowed', label: 'Nav Desires', description: 'Allow navigation desires (tries to turn automatically)', category: 'navigation' },
+  {
+    key: 'MapboxRecompute',
+    label: 'Recompute Route',
+    description: 'Allow route recomputation (recomputes when off the selected route)',
+    category: 'navigation',
+  },
   { key: 'MapboxSettings', label: 'Mapbox Settings', description: 'Mapbox configuration', category: 'navigation', hidden: true },
 
   // Device

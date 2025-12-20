@@ -1,13 +1,15 @@
 import { callAthena, ParamValue } from '../../api/athena'
 import { BackButton } from '../../components/BackButton'
 import { TopAppBar } from '../../components/TopAppBar'
-import { useAsyncMemo, useRouteParams } from '../../utils/hooks'
 import { useStorage } from '../../utils/storage'
+import { useDeviceParams } from '../device/DeviceParamsContext'
 import { SettingCategory, SettingDefinition, SETTINGS } from './settings'
 import { Button } from '../../components/Button'
 import { Toggle } from '../../components/Toggle'
 import { Select } from '../../components/Select'
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { env } from '../../utils/env'
+import { IconButton } from '../../components/IconButton'
 import { toast } from 'sonner'
 import clsx from 'clsx'
 import { Icon } from '../../components/Icon'
@@ -159,7 +161,91 @@ const ModelsSection = ({ params, dongleId }: { params: ParamValue[]; dongleId: s
   )
 }
 
-type MapboxFavoritesData = { home?: string; work?: string; favorites?: Record<string, string> }
+type MapboxFavoritesData = Record<string, string>
+type MapboxSuggestion = { place_name: string; center: [number, number] }
+
+const AddressAutocomplete = ({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  className?: string
+}) => {
+  const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSuggestions([])
+      return
+    }
+    setIsLoading(true)
+    try {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${env.MAPBOX_TOKEN}&autocomplete=true&limit=5`
+      const res = await fetch(url)
+      if (res.ok) {
+        const data = await res.json()
+        setSuggestions(data.features ?? [])
+      }
+    } catch {
+      setSuggestions([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  const handleChange = (newValue: string) => {
+    onChange(newValue)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => fetchSuggestions(newValue), 300)
+  }
+
+  const handleSelect = (suggestion: MapboxSuggestion) => {
+    onChange(suggestion.place_name)
+    setSuggestions([])
+    setIsOpen(false)
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={containerRef} className="relative flex-1 min-w-0">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        onFocus={() => setIsOpen(true)}
+        placeholder={placeholder}
+        className={clsx('bg-background-alt text-sm px-3 py-1.5 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 w-full', className)}
+      />
+      {isOpen && suggestions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-background rounded-lg border border-white/10 shadow-xl z-50 max-h-48 overflow-y-auto">
+          {suggestions.map((s, i) => (
+            <button key={i} onClick={() => handleSelect(s)} className="w-full text-left px-3 py-2 text-sm hover:bg-white/10 truncate">
+              {s.place_name}
+            </button>
+          ))}
+        </div>
+      )}
+      {isLoading && <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50">...</div>}
+    </div>
+  )
+}
 
 const NavigationSection = ({
   params,
@@ -226,16 +312,17 @@ const NavigationSection = ({
 
   const handleAddFavorite = () => {
     if (!newFavName.trim() || !newFavAddress.trim()) return
-    const updated = { ...localFavorites, favorites: { ...localFavorites.favorites, [newFavName.trim()]: newFavAddress.trim() } }
-    updateFavorites(updated)
+    updateFavorites({ ...localFavorites, [newFavName.trim()]: newFavAddress.trim() })
     setNewFavName('')
     setNewFavAddress('')
   }
 
   const handleDeleteFavorite = (name: string) => {
-    const { [name]: _, ...rest } = localFavorites.favorites ?? {}
-    updateFavorites({ ...localFavorites, favorites: rest })
+    const { [name]: _, ...rest } = localFavorites
+    updateFavorites(rest)
   }
+
+  const customFavorites = Object.entries(localFavorites).filter(([key]) => key !== 'home' && key !== 'work')
 
   const tokenSetting = settings.find((s) => s.key === 'MapboxToken')
   const routeSetting = settings.find((s) => s.key === 'MapboxRoute')
@@ -258,12 +345,10 @@ const NavigationSection = ({
         {routeSetting && (
           <div className="flex flex-col gap-2">
             <label className="text-xs uppercase tracking-wider opacity-60">Current Route</label>
-            <input
-              type="text"
+            <AddressAutocomplete
               value={getValue(routeSetting) ?? ''}
-              onChange={(e) => setChanges((p) => ({ ...p, MapboxRoute: e.target.value }))}
+              onChange={(v) => setChanges((p) => ({ ...p, MapboxRoute: v }))}
               placeholder="Enter destination..."
-              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
             />
           </div>
         )}
@@ -271,82 +356,65 @@ const NavigationSection = ({
 
       <div className="flex flex-col gap-3">
         <label className="text-xs uppercase tracking-wider opacity-60">Quick Destinations</label>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div className="flex flex-col outline outline-white/10 rounded-lg p-4 gap-3">
-            <span className="font-medium">Home</span>
-            <input
-              type="text"
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1">
+            <Icon name="home" className="text-white/60 shrink-0" />
+            <AddressAutocomplete
               value={localFavorites.home ?? ''}
-              onChange={(e) => updateFavorites({ ...localFavorites, home: e.target.value })}
+              onChange={(v) => updateFavorites({ ...localFavorites, home: v })}
               placeholder="Home address..."
-              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
             />
-            <Button
+            <IconButton
+              name="navigation"
+              title="Navigate"
               onClick={() => handleNavigate(localFavorites.home ?? '')}
               disabled={!localFavorites.home || navigating === localFavorites.home}
-              className="w-full text-sm"
-            >
-              {navigating === localFavorites.home ? 'Setting...' : 'Navigate'}
-            </Button>
+              className="shrink-0"
+            />
           </div>
 
-          <div className="flex flex-col outline outline-white/10 rounded-lg p-4 gap-3">
-            <span className="font-medium">Work</span>
-            <input
-              type="text"
+          <div className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1">
+            <Icon name="work" className="text-white/60 shrink-0" />
+            <AddressAutocomplete
               value={localFavorites.work ?? ''}
-              onChange={(e) => updateFavorites({ ...localFavorites, work: e.target.value })}
+              onChange={(v) => updateFavorites({ ...localFavorites, work: v })}
               placeholder="Work address..."
-              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
             />
-            <Button
+            <IconButton
+              name="navigation"
+              title="Navigate"
               onClick={() => handleNavigate(localFavorites.work ?? '')}
               disabled={!localFavorites.work || navigating === localFavorites.work}
-              className="w-full text-sm"
-            >
-              {navigating === localFavorites.work ? 'Setting...' : 'Navigate'}
-            </Button>
+              className="shrink-0"
+            />
           </div>
 
-          {Object.entries(localFavorites.favorites ?? {}).map(([name, address]) => (
-            <div key={name} className="flex flex-col outline outline-white/10 rounded-lg p-4 gap-3">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">{name}</span>
-                <button onClick={() => handleDeleteFavorite(name)} className="text-red-400 hover:text-red-300 text-sm">
-                  Remove
-                </button>
-              </div>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => updateFavorites({ ...localFavorites, favorites: { ...localFavorites.favorites, [name]: e.target.value } })}
-                className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
+          {customFavorites.map(([name, address]) => (
+            <div key={name} className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1">
+              <Icon name="star" className="text-white/60 shrink-0" />
+              <AddressAutocomplete value={address} onChange={(v) => updateFavorites({ ...localFavorites, [name]: v })} placeholder={name} />
+              <IconButton
+                name="navigation"
+                title="Navigate"
+                onClick={() => handleNavigate(address)}
+                disabled={!address || navigating === address}
+                className="shrink-0"
               />
-              <Button onClick={() => handleNavigate(address)} disabled={!address || navigating === address} className="w-full text-sm">
-                {navigating === address ? 'Setting...' : 'Navigate'}
-              </Button>
+              <IconButton name="delete" title="Remove" onClick={() => handleDeleteFavorite(name)} className="shrink-0 text-red-400" />
             </div>
           ))}
 
-          <div className="flex flex-col border border-dashed border-white/10 rounded-lg p-4 gap-3">
-            <span className="font-medium opacity-60">Add Favorite</span>
+          <div className="flex items-center gap-2 border border-dashed border-white/10 rounded-lg p-2 pr-1">
+            <Icon name="add" className="text-white/40 shrink-0" />
             <input
               type="text"
               value={newFavName}
               onChange={(e) => setNewFavName(e.target.value)}
               placeholder="Name..."
-              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
+              className="bg-background-alt text-sm px-3 py-1.5 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 w-20"
             />
-            <input
-              type="text"
-              value={newFavAddress}
-              onChange={(e) => setNewFavAddress(e.target.value)}
-              placeholder="Address..."
-              className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20"
-            />
-            <Button onClick={handleAddFavorite} disabled={!newFavName.trim() || !newFavAddress.trim()} className="w-full text-sm">
-              Add
-            </Button>
+            <AddressAutocomplete value={newFavAddress} onChange={setNewFavAddress} placeholder="Address..." />
+            <IconButton name="add" title="Add" onClick={handleAddFavorite} disabled={!newFavName.trim() || !newFavAddress.trim()} className="shrink-0" />
           </div>
         </div>
       </div>
@@ -462,16 +530,14 @@ const SettingsGrid = ({
 }
 
 export const Component = () => {
-  const { dongleId } = useRouteParams()
+  const { dongleId, params, isLoading, isError } = useDeviceParams()
   const [changes, setChanges] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [savedValues, setSavedValues] = useState<Record<string, string>>({})
   const [openSection, setOpenSection] = useStorage('togglesOpenTab')
 
-  const res = useAsyncMemo(() => callAthena({ type: 'getAllParams', dongleId, params: {} }), [dongleId])
-
   const settingsByCategory = useMemo(() => {
-    if (!res?.result) return null
+    if (!params) return null
     const result: Record<SettingCategory, Setting[]> = {
       models: [],
       navigation: [],
@@ -488,16 +554,16 @@ export const Component = () => {
       const defined: Setting[] = SETTINGS.filter((x) => !x.hidden && x.category === cat)
         .map((s) => ({
           ...s,
-          value: res.result?.find((x) => x.key === s.key),
+          value: params.find((x) => x.key === s.key),
         }))
         .filter((x) => x.value)
       result[cat] = defined
     }
 
-    const leftOver = res.result?.filter((x) => !SETTINGS.some((s) => s.key === x.key)) ?? []
+    const leftOver = params.filter((x) => !SETTINGS.some((s) => s.key === x.key))
     result.other = [...result.other, ...leftOver.map((x): Setting => ({ key: x.key, label: x.key, description: '', category: 'other', value: x }))]
     return result
-  }, [res])
+  }, [params])
   console.log(settingsByCategory)
 
   const getValue = (s: Setting) => {
@@ -529,8 +595,6 @@ export const Component = () => {
   const toggleSection = (cat: SettingCategory) => setOpenSection(openSection === cat ? null : cat)
 
   const changeCount = Object.keys(changes).length
-  const isLoading = res === undefined
-  const isError = res?.error || (res && !res.result)
 
   return (
     <div className="flex flex-col min-h-screen bg-transparent text-foreground gap-4">
@@ -561,17 +625,17 @@ export const Component = () => {
           <div className="flex flex-col items-center justify-center py-20 gap-2 text-center">
             <span className="text-4xl opacity-40">:(</span>
             <span className="text-lg font-medium">Unable to load parameters</span>
-            <span className="text-sm opacity-60">{res?.error?.data?.message ?? res.error?.message ?? 'Device offline or incompatible fork'}</span>
+            <span className="text-sm opacity-60">Device offline or incompatible fork</span>
           </div>
         )}
 
-        {settingsByCategory && res?.result && (
+        {settingsByCategory && params && (
           <div className="flex flex-col divide-y divide-white/5">
             <div>
               <SectionHeader label={CATEGORY_LABELS.models} isOpen={openSection === 'models'} onClick={() => toggleSection('models')} />
               {openSection === 'models' && (
                 <div className="pb-6">
-                  <ModelsSection params={res.result} dongleId={dongleId} />
+                  <ModelsSection params={params} dongleId={dongleId} />
                 </div>
               )}
             </div>
@@ -581,7 +645,7 @@ export const Component = () => {
               {openSection === 'navigation' && (
                 <div className="pb-6">
                   <NavigationSection
-                    params={res.result}
+                    params={params}
                     dongleId={dongleId}
                     settings={settingsByCategory.navigation}
                     changes={changes}

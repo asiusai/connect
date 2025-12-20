@@ -1,8 +1,9 @@
 import clsx from 'clsx'
+import { z } from 'zod'
 
 // Specify icon names to load only the necessary icons, reducing font payload.
 // https://developers.google.com/fonts/docs/material_symbols#optimize_the_icon_font
-export const Icons = [
+export const IconName = z.enum([
   'add',
   'arrow_back',
   'camera',
@@ -72,9 +73,13 @@ export const Icons = [
   'link',
   'content_cut',
   'switches',
-] as const
+  'star',
+  'search_off',
+  'navigation',
+])
 
-export type IconName = (typeof Icons)[number]
+export type IconName = z.infer<typeof IconName>
+export const Icons = IconName.options
 
 export type IconProps = {
   className?: string

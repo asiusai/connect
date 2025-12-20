@@ -6,9 +6,14 @@ import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
 import { env } from '../../utils/env'
+import { useProfile } from '../../api/queries'
+import { Button } from '../../components/Button'
+import { Icon } from '../../components/Icon'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
+  const [profile] = useProfile()
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>Settings</TopAppBar>
@@ -17,6 +22,21 @@ export const Component = () => {
         <Preferences />
         <Users />
         {!!env.BILLING_URL && <Prime />}
+
+        {profile && (
+          <div className="flex flex-col gap-4">
+            <h2 className="text-xl font-bold px-2">Account</h2>
+            <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="font-medium">{profile.email ?? profile.id}</span>
+                <span className="text-xs text-white/60">Signed in</span>
+              </div>
+              <Button href="/logout" color="error" leading={<Icon name="logout" />}>
+                Log out
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Loading } from '../../components/Loading'
 import { useDevice } from '../../api/queries'
 import { Location } from './Location'
@@ -6,14 +8,17 @@ import { Stats } from './Stats'
 import { Info } from './Info'
 import { ActionBar } from './ActionBar'
 import { Navigation } from './Navigation'
-import { UserMobile } from './UserMobile'
 import { useRouteParams, useScroll } from '../../utils/hooks'
 import { DevicesMobile } from './DevicesMobile'
 import { Icon } from '../../components/Icon'
+import { IconButton } from '../../components/IconButton'
+import { useStorage } from '../../utils/storage'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
   const [device, { isLoading, error }] = useDevice(dongleId)
+  const [usingCorrectFork] = useStorage('usingCorrectFork')
+  const [searchOpen, setSearchOpen] = useState(false)
 
   const scroll = useScroll()
 
@@ -36,13 +41,26 @@ export const Component = () => {
   return (
     <div className="flex flex-col min-h-screen relative">
       <div className="w-full sticky top-0" style={{ height }}>
-        <Location devices={device ? [device] : []} className="h-full w-full" />
+        <Location device={device} className="h-full w-full" searchOpen={searchOpen} onSearchOpenChange={setSearchOpen} />
         <div className="absolute z-[999] top-0 w-full flex justify-between p-4 md:hidden">
           <DevicesMobile />
-          <UserMobile />
+          {usingCorrectFork && !searchOpen && (
+            <IconButton name="search" title="Navigate" onClick={() => setSearchOpen(true)} className="bg-background/80 backdrop-blur-sm p-2 size-12 shrink-0" />
+          )}
         </div>
         <div className="pointer-events-none absolute inset-0 bg-background z-[999]" style={{ opacity: scroll / height }} />
       </div>
+      {usingCorrectFork &&
+        !searchOpen &&
+        createPortal(
+          <IconButton
+            name="search"
+            title="Navigate"
+            onClick={() => setSearchOpen(true)}
+            className="fixed top-3 right-3 z-[9999] bg-background/80 backdrop-blur-sm p-2 hidden md:flex"
+          />,
+          document.body,
+        )}
 
       <div className="grid md:grid-cols-3 gap-10 p-6 bg-background relative">
         <div className="md:hidden absolute top-0 -translate-y-[100%] py-2 flex w-full">
