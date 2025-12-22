@@ -72,17 +72,17 @@ export const formatVideoTime = (seconds: number) => {
 export const timeAgo = (time: number): string => {
   const diff = Math.floor(Date.now() / 1000) - time
 
-  if (diff < 120) return 'active now'
+  if (diff < 120) return 'now'
 
   const minutes = Math.floor(diff / 60)
-  if (minutes < 60) return `active ${minutes}m ago`
+  if (minutes < 60) return `${minutes}m ago`
 
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `active ${hours}h ago`
+  if (hours < 24) return `${hours}h ago`
 
   const days = Math.floor(hours / 24)
-  if (days < 365) return `active ${days}d ago`
+  if (days < 365) return `${days}d ago`
 
   const years = Math.floor(days / 365)
-  return `active ${years}y ago`
+  return `${years}y ago`
 }
