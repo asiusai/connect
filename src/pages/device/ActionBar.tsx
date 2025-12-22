@@ -1,12 +1,12 @@
 import clsx from 'clsx'
-import { ButtonBase } from '../../components/ButtonBase'
-import { Icon, IconName } from '../../components/Icon'
+import { IconName } from '../../components/Icon'
 import { z } from 'zod'
-import React from 'react'
+import React, { useState } from 'react'
 import { ParamValue } from '../../api/athena'
 import { navigateTo } from './Location'
 import { useDeviceParams } from './DeviceParamsContext'
 import { useRouteParams } from '../../utils/hooks'
+import { IconButton } from '../../components/IconButton'
 
 const BaseAction = z.object({
   icon: IconName,
@@ -19,7 +19,7 @@ const DummyAction = BaseAction.extend({
 
 const NavigationAction = BaseAction.extend({
   type: z.literal('navigation'),
-  location: z.enum(['home', 'work']),
+  location: z.string(),
 })
 
 const ToggleAction = BaseAction.extend({
@@ -37,29 +37,28 @@ export type Action = z.infer<typeof Action>
 
 const DummyActionComponent = ({ icon, title }: z.infer<typeof DummyAction>) => {
   return (
-    <ButtonBase
+    <IconButton
+      name={icon}
       disabled={true}
-      className={clsx('flex items-center justify-center aspect-square rounded-lg bg-background-alt transition-colors border border-white/5 text-white/80 ')}
+      className={clsx(
+        'text-xl flex items-center justify-center aspect-square rounded-lg bg-background-alt transition-colors border border-white/5 text-white/80 ',
+      )}
       title={title}
-    >
-      <Icon name={icon} className="text-xl" />
-    </ButtonBase>
+    />
   )
 }
 
 const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectAction>) => {
   return (
-    <ButtonBase
+    <IconButton
+      name={icon}
       href={href}
       disabled={!href}
       className={clsx(
-        'flex items-center justify-center aspect-square rounded-lg bg-background-alt transition-colors border border-white/5 text-white/80 ',
-        href && 'hover:bg-white/10 hover:text-white',
+        'text-xl flex items-center justify-center aspect-square rounded-lg bg-background-alt transition-colors border border-white/5 text-white/80 ',
       )}
       title={title}
-    >
-      <Icon name={icon} className="text-xl" />
-    </ButtonBase>
+    />
   )
 }
 
@@ -67,39 +66,35 @@ const ToggleActionComponent = (_: z.infer<typeof ToggleAction>) => {
   return null
 }
 
-const NavigationActionComponent = ({
-  title,
-  icon,
-  location,
-  dongleId,
-  favorites,
-}: z.infer<typeof NavigationAction> & { dongleId: string; favorites: Record<string, string> }) => {
+const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof NavigationAction>) => {
+  const [loading, setLoading] = useState(false)
+  const { dongleId } = useRouteParams()
+  const { favorites } = useDeviceParams()
   const address = favorites[location]
   return (
-    <ButtonBase
+    <IconButton
+      name={icon}
       onClick={async () => {
+        setLoading(true)
         if (address) await navigateTo(address, dongleId)
+        setLoading(false)
       }}
-      disabled={!address}
+      loading={loading}
+      disabled={!address || loading}
       className={clsx(
-        'flex items-center justify-center aspect-square rounded-lg bg-background-alt transition-colors border border-white/5 text-white/80 ',
-        'hover:bg-white/10 hover:text-white',
+        'flex items-center justify-center aspect-square rounded-lg bg-background-alt transition-colors border border-white/5 text-white/80 text-xl',
       )}
       title={title}
-    >
-      <Icon name={icon} className="text-xl" />
-    </ButtonBase>
+    />
   )
 }
 
 export const ActionBar = ({ className }: { className?: string }) => {
-  const routeParams = useRouteParams()
-  const { favorites } = useDeviceParams()
-  const dongleId = routeParams.dongleId
+  const { dongleId } = useRouteParams()
   const actions: Action[] = [
     { type: 'dummy', icon: 'power_settings_new', title: 'Shutdown' },
-    { type: 'navigation', icon: 'home', title: 'Home', location: 'home' },
-    { type: 'navigation', icon: 'work', title: 'Work', location: 'work' },
+    { type: 'navigation', icon: 'home', title: 'Navigate to home', location: 'home' },
+    { type: 'navigation', icon: 'work', title: 'Navigate to work', location: 'work' },
     { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/${dongleId}/sentry?instant=1` },
   ]
   return (
@@ -114,7 +109,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
           {props.type === 'dummy' && <DummyActionComponent {...props} />}
           {props.type === 'redirect' && <RedirectActionComponent {...props} />}
           {props.type === 'toggle' && <ToggleActionComponent {...props} />}
-          {props.type === 'navigation' && <NavigationActionComponent {...props} dongleId={dongleId} favorites={favorites} />}
+          {props.type === 'navigation' && <NavigationActionComponent {...props} />}
         </React.Fragment>
       ))}
     </div>

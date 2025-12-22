@@ -98,7 +98,7 @@ export const Component = () => {
       <div className="w-full sticky top-0" style={{ height }}>
         <Location device={device} className="h-full w-full" searchOpen={searchOpen} onSearchOpenChange={setSearchOpen} />
         <div className="absolute z-[999] top-0 w-full p-4 md:hidden">
-          <div className="flex justify-center items-start gap-2">
+          <div className="flex justify-between items-start gap-2 w-full">
             <DevicesMobile />
             {usingCorrectFork && <NavButton searchOpen={searchOpen} setSearchOpen={setSearchOpen} />}
           </div>

@@ -15,7 +15,7 @@ export type ButtonBaseProps = {
 }
 
 export const ButtonBase = ({ activeClass, href, onClick, ...props }: ButtonBaseProps) => {
-  const className = clsx('isolate overflow-hidden', props.className, props.disabled && 'opacity-70 pointer-events-none')
+  const className = clsx('isolate overflow-hidden', props.className, props.disabled && 'opacity-65 pointer-events-none')
   return href ? (
     <Link {...props} to={href} className={className} />
   ) : (
