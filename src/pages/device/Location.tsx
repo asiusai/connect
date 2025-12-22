@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon, IconName, Icons } from '../../components/Icon'
 import { getTileUrl } from '../../utils/map'
 import L from 'leaflet'
-import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
+import { MapContainer, Marker, TileLayer, useMap, Polyline } from 'react-leaflet'
 import { IconButton } from '../../components/IconButton'
 import { useRouteParams } from '../../utils/hooks'
 import { useNavigate } from 'react-router-dom'
@@ -77,6 +77,46 @@ const fetchSuggestions = async (query: string, marker?: MarkerType): Promise<Map
   return []
 }
 
+type DirectionsResult = {
+  destination: [number, number]
+  coordinates: [number, number][]
+}
+
+const fetchDirections = async (from: { lat: number; lng: number }, toAddress: string): Promise<DirectionsResult | null> => {
+  if (!toAddress.trim()) return null
+  try {
+    const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(toAddress)}.json?access_token=${env.MAPBOX_TOKEN}&limit=1`
+    const geocodeRes = await fetch(geocodeUrl)
+    if (!geocodeRes.ok) return null
+    const geocodeData = await geocodeRes.json()
+    const destCoords = geocodeData.features?.[0]?.center as [number, number] | undefined
+    if (!destCoords) return null
+
+    const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${from.lng},${from.lat};${destCoords[0]},${destCoords[1]}?geometries=geojson&access_token=${env.MAPBOX_TOKEN}`
+    const directionsRes = await fetch(directionsUrl)
+    if (!directionsRes.ok) return { destination: [destCoords[1], destCoords[0]], coordinates: [] }
+    const directionsData = await directionsRes.json()
+    const coords = directionsData.routes?.[0]?.geometry?.coordinates as [number, number][] | undefined
+    return {
+      destination: [destCoords[1], destCoords[0]],
+      coordinates: coords?.map(([lng, lat]) => [lat, lng] as [number, number]) ?? [],
+    }
+  } catch {}
+  return null
+}
+
+const useDirections = (deviceLocation: { lat: number; lng: number } | undefined, routeAddress: string | null | undefined) => {
+  const [directions, setDirections] = useState<DirectionsResult | null>(null)
+
+  useEffect(() => {
+    if (!deviceLocation || !routeAddress) return setDirections(null)
+
+    fetchDirections(deviceLocation, routeAddress).then(setDirections)
+  }, [deviceLocation?.lat, deviceLocation?.lng, routeAddress])
+
+  return directions
+}
+
 export const useSuggestions = () => {
   const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -115,7 +155,7 @@ export const useSearch = create<Navigation>((set) => ({
 
 export const Location = ({ className, device }: { className?: string; device?: Device }) => {
   const { dongleId } = useRouteParams()
-  const { setMapboxRoute, favorites } = useDeviceParams()
+  const { setMapboxRoute, favorites, route } = useDeviceParams()
   const { position, requestPosition } = usePosition()
   const navigate = useNavigate()
   const [usingCorrectFork] = useStorage('usingCorrectFork')
@@ -146,6 +186,19 @@ export const Location = ({ className, device }: { className?: string; device?: D
         iconClass: 'bg-tertiary text-tertiary-x',
       } satisfies MarkerType)
     : undefined
+
+  const directions = useDirections(location ? { lat: location.lat, lng: location.lng } : undefined, route)
+  const destinationMarker = directions
+    ? ({
+        id: 'destination',
+        lat: directions.destination[0],
+        lng: directions.destination[1],
+        label: route ?? 'Destination',
+        iconName: 'flag' as IconName,
+        iconClass: 'bg-green-600 text-white',
+      } satisfies MarkerType)
+    : undefined
+
   const { suggestions, isLoading, updateSuggestions } = useSuggestions()
   const search = (query: string) => {
     setQuery(query)
@@ -172,11 +225,15 @@ export const Location = ({ className, device }: { className?: string; device?: D
     }
   }, [isSearchOpen])
 
-  const markers = [deviceMarker, userMarker].filter(Boolean) as MarkerType[]
+  const markers = [deviceMarker, userMarker, destinationMarker].filter(Boolean) as MarkerType[]
   return (
     <div className={clsx(className)}>
       <MapContainer attributionControl={false} zoomControl={false} center={SAN_DIEGO} zoom={10} className="h-full w-full !bg-background-alt">
         <TileLayer url={getTileUrl()} />
+
+        {directions && directions.coordinates.length > 0 && (
+          <Polyline positions={directions.coordinates} pathOptions={{ color: '#22c55e', weight: 4, opacity: 0.8 }} />
+        )}
 
         {markers.map((x) => (
           <Marker
