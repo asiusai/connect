@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { Loading } from '../../components/Loading'
 import { useDevice } from '../../api/queries'
 import { Location, useSearch } from './Location'
@@ -15,10 +14,11 @@ import { useStorage } from '../../utils/storage'
 import { useDeviceParams } from './useDeviceParams'
 import clsx from 'clsx'
 import { toast } from 'sonner'
+import { IconButton } from '../../components/IconButton'
 
 const NavButton = () => {
   const { setIsSearchOpen } = useSearch()
-  const { setMapboxRoute, route } = useDeviceParams()
+  const { setMapboxRoute, route, isSaving } = useDeviceParams()
 
   if (route) {
     return (
@@ -31,17 +31,17 @@ const NavButton = () => {
       >
         <Icon name="navigation" className="text-primary text-lg shrink-0" />
         <span className="text-sm truncate">{route}</span>
-        <button
+        <IconButton
+          name="close"
           onClick={async (e) => {
             e.stopPropagation()
             const res = await setMapboxRoute(null)
             if (res?.error) toast.error(res.error.data?.message ?? res.error.message)
           }}
-          className="size-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50 shrink-0"
+          disabled={isSaving}
+          className="size-8 flex text-base items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50 shrink-0"
           title="Clear route"
-        >
-          <Icon name="close" className="text-base" />
-        </button>
+        />
       </div>
     )
   }
@@ -89,6 +89,11 @@ export const Component = () => {
     <div className="flex flex-col min-h-screen relative">
       <div className="w-full sticky top-0" style={{ height }}>
         <Location device={device} className="h-full w-full" />
+        {usingCorrectFork && (
+          <div className="fixed top-3 right-3 z-[9999] hidden md:block">
+            <NavButton />
+          </div>
+        )}
         <div className="absolute z-[999] top-0 w-full p-4 md:hidden">
           <div className="flex justify-between items-start gap-2 w-full">
             <DevicesMobile />
@@ -97,14 +102,6 @@ export const Component = () => {
         </div>
         <div className="pointer-events-none absolute inset-0 bg-background z-[999]" style={{ opacity: scroll / height }} />
       </div>
-      {usingCorrectFork &&
-        createPortal(
-          <div className="fixed top-3 right-3 z-[9999] hidden md:block">
-            <NavButton />
-          </div>,
-          document.body,
-        )}
-
       <div className="grid md:grid-cols-3 gap-10 p-6 bg-background relative">
         <div className="md:hidden absolute top-0 -translate-y-[100%] py-2 flex w-full">
           <ActionBar className="mx-auto w-64 gap-4" />

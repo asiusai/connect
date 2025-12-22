@@ -79,7 +79,15 @@ export const Component = () => {
     result.other = [
       ...result.other,
       ...leftOver.map(
-        (key): Setting => ({ key, label: key, description: '', category: 'other', value: get(key as DeviceParamKey), type: types[key as DeviceParamKey] }),
+        (key): Setting => ({
+          key,
+          label: key,
+          description: '',
+          category: 'other',
+          value: get(key as DeviceParamKey),
+          type: types[key as DeviceParamKey],
+          icon: 'star',
+        }),
       ),
     ]
     return result
