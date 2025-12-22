@@ -89,7 +89,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
 
   return (
     <div
-      className={clsx('flex gap-2 flex-wrap-reverse items-center justify-center', className)}
+      className={clsx('flex gap-2 flex-wrap items-center justify-center', className)}
       style={{
         gridTemplateColumns: `repeat(${actions.length}, minmax(2, 2fr))`,
       }}

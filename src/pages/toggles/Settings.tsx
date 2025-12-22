@@ -13,10 +13,10 @@ export const AddToActionBar = ({ action }: { action: Action }) => {
   const [actions, setActions] = useStorage('actions')
   return (
     <IconButton
-      name="add"
+      name="close_small"
       title="Add to action bar"
       onClick={() => setActions([...actions, action])}
-      className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-background-alt hidden group-hover:flex border border-white/20 z-20"
+      className="rotate-45 absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-background-alt hidden group-hover:flex border border-white/20 z-20"
     />
   )
 }
@@ -118,11 +118,11 @@ export const Settings = ({ settings }: { settings: Setting[] }) => {
                     <AddToActionBar
                       action={{
                         type: 'toggle',
-                        icon: 'star',
                         title: x.label,
                         toggleKey: x.key,
                         toggleType: x.type!,
                         disabled: readonly,
+                        icon: x.icon ?? 'star',
                       }}
                     />
                   )}
