@@ -7,7 +7,9 @@ export const Select = <T extends string>({
   options,
   className,
   style,
+  disabled,
 }: {
+  disabled?: boolean
   options: { value: T; label: ReactNode; disabled?: boolean }[]
   value: T
   onChange: (v: T) => void
@@ -16,6 +18,7 @@ export const Select = <T extends string>({
 }) => {
   return (
     <select
+      disabled={disabled}
       value={value}
       onChange={(e) => onChange(e.currentTarget.value as T)}
       className={clsx(

@@ -19,9 +19,12 @@ export type DeviceParam = {
 export enum DeviceParamType {
   String = 0,
   Boolean = 1,
-  Select = 2,
+  SelectOrInt = 2,
   Number = 3,
+  Date = 4,
+  JSON = 5,
 }
+
 export const DEVICE_PARAMS = {
   // Navigation
   MapboxToken: { label: 'Mapbox Token', description: 'API token for Mapbox navigation', category: 'navigation' },

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../types'
 import { Action } from '../pages/device/ActionBar'
-import { DEVICE_PARAMS, DeviceParamType } from '../pages/toggles/settings'
+import { DEVICE_PARAMS, DeviceParamType } from '../utils/params'
 
 const STORAGES = {
   actions: (): Action[] => [

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { AthenaResponse, callAthena } from '../../api/athena'
 import { decode, encode, parse } from '../../utils/helpers'
-import { DeviceParamKey } from '../toggles/settings'
+import { DeviceParamKey } from '../../utils/params'
 import { toast } from 'sonner'
 
 type DeviceParamsState = {

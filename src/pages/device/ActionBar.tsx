@@ -4,8 +4,7 @@ import { z } from 'zod'
 import { useDeviceParams } from './useDeviceParams'
 import { useRouteParams } from '../../utils/hooks'
 import { IconButton } from '../../components/IconButton'
-import { DeviceParamType } from '../toggles/settings'
-import { Fragment } from 'react'
+import { DeviceParamType } from '../../utils/params'
 import { useStorage } from '../../utils/storage'
 
 const BaseAction = z.object({
@@ -22,6 +21,7 @@ const ToggleAction = BaseAction.extend({
   type: z.literal('toggle'),
   toggleKey: z.string(),
   toggleType: z.number(),
+  disabled: z.boolean().optional(),
 })
 
 const RedirectAction = BaseAction.extend({
@@ -32,6 +32,9 @@ const RedirectAction = BaseAction.extend({
 export const Action = z.discriminatedUnion('type', [NavigationAction, ToggleAction, RedirectAction])
 export type Action = z.infer<typeof Action>
 
+const BUTTON_STYLE = 'h-full w-full rounded-md border border-white/5 text-white bg-background-alt hover:bg-background'
+const SELECTED_BUTTON = 'bg-white !text-background-alt hover:!bg-white/80'
+
 const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectAction>) => {
   const { dongleId } = useRouteParams()
   return (
@@ -39,15 +42,13 @@ const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectA
       name={icon}
       href={href.replaceAll('{dongleId}', dongleId)}
       disabled={!href.replaceAll('{dongleId}', dongleId)}
-      className={clsx(
-        'text-xl flex items-center justify-center aspect-square rounded-lg bg-background-alt transition-colors border border-white/5 text-white/80 ',
-      )}
+      className={clsx(BUTTON_STYLE)}
       title={title}
     />
   )
 }
 
-const ToggleActionComponent = ({ icon, toggleKey, toggleType, title }: z.infer<typeof ToggleAction>) => {
+const ToggleActionComponent = ({ icon, toggleKey, toggleType, title, disabled }: z.infer<typeof ToggleAction>) => {
   const { get, isLoading, isError, save } = useDeviceParams()
   if (toggleType !== DeviceParamType.Boolean) return null
   const value = get(toggleKey as any)
@@ -58,11 +59,8 @@ const ToggleActionComponent = ({ icon, toggleKey, toggleType, title }: z.infer<t
       onClick={async () => {
         await save({ [toggleKey]: isSelected ? '0' : '1' })
       }}
-      disabled={isLoading || isError || value === undefined}
-      className={clsx(
-        'flex items-center justify-center aspect-square rounded-lg  transition-colors border border-white/5  text-xl',
-        isSelected ? 'bg-white text-background-alt' : 'bg-background-alt text-white/80',
-      )}
+      disabled={isLoading || isError || value === undefined || disabled}
+      className={clsx(BUTTON_STYLE, isSelected && SELECTED_BUTTON)}
       title={title}
     />
   )
@@ -80,30 +78,36 @@ const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof Nav
         await setMapboxRoute(address)
       }}
       disabled={!address || route === undefined}
-      className={clsx(
-        'flex items-center justify-center aspect-square rounded-lg transition-colors border border-white/5 text-xl',
-        isSelected ? 'bg-white text-background-alt' : 'bg-background-alt text-white/80',
-      )}
+      className={clsx(BUTTON_STYLE, isSelected && SELECTED_BUTTON)}
       title={title}
     />
   )
 }
 
 export const ActionBar = ({ className }: { className?: string }) => {
-  const [actions] = useStorage('actions')
+  const [actions, setActions] = useStorage('actions')
+
   return (
     <div
-      className={clsx('grid gap-2', className)}
+      className={clsx('flex gap-2 flex-wrap-reverse items-center justify-center', className)}
       style={{
-        gridTemplateColumns: `repeat(${actions.length}, minmax(0, 1fr))`,
+        gridTemplateColumns: `repeat(${actions.length}, minmax(2, 2fr))`,
       }}
     >
       {actions.map((props, i) => (
-        <Fragment key={i}>
+        <div key={i} className="flex text-xl relative group min-w-10 h-10 min-h-10 flex-1">
           {props.type === 'redirect' && <RedirectActionComponent {...props} />}
           {props.type === 'toggle' && <ToggleActionComponent {...props} />}
           {props.type === 'navigation' && <NavigationActionComponent {...props} />}
-        </Fragment>
+          <IconButton
+            name="close_small"
+            title="Remove"
+            onClick={() => {
+              setActions(actions.filter((_, j) => i !== j))
+            }}
+            className="hidden group-hover:flex absolute translate-x-1/2 -translate-y-1/2 top-0 right-0 border border-white/20 z-10 text-white bg-background aspect-square hover:bg-background-alt"
+          />
+        </div>
       ))}
     </div>
   )
