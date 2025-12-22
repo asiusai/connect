@@ -21,9 +21,9 @@ type DeviceParamsState = {
   setChanges: (changes: Partial<Record<DeviceParamKey, string | null>>) => void
 
   // Nav
-  getMapboxRoute: () => string | null | undefined
+  favorites: Record<string, string> | undefined
+  route: string | null | undefined
   setMapboxRoute: (address: string | null) => Promise<AthenaResponse<'saveParams'> | undefined>
-  getMapboxFavorites: () => Record<string, string> | undefined
 }
 
 export const useDeviceParams = create<DeviceParamsState>((set, get) => ({
@@ -36,6 +36,9 @@ export const useDeviceParams = create<DeviceParamsState>((set, get) => ({
   saved: {},
   types: {},
 
+  favorites: undefined,
+  route: undefined,
+
   load: async (dongleId: string) => {
     set({ dongleId: dongleId, isLoading: true, isError: false })
 
@@ -47,6 +50,8 @@ export const useDeviceParams = create<DeviceParamsState>((set, get) => ({
       types: Object.fromEntries(res.result.map((x) => [x.key, x.type])),
       isLoading: false,
       isError: false,
+      favorites: parse<Record<string, string>>(get().get('MapboxFavorites')),
+      route: get().get('MapboxRoute'),
     })
   },
   get: (key: DeviceParamKey) => {
@@ -71,13 +76,10 @@ export const useDeviceParams = create<DeviceParamsState>((set, get) => ({
   },
   setChanges: (changes) => set({ changes }),
 
-  // Nav
-  getMapboxRoute: () => get().get('MapboxRoute'),
   setMapboxRoute: async (address: string | null) => {
     const res = await get().save({ MapboxRoute: address })
     if (res?.error) toast.error(res.error.data?.message ?? res.error.message ?? 'Error setting route')
     else toast.success(address ? `Navigating to ${address}` : 'Navigation cleared')
     return res
   },
-  getMapboxFavorites: () => parse<Record<string, string>>(get().get('MapboxFavorites')),
 }))

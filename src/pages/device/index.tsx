@@ -18,9 +18,8 @@ import { toast } from 'sonner'
 
 const NavButton = () => {
   const { setIsSearchOpen } = useSearch()
-  const { getMapboxRoute, setMapboxRoute } = useDeviceParams()
+  const { setMapboxRoute, route } = useDeviceParams()
 
-  const route = getMapboxRoute()
   if (route) {
     return (
       <div

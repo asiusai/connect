@@ -115,7 +115,7 @@ export const useSearch = create<Navigation>((set) => ({
 
 export const Location = ({ className, device }: { className?: string; device?: Device }) => {
   const { dongleId } = useRouteParams()
-  const { setMapboxRoute, getMapboxFavorites } = useDeviceParams()
+  const { setMapboxRoute, favorites } = useDeviceParams()
   const { position, requestPosition } = usePosition()
   const navigate = useNavigate()
   const [usingCorrectFork] = useStorage('usingCorrectFork')
@@ -151,7 +151,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
     setQuery(query)
     updateSuggestions(query, deviceMarker)
   }
-  const favorites = Object.entries(getMapboxFavorites() ?? {}).map(([key, address]) => ({
+  const favs = Object.entries(favorites ?? {}).map(([key, address]) => ({
     name: `${key} (${truncate(address, 25)})`,
     address,
     icon: Icons.includes(key as IconName) ? (key as IconName) : 'star',
@@ -226,11 +226,11 @@ export const Location = ({ className, device }: { className?: string; device?: D
               </div>
 
               <div className="overflow-y-auto max-h-[50vh]">
-                {!query && favorites.length > 0 && (
+                {!query && favs.length > 0 && (
                   <div className="p-3">
                     <p className="text-xs uppercase tracking-wider opacity-40 mb-2 px-1">Favorites</p>
                     <div className="flex flex-col">
-                      {favorites.map((fav) => (
+                      {favs.map((fav) => (
                         <button
                           key={fav.name}
                           onClick={() => nav(fav.address)}
@@ -268,7 +268,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
                   </div>
                 )}
 
-                {!query && favorites.length === 0 && (
+                {!query && favs.length === 0 && (
                   <div className="flex items-center justify-center py-8 opacity-40">
                     <span className="text-sm">Type to search for a destination</span>
                   </div>

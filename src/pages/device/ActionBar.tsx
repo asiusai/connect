@@ -84,9 +84,8 @@ const ToggleActionComponent = ({ icon, toggleKey, toggleType, title }: z.infer<t
 }
 
 const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof NavigationAction>) => {
-  const { getMapboxFavorites, setMapboxRoute, getMapboxRoute } = useDeviceParams()
-  const address = getMapboxFavorites()?.[location]
-  const route = getMapboxRoute()
+  const { setMapboxRoute, route, favorites } = useDeviceParams()
+  const address = favorites?.[location]
   const isSelected = route && route === address
   return (
     <IconButton

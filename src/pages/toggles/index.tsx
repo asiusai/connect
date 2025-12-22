@@ -190,12 +190,9 @@ const AddressAutocomplete = ({
 }
 
 const NavigationSection = ({ settings }: { settings: Setting[] }) => {
-  const { changes, setChanges, setMapboxRoute, get, getMapboxFavorites, getMapboxRoute } = useDeviceParams()
+  const { changes, setChanges, setMapboxRoute, get, favorites, route } = useDeviceParams()
   const [newFavName, setNewFavName] = useState('')
   const [newFavAddress, setNewFavAddress] = useState('')
-
-  const route = getMapboxRoute()
-  const favorites = getMapboxFavorites() ?? {}
 
   const updateFavorites = (updated: Record<string, string>) => setChanges({ ...changes, MapboxFavorites: JSON.stringify(updated) })
 
@@ -203,13 +200,13 @@ const NavigationSection = ({ settings }: { settings: Setting[] }) => {
 
   const handleAddFavorite = () => {
     if (!newFavName.trim() || !newFavAddress.trim()) return
-    updateFavorites({ ...favorites, [newFavName.trim()]: newFavAddress.trim() })
+    updateFavorites({ ...(favorites ?? {}), [newFavName.trim()]: newFavAddress.trim() })
     setNewFavName('')
     setNewFavAddress('')
   }
 
   const handleDeleteFavorite = (name: string) => {
-    const { [name]: _, ...rest } = favorites
+    const { [name]: _, ...rest } = favorites ?? {}
     updateFavorites(rest)
   }
 
@@ -246,7 +243,7 @@ const NavigationSection = ({ settings }: { settings: Setting[] }) => {
       <div className="flex flex-col gap-3">
         <label className="text-xs uppercase tracking-wider opacity-60">Quick Destinations</label>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {Object.entries(favorites).map(([name, address]) => (
+          {Object.entries(favorites ?? {}).map(([name, address]) => (
             <div key={name} className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1">
               <Icon name={Icons.includes(name as IconName) ? (name as IconName) : 'star'} className="text-white/60 shrink-0" />
               <AddressAutocomplete value={address} onChange={(v) => updateFavorites({ ...favorites, [name]: v })} placeholder={name} />
