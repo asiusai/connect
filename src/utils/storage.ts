@@ -1,7 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../types'
+import { Action } from '../pages/device/ActionBar'
+import { DEVICE_PARAMS, DeviceParamType } from '../pages/toggles/settings'
 
 const STORAGES = {
+  actions: (): Action[] => [
+    { type: 'toggle', icon: 'power_settings_new', title: DEVICE_PARAMS.DoShutdown.label, toggleKey: 'DoShutdown', toggleType: DeviceParamType.Boolean },
+    // { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: DeviceParamType.Boolean },
+    { type: 'navigation', icon: 'home', title: 'Navigate to home', location: 'home' },
+    { type: 'navigation', icon: 'work', title: 'Navigate to work', location: 'work' },
+    { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/{dongleId}/sentry?instant=1` },
+  ],
   usingCorrectFork: (): boolean => false,
   playbackRate: (): number | undefined => 1,
   accessToken: (): string | undefined => undefined,

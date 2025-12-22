@@ -4,8 +4,9 @@ import { z } from 'zod'
 import { useDeviceParams } from './useDeviceParams'
 import { useRouteParams } from '../../utils/hooks'
 import { IconButton } from '../../components/IconButton'
-import { DEVICE_PARAMS, DeviceParamType } from '../toggles/settings'
+import { DeviceParamType } from '../toggles/settings'
 import { Fragment } from 'react'
+import { useStorage } from '../../utils/storage'
 
 const BaseAction = z.object({
   icon: IconName,
@@ -49,11 +50,12 @@ const DummyActionComponent = ({ icon, title }: z.infer<typeof DummyAction>) => {
 }
 
 const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectAction>) => {
+  const { dongleId } = useRouteParams()
   return (
     <IconButton
       name={icon}
       href={href}
-      disabled={!href}
+      disabled={!href.replaceAll('{dongleId}', dongleId)}
       className={clsx(
         'text-xl flex items-center justify-center aspect-square rounded-lg bg-background-alt transition-colors border border-white/5 text-white/80 ',
       )}
@@ -105,14 +107,7 @@ const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof Nav
 }
 
 export const ActionBar = ({ className }: { className?: string }) => {
-  const { dongleId } = useRouteParams()
-  const actions: Action[] = [
-    { type: 'toggle', icon: 'power_settings_new', title: DEVICE_PARAMS.DoShutdown.label, toggleKey: 'DoShutdown', toggleType: DeviceParamType.Boolean },
-    // { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: DeviceParamType.Boolean },
-    { type: 'navigation', icon: 'home', title: 'Navigate to home', location: 'home' },
-    { type: 'navigation', icon: 'work', title: 'Navigate to work', location: 'work' },
-    { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/${dongleId}/sentry?instant=1` },
-  ]
+  const [actions] = useStorage('actions')
   return (
     <div
       className={clsx('grid gap-2', className)}
