@@ -68,7 +68,7 @@ export const Sidebar = () => {
         )}
 
         {/* Bottom Section: Quick Actions & User */}
-        <div className="p-4 flex flex-col gap-6 bg-background mt-auto">
+        <div className="p-4 flex flex-col gap-4 bg-background mt-auto">
           {device && <ActionBar />}
 
           {profile && (

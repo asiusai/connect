@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Loading } from '../../components/Loading'
 import { useDevice } from '../../api/queries'
-import { Location, navigateTo } from './Location'
+import { Location, useSearch } from './Location'
 import { Routes } from './Routes'
 import { Stats } from './Stats'
 import { Info } from './Info'
@@ -12,43 +12,32 @@ import { useRouteParams, useScroll } from '../../utils/hooks'
 import { DevicesMobile } from './DevicesMobile'
 import { Icon } from '../../components/Icon'
 import { useStorage } from '../../utils/storage'
-import { useDeviceParams } from './DeviceParamsContext'
+import { useDeviceParams } from './useDeviceParams'
 import clsx from 'clsx'
 import { toast } from 'sonner'
 
-const NavButton = ({ searchOpen, setSearchOpen }: { searchOpen: boolean; setSearchOpen: (open: boolean) => void }) => {
-  const { dongleId, currentRoute, setCurrentRoute } = useDeviceParams()
-  const [isClearing, setIsClearing] = useState(false)
+const NavButton = () => {
+  const { setIsSearchOpen } = useSearch()
+  const { getMapboxRoute, setMapboxRoute } = useDeviceParams()
 
-  const handleClear = async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    setIsClearing(true)
-    setCurrentRoute(null)
-    try {
-      await navigateTo(null, dongleId)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to clear route')
-    } finally {
-      setIsClearing(false)
-    }
-  }
-
-  if (searchOpen) return null
-
-  if (currentRoute) {
+  const route = getMapboxRoute()
+  if (route) {
     return (
       <div
-        onClick={() => setSearchOpen(true)}
+        onClick={() => setIsSearchOpen(true)}
         className={clsx(
           'flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full pl-3 pr-1 py-1 cursor-pointer',
           'hover:bg-background/90 transition-colors max-w-[50vw] md:max-w-64',
         )}
       >
         <Icon name="navigation" className="text-primary text-lg shrink-0" />
-        <span className="text-sm truncate">{currentRoute}</span>
+        <span className="text-sm truncate">{route}</span>
         <button
-          onClick={handleClear}
-          disabled={isClearing}
+          onClick={async (e) => {
+            e.stopPropagation()
+            const res = await setMapboxRoute(null)
+            if (res?.error) toast.error(res.error.data?.message ?? res.error.message)
+          }}
           className="size-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50 shrink-0"
           title="Clear route"
         >
@@ -60,7 +49,7 @@ const NavButton = ({ searchOpen, setSearchOpen }: { searchOpen: boolean; setSear
 
   return (
     <button
-      onClick={() => setSearchOpen(true)}
+      onClick={() => setIsSearchOpen(true)}
       className="flex items-center justify-center size-12 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background/90 transition-colors"
       title="Navigate"
     >
@@ -73,7 +62,11 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const [device, { isLoading, error }] = useDevice(dongleId)
   const [usingCorrectFork] = useStorage('usingCorrectFork')
-  const [searchOpen, setSearchOpen] = useState(false)
+  const load = useDeviceParams((s) => s.load)
+
+  useEffect(() => {
+    if (usingCorrectFork && dongleId) load(dongleId)
+  }, [dongleId, usingCorrectFork, load])
 
   const scroll = useScroll()
 
@@ -96,11 +89,11 @@ export const Component = () => {
   return (
     <div className="flex flex-col min-h-screen relative">
       <div className="w-full sticky top-0" style={{ height }}>
-        <Location device={device} className="h-full w-full" searchOpen={searchOpen} onSearchOpenChange={setSearchOpen} />
+        <Location device={device} className="h-full w-full" />
         <div className="absolute z-[999] top-0 w-full p-4 md:hidden">
           <div className="flex justify-between items-start gap-2 w-full">
             <DevicesMobile />
-            {usingCorrectFork && <NavButton searchOpen={searchOpen} setSearchOpen={setSearchOpen} />}
+            {usingCorrectFork && <NavButton />}
           </div>
         </div>
         <div className="pointer-events-none absolute inset-0 bg-background z-[999]" style={{ opacity: scroll / height }} />
@@ -108,7 +101,7 @@ export const Component = () => {
       {usingCorrectFork &&
         createPortal(
           <div className="fixed top-3 right-3 z-[9999] hidden md:block">
-            <NavButton searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
+            <NavButton />
           </div>,
           document.body,
         )}

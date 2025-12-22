@@ -107,7 +107,6 @@ const router = createBrowserRouter([
       },
       {
         path: ':dongleId',
-        lazy: () => import('./layouts/device'),
         children: [
           {
             path: 'live',

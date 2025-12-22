@@ -108,3 +108,4 @@ export const useRenderProgress = (renderId?: string) =>
       enabled: !!renderId,
     }),
   )
+export const useLocation = (dongleId: string) => w(api.devices.location.useQuery({ queryKey: ['location', dongleId], queryData: { params: { dongleId } } }))

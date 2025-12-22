@@ -1,20 +1,22 @@
-import { callAthena, ParamValue } from '../../api/athena'
+import { ParamValue } from '../../api/athena'
 import { BackButton } from '../../components/BackButton'
 import { TopAppBar } from '../../components/TopAppBar'
 import { useStorage } from '../../utils/storage'
-import { useDeviceParams } from '../device/DeviceParamsContext'
-import { SettingCategory, SettingDefinition, SETTINGS } from './settings'
+import { useDeviceParams } from '../device/useDeviceParams'
+import { SettingCategory, DeviceParam, DEVICE_PARAMS, DeviceParamKey, DeviceParamType } from './settings'
 import { Button } from '../../components/Button'
 import { Toggle } from '../../components/Toggle'
 import { Select } from '../../components/Select'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { env } from '../../utils/env'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { IconButton } from '../../components/IconButton'
 import { toast } from 'sonner'
 import clsx from 'clsx'
-import { Icon } from '../../components/Icon'
+import { Icon, IconName, Icons } from '../../components/Icon'
+import { useRouteParams } from '../../utils/hooks'
+import { parse } from '../../utils/helpers'
+import { useSuggestions } from '../device/Location'
 
-type Setting = SettingDefinition & { value?: ParamValue }
+type Setting = DeviceParam & { key: string; value?: ParamValue }
 
 const CATEGORY_LABELS: Record<SettingCategory, string> = {
   models: 'Models',
@@ -38,39 +40,24 @@ const SectionHeader = ({ label, isOpen, onClick, count }: { label: string; isOpe
 
 type ModelBundle = { index: number; display_name: string; environment: string; runner?: string; generation: number }
 
-const decode = (v: string | null | undefined) => {
-  if (!v) return null
-  try {
-    return new TextDecoder().decode(Uint8Array.from(atob(v), (c) => c.charCodeAt(0)))
-  } catch {
-    return atob(v)
-  }
+const parsePythonDict = <T,>(v: string | null | undefined): T | undefined => {
+  if (!v) return undefined
+  const json = v
+    .replace(/'/g, '"')
+    .replace(/\bTrue\b/g, 'true')
+    .replace(/\bFalse\b/g, 'false')
+    .replace(/\bNone\b/g, 'null')
+  return parse(json)
 }
 
-const encode = (v: string) => btoa(String.fromCharCode(...new TextEncoder().encode(v)))
-
-const parsePythonDict = <T,>(v: string | null | undefined): T | null => {
-  if (!v) return null
-  try {
-    const json = atob(v)
-      .replace(/'/g, '"')
-      .replace(/\bTrue\b/g, 'true')
-      .replace(/\bFalse\b/g, 'false')
-      .replace(/\bNone\b/g, 'null')
-    return JSON.parse(json)
-  } catch {
-    return null
-  }
-}
-
-const ModelsSection = ({ params, dongleId }: { params: ParamValue[]; dongleId: string }) => {
+const ModelsSection = () => {
+  const { dongleId, save, get, isSaving } = useDeviceParams()
   const [selectedIndex, setSelectedIndex] = useState('')
-  const [sending, setSending] = useState(false)
 
-  const modelsCache = parsePythonDict<{ bundles: ModelBundle[] }>(params.find((p) => p.key === 'ModelManager_ModelsCache')?.value)
-  const activeBundle = parsePythonDict<{ index: number }>(params.find((p) => p.key === 'ModelManager_ActiveBundle')?.value)
+  const modelsCache = parsePythonDict<{ bundles: ModelBundle[] }>(get('ModelManager_ModelsCache'))
+  const activeBundle = parsePythonDict<{ index: number }>(get('ModelManager_ActiveBundle'))
 
-  const models = [...(modelsCache?.bundles ?? [])].reverse()
+  const models = modelsCache?.bundles.toReversed() ?? []
   const isUsingDefault = activeBundle === null
   const activeIndex = activeBundle?.index?.toString() ?? 'default'
   const selected = selectedIndex || activeIndex
@@ -78,27 +65,9 @@ const ModelsSection = ({ params, dongleId }: { params: ParamValue[]; dongleId: s
   const isAlreadyActive = selected === activeIndex
 
   const handleSend = async () => {
-    if (isAlreadyActive) return
-    setSending(true)
-    try {
-      const result = await callAthena({
-        type: 'saveParams',
-        dongleId,
-        params: {
-          params_to_update:
-            selected === 'default' ? { ModelManager_ActiveBundle: null } : { ModelManager_DownloadIndex: btoa(selectedModel!.index.toString()) },
-          compression: false,
-        },
-      })
-      if (result?.error) throw new Error(result.error.message)
-      const errors = Object.entries(result?.result ?? {}).filter(([_, v]) => v.startsWith('error:'))
-      if (errors.length) throw new Error(errors.map(([k, v]) => `${k}: ${v}`).join('\n'))
-      toast.success(selected === 'default' ? 'Resetting to default model' : `Sending ${selectedModel!.display_name} to device`)
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to send model')
-    } finally {
-      setSending(false)
-    }
+    if (isAlreadyActive || !dongleId) return
+    const res = await save(selected === 'default' ? { ModelManager_ActiveBundle: null } : { ModelManager_DownloadIndex: selectedModel!.index.toString() })
+    if (res?.error) toast.error(res.error.data?.message ?? res.error.message)
   }
 
   if (!models.length) {
@@ -122,8 +91,8 @@ const ModelsSection = ({ params, dongleId }: { params: ParamValue[]; dongleId: s
             className="w-full"
           />
         </div>
-        <Button onClick={handleSend} disabled={sending || isAlreadyActive} className="w-full">
-          {sending ? 'Sending...' : isAlreadyActive ? 'Already active' : 'Send to device'}
+        <Button onClick={handleSend} disabled={isSaving || isAlreadyActive} className="w-full">
+          {isSaving ? 'Sending...' : isAlreadyActive ? 'Already active' : 'Send to device'}
         </Button>
       </div>
 
@@ -161,7 +130,6 @@ const ModelsSection = ({ params, dongleId }: { params: ParamValue[]; dongleId: s
   )
 }
 
-type MapboxFavoritesData = Record<string, string>
 type MapboxSuggestion = { place_name: string; center: [number, number] }
 
 const AddressAutocomplete = ({
@@ -175,41 +143,12 @@ const AddressAutocomplete = ({
   placeholder?: string
   className?: string
 }) => {
-  const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([])
   const [isOpen, setIsOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  const fetchSuggestions = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      setSuggestions([])
-      return
-    }
-    setIsLoading(true)
-    try {
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${env.MAPBOX_TOKEN}&autocomplete=true&limit=5`
-      const res = await fetch(url)
-      if (res.ok) {
-        const data = await res.json()
-        setSuggestions(data.features ?? [])
-      }
-    } catch {
-      setSuggestions([])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  const handleChange = (newValue: string) => {
-    onChange(newValue)
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    timeoutRef.current = setTimeout(() => fetchSuggestions(newValue), 300)
-  }
+  const { suggestions, isLoading, updateSuggestions } = useSuggestions()
 
   const handleSelect = (suggestion: MapboxSuggestion) => {
     onChange(suggestion.place_name)
-    setSuggestions([])
     setIsOpen(false)
   }
 
@@ -228,7 +167,10 @@ const AddressAutocomplete = ({
       <input
         type="text"
         value={value}
-        onChange={(e) => handleChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value)
+          updateSuggestions(e.target.value)
+        }}
         onFocus={() => setIsOpen(true)}
         placeholder={placeholder}
         className={clsx('bg-background-alt text-sm px-3 py-1.5 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 w-full', className)}
@@ -247,110 +189,54 @@ const AddressAutocomplete = ({
   )
 }
 
-const NavigationSection = ({
-  params,
-  dongleId,
-  settings,
-  changes,
-  savedValues,
-  getValue,
-  setChanges,
-  setCurrentRoute,
-}: {
-  params: ParamValue[]
-  dongleId: string
-  settings: Setting[]
-  changes: Record<string, string>
-  savedValues: Record<string, string>
-  getValue: (s: Setting) => string | null
-  setChanges: React.Dispatch<React.SetStateAction<Record<string, string>>>
-  setCurrentRoute: (route: string | null) => void
-}) => {
-  const [navigating, setNavigating] = useState<string | null>(null)
+const NavigationSection = ({ settings }: { settings: Setting[] }) => {
+  const { changes, setChanges, setMapboxRoute, get, getMapboxFavorites, getMapboxRoute } = useDeviceParams()
   const [newFavName, setNewFavName] = useState('')
   const [newFavAddress, setNewFavAddress] = useState('')
 
-  const favoritesParam = params.find((p) => p.key === 'MapboxFavorites')
-  const favoritesRaw = savedValues.MapboxFavorites ?? decode(favoritesParam?.value)
-  const favorites: MapboxFavoritesData = useMemo(() => {
-    if (!favoritesRaw) return {}
-    try {
-      return JSON.parse(favoritesRaw)
-    } catch {
-      return {}
-    }
-  }, [favoritesRaw])
+  const route = getMapboxRoute()
+  const favorites = getMapboxFavorites() ?? {}
 
-  const localFavorites: MapboxFavoritesData = useMemo(() => {
-    if (!('MapboxFavorites' in changes)) return favorites
-    try {
-      return JSON.parse(changes.MapboxFavorites)
-    } catch {
-      return favorites
-    }
-  }, [changes, favorites])
+  const updateFavorites = (updated: Record<string, string>) => setChanges({ ...changes, MapboxFavorites: JSON.stringify(updated) })
 
-  const updateFavorites = (updated: MapboxFavoritesData) => {
-    setChanges((p) => ({ ...p, MapboxFavorites: JSON.stringify(updated) }))
-  }
-
-  const handleNavigate = async (address: string) => {
-    if (!address) return
-    setNavigating(address)
-    setCurrentRoute(address)
-    try {
-      const result = await callAthena({
-        type: 'saveParams',
-        dongleId,
-        params: { params_to_update: { MapboxRoute: encode(address) }, compression: false },
-      })
-      if (result?.error) throw new Error(result.error.message)
-      toast.success(`Navigating to ${address}`)
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to set route')
-    } finally {
-      setNavigating(null)
-    }
-  }
+  const handleNavigate = async (address: string) => (address ? await setMapboxRoute(address) : undefined)
 
   const handleAddFavorite = () => {
     if (!newFavName.trim() || !newFavAddress.trim()) return
-    updateFavorites({ ...localFavorites, [newFavName.trim()]: newFavAddress.trim() })
+    updateFavorites({ ...favorites, [newFavName.trim()]: newFavAddress.trim() })
     setNewFavName('')
     setNewFavAddress('')
   }
 
   const handleDeleteFavorite = (name: string) => {
-    const { [name]: _, ...rest } = localFavorites
+    const { [name]: _, ...rest } = favorites
     updateFavorites(rest)
   }
 
-  const customFavorites = Object.entries(localFavorites).filter(([key]) => key !== 'home' && key !== 'work')
-
-  const tokenSetting = settings.find((s) => s.key === 'MapboxToken')
-  const routeSetting = settings.find((s) => s.key === 'MapboxRoute')
+  const hasToken = settings.some((s) => s.key === 'MapboxToken')
+  const hasRoute = settings.some((s) => s.key === 'MapboxRoute')
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid md:grid-cols-2 gap-4">
-        {tokenSetting && (
+        {hasToken && (
           <div className="flex flex-col gap-2">
             <label className="text-xs uppercase tracking-wider opacity-60">Mapbox Token</label>
             <input
               type="text"
-              value={getValue(tokenSetting) ?? ''}
-              onChange={(e) => setChanges((p) => ({ ...p, MapboxToken: e.target.value }))}
+              value={get('MapboxToken') ?? ''}
+              onChange={(e) => setChanges({ ...changes, MapboxToken: e.target.value })}
               placeholder="pk.eyJ1..."
               className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 font-mono"
             />
           </div>
         )}
-        {routeSetting && (
+        {hasRoute && (
           <div className="flex flex-col gap-2">
             <label className="text-xs uppercase tracking-wider opacity-60">Current Route</label>
             <AddressAutocomplete
-              value={getValue(routeSetting) ?? ''}
-              onChange={(v) => setChanges((p) => ({ ...p, MapboxRoute: v }))}
+              value={get('MapboxRoute') ?? ''}
+              onChange={(v) => setChanges({ ...changes, MapboxRoute: v })}
               placeholder="Enter destination..."
             />
           </div>
@@ -360,50 +246,20 @@ const NavigationSection = ({
       <div className="flex flex-col gap-3">
         <label className="text-xs uppercase tracking-wider opacity-60">Quick Destinations</label>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-          <div className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1">
-            <Icon name="home" className="text-white/60 shrink-0" />
-            <AddressAutocomplete
-              value={localFavorites.home ?? ''}
-              onChange={(v) => updateFavorites({ ...localFavorites, home: v })}
-              placeholder="Home address..."
-            />
-            <IconButton
-              name="navigation"
-              title="Navigate"
-              onClick={() => handleNavigate(localFavorites.home ?? '')}
-              disabled={!localFavorites.home || navigating === localFavorites.home}
-              className="shrink-0"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1">
-            <Icon name="work" className="text-white/60 shrink-0" />
-            <AddressAutocomplete
-              value={localFavorites.work ?? ''}
-              onChange={(v) => updateFavorites({ ...localFavorites, work: v })}
-              placeholder="Work address..."
-            />
-            <IconButton
-              name="navigation"
-              title="Navigate"
-              onClick={() => handleNavigate(localFavorites.work ?? '')}
-              disabled={!localFavorites.work || navigating === localFavorites.work}
-              className="shrink-0"
-            />
-          </div>
-
-          {customFavorites.map(([name, address]) => (
+          {Object.entries(favorites).map(([name, address]) => (
             <div key={name} className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1">
-              <Icon name="star" className="text-white/60 shrink-0" />
-              <AddressAutocomplete value={address} onChange={(v) => updateFavorites({ ...localFavorites, [name]: v })} placeholder={name} />
+              <Icon name={Icons.includes(name as IconName) ? (name as IconName) : 'star'} className="text-white/60 shrink-0" />
+              <AddressAutocomplete value={address} onChange={(v) => updateFavorites({ ...favorites, [name]: v })} placeholder={name} />
               <IconButton
                 name="navigation"
                 title="Navigate"
                 onClick={() => handleNavigate(address)}
-                disabled={!address || navigating === address}
+                disabled={!address || route === address}
                 className="shrink-0"
               />
-              <IconButton name="delete" title="Remove" onClick={() => handleDeleteFavorite(name)} className="shrink-0 text-red-400" />
+              {!['work', 'home'].includes(name) && (
+                <IconButton name="delete" title="Remove" onClick={() => handleDeleteFavorite(name)} className="shrink-0 text-red-400" />
+              )}
             </div>
           ))}
 
@@ -423,12 +279,7 @@ const NavigationSection = ({
       </div>
 
       {settings.filter((s) => s.key !== 'MapboxToken' && s.key !== 'MapboxRoute').length > 0 && (
-        <SettingsGrid
-          settings={settings.filter((s) => s.key !== 'MapboxToken' && s.key !== 'MapboxRoute')}
-          changes={changes}
-          getValue={getValue}
-          setChanges={setChanges}
-        />
+        <SettingsGrid settings={settings.filter((s) => s.key !== 'MapboxToken' && s.key !== 'MapboxRoute')} />
       )}
     </div>
   )
@@ -437,10 +288,10 @@ const NavigationSection = ({
 const SettingInput = ({ setting, value, onChange }: { setting: Setting; value: string | null; onChange: (v: string) => void }) => {
   const type = setting.value?.type
 
-  if (type === 2 && setting.options) {
+  if (type === DeviceParamType.Select && setting.options) {
     return <Select value={value ?? ''} onChange={onChange} options={setting.options.map((o) => ({ value: o.value.toString(), label: o.label }))} />
   }
-  if (type === 3) {
+  if (type === DeviceParamType.Number) {
     return (
       <input
         type="number"
@@ -453,7 +304,7 @@ const SettingInput = ({ setting, value, onChange }: { setting: Setting; value: s
       />
     )
   }
-  if (type === 1) {
+  if (type === DeviceParamType.Boolean) {
     const bool = value === '1'
     return (
       <div className="flex items-center gap-2">
@@ -462,27 +313,20 @@ const SettingInput = ({ setting, value, onChange }: { setting: Setting; value: s
       </div>
     )
   }
-  return (
-    <input
-      type="text"
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value)}
-      className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 font-mono"
-    />
-  )
+  if (type === DeviceParamType.String)
+    return (
+      <input
+        type="text"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 font-mono"
+      />
+    )
+  return <div>Invalid type: {type}</div>
 }
 
-const SettingsGrid = ({
-  settings,
-  changes,
-  getValue,
-  setChanges,
-}: {
-  settings: Setting[]
-  changes: Record<string, string>
-  getValue: (s: Setting) => string | null
-  setChanges: React.Dispatch<React.SetStateAction<Record<string, string>>>
-}) => {
+const SettingsGrid = ({ settings }: { settings: Setting[] }) => {
+  const { changes, setChanges, get } = useDeviceParams()
   const editable = settings.filter((x) => !x.readonly)
   const readonly = settings.filter((x) => x.readonly)
 
@@ -507,7 +351,7 @@ const SettingsGrid = ({
                   </div>
                   {x.description && <span className="text-xs opacity-60">{x.description}</span>}
                 </div>
-                <SettingInput setting={x} value={getValue(x)} onChange={(v) => setChanges((p) => ({ ...p, [x.key]: v }))} />
+                <SettingInput setting={x} value={get(x.key as DeviceParamKey) ?? null} onChange={(v) => setChanges({ ...changes, [x.key]: v })} />
               </div>
             )
           })}
@@ -523,7 +367,7 @@ const SettingsGrid = ({
                 {x.advanced && <span className="text-xs px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400">Advanced</span>}
               </div>
               {x.description && <span className="text-xs opacity-70">{x.description}</span>}
-              <span className="text-sm bg-white/5 p-2 rounded-md font-mono break-all">{decode(x.value?.value) ?? 'null'}</span>
+              <span className="text-sm bg-white/5 p-2 rounded-md font-mono break-all">{x.value?.value ?? 'null'}</span>
             </div>
           ))}
         </div>
@@ -533,14 +377,22 @@ const SettingsGrid = ({
 }
 
 export const Component = () => {
-  const { dongleId, params, isLoading, isError, setCurrentRoute } = useDeviceParams()
-  const [changes, setChanges] = useState<Record<string, string>>({})
-  const [saving, setSaving] = useState(false)
-  const [savedValues, setSavedValues] = useState<Record<string, string>>({})
+  const { dongleId } = useRouteParams()
+  const { isLoading, isError, load, save, isSaving, saved, types, changes, setChanges } = useDeviceParams()
+  const [usingCorrectFork] = useStorage('usingCorrectFork')
   const [openSection, setOpenSection] = useStorage('togglesOpenTab')
 
+  useEffect(() => {
+    if (usingCorrectFork && dongleId) load(dongleId)
+  }, [dongleId, usingCorrectFork, load])
+
+  const params: ParamValue[] = useMemo(
+    () => Object.entries(saved).map(([key, value]) => ({ key, value: value ?? null, type: types[key as keyof typeof types] ?? 0 })),
+    [saved, types],
+  )
+
   const settingsByCategory = useMemo(() => {
-    if (!params) return null
+    if (!Object.keys(saved).length) return null
     const result: Record<SettingCategory, Setting[]> = {
       models: [],
       navigation: [],
@@ -553,50 +405,34 @@ export const Component = () => {
       other: [],
     }
 
+    const deviceParamEntries = Object.entries(DEVICE_PARAMS) as [DeviceParamKey, DeviceParam][]
+
     for (const cat of SettingCategory.options) {
-      const defined: Setting[] = SETTINGS.filter((x) => !x.hidden && x.category === cat)
-        .map((s) => ({
-          ...s,
-          value: params.find((x) => x.key === s.key),
+      const defined: Setting[] = deviceParamEntries
+        .filter(([_, def]) => !def.hidden && def.category === cat)
+        .map(([key, def]) => ({
+          ...def,
+          key,
+          value: params.find((x) => x.key === key),
         }))
         .filter((x) => x.value)
       result[cat] = defined
     }
 
-    const leftOver = params.filter((x) => !SETTINGS.some((s) => s.key === x.key))
+    const knownKeys = new Set(Object.keys(DEVICE_PARAMS))
+    const leftOver = params.filter((x) => !knownKeys.has(x.key))
     result.other = [...result.other, ...leftOver.map((x): Setting => ({ key: x.key, label: x.key, description: '', category: 'other', value: x }))]
     return result
-  }, [params])
-  console.log(settingsByCategory)
-
-  const getValue = (s: Setting) => {
-    if (s.key in changes) return changes[s.key]
-    if (s.key in savedValues) return savedValues[s.key]
-    return decode(s.value?.value)
-  }
+  }, [params, saved])
 
   const handleSave = async () => {
     if (!Object.keys(changes).length) return
-    setSaving(true)
-    try {
-      const params_to_update = Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, encode(v)]))
-      const result = await callAthena({ type: 'saveParams', dongleId, params: { params_to_update, compression: false } })
-      if (result?.error) throw new Error(result.error.data?.message ?? result.error.message)
-
-      const errors = Object.entries(result?.result ?? {}).filter(([_, v]) => v.startsWith('error:'))
-      if (errors.length) return errors.forEach(([k, v]) => toast.error(`${k}: ${v.replace('error: ', '')}`))
-
-      setSavedValues((prev) => ({ ...prev, ...changes }))
-      toast.success(`Saved ${Object.keys(changes).length} parameter(s)`)
-      setChanges({})
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to save')
-    }
-    setSaving(false)
+    const result = await save(changes)
+    if (result?.error) toast.error(result.error.data?.message ?? result.error.message)
+    else toast.success(`Saved ${Object.keys(changes).length} parameter(s)`)
   }
 
   const toggleSection = (cat: SettingCategory) => setOpenSection(openSection === cat ? null : cat)
-
   const changeCount = Object.keys(changes).length
 
   return (
@@ -609,8 +445,8 @@ export const Component = () => {
               <button onClick={() => setChanges({})} className="text-xs opacity-50 hover:opacity-100" title="Discard changes">
                 {changeCount} unsaved
               </button>
-              <Button onClick={handleSave} disabled={saving} className="text-sm px-3 py-1.5">
-                {saving ? 'Saving...' : 'Save'}
+              <Button onClick={handleSave} disabled={isSaving} className="text-sm px-3 py-1.5">
+                {isSaving ? 'Saving...' : 'Save'}
               </Button>
             </div>
           )}
@@ -632,13 +468,13 @@ export const Component = () => {
           </div>
         )}
 
-        {settingsByCategory && params && (
+        {settingsByCategory && (
           <div className="flex flex-col divide-y divide-white/5">
             <div>
               <SectionHeader label={CATEGORY_LABELS.models} isOpen={openSection === 'models'} onClick={() => toggleSection('models')} />
               {openSection === 'models' && (
                 <div className="pb-6">
-                  <ModelsSection params={params} dongleId={dongleId} />
+                  <ModelsSection />
                 </div>
               )}
             </div>
@@ -647,16 +483,7 @@ export const Component = () => {
               <SectionHeader label={CATEGORY_LABELS.navigation} isOpen={openSection === 'navigation'} onClick={() => toggleSection('navigation')} />
               {openSection === 'navigation' && (
                 <div className="pb-6">
-                  <NavigationSection
-                    params={params}
-                    dongleId={dongleId}
-                    settings={settingsByCategory.navigation}
-                    changes={changes}
-                    savedValues={savedValues}
-                    getValue={getValue}
-                    setChanges={setChanges}
-                    setCurrentRoute={setCurrentRoute}
-                  />
+                  <NavigationSection settings={settingsByCategory.navigation} />
                 </div>
               )}
             </div>
@@ -672,7 +499,7 @@ export const Component = () => {
                     <SectionHeader label={CATEGORY_LABELS[cat]} isOpen={isOpen} onClick={() => toggleSection(cat)} count={settings.length} />
                     {isOpen && (
                       <div className="pb-6">
-                        <SettingsGrid settings={settings} changes={changes} getValue={getValue} setChanges={setChanges} />
+                        <SettingsGrid settings={settings} />
                       </div>
                     )}
                   </div>

@@ -1,20 +1,21 @@
 import clsx from 'clsx'
 import { createPortal } from 'react-dom'
 import { Device, getDeviceName } from '../../types'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Icon, IconName } from '../../components/Icon'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Icon, IconName, Icons } from '../../components/Icon'
 import { getTileUrl } from '../../utils/map'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
 import { IconButton } from '../../components/IconButton'
-import { useAsyncMemo } from '../../utils/hooks'
+import { useRouteParams } from '../../utils/hooks'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../../api'
 import { useStorage } from '../../utils/storage'
-import { callAthena } from '../../api/athena'
 import { env } from '../../utils/env'
 import { toast } from 'sonner'
-import { useDeviceParams } from './DeviceParamsContext'
+import { useDeviceParams } from './useDeviceParams'
+import { create } from 'zustand'
+import { truncate } from '../../utils/helpers'
+import { useLocation } from '../../api/queries'
 
 type MarkerType = {
   id: string
@@ -29,8 +30,6 @@ type MarkerType = {
 const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
 
 type MapboxSuggestion = { place_name: string; center: [number, number] }
-
-const encode = (v: string) => btoa(String.fromCharCode(...new TextEncoder().encode(v)))
 
 const usePosition = () => {
   const [position, setPosition] = useState<GeolocationPosition | null>(null)
@@ -67,116 +66,104 @@ const FitBounds = ({ markers }: { markers: MarkerType[] }) => {
   return null
 }
 
-export const navigateTo = async (address: string | null, dongleId: string) => {
-  const result = await callAthena({
-    type: 'saveParams',
-    dongleId: dongleId,
-    params: { params_to_update: { MapboxRoute: address ? encode(address) : '' }, compression: false },
-  })
-  if (result?.error) throw new Error(result.error.message)
-  toast.success(address ? `Navigating to ${address}` : 'Navigation cleared')
-
-  return result
+const fetchSuggestions = async (query: string, marker?: MarkerType): Promise<MapboxSuggestion[]> => {
+  if (!query.trim()) return []
+  try {
+    const proximity = marker ? `${marker.lng},${marker.lat}` : ''
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${env.MAPBOX_TOKEN}&autocomplete=true&limit=5${proximity ? `&proximity=${proximity}` : ''}`
+    const res = await fetch(url)
+    if (res.ok) return (await res.json().then((x) => x.features)) ?? []
+  } catch {}
+  return []
 }
 
-export const Location = ({
-  className,
-  device,
-  searchOpen: controlledSearchOpen,
-  onSearchOpenChange,
-}: {
-  className?: string
-  device?: Device
-  searchOpen?: boolean
-  onSearchOpenChange?: (open: boolean) => void
-}) => {
-  const { dongleId, favorites, setCurrentRoute } = useDeviceParams()
+export const useSuggestions = () => {
+  const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  const updateSuggestions = (query: string, marker?: MarkerType) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+
+    if (!query.trim()) {
+      timeoutRef.current = undefined
+      setSuggestions([])
+      return
+    }
+    setIsLoading(true)
+    timeoutRef.current = setTimeout(async () => {
+      setSuggestions(await fetchSuggestions(query, marker))
+      setIsLoading(false)
+    }, 300)
+  }
+  return { suggestions, isLoading, updateSuggestions }
+}
+
+type Navigation = {
+  query: string
+  setQuery: (x: string) => void
+  isSearchOpen: boolean
+  setIsSearchOpen: (x: boolean) => void
+}
+
+export const useSearch = create<Navigation>((set) => ({
+  query: '',
+  setQuery: (query: string) => set({ query }),
+  isSearchOpen: false,
+  setIsSearchOpen: (x) => set({ isSearchOpen: x }),
+}))
+
+export const Location = ({ className, device }: { className?: string; device?: Device }) => {
+  const { dongleId } = useRouteParams()
+  const { setMapboxRoute, getMapboxFavorites } = useDeviceParams()
   const { position, requestPosition } = usePosition()
   const navigate = useNavigate()
   const [usingCorrectFork] = useStorage('usingCorrectFork')
-
-  const [internalSearchOpen, setInternalSearchOpen] = useState(false)
-  const isSearchOpen = controlledSearchOpen ?? internalSearchOpen
-  const setIsSearchOpen = onSearchOpenChange ?? setInternalSearchOpen
-  const [searchQuery, setSearchQuery] = useState('')
-  const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([])
-  const [isLoadingSearch, setIsLoadingSearch] = useState(false)
   const [isSendingNav, setIsSendingNav] = useState(false)
+  const { isSearchOpen, setIsSearchOpen, query, setQuery } = useSearch()
+
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const [location] = useLocation(dongleId)
 
-  const deviceMarker = useAsyncMemo(
-    async (): Promise<MarkerType | undefined> => {
-      if (!device) return undefined
-      const res = await api.devices.location.query({ params: { dongleId: device.dongle_id } })
-      if (res.status !== 200) return undefined
-      return {
-        id: device.dongle_id,
-        lat: res.body.lat,
-        lng: res.body.lng,
-        href: `/${device.dongle_id}`,
-        label: getDeviceName(device),
-        iconName: 'directions_car',
-      }
-    },
-    [device],
-    undefined,
-  )
-
-  const favoritesItems = useMemo(() => {
-    const items: { name: string; address: string; icon: IconName }[] = []
-    const truncate = (s: string, len: number) => (s.length > len ? s.slice(0, len) + '...' : s)
-    for (const [key, address] of Object.entries(favorites)) {
-      const icon: IconName = key === 'home' ? 'home' : key === 'work' ? 'work' : 'star'
-      items.push({ name: `${key} (${truncate(address, 25)})`, address, icon })
-    }
-    return items
-  }, [favorites])
-
-  const fetchSuggestions = useCallback(
-    async (query: string) => {
-      if (!query.trim()) {
-        setSuggestions([])
-        return
-      }
-      setIsLoadingSearch(true)
-      try {
-        const proximity = deviceMarker ? `${deviceMarker.lng},${deviceMarker.lat}` : ''
-        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${env.MAPBOX_TOKEN}&autocomplete=true&limit=5${proximity ? `&proximity=${proximity}` : ''}`
-        const res = await fetch(url)
-        if (res.ok) {
-          const data = await res.json()
-          setSuggestions(data.features ?? [])
-        }
-      } catch {
-        setSuggestions([])
-      } finally {
-        setIsLoadingSearch(false)
-      }
-    },
-    [deviceMarker],
-  )
-
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value)
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
-    searchTimeoutRef.current = setTimeout(() => fetchSuggestions(value), 300)
+  const deviceMarker =
+    device && location
+      ? ({
+          id: device.dongle_id,
+          lat: location.lat,
+          lng: location.lng,
+          href: `/${device.dongle_id}`,
+          label: getDeviceName(device),
+          iconName: 'directions_car',
+        } satisfies MarkerType)
+      : undefined
+  const userMarker = position
+    ? ({
+        id: 'you',
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+        label: 'You',
+        iconName: 'person' as IconName,
+        iconClass: 'bg-tertiary text-tertiary-x',
+      } satisfies MarkerType)
+    : undefined
+  const { suggestions, isLoading, updateSuggestions } = useSuggestions()
+  const search = (query: string) => {
+    setQuery(query)
+    updateSuggestions(query, deviceMarker)
   }
-
-  const handleNavigate = async (address: string) => {
+  const favorites = Object.entries(getMapboxFavorites() ?? {}).map(([key, address]) => ({
+    name: `${key} (${truncate(address, 25)})`,
+    address,
+    icon: Icons.includes(key as IconName) ? (key as IconName) : 'star',
+  }))
+  const nav = async (address: string) => {
     if (!device || !address) return
     setIsSendingNav(true)
-    setCurrentRoute(address)
-    try {
-      await navigateTo(address, dongleId)
-      setIsSearchOpen(false)
-      setSearchQuery('')
-      setSuggestions([])
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to set destination')
-    } finally {
-      setIsSendingNav(false)
-    }
+    const res = await setMapboxRoute(address)
+    setIsSearchOpen(false)
+    search('')
+    if (res?.error) toast.error(res.error.data?.message ?? res.error.message)
+    setIsSendingNav(false)
   }
 
   useEffect(() => {
@@ -185,19 +172,7 @@ export const Location = ({
     }
   }, [isSearchOpen])
 
-  const markers: MarkerType[] = [
-    deviceMarker,
-    position
-      ? {
-          id: 'you',
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          label: 'You',
-          iconName: 'person' as IconName,
-          iconClass: 'bg-tertiary text-tertiary-x',
-        }
-      : undefined,
-  ].filter((x): x is MarkerType => Boolean(x))
+  const markers = [deviceMarker, userMarker].filter(Boolean) as MarkerType[]
   return (
     <div className={clsx(className)}>
       <MapContainer attributionControl={false} zoomControl={false} center={SAN_DIEGO} zoom={10} className="h-full w-full !bg-background-alt">
@@ -233,8 +208,7 @@ export const Location = ({
               className="fixed inset-0 z-[9998] bg-black/60"
               onClick={() => {
                 setIsSearchOpen(false)
-                setSearchQuery('')
-                setSuggestions([])
+                search('')
               }}
             />
             <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[90%] max-w-md flex flex-col bg-background rounded-xl shadow-2xl border border-white/10 overflow-hidden">
@@ -243,23 +217,23 @@ export const Location = ({
                 <input
                   ref={searchInputRef}
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  value={query}
+                  onChange={(e) => search(e.target.value)}
                   placeholder="Search destination..."
                   className="flex-1 bg-transparent text-base outline-none placeholder:opacity-40"
                 />
-                {isLoadingSearch && <div className="size-5 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />}
+                {isLoading && <div className="size-5 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />}
               </div>
 
               <div className="overflow-y-auto max-h-[50vh]">
-                {!searchQuery && favoritesItems.length > 0 && (
+                {!query && favorites.length > 0 && (
                   <div className="p-3">
                     <p className="text-xs uppercase tracking-wider opacity-40 mb-2 px-1">Favorites</p>
                     <div className="flex flex-col">
-                      {favoritesItems.map((fav) => (
+                      {favorites.map((fav) => (
                         <button
                           key={fav.name}
-                          onClick={() => handleNavigate(fav.address)}
+                          onClick={() => nav(fav.address)}
                           disabled={isSendingNav}
                           className="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-left disabled:opacity-50"
                         >
@@ -276,7 +250,7 @@ export const Location = ({
                     {suggestions.map((suggestion, i) => (
                       <button
                         key={i}
-                        onClick={() => handleNavigate(suggestion.place_name)}
+                        onClick={() => nav(suggestion.place_name)}
                         disabled={isSendingNav}
                         className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/10 rounded-lg transition-colors text-left disabled:opacity-50"
                       >
@@ -287,14 +261,14 @@ export const Location = ({
                   </div>
                 )}
 
-                {searchQuery && !isLoadingSearch && suggestions.length === 0 && (
+                {query && !isLoading && suggestions.length === 0 && (
                   <div className="flex items-center justify-center gap-2 py-8 opacity-50">
                     <Icon name="search_off" className="text-xl" />
                     <span className="text-sm">No results found</span>
                   </div>
                 )}
 
-                {!searchQuery && favoritesItems.length === 0 && (
+                {!query && favorites.length === 0 && (
                   <div className="flex items-center justify-center py-8 opacity-40">
                     <span className="text-sm">Type to search for a destination</span>
                   </div>

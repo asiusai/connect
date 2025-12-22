@@ -161,17 +161,22 @@ const REQUESTS = {
   },
 }
 
-export const callAthena = async <Type extends keyof typeof REQUESTS, Req extends (typeof REQUESTS)[Type]>({
+export type AthenaRequest = keyof typeof REQUESTS
+export type AthenaParams<T extends AthenaRequest> = z.infer<(typeof REQUESTS)[T]['params']>
+export type AthenaResult<T extends AthenaRequest> = z.infer<(typeof REQUESTS)[T]['result']>
+export type AthenaResponse<T extends AthenaRequest> = { error?: AthenaError; result?: AthenaResult<T> }
+
+export const callAthena = async <T extends AthenaRequest>({
   type,
   params,
   dongleId,
   expiry,
 }: {
-  type: Type
-  params: z.infer<Req['params']>
+  type: T
+  params: AthenaParams<T>
   dongleId: string
   expiry?: number
-}): Promise<{ error?: AthenaError; result?: z.infer<Req['result']> } | undefined> => {
+}): Promise<AthenaResponse<T> | undefined> => {
   if (!env.ATHENA_URL) return
   if (dongleId === env.DEMO_DONGLE_ID) return
   const req = REQUESTS[type]

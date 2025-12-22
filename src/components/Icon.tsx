@@ -76,6 +76,7 @@ export const IconName = z.enum([
   'star',
   'search_off',
   'navigation',
+  'joystick',
 ])
 
 export type IconName = z.infer<typeof IconName>
