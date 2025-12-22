@@ -114,7 +114,7 @@ const router = createBrowserRouter([
           },
           {
             path: 'toggles',
-            lazy: () => import('./pages/toggles/index'),
+            lazy: () => import('./pages/params/index'),
           },
           {
             path: 'settings',

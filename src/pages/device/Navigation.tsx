@@ -29,9 +29,9 @@ export const Navigation = ({ className }: { className?: string }) => {
       hide: !usingCorrectFork,
     },
     {
-      title: 'Toggles',
+      title: 'Params',
       icon: 'switches',
-      href: `/${dongleId}/toggles`,
+      href: `/${dongleId}/params`,
       color: 'text-purple-400',
       hide: !usingCorrectFork,
     },
