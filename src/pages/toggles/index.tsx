@@ -1,4 +1,3 @@
-import { ParamValue } from '../../api/athena'
 import { BackButton } from '../../components/BackButton'
 import { TopAppBar } from '../../components/TopAppBar'
 import { useStorage } from '../../utils/storage'
@@ -16,7 +15,7 @@ import { useRouteParams } from '../../utils/hooks'
 import { parse } from '../../utils/helpers'
 import { useSuggestions } from '../device/Location'
 
-type Setting = DeviceParam & { key: string; value?: ParamValue }
+type Setting = DeviceParam & { key: string; value: string | null | undefined; type: number | undefined }
 
 const CATEGORY_LABELS: Record<SettingCategory, string> = {
   models: 'Models',
@@ -283,7 +282,7 @@ const NavigationSection = ({ settings }: { settings: Setting[] }) => {
 }
 
 const SettingInput = ({ setting, value, onChange }: { setting: Setting; value: string | null; onChange: (v: string) => void }) => {
-  const type = setting.value?.type
+  const type = setting.type
 
   if (type === DeviceParamType.Select && setting.options) {
     return <Select value={value ?? ''} onChange={onChange} options={setting.options.map((o) => ({ value: o.value.toString(), label: o.label }))} />
@@ -364,7 +363,7 @@ const SettingsGrid = ({ settings }: { settings: Setting[] }) => {
                 {x.advanced && <span className="text-xs px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400">Advanced</span>}
               </div>
               {x.description && <span className="text-xs opacity-70">{x.description}</span>}
-              <span className="text-sm bg-white/5 p-2 rounded-md font-mono break-all">{x.value?.value ?? 'null'}</span>
+              <span className="text-sm bg-white/5 p-2 rounded-md font-mono break-all">{x.value ?? 'null'}</span>
             </div>
           ))}
         </div>
@@ -375,7 +374,7 @@ const SettingsGrid = ({ settings }: { settings: Setting[] }) => {
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const { isLoading, isError, load, save, isSaving, saved, types, changes, setChanges } = useDeviceParams()
+  const { isError, load, save, isSaving, get, types, setChanges, changes } = useDeviceParams()
   const [usingCorrectFork] = useStorage('usingCorrectFork')
   const [openSection, setOpenSection] = useStorage('togglesOpenTab')
 
@@ -383,13 +382,8 @@ export const Component = () => {
     if (usingCorrectFork && dongleId) load(dongleId)
   }, [dongleId, usingCorrectFork, load])
 
-  const params: ParamValue[] = useMemo(
-    () => Object.entries(saved).map(([key, value]) => ({ key, value: value ?? null, type: types[key as keyof typeof types] ?? 0 })),
-    [saved, types],
-  )
-
   const settingsByCategory = useMemo(() => {
-    if (!Object.keys(saved).length) return null
+    if (!Object.keys(types).length) return null
     const result: Record<SettingCategory, Setting[]> = {
       models: [],
       navigation: [],
@@ -405,32 +399,41 @@ export const Component = () => {
     const deviceParamEntries = Object.entries(DEVICE_PARAMS) as [DeviceParamKey, DeviceParam][]
 
     for (const cat of SettingCategory.options) {
-      const defined: Setting[] = deviceParamEntries
+      result[cat] = deviceParamEntries
         .filter(([_, def]) => !def.hidden && def.category === cat)
-        .map(([key, def]) => ({
-          ...def,
-          key,
-          value: params.find((x) => x.key === key),
-        }))
-        .filter((x) => x.value)
-      result[cat] = defined
+        .map(
+          ([key, def]) =>
+            ({
+              ...def,
+              key,
+              value: get(key),
+              type: types[key],
+            }) satisfies Setting,
+        )
+        .filter((x) => x.value !== undefined)
     }
 
     const knownKeys = new Set(Object.keys(DEVICE_PARAMS))
-    const leftOver = params.filter((x) => !knownKeys.has(x.key))
-    result.other = [...result.other, ...leftOver.map((x): Setting => ({ key: x.key, label: x.key, description: '', category: 'other', value: x }))]
+    const leftOver = Object.keys(types).filter((x) => !knownKeys.has(x))
+    result.other = [
+      ...result.other,
+      ...leftOver.map(
+        (key): Setting => ({ key, label: key, description: '', category: 'other', value: get(key as DeviceParamKey), type: types[key as DeviceParamKey] }),
+      ),
+    ]
     return result
-  }, [params, saved])
+  }, [types, get])
+
+  const changeCount = Object.keys(changes).length
 
   const handleSave = async () => {
-    if (!Object.keys(changes).length) return
+    if (!changeCount) return
     const result = await save(changes)
     if (result?.error) toast.error(result.error.data?.message ?? result.error.message)
-    else toast.success(`Saved ${Object.keys(changes).length} parameter(s)`)
+    else toast.success(`Saved ${changeCount} parameter(s)`)
   }
 
   const toggleSection = (cat: SettingCategory) => setOpenSection(openSection === cat ? null : cat)
-  const changeCount = Object.keys(changes).length
 
   return (
     <div className="flex flex-col min-h-screen bg-transparent text-foreground gap-4">
@@ -451,12 +454,6 @@ export const Component = () => {
       </TopAppBar>
 
       <div className="p-4 md:p-6 flex flex-col gap-2">
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <span className="text-sm opacity-60">Connecting to device...</span>
-          </div>
-        )}
-
         {isError && (
           <div className="flex flex-col items-center justify-center py-20 gap-2 text-center">
             <span className="text-4xl opacity-40">:(</span>
@@ -464,7 +461,11 @@ export const Component = () => {
             <span className="text-sm opacity-60">Device offline or incompatible fork</span>
           </div>
         )}
-
+        {!settingsByCategory && (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <span className="text-sm opacity-60">Connecting to device...</span>
+          </div>
+        )}
         {settingsByCategory && (
           <div className="flex flex-col divide-y divide-white/5">
             <div>

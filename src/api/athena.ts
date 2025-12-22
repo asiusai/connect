@@ -28,7 +28,7 @@ export const UploadQueueItem = z.object({
 export const ParamValue = z.object({
   key: z.string(),
   type: z.number(),
-  value: z.string().nullable(),
+  value: z.string().nullish(),
 })
 export type ParamValue = z.infer<typeof ParamValue>
 
