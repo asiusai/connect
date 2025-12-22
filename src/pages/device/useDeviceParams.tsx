@@ -19,6 +19,7 @@ type DeviceParamsState = {
   get: (key: DeviceParamKey) => string | null | undefined
   save: (changes: Partial<Record<DeviceParamKey, string | null>>) => Promise<AthenaResponse<'saveParams'> | undefined>
   setChanges: (changes: Partial<Record<DeviceParamKey, string | null>>) => void
+  recompute: () => void
 
   // Nav
   favorites: Record<string, string> | undefined
@@ -50,9 +51,8 @@ export const useDeviceParams = create<DeviceParamsState>((set, get) => ({
       types: Object.fromEntries(res.result.map((x) => [x.key, x.type])),
       isLoading: false,
       isError: false,
-      favorites: parse<Record<string, string>>(get().get('MapboxFavorites')),
-      route: get().get('MapboxRoute'),
     })
+    get().recompute()
   },
   get: (key: DeviceParamKey) => {
     const state = get()
@@ -71,10 +71,18 @@ export const useDeviceParams = create<DeviceParamsState>((set, get) => ({
     if (errors.length) errors.forEach(([k, v]) => console.error(`${k}: ${v.replace('error: ', '')}`))
 
     set((x) => ({ saved: { ...x.saved, ...changes }, changes: {}, isSaving: false }))
-
+    get().recompute()
     return result
   },
-  setChanges: (changes) => set({ changes }),
+  setChanges: (changes) => {
+    set({ changes })
+    get().recompute()
+  },
+  recompute: () =>
+    set({
+      favorites: parse<Record<string, string>>(get().get('MapboxFavorites')),
+      route: get().get('MapboxRoute'),
+    }),
 
   setMapboxRoute: async (address: string | null) => {
     const res = await get().save({ MapboxRoute: address })
