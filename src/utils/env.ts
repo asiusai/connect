@@ -31,6 +31,7 @@ export const Environment = z.object({
   GOOGLE_CLIENT_ID: zString('45471411055-ornt4svd2miog6dnopve7qtmh5mnu6id.apps.googleusercontent.com'),
   APPLE_CLIENT_ID: zString('ai.comma.login'),
   GITHUB_CLIENT_ID: zString('28c4ecb54bb7272cb5a4'),
+  FORK: zString('karelnagel/sunnypilot'),
 })
 
 const fullEnv = typeof process !== 'undefined' ? process.env : import.meta.env

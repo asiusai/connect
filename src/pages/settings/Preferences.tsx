@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
+import { env } from '../../utils/env'
 
 const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
   <div
@@ -34,10 +35,10 @@ export const Preferences = () => {
       </div>
       <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="font-medium">Using karelnagel/sunnypilot fork</span>
+          <span className="font-medium">Using {env.FORK} fork</span>
           <span className="text-xs text-white/60">Enable if your device runs our fork (required for all features)</span>
         </div>
-        <ToggleSwitch value={usingCorrectFork} onChange={setUsingCorrectFork} />
+        <ToggleSwitch value={!!usingCorrectFork} onChange={setUsingCorrectFork} />
       </div>
     </div>
   )

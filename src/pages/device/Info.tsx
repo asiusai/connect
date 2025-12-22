@@ -2,11 +2,18 @@ import clsx from 'clsx'
 import { useRoutesSegments } from '../../api/queries'
 import { DetailRow } from '../../components/DetailRow'
 import { useRouteParams } from '../../utils/hooks'
+import { useStorage } from '../../utils/storage'
+import { env } from '../../utils/env'
 
 export const Info = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
   const [routes] = useRoutesSegments(dongleId, { limit: 1 })
   const route = routes?.[0]
+
+  // Automatically toggle if using correct fork
+  const [usingCorrectFork, setUsingCorrectFork] = useStorage('usingCorrectFork')
+  if (usingCorrectFork === undefined && route?.git_remote?.includes(env.FORK)) setUsingCorrectFork(true)
+
   return (
     <div className={clsx('flex flex-col gap-4 pb-10', className)}>
       <h2 className="text-xl font-bold px-2">Vehicle Info</h2>

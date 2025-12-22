@@ -11,7 +11,7 @@ const STORAGES = {
     { type: 'navigation', icon: 'work', title: 'Navigate to work', location: 'work' },
     { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/{dongleId}/sentry?instant=1` },
   ],
-  usingCorrectFork: (): boolean => false,
+  usingCorrectFork: (): boolean | undefined => undefined,
   playbackRate: (): number | undefined => 1,
   accessToken: (): string | undefined => undefined,
   lastDongleId: (): string | undefined => undefined,
