@@ -87,12 +87,23 @@ const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof Nav
 
 export const AddToActionBar = ({ action }: { action: Action }) => {
   const [actions, setActions] = useStorage('actions')
+  const isAdded = actions.some(
+    (a) =>
+      a.type === action.type &&
+      ((a.type === 'toggle' && action.type === 'toggle' && a.toggleKey === action.toggleKey) ||
+        (a.type === 'navigation' && action.type === 'navigation' && a.location === action.location) ||
+        (a.type === 'redirect' && action.type === 'redirect' && a.href === action.href)),
+  )
+
   return (
     <IconButton
-      name="close_small"
-      title="Add to action bar"
-      onClick={() => setActions([...actions, action])}
-      className="rotate-45 absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-background-alt flex md:hidden md:group-hover:flex border border-white/20 z-20"
+      name={isAdded ? 'check' : 'close_small'}
+      title={isAdded ? 'Added to action bar' : 'Add to action bar'}
+      onClick={() => !isAdded && setActions([...actions, action])}
+      className={clsx(
+        'absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 flex md:hidden md:group-hover:flex border border-white/20 z-20',
+        isAdded ? 'bg-green-600 text-white' : 'rotate-45 bg-background-alt',
+      )}
     />
   )
 }
