@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams as useParamsRouter } from 'react-router-dom'
 import { callAthena, UploadQueueItem } from '../api/athena'
 import { z } from 'zod'
@@ -73,9 +73,10 @@ export const useFullscreen = () => {
 
 export type UploadProgress = z.infer<typeof UploadQueueItem>
 
-export const useUploadProgress = (dongleId: string, routeId: string, enabled = true) => {
+export const useUploadProgress = (dongleId: string, routeId: string, onComplete?: () => void, enabled = true) => {
   const [queue, setQueue] = useState<UploadProgress[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const prevQueueIdsRef = useRef<Set<string>>(new Set())
 
   const fetchQueue = useCallback(async () => {
     if (!enabled || !dongleId) return
@@ -89,6 +90,19 @@ export const useUploadProgress = (dongleId: string, routeId: string, enabled = t
       if (result?.result) {
         // Filter to only include items for this route
         const routeItems = result.result.filter((item) => item.path.includes(routeId))
+        const currentIds = new Set(routeItems.map((item) => item.id))
+
+        // Check if any items completed (were in prev queue but not in current)
+        const prevIds = prevQueueIdsRef.current
+        if (prevIds.size > 0) {
+          const completedIds = [...prevIds].filter((id) => !currentIds.has(id))
+          if (completedIds.length > 0 && onComplete) {
+            // Delay slightly to allow server to process
+            setTimeout(onComplete, 500)
+          }
+        }
+        prevQueueIdsRef.current = currentIds
+
         setQueue(routeItems)
       }
     } catch (error) {
@@ -96,7 +110,7 @@ export const useUploadProgress = (dongleId: string, routeId: string, enabled = t
     } finally {
       setIsLoading(false)
     }
-  }, [dongleId, routeId, enabled])
+  }, [dongleId, routeId, enabled, onComplete])
 
   useEffect(() => {
     if (!enabled) return

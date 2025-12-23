@@ -325,7 +325,7 @@ export const RouteFiles = ({ route, className, playerRef }: { playerRef: RefObje
 
   // Extract routeId from route.fullname (format: "dongleId|routeId")
   const routeId = route.fullname.split(/[|/]/)[1] || ''
-  const uploadProgress = useUploadProgress(dongleId, routeId)
+  const uploadProgress = useUploadProgress(dongleId, routeId, refetch)
 
   return (
     <div className={clsx('flex flex-col gap-2 bg-background-alt rounded-xl p-4', className)}>
