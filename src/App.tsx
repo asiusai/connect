@@ -113,7 +113,7 @@ const router = createBrowserRouter([
             lazy: () => import('./pages/live/index'),
           },
           {
-            path: 'toggles',
+            path: 'params',
             lazy: () => import('./pages/params/index'),
           },
           {
