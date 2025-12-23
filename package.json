@@ -19,13 +19,17 @@
     "templates:dev": "remotion studio templates/index.ts",
     "templates:build": "remotion bundle templates/index.ts",
     "templates:render": "bun render.ts",
-    "api": "bun run api/index.ts"
+    "api": "bun run api/index.ts",
+    "ssh:start": "bun run ssh-relay/index.ts",
+    "ssh:dev": "bun run --watch ssh-relay/index.ts"
   },
   "packageManager": "bun@1.2.9",
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "2.2.3",
     "@types/bun": "^1.2.9",
+    "@types/ssh2": "^1.15.1",
+    "@types/ws": "^8.5.13",
     "@types/geojson": "^7946.0.16",
     "@types/leaflet": "^1.9.21",
     "@types/mapbox__polyline": "^1.0.5",
@@ -71,7 +75,9 @@
     "react-router-dom": "^7.9.5",
     "remotion": "4.0.373",
     "sonner": "^2.0.7",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "ssh2": "^1.16.0",
+    "ws": "^8.18.0"
   },
   "engines": {
     "node": ">=20.11.0"
