@@ -4,7 +4,8 @@ import { IconButton } from '../../components/IconButton'
 import clsx from 'clsx'
 import { Icon, IconName, Icons } from '../../components/Icon'
 import { useSuggestions } from '../device/Location'
-import { AddToActionBar, Setting, Settings } from './Settings'
+import { Setting, Settings } from './Settings'
+import { AddToActionBar } from '../device/ActionBar'
 
 type MapboxSuggestion = { place_name: string; center: [number, number] }
 

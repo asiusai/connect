@@ -84,6 +84,18 @@ const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof Nav
   )
 }
 
+export const AddToActionBar = ({ action }: { action: Action }) => {
+  const [actions, setActions] = useStorage('actions')
+  return (
+    <IconButton
+      name="close_small"
+      title="Add to action bar"
+      onClick={() => setActions([...actions, action])}
+      className="rotate-45 absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-background-alt flex md:hidden md:group-hover:flex border border-white/20 z-20"
+    />
+  )
+}
+
 export const ActionBar = ({ className }: { className?: string }) => {
   const [actions, setActions] = useStorage('actions')
 
@@ -105,7 +117,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
             onClick={() => {
               setActions(actions.filter((_, j) => i !== j))
             }}
-            className="hidden group-hover:flex absolute translate-x-1/2 -translate-y-1/2 top-0 right-0 border border-white/20 z-10 text-white bg-background aspect-square hover:bg-background-alt"
+            className="flex md:hidden md:group-hover:flex absolute translate-x-1/2 -translate-y-1/2 top-0 right-0 border border-white/20 z-10 text-white bg-background aspect-square hover:bg-background-alt"
           />
         </div>
       ))}
