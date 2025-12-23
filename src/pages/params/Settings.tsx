@@ -3,23 +3,9 @@ import { DeviceParam, DeviceParamKey, DeviceParamType } from '../../utils/params
 import { Toggle } from '../../components/Toggle'
 import { Select } from '../../components/Select'
 import clsx from 'clsx'
-import { IconButton } from '../../components/IconButton'
-import { useStorage } from '../../utils/storage'
-import { Action } from '../device/ActionBar'
+import { AddToActionBar } from '../device/ActionBar'
 
 export type Setting = DeviceParam & { key: string; value: string | null | undefined; type: number | undefined }
-
-export const AddToActionBar = ({ action }: { action: Action }) => {
-  const [actions, setActions] = useStorage('actions')
-  return (
-    <IconButton
-      name="close_small"
-      title="Add to action bar"
-      onClick={() => setActions([...actions, action])}
-      className="rotate-45 absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-background-alt hidden group-hover:flex border border-white/20 z-20"
-    />
-  )
-}
 
 const SettingInput = ({
   setting,
