@@ -38,7 +38,15 @@ const uploadSegments = async (routeName: string, segments: number[], types: File
   return await callAthena({
     type: 'uploadFilesToUrls',
     dongleId,
-    params: { files_data: paths.map((fn, i) => ({ allow_cellular: false, fn, priority: PRIORITY, ...presignedUrls.body[i] })) },
+    params: {
+      files_data: paths.map((fn, i) => ({
+        allow_cellular: false,
+        fn,
+        priority: PRIORITY,
+        headers: {}, // Default empty headers if not provided
+        ...presignedUrls.body[i],
+      })),
+    },
     expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
   })
 }
@@ -112,7 +120,7 @@ const Upload = ({
 
   return (
     <FileAction
-      label={isCurrentlyUploading && avgProgress !== undefined ? `${Math.round(avgProgress)}%` : 'Upload'}
+      label={isCurrentlyUploading && avgProgress !== undefined ? `${Math.round(avgProgress * 100)}%` : 'Upload'}
       icon={isCurrentlyUploading ? 'cloud_upload' : 'upload'}
       uploadButton
       loading={isLoading || isCurrentlyUploading}
@@ -244,7 +252,7 @@ const SegmentDetails = ({
                   return (
                     <div
                       key={i}
-                      title={isSegmentUploading ? `Segment ${i} - ${segmentProgress ?? 0}%` : `Segment ${i}`}
+                      title={isSegmentUploading ? `Segment ${i} - ${Math.round((segmentProgress ?? 0) * 100)}%` : `Segment ${i}`}
                       onClick={() => setSegment(i)}
                       className={clsx(
                         'h-full cursor-pointer relative',
