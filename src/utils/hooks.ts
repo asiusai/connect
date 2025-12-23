@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams as useParamsRouter } from 'react-router-dom'
+import { callAthena, UploadQueueItem } from '../api/athena'
+import { z } from 'zod'
 
 type Dimensions = { width: number; height: number }
 const getDimensions = (): Dimensions => (typeof window === 'undefined' ? { width: 0, height: 0 } : { width: window.innerWidth, height: window.innerHeight })
@@ -67,4 +69,80 @@ export const useFullscreen = () => {
     return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
   }, [])
   return fullscreen
+}
+
+export type UploadProgress = z.infer<typeof UploadQueueItem>
+
+export const useUploadProgress = (dongleId: string, routeId: string, enabled = true) => {
+  const [queue, setQueue] = useState<UploadProgress[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  const fetchQueue = useCallback(async () => {
+    if (!enabled || !dongleId) return
+    setIsLoading(true)
+    try {
+      const result = await callAthena({
+        type: 'listUploadQueue',
+        dongleId,
+        params: undefined,
+      })
+      if (result?.result) {
+        // Filter to only include items for this route
+        const routeItems = result.result.filter((item) => item.path.includes(routeId))
+        setQueue(routeItems)
+      }
+    } catch (error) {
+      console.error('Failed to fetch upload queue:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [dongleId, routeId, enabled])
+
+  useEffect(() => {
+    if (!enabled) return
+
+    // Initial fetch
+    fetchQueue()
+
+    // Poll every 2 seconds
+    const interval = setInterval(fetchQueue, 2000)
+    return () => clearInterval(interval)
+  }, [fetchQueue, enabled])
+
+  // Helper to check if a specific segment/file is uploading
+  const isUploading = useCallback(
+    (segment: number, fileName?: string) => {
+      return queue.some((item) => {
+        const pathMatch = item.path.includes(`--${segment}/`)
+        if (!fileName) return pathMatch
+        return pathMatch && item.path.includes(fileName)
+      })
+    },
+    [queue],
+  )
+
+  // Helper to get progress for a specific segment/file
+  const getProgress = useCallback(
+    (segment: number, fileName?: string) => {
+      const item = queue.find((item) => {
+        const pathMatch = item.path.includes(`--${segment}/`)
+        if (!fileName) return pathMatch
+        return pathMatch && item.path.includes(fileName)
+      })
+      return item?.progress
+    },
+    [queue],
+  )
+
+  // Get the currently uploading item
+  const currentUpload = queue.find((item) => item.current)
+
+  return {
+    queue,
+    isLoading,
+    refetch: fetchQueue,
+    isUploading,
+    getProgress,
+    currentUpload,
+  }
 }

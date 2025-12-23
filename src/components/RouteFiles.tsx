@@ -6,12 +6,14 @@ import { callAthena } from '../api/athena'
 import { useFiles, useShareSignature } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
-import { useRouteParams } from '../utils/hooks'
+import { useRouteParams, useUploadProgress } from '../utils/hooks'
 import { Icon } from './Icon'
 import { ButtonBase } from './ButtonBase'
 import { PlayerRef } from '@remotion/player'
 import { FPS } from '../../templates/shared'
 import { IconButton } from './IconButton'
+
+type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
@@ -81,22 +83,45 @@ const FileAction = ({
   )
 }
 
-const Upload = ({ type, files, route, segment }: { type: FileType; files: SegmentFiles; route: Route; segment: number }) => {
+const Upload = ({
+  type,
+  files,
+  route,
+  segment,
+  uploadProgress,
+}: {
+  type: FileType
+  files: SegmentFiles
+  route: Route
+  segment: number
+  uploadProgress: UploadProgressInfo
+}) => {
   const [isLoading, setIsLoading] = useState(false)
 
   const disabled = segment === -1 ? files[type].every(Boolean) : !!files[type][segment]
   if (disabled) return null
+
+  // Check if this file type is currently uploading
+  const fileName = FILE_INFO[type].name
+  const segments = segment === -1 ? Array.from({ length: files.length }, (_, i) => i) : [segment]
+  const isCurrentlyUploading = segments.some((s) => uploadProgress.isUploading(s, fileName))
+
+  // Get the progress of the currently uploading segment
+  const uploadingProgress = segments.map((s) => uploadProgress.getProgress(s, fileName)).filter((p): p is number => p !== undefined)
+  const avgProgress = uploadingProgress.length > 0 ? uploadingProgress.reduce((a, b) => a + b, 0) / uploadingProgress.length : undefined
+
   return (
     <FileAction
-      label="Upload"
-      icon="upload"
+      label={isCurrentlyUploading && avgProgress !== undefined ? `${Math.round(avgProgress)}%` : 'Upload'}
+      icon={isCurrentlyUploading ? 'cloud_upload' : 'upload'}
       uploadButton
-      loading={isLoading}
+      loading={isLoading || isCurrentlyUploading}
       onClick={async () => {
         setIsLoading(true)
-        const segments = segment === -1 ? Array.from({ length: files.length }, (_, i) => i) : [segment]
         await uploadSegments(route.fullname, segments, [type], files)
         setIsLoading(false)
+        // Trigger a refetch of the upload queue
+        uploadProgress.refetch()
       }}
     />
   )
@@ -178,12 +203,25 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
   )
 }
 
-const SegmentDetails = ({ segment, files, route, setSegment }: { segment: number; files: SegmentFiles; route: Route; setSegment: (v: number) => void }) => {
+const SegmentDetails = ({
+  segment,
+  files,
+  route,
+  setSegment,
+  uploadProgress,
+}: {
+  segment: number
+  files: SegmentFiles
+  route: Route
+  setSegment: (v: number) => void
+  uploadProgress: UploadProgressInfo
+}) => {
   const isRoute = segment === -1
 
   return (
     <div className="flex flex-col gap-2">
       {FileType.options.map((type) => {
+        const fileName = FILE_INFO[type].name
         return (
           <div key={`${type}-${segment}`} className="flex flex-col gap-2 py-2 relative">
             <div className="flex items-center justify-between">
@@ -197,22 +235,27 @@ const SegmentDetails = ({ segment, files, route, setSegment }: { segment: number
                     <ProcessSegment type={type} files={files} segment={segment} />
                   </>
                 )}
-                <Upload type={type} files={files} route={route} segment={segment} />
+                <Upload type={type} files={files} route={route} segment={segment} uploadProgress={uploadProgress} />
               </div>
               <div title="1" className="h-[3px] w-full absolute bottom-0 translate-y-1/2 rounded-full overflow-hidden flex">
-                {Array.from({ length: files.length }).map((_, i) => (
-                  <div
-                    key={i}
-                    title={`Segment ${i}`}
-                    onClick={() => setSegment(i)}
-                    className={clsx(
-                      'h-full cursor-pointer',
-                      !files[type][i] ? 'bg-white/80' : type.startsWith('q') ? 'bg-blue-400' : 'bg-green-400',
-                      segment !== i ? 'opacity-40' : 'opacity-80',
-                    )}
-                    style={{ width: `${(1 / files.length) * 100}%` }}
-                  />
-                ))}
+                {Array.from({ length: files.length }).map((_, i) => {
+                  const isSegmentUploading = uploadProgress.isUploading(i, fileName)
+                  const segmentProgress = uploadProgress.getProgress(i, fileName)
+                  return (
+                    <div
+                      key={i}
+                      title={isSegmentUploading ? `Segment ${i} - ${segmentProgress ?? 0}%` : `Segment ${i}`}
+                      onClick={() => setSegment(i)}
+                      className={clsx(
+                        'h-full cursor-pointer relative',
+                        !files[type][i] ? 'bg-white/80' : type.startsWith('q') ? 'bg-blue-400' : 'bg-green-400',
+                        segment !== i ? 'opacity-40' : 'opacity-80',
+                        isSegmentUploading && 'animate-upload-pulse bg-yellow-400',
+                      )}
+                      style={{ width: `${(1 / files.length) * 100}%` }}
+                    />
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -264,16 +307,25 @@ const SegmentGrid = ({ files, selectedSegment, onSelect }: { files: SegmentFiles
 }
 
 export const RouteFiles = ({ route, className, playerRef }: { playerRef: RefObject<PlayerRef | null>; route: Route; className?: string }) => {
+  const { dongleId } = useRouteParams()
   const [files, { refetch, isRefetching }] = useFiles(route.fullname, route)
   const [segment, _setSegment] = useState<number>(-1) // ROUTE= -1
   const setSegment = (value: number) => {
     _setSegment(value)
     if (value !== -1) playerRef.current?.seekTo(value * 60 * FPS)
   }
+
+  // Extract routeId from route.fullname (format: "dongleId|routeId")
+  const routeId = route.fullname.split(/[|/]/)[1] || ''
+  const uploadProgress = useUploadProgress(dongleId, routeId)
+
   return (
     <div className={clsx('flex flex-col gap-2 bg-background-alt rounded-xl p-4', className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Files</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">
+          Files
+          {uploadProgress.queue.length > 0 && <span className="ml-2 text-yellow-400 animate-pulse">({uploadProgress.queue.length} uploading)</span>}
+        </h3>
         <IconButton
           title="Refresh"
           onClick={() => void refetch()}
@@ -285,7 +337,7 @@ export const RouteFiles = ({ route, className, playerRef }: { playerRef: RefObje
         <>
           <SegmentGrid files={files} selectedSegment={segment} onSelect={setSegment} />
 
-          <SegmentDetails segment={segment} files={files} route={route} setSegment={setSegment} />
+          <SegmentDetails segment={segment} files={files} route={route} setSegment={setSegment} uploadProgress={uploadProgress} />
         </>
       )}
     </div>
