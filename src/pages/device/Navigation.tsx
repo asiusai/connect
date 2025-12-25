@@ -49,7 +49,7 @@ export const Navigation = ({ className }: { className?: string }) => {
     },
   ]
   return (
-    <div className={clsx('grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-0', className)}>
+    <div className={clsx('grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-2', className)}>
       {items
         .filter((x) => !x.hide)
         .map(({ title, href, icon, color }, i, arr) => (
@@ -58,14 +58,17 @@ export const Navigation = ({ className }: { className?: string }) => {
             href={href}
             disabled={!href}
             className={clsx(
-              'flex md:flex-row bg-background-alt md:bg-transparent items-center p-4 gap-4 md:gap-3 md:px-3 md:py-2  rounded-lg transition-colors font-medium',
-              href && 'hover:bg-white/10 text-white',
+              'group flex md:flex-row items-center gap-3 md:gap-3 p-4 md:px-3 md:py-3 rounded-xl md:rounded-lg transition-all font-medium',
+              'bg-background-alt/50 md:bg-transparent border border-white/5 md:border-0',
+              href && 'hover:bg-white/10 md:hover:bg-white/5 hover:border-white/10 text-white hover:scale-[1.02] md:hover:scale-100 active:scale-[0.98]',
               title === 'Home' && 'hidden md:flex',
               i === arr.length - 1 && i % 2 !== 0 && 'justify-center col-span-2 md:col-span-1 md:justify-start',
             )}
           >
-            <Icon name={icon as any} className={clsx('text-xl md:text-2xl', color)} />
-            <span>{title}</span>
+            <div className={clsx('flex items-center justify-center rounded-lg p-2 transition-all', color.replace('text-', 'bg-').replace('400', '500/10').replace('500', '500/10'))}>
+              <Icon name={icon as any} className={clsx('text-2xl md:text-xl', color)} />
+            </div>
+            <span className="text-sm md:text-base">{title}</span>
           </ButtonBase>
         ))}
     </div>

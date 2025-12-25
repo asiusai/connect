@@ -16,8 +16,8 @@ export const Info = ({ className }: { className?: string }) => {
 
   return (
     <div className={clsx('flex flex-col gap-4 pb-10', className)}>
-      <h2 className="text-xl font-bold px-2">Vehicle Info</h2>
-      <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
+      <h2 className="text-xl font-bold px-1">Vehicle Info</h2>
+      <div className="bg-background-alt/50 rounded-xl px-4 py-3 flex flex-col border border-white/5">
         {!!route && (
           <>
             <DetailRow label="Dongle ID" value={route.dongle_id} mono copyable />

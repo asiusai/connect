@@ -86,7 +86,7 @@ export const Component = () => {
 
   const height = 400
   return (
-    <div className="flex flex-col min-h-screen relative">
+    <div className="flex flex-col min-h-screen relative bg-background">
       <div className="w-full sticky top-0" style={{ height }}>
         <Location device={device} className="h-full w-full" />
         {usingCorrectFork && (
@@ -102,14 +102,29 @@ export const Component = () => {
         </div>
         <div className="pointer-events-none absolute inset-0 bg-background z-[999]" style={{ opacity: scroll / height }} />
       </div>
-      <div className="grid md:grid-cols-3 gap-10 p-6 bg-background relative">
-        <div className="md:hidden absolute top-0 -translate-y-[100%] py-2 flex w-full">
-          <ActionBar className="mx-auto w-64 gap-4" />
+      <div className="w-full max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
+        <div className="grid md:grid-cols-12 gap-4 md:gap-6 relative">
+          {/* Mobile Action Bar */}
+          <div className="md:hidden absolute top-0 -translate-y-[calc(100%+1rem)] flex w-full">
+            <ActionBar className="mx-auto w-64 gap-4" />
+          </div>
+
+          {/* Navigation - Left sidebar on desktop, top on mobile */}
+          <div className="md:col-span-3 order-1">
+            <Navigation className="" />
+          </div>
+
+          {/* Routes - Main content */}
+          <div className="md:col-span-6 order-3 md:order-2">
+            <Routes className="" />
+          </div>
+
+          {/* Stats & Info - Right sidebar on desktop, second on mobile */}
+          <div className="md:col-span-3 order-2 md:order-3 flex flex-col gap-6">
+            <Stats className="" />
+            <Info className="" />
+          </div>
         </div>
-        <Navigation className="md:hidden" />
-        <Routes className="md:col-span-2 row-span-3" />
-        <Stats className="" />
-        <Info className="" />
       </div>
     </div>
   )

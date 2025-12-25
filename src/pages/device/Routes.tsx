@@ -142,13 +142,16 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
   const durationUnit = durationStr.replace(/[0-9.]/g, '').trim()
 
   return (
-    <div className="group flex flex-col rounded-xl bg-background-alt overflow-hidden transition-all border border-white/5 shadow-sm hover:shadow-md hover:border-white/10">
+    <div className="group flex flex-col rounded-xl bg-background-alt/50 overflow-hidden transition-all border border-white/5 shadow-sm hover:shadow-lg hover:border-white/10 hover:scale-[1.01]">
       {/* Container for Visuals + Timeline */}
-      <div className="relative flex flex-col w-full overflow-hidden group-hover:ring-1 group-hover:ring-white/10 rounded-t-lg">
+      <div className="relative flex flex-col w-full overflow-hidden rounded-t-lg">
         {/* Public Icon Overlay */}
         {route.is_public && (
-          <div className="absolute top-0 right-0 z-10 rounded-bl-lg bg-green-500 p-1.5 shadow-md">
-            <Icon name="public" className="text-white text-[16px]" />
+          <div className="absolute top-2 right-2 z-10 rounded-lg bg-green-500/90 backdrop-blur-sm px-2 py-1 shadow-md">
+            <div className="flex items-center gap-1">
+              <Icon name="public" className="text-white text-[14px]" />
+              <span className="text-[10px] font-bold text-white uppercase tracking-wide">Public</span>
+            </div>
           </div>
         )}
 
@@ -159,34 +162,37 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
       </div>
 
       {/* Bottom Info: Clickable Link */}
-      <Link to={routeUrl} className="flex items-center justify-between p-3.5 hover:bg-white/5 transition-colors">
-        <div className="flex flex-col gap-0.5">
+      <Link to={routeUrl} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+        <div className="flex flex-col gap-1">
           {/* Time */}
-          <div className="text-base font-semibold text-white tracking-normal">
+          <div className="text-base font-bold text-white tracking-normal">
             {formatTime(startTime)} - {formatTime(endTime)}
           </div>
           {/* Location */}
-          <div className="text-xs text-white/50 truncate max-w-[280px]">{location ? getLocationText(location) : 'Loading location...'}</div>
+          <div className="text-xs text-white/60 truncate max-w-[280px] flex items-center gap-1.5">
+            <Icon name="location_on" className="text-[14px] text-white/40" />
+            {location ? getLocationText(location) : 'Loading location...'}
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-5">
           {/* Duration Block */}
           <div className="flex flex-col items-end">
             <span className="text-lg font-bold text-white leading-none">{durationVal}</span>
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">{durationUnit || 'min'}</span>
+            <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{durationUnit || 'min'}</span>
           </div>
 
           {/* Distance Block */}
           <div className="flex flex-col items-end">
             <span className="text-lg font-bold text-white leading-none">{distVal}</span>
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">{distUnit || 'km'}</span>
+            <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{distUnit || 'km'}</span>
           </div>
 
           {/* Engagement Block */}
-          <div className="flex flex-col items-end min-w-[36px]">
-            <span className="text-lg font-bold text-[#32CD32] leading-none">{Math.round(engagementPercent || 0)}%</span>
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Engaged</span>
+          <div className="flex flex-col items-end min-w-[40px]">
+            <span className="text-lg font-bold text-green-400 leading-none">{Math.round(engagementPercent || 0)}%</span>
+            <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Engaged</span>
           </div>
         </div>
       </Link>
@@ -272,7 +278,7 @@ export const Routes = ({ className }: { className: string }) => {
 
   return (
     <div className={clsx('relative flex flex-col', className)}>
-      <div className="flex items-center justify-between px-2 pb-4">
+      <div className="flex items-center justify-between px-1 pb-5">
         <h2 className="text-xl font-bold tracking-tight">Drives</h2>
         <Slider options={{ all: 'All', preserved: 'Preserved' }} value={show} onChange={setShow} />
       </div>
