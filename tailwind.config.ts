@@ -5,6 +5,15 @@ export default {
   darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
+      animation: {
+        'upload-pulse': 'upload-pulse 1.5s ease-in-out infinite',
+      },
+      keyframes: {
+        'upload-pulse': {
+          '0%, 100%': { opacity: '0.4', transform: 'scaleY(1)' },
+          '50%': { opacity: '1', transform: 'scaleY(1.5)' },
+        },
+      },
       colors: Object.fromEntries(
         [
           'primary',
