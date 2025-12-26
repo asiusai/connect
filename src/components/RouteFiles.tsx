@@ -43,7 +43,6 @@ const uploadSegments = async (routeName: string, segments: number[], types: File
         allow_cellular: false,
         fn,
         priority: PRIORITY,
-        headers: {}, // Default empty headers if not provided
         ...presignedUrls.body[i],
       })),
     },
