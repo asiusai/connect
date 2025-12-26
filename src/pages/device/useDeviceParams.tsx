@@ -80,7 +80,7 @@ export const useDeviceParams = create<DeviceParamsState>((set, get) => ({
   },
   recompute: () =>
     set({
-      favorites: parse<Record<string, string>>(get().get('MapboxFavorites')),
+      favorites: parse<Record<string, string>>(get().get('MapboxFavorites')) ?? { home: '', work: '' },
       route: get().get('MapboxRoute'),
     }),
 
