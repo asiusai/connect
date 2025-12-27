@@ -27,8 +27,7 @@ diskutil apfs addVolume disk3 "Case-sensitive APFS" agnos
 cd /Volumes/agnos
 git clone https://github.com/commaai/agnos-builder.git builder
 cd builder
-git submodule update --init agnos-kernel-sdm845
-./tools/extract_tools.sh
+git clone https://github.com/commaai/agnos-kernel-sdm845.git
 ```
 
 ### Kernel Configuration
@@ -47,7 +46,7 @@ CONFIG_BT_HCIUART=y
 CONFIG_BT_HCIUART_QCA=y
 ```
 
-The device tree also needs Bluetooth UART enabled in `comma_common.dtsi`:
+The device tree also needs Bluetooth UART enabled in `agnos-kernel-sdm845/arch/arm64/boot/dts/qcom/comma_common.dtsi`:
 ```c
 /* Bluetooth UART */
 &qupv3_se6_4uart {
@@ -77,11 +76,10 @@ scp /Volumes/agnos/builder/output/boot.img comma:/tmp/
 ssh comma
 
 # Find current boot slot
-SLOT=$(cat /proc/cmdline | grep -o 'androidboot.slot_suffix=_[ab]' | cut -d'_' -f2)
-echo "Current slot: $SLOT"
+cat /proc/cmdline | grep -o 'slot_suffix=_[ab]'
 
-# Flash to current slot
-sudo dd if=/tmp/boot.img of=/dev/disk/by-partlabel/boot_$SLOT bs=4M
+# Flash to current slot (use boot_a or boot_b based on above)
+sudo dd if=/tmp/boot.img of=/dev/disk/by-partlabel/boot_a bs=4M
 sync
 
 # Reboot
@@ -98,35 +96,11 @@ cd /Volumes/agnos/builder
 
 ## Part 3: Bluetooth Setup on Device
 
-### Install PiBorg Gamepad Library
-
-SSH into your device and install the Gamepad library:
-```bash
-ssh comma
-cd /data/openpilot/tools/joystick
-git clone https://github.com/piborg/Gamepad
-cp Gamepad/Gamepad.py .
-cp Gamepad/Controllers.py .
-```
-
-### Configure Bluetooth
-
-Edit the Bluetooth input configuration to allow non-bonded HID connections:
-```bash
-sudo nano /etc/bluetooth/input.conf
-```
-
-Add or modify:
-```ini
-[General]
-ClassicBondedOnly=false
-```
-
 ### Initialize Bluetooth
 
 ```bash
-# Attach Bluetooth UART
-sudo hciattach /dev/ttyHS1 any 115200 flow
+# Attach Bluetooth UART (use btattach, not hciattach)
+sudo btattach -B /dev/ttyHS0 -S 115200 &
 
 # Verify Bluetooth is up
 hciconfig
@@ -135,27 +109,28 @@ hciconfig
 
 ### Pair the Controller
 
+Use `hcitool scan` for classic Bluetooth discovery (works better than bluetoothctl for gamepads):
 ```bash
-bluetoothctl
-```
-
-In bluetoothctl:
-```
-power on
-agent on
-default-agent
-scan on
+sudo hcitool scan
 ```
 
 Put your DualSense in pairing mode (hold PS + Create buttons until light flashes).
 
-When you see the controller (e.g., `Wireless Controller`):
-```
-scan off
-pair XX:XX:XX:XX:XX:XX
-trust XX:XX:XX:XX:XX:XX
-connect XX:XX:XX:XX:XX:XX
-exit
+When you see the controller, pair using Python dbus:
+```python
+import dbus
+
+bus = dbus.SystemBus()
+MAC = "XX:XX:XX:XX:XX:XX"  # Replace with your controller's MAC
+
+device_path = f"/org/bluez/hci0/dev_{MAC.replace(':', '_')}"
+device = dbus.Interface(bus.get_object("org.bluez", device_path), "org.bluez.Device1")
+props = dbus.Interface(bus.get_object("org.bluez", device_path), "org.freedesktop.DBus.Properties")
+
+props.Set("org.bluez.Device1", "Trusted", dbus.Boolean(True))
+device.Pair()
+device.Connect()
+print("Connected!")
 ```
 
 ### Verify Controller
@@ -205,30 +180,25 @@ ls -la /dev/ttyHS*
 zcat /proc/config.gz | grep CONFIG_BT
 ```
 
-### Controller won't connect
-- Make sure `ClassicBondedOnly=false` is set in `/etc/bluetooth/input.conf`
-- Restart Bluetooth: `sudo systemctl restart bluetooth`
-- Re-attach HCI: `sudo hciattach /dev/ttyHS1 any 115200 flow`
+### hciconfig shows DOWN
+Use `btattach` instead of `hciattach`:
+```bash
+sudo pkill hciattach
+sudo btattach -B /dev/ttyHS0 -S 115200 &
+```
+
+### Controller not found in bluetoothctl scan
+Use `hcitool scan` instead - it uses classic BR/EDR discovery which works better for gamepads.
 
 ### No /dev/input/js0
 - Check if HIDP module is loaded: `lsmod | grep hidp`
-- Verify controller is connected: `bluetoothctl info XX:XX:XX:XX:XX:XX`
-
-### Joystick values incorrect
-- The DualSense over Bluetooth uses different axis mappings than USB
-- The `BluetoothGamepad` class in `joystick_control.py` handles this automatically
+- Verify controller is connected: `hciconfig` should show connection activity
 
 ## Files Modified
 
 ### Kernel (agnos-kernel-sdm845)
 - `arch/arm64/configs/tici_defconfig` - Bluetooth config options
 - `arch/arm64/boot/dts/qcom/comma_common.dtsi` - Bluetooth UART enable
-- `arch/arm64/boot/dts/qcom/sdm845.dtsi` - UART aliases
 
 ### openpilot/sunnypilot
 - `tools/joystick/joystick_control.py` - BluetoothGamepad class with `--bluetooth` flag
-
-## Credits
-
-- Bluetooth kernel patch by jyoung8607
-- PiBorg Gamepad library: https://github.com/piborg/Gamepad
