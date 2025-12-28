@@ -100,11 +100,11 @@ cd /Volumes/agnos/builder
 
 ```bash
 # Attach Bluetooth UART (use btattach, not hciattach)
-sudo btattach -B /dev/ttyHS0 -S 115200 &
+sudo btattach -B /dev/ttyHS1 -S 115200 &
 
 # Verify Bluetooth is up
 hciconfig
-# Should show hci0 with UP RUNNING
+# Should show hci0 with UP RUNNING and BD Address like 00:00:00:00:5A:AD
 ```
 
 ### Pair the Controller
@@ -184,7 +184,7 @@ zcat /proc/config.gz | grep CONFIG_BT
 Use `btattach` instead of `hciattach`:
 ```bash
 sudo pkill hciattach
-sudo btattach -B /dev/ttyHS0 -S 115200 &
+sudo btattach -B /dev/ttyHS1 -S 115200 &
 ```
 
 ### Controller not found in bluetoothctl scan

@@ -4,7 +4,3 @@
 [submodule "agnos-builder"]
 	path = agnos-builder
 	url = https://github.com/commaai/agnos-builder.git
-[submodule "agnos-kernel-sdm845"]
-	path = agnos-kernel-sdm845
-	url = https://github.com/karelnagel/agnos-kernel-sdm845.git
-	branch = bluetooth
