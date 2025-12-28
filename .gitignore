@@ -56,3 +56,4 @@ qlog.zst
 rlog.zst
 build
 user-content/
+.env

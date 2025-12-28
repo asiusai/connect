@@ -1,0 +1,5 @@
+encryptionsalt: v1:J3UB8fjbyNQ=:v1:KyaeCMJV7KuyU3lR:CYhKg5G3uz4x0rjolHQX+Ay/A17X0A==
+config:
+  cloudflare:apiKey:
+    secure: v1:hA/5FY74pHl9BMx9:78l3m77aaDqLpy3kJFZWU2OuFyr80MLnJsDIhvFgyj80YlzFNHVQANP4JGlSuP/hG7VOwOo=
+  cloudflare:email: nagelkarel@gmail.com
