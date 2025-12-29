@@ -1,14 +1,15 @@
 import * as cloudflare from '@pulumi/cloudflare'
 
+// ------------------------- CONSTS -------------------------
 const ACCOUNT_ID = '558df022e422781a34f239d7de72c8ae'
-const ZONE_ID = '9dbe2445beeb3c44e991656fada0231c'
+const NEW_CONNECT_ZONE_ID = '9dbe2445beeb3c44e991656fada0231c'
+const ASIUS_ZONE_ID = 'f4c49c38916764f43e3854fb5461db31'
 
-// PROXIES
-const deployProxy = (original: string, proxy: string) => {
-  const name = proxy.replaceAll('.new-connect.dev', '')
-  const worker = new cloudflare.WorkersScript(name, {
+// ------------------------- PROXIES -------------------------
+const deployProxy = (original: string, subdomain: string) => {
+  const worker = new cloudflare.WorkersScript(subdomain, {
     accountId: ACCOUNT_ID,
-    scriptName: name,
+    scriptName: subdomain,
     mainModule: 'index.js',
     content: `
 const HEADERS = {
@@ -34,72 +35,66 @@ export default {
 }`,
   })
 
-  new cloudflare.DnsRecord(`${name}-dns`, {
-    zoneId: ZONE_ID,
-    name: name,
+  new cloudflare.DnsRecord(`${subdomain}-dns`, {
+    zoneId: ASIUS_ZONE_ID,
+    name: subdomain,
     type: 'AAAA',
     content: '100::',
     proxied: true,
     ttl: 1,
   })
 
-  new cloudflare.WorkersRoute(`${name}-route`, {
-    zoneId: ZONE_ID,
-    pattern: `${proxy}/*`,
+  new cloudflare.WorkersRoute(`${subdomain}-route`, {
+    zoneId: ASIUS_ZONE_ID,
+    pattern: `${subdomain}.asius.ai/*`,
     script: worker.scriptName,
   })
 }
 
-deployProxy('api.konik.ai', 'konik-proxy.new-connect.dev')
-deployProxy('athena.comma.ai', 'athena-proxy.new-connect.dev')
-deployProxy('billing.comma.ai', 'billing-proxy.new-connect.dev')
+deployProxy('api.konik.ai', 'api-konik-proxy')
+deployProxy('athena.comma.ai', 'athena-comma-proxy')
+deployProxy('billing.comma.ai', 'billing-comma-proxy')
 
-// NEW-CONNECT
-const newConnect = new cloudflare.PagesProject('new-connect', {
+// ------------------------- COMMA CONNECT -------------------------
+const comma = new cloudflare.PagesProject('comma-connect', {
   accountId: ACCOUNT_ID,
-  name: 'new-connect',
+  name: 'comma-connect',
   productionBranch: 'master',
-  buildConfig: {
-    buildCommand: 'bun i && bun run --bun vite build',
-    destinationDir: 'dist',
-  },
-  source: {
-    type: 'github',
-    config: {
-      owner: 'karelnagel',
-      repoName: 'new-connect',
-      prCommentsEnabled: true,
-    },
-  },
 })
 
-new cloudflare.PagesDomain('new-connect-domain', {
+new cloudflare.PagesDomain('comma-connect-domain', {
   accountId: ACCOUNT_ID,
-  projectName: newConnect.name,
-  name: 'new-connect.dev',
+  projectName: comma.name,
+  name: 'comma.asius.ai',
 })
 
-// KONIK NEW-CONNECT
-const konikNewConnect = new cloudflare.PagesProject('konik-new-connect', {
+// ------------------------- KONIK CONNECT -------------------------
+const konik = new cloudflare.PagesProject('konik-connect', {
   accountId: ACCOUNT_ID,
-  name: 'konik-new-connect',
+  name: 'konik-connect',
   productionBranch: 'master',
-  buildConfig: {
-    buildCommand: 'bun i && bun run --bun vite build --mode konik',
-    destinationDir: 'dist',
-  },
-  source: {
-    type: 'github',
-    config: {
-      owner: 'karelnagel',
-      repoName: 'new-connect',
-      prCommentsEnabled: true,
-    },
-  },
 })
 
-new cloudflare.PagesDomain('konik-new-connect-domain', {
+new cloudflare.PagesDomain('konik-connect-domain', {
   accountId: ACCOUNT_ID,
-  projectName: konikNewConnect.name,
-  name: 'konik.new-connect.dev',
+  projectName: konik.name,
+  name: 'konik.asius.ai',
 })
+
+
+// ------------------------- REDIRECTS -------------------------
+// TODO: remove these
+const deployRedirect = (from: string, to: string) => {
+  const name = from.replace('.', '-')
+
+  new cloudflare.PageRule(`${name}-redirect`, {
+    zoneId: NEW_CONNECT_ZONE_ID,
+    target: `${from}/*`,
+    actions: { forwardingUrl: { statusCode: 301, url: `https://${to}/$1` } },
+    priority: 1,
+  })
+}
+
+deployRedirect('new-connect.dev', 'comma.asius.ai')
+deployRedirect('www.new-connect.dev', 'comma.asius.ai')
+deployRedirect('konik.new-connect.dev', 'konik.asius.ai')
