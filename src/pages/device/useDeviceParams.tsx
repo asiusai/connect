@@ -65,7 +65,7 @@ export const useDeviceParams = create<DeviceParamsState>((set, get) => ({
     changes = { ...get().changes, ...changes }
     set({ isSaving: true, changes: changes })
     const params_to_update = Object.fromEntries(Object.entries(changes).map(([k, v]) => [k, v === null ? null : encode(v)]))
-    const result = await callAthena({ type: 'saveParams', dongleId: get().dongleId!, params: { params_to_update, compression: false } })
+    const result = await callAthena({ type: 'saveParams', dongleId: get().dongleId!, params: { params_to_update } })
 
     const errors = Object.entries(result?.result ?? {}).filter(([_, v]) => v.startsWith('error:'))
     if (errors.length) errors.forEach(([k, v]) => console.error(`${k}: ${v.replace('error: ', '')}`))

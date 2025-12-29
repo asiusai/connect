@@ -147,7 +147,6 @@ const REQUESTS = {
     }),
     result: z.object({ success: z.number() }),
   },
-
   getAllParams: {
     params: z.object({}),
     result: ParamValue.array(),
@@ -155,7 +154,6 @@ const REQUESTS = {
   saveParams: {
     params: z.object({
       params_to_update: z.record(z.string().nullable()),
-      compression: z.boolean(),
     }),
     result: z.record(z.string()),
   },
