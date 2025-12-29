@@ -41,7 +41,7 @@ jobs:
       - name: get commit date
         run: echo "VITE_APP_GIT_TIMESTAMP=$(git show -s --format=%cI)" >> $GITHUB_ENV
 
-      - run: bun install --frozen-lockfile
+      - run: bun install
       - run: bun run build
         env:
           VITE_SENTRY_ENVIRONMENT: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
