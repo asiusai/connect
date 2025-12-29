@@ -16,7 +16,7 @@ jobs:
 
       - run: bun install
 
-      - run: cd infra && pulumi up --yes --non-interactive --stack prod --skip-preview
+      - run: cd infra && bun run ~/.pulumi/bin/pulumi up --yes --non-interactive --stack prod --skip-preview
         env:
           PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
