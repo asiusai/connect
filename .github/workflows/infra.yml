@@ -15,11 +15,9 @@ jobs:
 
       - run: bun install
 
-      - uses: pulumi/actions@v6
-        with:
-          command: up
-          stack-name: prod
-          work-dir: infra
+      - run: curl -fsSL https://get.pulumi.com | sh
+
+      - run: cd infra && pulumi up --yes --non-interactive --stack prod --skip-preview
         env:
           PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
