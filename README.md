@@ -1,8 +1,8 @@
-# new-new-connect
+# connect
 
 connect is the web and mobile experience for [openpilot](https://github.com/commaai/openpilot).
 
-Try it out at https://new-connect.dev.
+Try it out at https://comma.asius.ai
 
 ## Development
 
@@ -15,7 +15,7 @@ curl -fsSL https://bun.com/install | bash
 ## Clone, install and run
 
 ```bash
-git clone https://github.com/karelnagel/new-connect.git
+git clone https://github.com/asius/connect.git
 
 cd connect
 bun install  

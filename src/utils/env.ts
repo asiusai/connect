@@ -3,13 +3,12 @@ import { z } from 'zod'
 const zString = (def?: string) => (def ? z.string().default(def) : z.string())
 
 export const Environment = z.object({
-  ATHENA_URL: zString('https://athena-proxy.new-connect.dev'), // Needed cause athena.comma.ai restricts CORS
+  ATHENA_URL: zString('https://athena-comma-proxy.asius.ai'), // Needed cause athena.comma.ai restricts CORS
   API_URL: zString('https://api.comma.ai'),
   AUTH_URL: zString('https://api.comma.ai'),
-  BILLING_URL: zString('https://billing-proxy.new-connect.dev'), // Needed cause billing.comma.ai restricts CORS
+  BILLING_URL: zString('https://billing-comma-proxy.asius.ai'), // Needed cause billing.comma.ai restricts CORS
   USERADMIN_URL: zString('https://useradmin.comma.ai'),
-  RENDERER_URL: zString('https://renderer.new-connect.dev'),
-  TEMPLATES_URL: zString('https://templates.new-connect.dev'),
+  RENDERER_URL: zString('https://api.asius.ai'),
 
   DEMO_DONGLE_ID: zString('1d3dc3e03047b0c7'),
   DEMO_ACCESS_TOKEN: zString(
@@ -22,7 +21,7 @@ export const Environment = z.object({
   MAPBOX_TOKEN: zString('pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDluMWR4amUydGl5In0.6Vb11S6tdX6Arpj6trRE_g'),
 
   HACK_LOGIN_CALLBACK_HOST: zString('612.connect-d5y.pages.dev'),
-  HACK_DEFAULT_REDICT_HOST: zString('new-connect.dev'),
+  HACK_DEFAULT_REDICT_HOST: zString('comma.asius.ai'),
 
   EXAMPLE_ROUTE_NAME: zString('a2a0ccea32023010/2023-07-27--13-01-19'),
 
@@ -31,7 +30,7 @@ export const Environment = z.object({
   GOOGLE_CLIENT_ID: zString('45471411055-ornt4svd2miog6dnopve7qtmh5mnu6id.apps.googleusercontent.com'),
   APPLE_CLIENT_ID: zString('ai.comma.login'),
   GITHUB_CLIENT_ID: zString('28c4ecb54bb7272cb5a4'),
-  FORK: zString('karelnagel/sunnypilot'),
+  FORK: zString('asius/sunnypilot'),
 })
 
 const fullEnv = typeof process !== 'undefined' ? process.env : import.meta.env
