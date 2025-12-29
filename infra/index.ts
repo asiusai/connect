@@ -60,6 +60,18 @@ const comma = new cloudflare.PagesProject('comma-connect', {
   accountId: ACCOUNT_ID,
   name: 'comma-connect',
   productionBranch: 'master',
+  buildConfig: {
+    buildCommand: 'bun i && bun run --bun vite build',
+    destinationDir: 'dist',
+  },
+  source: {
+    type: 'github',
+    config: {
+      owner: 'asiusai',
+      repoName: 'connect',
+      prCommentsEnabled: true,
+    },
+  },
 })
 
 new cloudflare.PagesDomain('comma-connect-domain', {
@@ -73,6 +85,18 @@ const konik = new cloudflare.PagesProject('konik-connect', {
   accountId: ACCOUNT_ID,
   name: 'konik-connect',
   productionBranch: 'master',
+  buildConfig: {
+    buildCommand: 'bun i && bun run --bun vite build --mode konik',
+    destinationDir: 'dist',
+  },
+  source: {
+    type: 'github',
+    config: {
+      owner: 'asiusai',
+      repoName: 'connect',
+      prCommentsEnabled: true,
+    },
+  },
 })
 
 new cloudflare.PagesDomain('konik-connect-domain', {
