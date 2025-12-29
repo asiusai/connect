@@ -3,7 +3,6 @@ name: Infrastructure
 on:
   push:
     branches: [master]
-    paths: [infra/**]
   workflow_dispatch:
 jobs:
   deploy:
@@ -17,7 +16,7 @@ jobs:
 
       - run: curl -fsSL https://get.pulumi.com | sh
 
-      - run: cd infra && pulumi up --yes --non-interactive --stack prod --skip-preview
+      - run: cd infra && /home/runner/.pulumi/bin/pulumi up --yes --non-interactive --stack prod --skip-preview
         env:
           PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
