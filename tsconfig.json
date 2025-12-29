@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "jsxImportSource": "react",
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "types": ["bun"],
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "incremental": true
+  },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.cjs"],
+  "exclude": ["node_modules", "dist"]
+}

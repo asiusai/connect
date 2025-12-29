@@ -1,0 +1,14 @@
+name: asius
+description: Asius
+backend:
+  url: s3://asius-pulumi?endpoint=558df022e422781a34f239d7de72c8ae.r2.cloudflarestorage.com
+runtime:
+  name: nodejs
+  options:
+    packagemanager: bun
+    nodeargs: "--loader ts-node/esm --no-warnings"
+    typescript: true
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: typescript

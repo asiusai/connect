@@ -1,0 +1,9 @@
+[submodule "connect"]
+	path = connect
+	url = https://github.com/asiusai/connect.git
+[submodule "openpilot"]
+	path = openpilot
+	url = https://github.com/asiusai/openpilot.git
+[submodule "sunnypilot"]
+	path = sunnypilot
+	url = https://github.com/asiusai/sunnypilot.git

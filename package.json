@@ -1,0 +1,21 @@
+{
+  "name": "asiusai",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "packageManager": "bun@1.2.9",
+  "scripts": {
+    "fix": "biome check --write"
+  },
+  "workspaces": [
+    "connect",
+    "infra",
+    "api"
+  ],
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
