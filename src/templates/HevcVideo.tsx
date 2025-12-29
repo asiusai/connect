@@ -1,7 +1,7 @@
 import { CSSProperties, useEffect, useRef } from 'react'
 import { OffthreadVideo, Html5Video } from 'remotion'
-import { hevcStreamToMp4 } from '../src/utils/ffmpeg'
-import { createChunker, extractHevcHeaders, stripMp4Headers } from '../src/utils/hevc'
+import { hevcStreamToMp4 } from '../utils/ffmpeg'
+import { createChunker, extractHevcHeaders, stripMp4Headers } from '../utils/hevc'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 

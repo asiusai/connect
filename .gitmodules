@@ -1,6 +1,0 @@
-[submodule "sunnypilot"]
-  path = sunnypilot
-  url = https://github.com/karelnagel/sunnypilot.git
-[submodule "agnos-builder"]
-	path = agnos-builder
-	url = https://github.com/commaai/agnos-builder.git

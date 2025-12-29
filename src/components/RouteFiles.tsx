@@ -10,7 +10,7 @@ import { useRouteParams, useUploadProgress } from '../utils/hooks'
 import { Icon } from './Icon'
 import { ButtonBase } from './ButtonBase'
 import { PlayerRef } from '@remotion/player'
-import { FPS } from '../../templates/shared'
+import { FPS } from '../templates/shared'
 import { IconButton } from './IconButton'
 
 type UploadProgressInfo = ReturnType<typeof useUploadProgress>

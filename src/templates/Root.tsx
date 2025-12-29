@@ -2,8 +2,8 @@ import '../src/index.css'
 import { Composition, Still } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
 import { Preview, previewCalculateMetadata } from './Preview'
-import { PreviewProps } from '../src/types'
-import { env } from '../src/utils/env'
+import { PreviewProps } from '../types'
+import { env } from '../utils/env'
 import { OG, ogCalculateMetadata, OGProps } from './OG'
 
 export const RemotionRoot = () => {

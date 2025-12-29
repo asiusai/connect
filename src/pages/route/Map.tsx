@@ -7,7 +7,7 @@ import { getTileUrl } from '../../utils/map'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import L, { LatLngBounds } from 'leaflet'
 import { PlayerRef } from '@remotion/player'
-import { toSeconds } from '../../../templates/shared'
+import { toSeconds } from '../../templates/shared'
 import { DateTime } from 'luxon'
 
 const FitBounds = ({ coords }: { coords: GPSPathPoint[] }) => {

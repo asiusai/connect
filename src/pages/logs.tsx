@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LogReader } from '../../log-reader'
+import { LogReader } from '../log-reader'
 import { useFiles, useRoute } from '../api/queries'
 import { useAsyncEffect, useRouteParams } from '../utils/hooks'
 import { Icon } from '../components/Icon'

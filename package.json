@@ -1,12 +1,12 @@
 {
-  "name": "connect",
+  "name": "@asiusai/connect",
+  "private": true,
   "version": "1.0.0",
-  "homepage": "https://new-connect.dev",
+  "homepage": "https://connect.asius.ai",
   "license": "MIT",
-  "author": "comma.ai",
   "repository": {
     "type": "git",
-    "url": "https://github.com/karelnagel/new-connect.git"
+    "url": "https://github.com/asius/connect.git"
   },
   "scripts": {
     "build": "bun run --bun vite build",

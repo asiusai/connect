@@ -1,16 +1,16 @@
 import { AbsoluteFill, CalculateMetadataFunction, Sequence, Series } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { FileType, PreviewData, PreviewFiles, PreviewGenerated, PreviewProps, UnitFormat } from '../src/types'
-import { api } from '../src/api'
+import { FileType, PreviewData, PreviewFiles, PreviewGenerated, PreviewProps, UnitFormat } from '../types'
+import { api } from '../api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
 import { OpenpilotUI } from './OpenpilotUI'
-import { Loading } from '../src/components/Loading'
+import { Loading } from '../components/Loading'
 import clsx from 'clsx'
 import { FrameData, readLogs } from '../log-reader/reader'
-import { getRouteDurationMs } from '../src/utils/format'
-import { toSegmentFiles } from '../src/utils/helpers'
-import { Icon } from '../src/components/Icon'
+import { getRouteDurationMs } from '../utils/format'
+import { toSegmentFiles } from '../utils/helpers'
+import { Icon } from '../components/Icon'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const [dongleId] = props.routeName.split('/')

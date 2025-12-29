@@ -1,12 +1,12 @@
 import { AbsoluteFill, staticFile, useCurrentFrame } from 'remotion'
 import { WIDTH, HEIGHT, FPS } from './shared'
 import { useMemo, useState } from 'react'
-import { DB } from '../src/utils/db'
+import { DB } from '../utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
 import type { FrameData } from '../log-reader/reader'
-import { useAsyncEffect } from '../src/utils/hooks'
-import { LogType, UnitFormat } from '../src/types'
-import { MI_TO_KM } from '../src/utils/format'
+import { useAsyncEffect } from '../utils/hooks'
+import { LogType, UnitFormat } from '../types'
+import { MI_TO_KM } from '../utils/format'
 
 const PATH_WIDTH = 1.8
 const FX = 500

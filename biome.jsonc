@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!log-reader/capnp/*", "!sunnypilot"]
+    "includes": ["**", "!src/log-reader/capnp/*"]
   },
   "formatter": {
     "enabled": true,

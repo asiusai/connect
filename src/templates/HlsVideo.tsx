@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Html5Video } from 'remotion'
 import Hls from 'hls.js'
-import { PreviewFiles } from '../src/types'
+import { PreviewFiles } from '../types'
 
 export const HlsVideo = ({ files }: { files: PreviewFiles }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
