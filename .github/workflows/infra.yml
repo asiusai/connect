@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - run: git submodule update --init connect
 
       - uses: oven-sh/setup-bun@v2
 
