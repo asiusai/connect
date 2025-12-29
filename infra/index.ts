@@ -60,7 +60,7 @@ const newConnect = new cloudflare.PagesProject('new-connect', {
   name: 'new-connect',
   productionBranch: 'master',
   buildConfig: {
-    buildCommand: 'bun run --bun vite build',
+    buildCommand: 'bun i && bun run --bun vite build',
     destinationDir: 'dist',
   },
   source: {
@@ -85,7 +85,7 @@ const konikNewConnect = new cloudflare.PagesProject('konik-new-connect', {
   name: 'konik-new-connect',
   productionBranch: 'master',
   buildConfig: {
-    buildCommand: 'bun run --bun vite build --mode konik',
+    buildCommand: 'bun i && bun run --bun vite build --mode konik',
     destinationDir: 'dist',
   },
   source: {
