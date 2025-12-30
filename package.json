@@ -10,7 +10,8 @@
   "workspaces": [
     "connect",
     "infra",
-    "api"
+    "api",
+    "site"
   ],
   "devDependencies": {
     "@types/bun": "latest"

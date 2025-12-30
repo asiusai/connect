@@ -62,7 +62,7 @@ const comma = new cloudflare.PagesProject('comma-connect', {
   name: 'comma-connect',
   productionBranch: 'master',
   buildConfig: {
-    buildCommand: 'bun i && bun run --bun vite build',
+    buildCommand: 'bun i && bun run --bun vite build --mode comma',
     destinationDir: 'dist',
   },
   source: {
@@ -120,6 +120,41 @@ new cloudflare.DnsRecord('konik-connect-dns', {
   name: 'konik',
   type: 'CNAME',
   content: 'konik-connect.pages.dev',
+  proxied: true,
+  ttl: 1,
+})
+
+// ------------------------- ASIUS.AI SITE -------------------------
+const site = new cloudflare.PagesProject('asius-site', {
+  accountId: ACCOUNT_ID,
+  name: 'asius-site',
+  productionBranch: 'master',
+  buildConfig: {
+    rootDir: 'site',
+    buildCommand: 'bun i && bun run build',
+    destinationDir: 'dist',
+  },
+  source: {
+    type: 'github',
+    config: {
+      owner: 'asiusai',
+      repoName: 'asiusai',
+      prCommentsEnabled: true,
+    },
+  },
+})
+
+new cloudflare.PagesDomain('asius-site-domain', {
+  accountId: ACCOUNT_ID,
+  projectName: site.name,
+  name: 'asius.ai',
+})
+
+new cloudflare.DnsRecord('asius-site-dns', {
+  zoneId: ASIUS_ZONE_ID,
+  name: '@',
+  type: 'CNAME',
+  content: 'asius-site.pages.dev',
   proxied: true,
   ttl: 1,
 })
