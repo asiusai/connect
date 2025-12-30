@@ -50,6 +50,12 @@ const MODES = {
     domain: 'konik.asius.ai',
     api: 'api.konik.ai',
   },
+  asius: {
+    name: 'asius connect',
+    favicon: '/asius-favicon.svg',
+    domain: 'connect.asius.ai',
+    api: 'api.konik.ai',
+  },
 }
 
 export const mode = MODES[(env.MODE as keyof typeof MODES) ?? 'comma']

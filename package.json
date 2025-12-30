@@ -12,6 +12,7 @@
     "build": "bun run --bun vite build --mode comma",
     "dev": "bun run --bun vite --open --mode comma",
     "konik": "bun run --bun vite --open --mode konik --port 3001",
+    "asius": "bun run --bun vite --open --mode asius --port 3002",
     "serve": "vite preview",
     "check": "biome check",
     "fix": "biome check --write",
