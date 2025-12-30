@@ -31,5 +31,5 @@ export default defineConfig({
       },
     }),
   },
-  images: ['public/comma/favicon.svg'],
+  images: ['public/comma-favicon.svg'],
 })

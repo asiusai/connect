@@ -40,13 +40,13 @@ export const env = Environment.parse(Object.fromEntries(Object.entries(fullEnv).
 const MODES = {
   comma: {
     name: 'comma connect',
-    favicon: '/comma/favicon.svg',
+    favicon: '/comma-favicon.svg',
     domain: 'comma.asius.ai',
     api: 'api.comma.ai',
   },
   konik: {
     name: 'konik connect',
-    favicon: '/konik/favicon.svg',
+    favicon: '/konik-favicon.svg',
     domain: 'konik.asius.ai',
     api: 'api.konik.ai',
   },

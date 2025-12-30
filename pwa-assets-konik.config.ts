@@ -29,5 +29,5 @@ export default defineConfig({
       },
     }),
   },
-  images: ['public/konik/favicon.svg'],
+  images: ['public/konik-favicon.svg'],
 })

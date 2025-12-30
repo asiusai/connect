@@ -41,19 +41,19 @@ const PROVIDERS = {
   google: {
     enabled: !!env.GOOGLE_CLIENT_ID,
     href: `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`,
-    image: '/images/logo-google.svg',
+    image: '/logo-google.svg',
     title: 'Google',
   },
   apple: {
     enabled: !!env.APPLE_CLIENT_ID,
     href: `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`,
-    image: '/images/logo-apple.svg',
+    image: '/logo-apple.svg',
     title: 'Apple',
   },
   github: {
     enabled: !!env.GITHUB_CLIENT_ID,
     href: `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`,
-    image: '/images/logo-github.svg',
+    image: '/logo-github.svg',
     title: 'GitHub',
   },
 }
@@ -100,7 +100,7 @@ export const Component = () => {
 
         <div className="flex flex-col gap-6 w-full">
           <div className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5">
-            <img src="/images/icon-comma-three-light.svg" alt="" width={24} height={24} className="opacity-80 mt-1" />
+            <img src="/icon-comma-three-light.svg" alt="" width={24} height={24} className="opacity-80 mt-1" />
             <p className="text-xs text-white/60 leading-relaxed">Make sure to sign in with the same account if you have previously paired your comma device.</p>
           </div>
 
