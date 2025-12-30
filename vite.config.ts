@@ -6,9 +6,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 // noinspection ES6PreferShortImport
 import { Icons } from './src/components/Icon'
 
-export default defineConfig(({ mode }) => {
-  const isKonik = mode === 'konik'
+const PWA_NAMES: Record<string, string> = {
+  comma: 'comma connect',
+  konik: 'konik connect',
+  asius: 'asius connect',
+}
 
+export default defineConfig(({ mode }) => {
   return {
     optimizeDeps: {
       exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
@@ -18,7 +22,7 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         manifest: {
-          name: isKonik ? 'konik connect' : 'comma connect',
+          name: PWA_NAMES[mode] ?? 'comma connect',
           short_name: 'connect',
           description: 'manage your openpilot experience',
           background_color: '#131318',
@@ -27,7 +31,7 @@ export default defineConfig(({ mode }) => {
           id: '/',
         },
         pwaAssets: {
-          config: isKonik ? 'pwa-assets-konik.config.ts' : 'pwa-assets-comma.config.ts',
+          config: `pwa-assets-${mode}.config.ts`,
         },
         workbox: {
           navigateFallback: null,
