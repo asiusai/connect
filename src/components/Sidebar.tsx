@@ -10,6 +10,7 @@ import { ActionBar } from '../pages/device/ActionBar'
 import { useRouteParams } from '../utils/hooks'
 import { Voltage } from '../pages/device/DevicesMobile'
 import { IconButton } from './IconButton'
+import { Logo } from './Logo'
 
 export const Sidebar = () => {
   const { dongleId } = useRouteParams()
@@ -22,7 +23,7 @@ export const Sidebar = () => {
       <div className="flex flex-col w-64 h-screen top-0 border-r border-b border-white/5 bg-background shrink-0 fixed">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <img src="/images/comma-white.svg" alt="connect" className="w-8 h-8 rounded-full" />
+            <Logo className="h-8 w-8" />
             <span className="text-xl font-bold tracking-tight">connect</span>
           </Link>
         </div>

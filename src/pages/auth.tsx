@@ -4,6 +4,8 @@ import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
 import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
+import { mode } from '../utils/env'
+import { Logo } from '../components/Logo'
 
 export const Component = () => {
   const navigate = useNavigate()
@@ -27,8 +29,8 @@ export const Component = () => {
   return (
     <div className="flex min-h-screen max-w-lg flex-col gap-8 items-center mx-auto justify-center p-6">
       <div className="flex flex-col gap-4 items-center">
-        <img src="/images/logo-connect-light.svg" alt="comma connect" width={96} height={96} />
-        <h1 className="text-2xl">comma connect</h1>
+        <Logo className="h-24 w-24" />
+        <h1 className="text-2xl">{mode.name}</h1>
       </div>
       {error ? (
         <>

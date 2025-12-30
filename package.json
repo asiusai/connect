@@ -9,8 +9,8 @@
     "url": "https://github.com/asius/connect.git"
   },
   "scripts": {
-    "build": "bun run --bun vite build",
-    "dev": "bun run --bun vite --open",
+    "build": "bun run --bun vite build --mode comma",
+    "dev": "bun run --bun vite --open --mode comma",
     "konik": "bun run --bun vite --open --mode konik --port 3001",
     "serve": "vite preview",
     "check": "biome check",

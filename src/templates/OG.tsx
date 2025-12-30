@@ -9,6 +9,8 @@ import { formatDistance, formatDuration, getRouteDurationMs } from '../utils/for
 import { Route } from '../types'
 import { DateTime } from 'luxon'
 import clsx from 'clsx'
+import { mode } from '../utils/env'
+import { Logo } from '../components/Logo'
 
 export const OGProps = z.object({
   routeName: z.string(),
@@ -126,7 +128,8 @@ export const OG = ({ data }: OGProps) => {
           </div>
         </div>
         <div className="flex items-center gap-4 opacity-80">
-          <Img src={staticFile('/images/comma-white.svg')} className="h-10 w-auto" />
+          <Logo className="" />
+          <Img src={staticFile(mode.favicon)} className="h-10 w-auto" />
           <span className="text-3xl font-bold tracking-tight">
             comma <span className="opacity-70">connect</span>
           </span>
@@ -165,7 +168,7 @@ export const OG = ({ data }: OGProps) => {
       {/* Footer */}
       <div className="flex items-center justify-between text-white/40 text-2xl font-medium">
         <div className="flex items-center gap-4">
-          <span>comma.ai</span>
+          <span>comma.asius.ai</span>
           <span className="w-px h-5 bg-white/20" />
           <span>make driving chill</span>
         </div>

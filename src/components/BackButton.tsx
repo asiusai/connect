@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 import { IconButton } from './IconButton'
 import { isSignedIn } from '../utils/helpers'
+import { Logo } from './Logo'
 
 export const BackButton = ({ href }: { href: string }) => {
   if (!isSignedIn())
     return (
       <Link to="/login" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-        <img src="/images/comma-white.svg" alt="connect" className="w-8 h-8 rounded-full" />
+        <Logo className="w-8 h-8 rounded-full" />
       </Link>
     )
   return <IconButton title="Back" name="keyboard_arrow_left" href={href} />

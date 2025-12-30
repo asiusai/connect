@@ -3,6 +3,8 @@ import { ButtonBase } from '../components/ButtonBase'
 import { Icon } from '../components/Icon'
 import { env } from '../utils/env'
 import { useEffect } from 'react'
+import { mode } from '../utils/env'
+import { Logo } from '../components/Logo'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
@@ -70,11 +72,11 @@ export const Component = () => {
     <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-background text-foreground">
       <div className="flex max-w-sm w-full flex-col items-center gap-10">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="w-24 h-24 rounded-3xl bg-white/5 flex items-center justify-center shadow-2xl border border-white/5">
-            <img src="/images/logo-connect-light.svg" alt="comma connect" width={64} height={64} className="opacity-90" />
+          <div className="w-24 h-24 rounded-3xl bg-white flex items-center justify-center shadow-2xl border border-white/5">
+            <Logo className="text-black h-16 w-16" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">comma connect</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{mode.name}</h1>
             <p className="text-white/60">Manage your openpilot experience.</p>
           </div>
         </div>

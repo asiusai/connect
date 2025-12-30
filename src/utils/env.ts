@@ -3,6 +3,7 @@ import { z } from 'zod'
 const zString = (def?: string) => (def ? z.string().default(def) : z.string())
 
 export const Environment = z.object({
+  MODE: zString('comma'),
   ATHENA_URL: zString('https://athena-comma-proxy.asius.ai'), // Needed cause athena.comma.ai restricts CORS
   API_URL: zString('https://api.comma.ai'),
   AUTH_URL: zString('https://api.comma.ai'),
@@ -35,3 +36,20 @@ export const Environment = z.object({
 
 const fullEnv = typeof process !== 'undefined' ? process.env : import.meta.env
 export const env = Environment.parse(Object.fromEntries(Object.entries(fullEnv).map(([k, v]) => [k.replace('VITE_', ''), v])))
+
+const MODES = {
+  comma: {
+    name: 'comma connect',
+    favicon: '/comma/favicon.svg',
+    domain: 'comma.asius.ai',
+    api: 'api.comma.ai',
+  },
+  konik: {
+    name: 'konik connect',
+    favicon: '/konik/favicon.svg',
+    domain: 'konik.asius.ai',
+    api: 'api.konik.ai',
+  },
+}
+
+export const mode = MODES[(env.MODE as keyof typeof MODES) ?? 'comma']

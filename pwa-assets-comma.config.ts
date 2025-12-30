@@ -1,5 +1,6 @@
 import { createAppleSplashScreens, defineConfig, minimal2023Preset } from '@vite-pwa/assets-generator/config'
 
+console.log(process.env.MODE)
 export default defineConfig({
   headLinkOptions: {
     preset: '2023',
@@ -30,5 +31,5 @@ export default defineConfig({
       },
     }),
   },
-  images: ['public/favicon.svg'],
+  images: ['public/comma/favicon.svg'],
 })
