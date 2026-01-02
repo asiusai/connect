@@ -55,7 +55,7 @@ const SettingsMenu = () => {
   const [playbackRate, setPlaybackRate] = useStorage('playbackRate')
 
   return (
-    <div className="absolute bottom-12 right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
+    <div className="absolute bottom-[120%] right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
       {title && (
         <div className="flex items-center gap-2 px-2 py-2 border-b border-white/10 mb-1">
           <IconButton title="Back" name="arrow_back" className="text-xl" onClick={onBack} />
@@ -443,7 +443,7 @@ export const VideoControls = ({ playerRef, className }: { className?: string; pl
 
         {/* <Render props={props} /> */}
 
-        <div className="relative" ref={settingsRef}>
+        <div className="relative flex items-center justify-center" ref={settingsRef}>
           {showSettings && <SettingsMenu />}
           <IconButton title="Settings" name="settings" onClick={() => setShowSettings(!showSettings)} />
         </div>
