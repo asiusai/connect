@@ -18,6 +18,7 @@ const STORAGES = {
   largeCameraType: (): CameraType => 'qcameras',
   smallCameraType: (): CameraType | undefined => undefined,
   logType: (): LogType | undefined => undefined,
+  showPath: (): boolean => true,
   statsTime: (): 'all' | 'week' => 'all',
   routesType: (): 'all' | 'preserved' => 'all',
   analyzeService: (): Service => 'peripheralState',

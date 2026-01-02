@@ -42,12 +42,16 @@ export type CarState = {
 export type SelfdriveState = {
   ExperimentalMode: boolean
 }
+export type LiveCalibration = {
+  RpyCalib: number[] // [roll, pitch, yaw] in radians
+}
 export type FrameData = {
   event: 'ModelV2' | 'DrivingModelData'
   ModelV2?: ModelV2
   CarState?: CarState
   DriverStateV2?: DriverStateV2
   SelfdriveState?: SelfdriveState
+  LiveCalibration?: LiveCalibration
 }
 export type ReadLogsInput = {
   url: string
@@ -65,8 +69,16 @@ export const readLogs = async ({ url }: ReadLogsInput) => {
   let CarState: CarState | undefined
   let DriverStateV2: DriverStateV2 | undefined
   let SelfdriveState: SelfdriveState | undefined
+  let LiveCalibration: LiveCalibration | undefined
 
   for await (const event of reader) {
+    if ('LiveCalibration' in event) {
+      const rpyCalib = event.LiveCalibration.RpyCalib
+      if (rpyCalib && rpyCalib.length >= 3) {
+        LiveCalibration = { RpyCalib: [rpyCalib[0], rpyCalib[1], rpyCalib[2]] }
+      }
+    }
+
     if ('CarState' in event) {
       const { VEgo, CruiseState, GearShifter, LeftBlinker, RightBlinker } = event.CarState
       CarState = {
@@ -112,6 +124,7 @@ export const readLogs = async ({ url }: ReadLogsInput) => {
         CarState,
         DriverStateV2,
         SelfdriveState,
+        LiveCalibration,
       }
     }
   }

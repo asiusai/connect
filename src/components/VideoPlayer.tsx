@@ -132,6 +132,7 @@ const SettingsMenu = () => {
   const [smallCameraType, setSmallCameraType] = useStorage('smallCameraType')
   const [logType, setLogType] = useStorage('logType')
   const [playbackRate, setPlaybackRate] = useStorage('playbackRate')
+  const [showPath, setShowPath] = useStorage('showPath')
 
   return (
     <div className="absolute bottom-[120%] right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -142,25 +143,39 @@ const SettingsMenu = () => {
         </div>
       )}
 
-      {view === undefined &&
-        [
-          { view: 'large' as const, value: FILE_LABELS[largeCameraType] },
-          { view: 'small' as const, value: smallCameraType ? FILE_LABELS[smallCameraType] : 'Hidden' },
-          { view: 'log' as const, value: logType ? FILE_LABELS[logType] : 'Hidden' },
-          { view: 'rate' as const, value: `${playbackRate}x` },
-        ].map(({ view, value }) => (
-          <div
-            key={view}
-            className="flex items-center justify-between px-4 py-3 hover:bg-white/10 cursor-pointer text-sm transition-colors"
-            onClick={() => setView(view)}
-          >
-            <span>{TITLES[view]}</span>
-            <div className="flex items-center gap-1 text-white/70">
-              <span>{value}</span>
-              <Icon name="chevron_right" />
+      {view === undefined && (
+        <>
+          {[
+            { view: 'large' as const, value: FILE_LABELS[largeCameraType] },
+            { view: 'small' as const, value: smallCameraType ? FILE_LABELS[smallCameraType] : 'Hidden' },
+            { view: 'log' as const, value: logType ? FILE_LABELS[logType] : 'Hidden' },
+            { view: 'rate' as const, value: `${playbackRate}x` },
+          ].map(({ view, value }) => (
+            <div
+              key={view}
+              className="flex items-center justify-between px-4 py-3 hover:bg-white/10 cursor-pointer text-sm transition-colors"
+              onClick={() => setView(view)}
+            >
+              <span>{TITLES[view]}</span>
+              <div className="flex items-center gap-1 text-white/70">
+                <span>{value}</span>
+                <Icon name="chevron_right" />
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+          {logType && (
+            <div
+              className="flex items-center justify-between px-4 py-3 hover:bg-white/10 cursor-pointer text-sm transition-colors"
+              onClick={() => setShowPath(!showPath)}
+            >
+              <span>Show Path</span>
+              <div className={clsx('w-8 h-4 rounded-full transition-colors relative', showPath ? 'bg-green-500' : 'bg-white/30')}>
+                <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform', showPath ? 'translate-x-4' : 'translate-x-0.5')} />
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {view === 'large' &&
         allCameras.map((option) => (

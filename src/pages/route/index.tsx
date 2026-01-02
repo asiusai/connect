@@ -31,6 +31,7 @@ export const usePreviewProps = () => {
   const [smallCameraType] = useStorage('smallCameraType')
   const [logType] = useStorage('logType')
   const [unitFormat] = useStorage('unitFormat')
+  const [showPath] = useStorage('showPath')
 
   const props = useMemo<PreviewProps>(
     () => ({
@@ -40,8 +41,9 @@ export const usePreviewProps = () => {
       logType,
       data: files && route ? { files, route } : undefined,
       unitFormat,
+      showPath,
     }),
-    [largeCameraType, smallCameraType, logType, files, route],
+    [largeCameraType, smallCameraType, logType, files, route, showPath],
   )
   return props
 }

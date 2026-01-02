@@ -91,6 +91,7 @@ export const IconName = z.enum([
   'straighten',
   'language',
   'toggle_on',
+  'toggle_off',
   'visibility',
   'airline_seat_recline_normal',
   'timer',
