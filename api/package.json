@@ -1,7 +1,11 @@
 {
   "name": "@asiusai/api",
   "private": true,
+  "scripts": {
+    "dev": "bun --watch index.ts"
+  },
   "dependencies": {
-    "@ts-rest/serverless": "^3.52.1"
+    "@ts-rest/open-api": "3.53.0-rc.1",
+    "@ts-rest/serverless": "3.53.0-rc.1"
   }
 }

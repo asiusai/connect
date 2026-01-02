@@ -1,5 +1,6 @@
 import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
 import { router } from './router'
+import { openApiDoc, swaggerHtml } from './swagger'
 import { env } from '../connect/src/utils/env'
 
 const headers = {
@@ -16,6 +17,9 @@ const server = Bun.serve({
       if (request.method === 'OPTIONS') return new Response(null, { headers })
 
       const path = new URL(request.url).pathname
+
+      if (path === '/') return new Response(swaggerHtml, { headers: { ...headers, 'Content-Type': 'text/html' } })
+      if (path === '/openapi.json') return Response.json(openApiDoc, { headers })
 
       if (path.startsWith(`/${env.USER_CONTENT_DIR}`)) {
         return new Response(Bun.file(path.slice(1)), {
