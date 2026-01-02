@@ -1,4 +1,4 @@
-import '../src/index.css'
+import '../index.css'
 import { Composition, Still } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
 import { Preview, previewCalculateMetadata } from './Preview'
