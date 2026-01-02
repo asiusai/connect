@@ -39,6 +39,37 @@ const profile = c.router({
 })
 
 const routes = c.router({
+  allRoutes: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/routes',
+    pathParams: z.object({ dongleId: z.string() }),
+    query: z.object({ limit: z.number(), created_before: z.number().optional() }),
+    responses: {
+      200: Route.array(),
+    },
+  },
+  routesSegments: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/routes_segments',
+    pathParams: z.object({ dongleId: z.string() }),
+    query: z.object({
+      route_str: z.string().optional(),
+      start: z.number().optional(),
+      end: z.number().optional(),
+      limit: z.number().optional(),
+    }),
+    responses: { 200: RouteSegment.array() },
+  },
+  preserved: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/routes/preserved',
+    pathParams: z.object({
+      dongleId: z.string(),
+    }),
+    responses: {
+      200: Route.array(),
+    },
+  },
   get: {
     method: 'GET',
     path: '/v1/route/:routeName/',
@@ -66,16 +97,7 @@ const routes = c.router({
       200: Route,
     },
   },
-  preserved: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/routes/preserved',
-    pathParams: z.object({
-      dongleId: z.string(),
-    }),
-    responses: {
-      200: Route.array(),
-    },
-  },
+
   preserve: {
     method: 'POST',
     path: '/v1/route/:routeName/preserve',
@@ -96,30 +118,24 @@ const routes = c.router({
       200: z.object({ success: z.number() }),
     },
   },
-  allRoutes: {
+  files: {
     method: 'GET',
-    path: '/v1/devices/:dongleId/routes',
-    pathParams: z.object({ dongleId: z.string() }),
-    query: z.object({ limit: z.number(), created_before: z.number().optional() }),
+    path: '/v1/route/:routeName/files',
+    pathParams: z.object({ routeName: z.string() }),
     responses: {
-      200: Route.array(),
+      200: Files,
     },
-  },
-  routesSegments: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/routes_segments',
-    pathParams: z.object({ dongleId: z.string() }),
-    query: z.object({
-      route_str: z.string().optional(),
-      start: z.number().optional(),
-      end: z.number().optional(),
-      limit: z.number().optional(),
-    }),
-    responses: { 200: RouteSegment.array() },
   },
 })
 
 const devices = c.router({
+  devices: {
+    method: 'GET',
+    path: '/v1/me/devices/',
+    responses: {
+      200: Device.array(),
+    },
+  },
   get: {
     method: 'GET',
     path: '/v1.1/devices/:dongleId/',
@@ -163,13 +179,7 @@ const devices = c.router({
       200: DrivingStatistics,
     },
   },
-  devices: {
-    method: 'GET',
-    path: '/v1/me/devices/',
-    responses: {
-      200: Device.array(),
-    },
-  },
+
   unpair: {
     method: 'POST',
     path: '/v1/devices/:dongleId/unpair',
@@ -179,18 +189,7 @@ const devices = c.router({
       200: z.object({ success: z.number() }),
     },
   },
-  pair: {
-    method: 'POST',
-    path: '/v2/pilotpair/',
-    contentType: 'multipart/form-data',
-    body: z.object({ pair_token: z.string() }),
-    responses: {
-      200: z.object({
-        dongle_id: z.string(),
-        first_pair: z.boolean(),
-      }),
-    },
-  },
+
   users: {
     method: 'GET',
     path: '/v1/devices/:dongleId/users',
@@ -238,6 +237,30 @@ const devices = c.router({
       200: z.string().array(),
     },
   },
+  uploadFiles: {
+    method: 'POST',
+    path: '/v1/:dongleId/upload_urls/',
+    pathParams: z.object({ dongleId: z.string() }),
+    body: z.object({
+      expiry_days: z.number(),
+      paths: z.string().array(),
+    }),
+    responses: {
+      200: UploadFileMetadata.array(),
+    },
+  },
+  pair: {
+    method: 'POST',
+    path: '/v2/pilotpair/',
+    contentType: 'multipart/form-data',
+    body: z.object({ pair_token: z.string() }),
+    responses: {
+      200: z.object({
+        dongle_id: z.string(),
+        first_pair: z.boolean(),
+      }),
+    },
+  },
 })
 
 const athena = c.router({
@@ -252,29 +275,6 @@ const athena = c.router({
     responses: {
       200: AthenaResponse,
       202: AthenaResponse.extend({ result: z.string() }),
-    },
-  },
-})
-
-const file = c.router({
-  files: {
-    method: 'GET',
-    path: '/v1/route/:routeName/files',
-    pathParams: z.object({ routeName: z.string() }),
-    responses: {
-      200: Files,
-    },
-  },
-  uploadFiles: {
-    method: 'POST',
-    path: '/v1/:dongleId/upload_urls/',
-    pathParams: z.object({ dongleId: z.string() }),
-    body: z.object({
-      expiry_days: z.number(),
-      paths: z.string().array(),
-    }),
-    responses: {
-      200: UploadFileMetadata.array(),
     },
   },
 })
@@ -368,7 +368,6 @@ export const contract = c.router(
     routes,
     devices,
     athena,
-    file,
     prime,
   },
   {

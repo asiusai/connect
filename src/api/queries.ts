@@ -85,7 +85,7 @@ export const usePortal = (dongleId: string) =>
 
 export const useFiles = (routeName: string, route: Route | undefined, refetchInterval?: number) => {
   const [files, res] = w(
-    api.file.files.useQuery({
+    api.routes.files.useQuery({
       queryKey: ['files', routeName],
       queryData: { params: { routeName: routeName.replace('/', '|') } },
       refetchInterval,
