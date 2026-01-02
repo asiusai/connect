@@ -208,30 +208,17 @@ export const PreviewData = z.object({
   files: SegmentFiles,
 })
 export const PreviewFiles = z.object({ type: FileType, files: z.string().optional().array() })
-export const PreviewGenerated = z.object({
-  largeCameraFiles: PreviewFiles,
-  smallCameraFiles: PreviewFiles.optional(),
-
-  logFiles: PreviewFiles.optional(),
-  prefetchedLogs: z.record(FrameData).optional().array().optional(),
-
-  duration: z.number(),
-})
 export const PreviewProps = z.object({
   routeName: z.string(),
-  startSegment: z.number().optional(),
-  segmentCount: z.number().optional(),
 
   largeCameraType: CameraType,
   smallCameraType: CameraType.optional(),
 
   logType: LogType.optional(),
-  prefetchLogs: z.boolean().optional(),
   showPath: z.boolean().optional(),
   unitFormat: UnitFormat.optional(),
 
   data: PreviewData.optional(),
-  generated: PreviewGenerated.optional(),
 })
 export type PreviewProps = z.infer<typeof PreviewProps>
 
@@ -379,7 +366,6 @@ export type CameraType = z.infer<typeof CameraType>
 export type LogType = z.infer<typeof LogType>
 
 export type PreviewData = z.infer<typeof PreviewData>
-export type PreviewGenerated = z.infer<typeof PreviewGenerated>
 export type AthenaRequest = z.infer<typeof AthenaRequest>
 export type AthenaResponse = z.infer<typeof AthenaResponse>
 export type RenderProgress = z.infer<typeof RenderProgress>

@@ -44,11 +44,11 @@ export const downloadFile = async (url: string, onLoad: OnDownloadProgress): Pro
   return result
 }
 const randomName = (ext: string) => `${(Math.random() * 100000).toFixed(0)}.${ext}`
-export const hevcToMp4 = async (file: string | Uint8Array, onLoad: OnDownloadProgress) => {
+export const hevcToMp4 = async (file: string | Uint8Array, onLoad: OnDownloadProgress = () => {}) => {
   await init()
   const bin = typeof file === 'string' ? await downloadFile(file, onLoad) : file
-  const input = randomName('hevc'),
-    output = randomName('mp4')
+  const input = randomName('hevc')
+  const output = randomName('mp4')
   await ffmpeg.writeFile(input, new Uint8Array(bin))
   await ffmpeg.exec(['-r', '20', '-i', input, '-c', 'copy', '-map', '0', '-vtag', 'hvc1', output])
   const data = await ffmpeg.readFile(output)
@@ -58,8 +58,8 @@ export const hevcToMp4 = async (file: string | Uint8Array, onLoad: OnDownloadPro
 export const hevcStreamToMp4 = async (file: string | Uint8Array, onLoad?: OnDownloadProgress) => {
   await init()
   const bin = typeof file === 'string' ? await downloadFile(file, onLoad || (() => {})) : file
-  const input = randomName('hevc'),
-    output = randomName('mp4')
+  const input = randomName('hevc')
+  const output = randomName('mp4')
   await ffmpeg.writeFile(input, new Uint8Array(bin))
   await ffmpeg.exec(['-r', '20', '-i', input, '-c', 'copy', '-movflags', 'frag_keyframe+empty_moov+default_base_moof', '-map', '0', '-vtag', 'hvc1', output])
   const data = await ffmpeg.readFile(output)

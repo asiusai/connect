@@ -1,7 +1,7 @@
 import { RouteFiles } from '../../components/RouteFiles'
 import { RouteVideoPlayer, VideoControls } from '../../components/VideoPlayer'
-import { useProfile, useRoute } from '../../api/queries'
-import { useEffect, useRef, useState } from 'react'
+import { useFiles, useProfile, useRoute } from '../../api/queries'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
 import { useRouteParams } from '../../utils/hooks'
 import { TopAppBar } from '../../components/TopAppBar'
@@ -13,12 +13,37 @@ import { Stats } from './Stats'
 import { Actions } from './Actions'
 import { formatDate, formatTime } from '../../utils/format'
 import { Info } from './Info'
+import { useStorage } from '../../utils/storage'
+import { PreviewProps } from '../../types'
 
 const getLocationText = ({ start, end }: { start?: string; end?: string }) => {
   if (!start && !end) return 'Drive Details'
   if (!end || start === end) return `Drive in ${start}`
   if (!start) return `Drive in ${end}`
   return `${start} to ${end}`
+}
+
+export const usePreviewProps = () => {
+  const { routeName } = useRouteParams()
+  const [route] = useRoute(routeName)
+  const [files] = useFiles(routeName, route)
+  const [largeCameraType] = useStorage('largeCameraType')
+  const [smallCameraType] = useStorage('smallCameraType')
+  const [logType] = useStorage('logType')
+  const [unitFormat] = useStorage('unitFormat')
+
+  const props = useMemo<PreviewProps>(
+    () => ({
+      routeName,
+      largeCameraType,
+      smallCameraType,
+      logType,
+      data: files && route ? { files, route } : undefined,
+      unitFormat,
+    }),
+    [largeCameraType, smallCameraType, logType, files, route],
+  )
+  return props
 }
 
 export const Component = () => {
@@ -28,6 +53,7 @@ export const Component = () => {
   const [route] = useRoute(routeName)
   const [profile] = useProfile()
   const [location, setLocation] = useState<{ start?: string; end?: string }>()
+  const previewProps = usePreviewProps()
 
   useEffect(() => {
     if (route) getStartEndPlaceName(route).then(setLocation)
@@ -52,8 +78,8 @@ export const Component = () => {
       </TopAppBar>
 
       <div className="grid md:grid-cols-3 gap-3 md:gap-4 p-4 max-w-screen-xl">
-        <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:order-1" />
-        <VideoControls playerRef={playerRef} className="md:col-span-2 md:order-3" />
+        <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:order-1" props={previewProps} />
+        <VideoControls playerRef={playerRef} className="md:col-span-2 md:order-3" props={previewProps} />
         <Stats route={route} className="md:order-6" />
         <Actions route={route} className="md:order-4" />
         <RouteFiles playerRef={playerRef} route={route} className="md:col-span-2 md:row-span-3 md:order-5" />

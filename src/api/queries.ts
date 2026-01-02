@@ -97,15 +97,4 @@ export const useFiles = (routeName: string, route: Route | undefined, refetchInt
 
 export const useUsers = (dongleId: string) => w(api.devices.users.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))
 
-export const useRendererStatus = () => w(api.renderer.status.useQuery({ queryKey: ['renderer-status'] }))
-
-export const useRenderProgress = (renderId?: string) =>
-  w(
-    api.renderer.progress.useQuery({
-      queryKey: ['render-progress', renderId],
-      queryData: { query: { renderId: renderId! } },
-      refetchInterval: 5_000,
-      enabled: !!renderId,
-    }),
-  )
 export const useLocation = (dongleId: string) => w(api.devices.location.useQuery({ queryKey: ['location', dongleId], queryData: { params: { dongleId } } }))

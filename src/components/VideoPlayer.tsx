@@ -1,7 +1,8 @@
 import { Player, PlayerRef } from '@remotion/player'
+import { renderMediaOnWeb } from '@remotion/web-renderer'
 import clsx from 'clsx'
 import { FPS, HEIGHT, toFrames, toSeconds, WIDTH } from '../templates/shared'
-import { getPreviewGenerated, Preview } from '../templates/Preview'
+import { Preview } from '../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
 import { formatVideoTime, getRouteDurationMs, formatTime, getDateTime } from '../utils/format'
 import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -9,11 +10,88 @@ import { useAsyncMemo, useFullscreen, useRouteParams } from '../utils/hooks'
 import { useNavigate } from 'react-router-dom'
 import { useFiles, useRoute } from '../api/queries'
 import { IconButton } from './IconButton'
-import { getRouteUrl } from '../utils/helpers'
+import { getRouteUrl, saveFile } from '../utils/helpers'
 import { Icon } from './Icon'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useStorage } from '../utils/storage'
 import { Route } from '../types'
+
+type RenderState = { status: 'idle' } | { status: 'rendering'; progress: number } | { status: 'done' } | { status: 'error'; message: string }
+
+const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { start: number; end: number } }) => {
+  const [state, setState] = useState<RenderState>({ status: 'idle' })
+  const abortRef = useRef<AbortController | null>(null)
+
+  const startRender = async () => {
+    abortRef.current = new AbortController()
+    setState({ status: 'rendering', progress: 0 })
+
+    const startFrame = toFrames(selection.start)
+    const endFrame = toFrames(selection.end)
+    const durationInFrames = endFrame - startFrame
+
+    try {
+      const { getBlob } = await renderMediaOnWeb({
+        composition: {
+          component: Preview,
+          durationInFrames,
+          fps: FPS,
+          width: WIDTH,
+          height: HEIGHT,
+          id: 'preview',
+          defaultProps: props
+        },
+        inputProps: props,
+        frameRange: [startFrame, endFrame - 1],
+        onProgress: ({ renderedFrames }) =>           setState({ status: 'rendering', progress: Math.round((renderedFrames / durationInFrames) * 100) }),
+        signal: abortRef.current.signal,
+        videoBitrate: 'medium',
+        delayRenderTimeoutInMilliseconds: 120000,
+        licenseKey:"free-license"
+      })
+
+      const blob = await getBlob()
+      setState({ status: 'done' })
+      saveFile(blob, `${props.routeName.replace('/', '_')}_${selection.start.toFixed(0)}-${selection.end.toFixed(0)}.mp4`)
+    } catch (err) {
+      if (abortRef.current?.signal.aborted) setState({ status: 'idle' })
+      else setState({ status: 'error', message: err instanceof Error ? err.message : 'Render failed' })
+    }
+  }
+
+  const cancel = () => {
+    abortRef.current?.abort()
+    setState({ status: 'idle' })
+  }
+
+  if (state.status === 'rendering') {
+    return (
+      <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
+        <Icon name="movie" className="text-base opacity-70" />
+        <span className="text-xs opacity-70 min-w-[32px]">{state.progress === 0 ? 'Downloading...' : `${state.progress}%`}</span>
+        <button onClick={cancel} className="text-white/50 hover:text-white/80 transition-colors" title="Cancel render">
+          <Icon name="close" className="text-base" />
+        </button>
+      </div>
+    )
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div className="flex items-center gap-1 bg-red-500/20 rounded-lg px-2 py-1">
+        <Icon name="error" className="text-base text-red-400" />
+        <span className="text-xs text-red-400 max-w-[150px] truncate" title={state.message}>
+          {state.message}
+        </span>
+        <button onClick={startRender} className="text-red-400 hover:text-red-300 transition-colors" title="Retry">
+          <Icon name="refresh" className="text-base" />
+        </button>
+      </div>
+    )
+  }
+
+  return <IconButton title="Render video" name="movie" onClick={startRender} />
+}
 
 const FILE_LABELS: Record<FileType, string> = {
   cameras: 'Road',
@@ -373,7 +451,7 @@ const Timeline = ({
   )
 }
 
-export const VideoControls = ({ playerRef, className }: { className?: string; playerRef: RefObject<PlayerRef | null> }) => {
+export const VideoControls = ({ playerRef, className, props }: { className?: string; playerRef: RefObject<PlayerRef | null>; props: PreviewProps }) => {
   const fullscreen = useFullscreen()
   const { routeName, start, end, date, dongleId } = useRouteParams()
   const player = playerRef.current
@@ -441,7 +519,7 @@ export const VideoControls = ({ playerRef, className }: { className?: string; pl
 
         <div className="flex-1" />
 
-        {/* <Render props={props} /> */}
+        <RenderButton props={props} selection={selection} />
 
         <div className="relative flex items-center justify-center" ref={settingsRef}>
           {showSettings && <SettingsMenu />}
@@ -460,39 +538,23 @@ export const VideoControls = ({ playerRef, className }: { className?: string; pl
   )
 }
 
-const useProps = () => {
-  const { routeName } = useRouteParams()
-  const [route] = useRoute(routeName)
-  const [files] = useFiles(routeName, route)
-  const [largeCameraType] = useStorage('largeCameraType')
-  const [smallCameraType] = useStorage('smallCameraType')
-  const [logType] = useStorage('logType')
-  const [unitFormat] = useStorage('unitFormat')
 
-  const props = useMemo<PreviewProps>(
-    () => ({
-      routeName,
-      largeCameraType,
-      smallCameraType,
-      logType,
-      data: files && route ? { files, route } : undefined,
-      unitFormat,
-    }),
-    [largeCameraType, smallCameraType, logType, files, route],
-  )
-  return props
-}
 
-export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObject<PlayerRef | null>; className?: string }) => {
-  const { routeName, start } = useRouteParams()
-  const [route] = useRoute(routeName)
+export const RouteVideoPlayer = ({
+  playerRef,
+  className,
+  props,
+}: {
+  playerRef: RefObject<PlayerRef | null>
+  className?: string
+  props: PreviewProps
+}) => {
+  const { start } = useRouteParams()
+  const [route] = useRoute(props.routeName)
 
   const duration = getRouteDurationMs(route)! / 1000
 
   const [playbackRate] = useStorage('playbackRate')
-
-  const props = useProps()
-  const generated = useAsyncMemo(() => getPreviewGenerated(props), [props])
 
   // Current real time display
   const [currentTime, setCurrentTime] = useState<string>()
@@ -516,8 +578,9 @@ export const RouteVideoPlayer = ({ playerRef, className }: { playerRef: RefObjec
         compositionWidth={WIDTH}
         durationInFrames={toFrames(duration)}
         fps={FPS}
+        inFrame={3}
         style={{ width: '100%', height: '100%' }}
-        inputProps={{ ...props, generated }}
+        inputProps={props}
         initiallyMuted
         acknowledgeRemotionLicense
         autoPlay

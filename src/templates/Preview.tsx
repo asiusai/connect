@@ -1,14 +1,12 @@
-import { AbsoluteFill, CalculateMetadataFunction, Sequence, Series } from 'remotion'
+import { AbsoluteFill, Sequence, Series } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { FileType, PreviewData, PreviewFiles, PreviewGenerated, PreviewProps, UnitFormat } from '../types'
+import { FileType, PreviewData, PreviewFiles, PreviewProps, SegmentFiles, UnitFormat } from '../types'
 import { api } from '../api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
 import { OpenpilotUI } from './OpenpilotUI'
 import { Loading } from '../components/Loading'
 import clsx from 'clsx'
-import { FrameData, readLogs } from '../log-reader/reader'
-import { getRouteDurationMs } from '../utils/format'
 import { toSegmentFiles } from '../utils/helpers'
 import { Icon } from '../components/Icon'
 
@@ -23,41 +21,11 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
   let files = toSegmentFiles(res.body, route.maxqlog + 1)
   return { route, files }
 }
-
-export const getPreviewGenerated = async (props: PreviewProps): Promise<PreviewGenerated | undefined> => {
-  if (!props.data) return
-
-  const start = props.startSegment ?? 0
-  const end = props.segmentCount ? start + props.segmentCount : props.data.files.length
-
-  const getFiles = (preffered?: FileType, fallback?: FileType) => {
-    // only use the files if at least some of them are uploaded
-    const type = !preffered ? undefined : props.data!.files[preffered].some(Boolean) ? preffered : fallback
-    if (!type) return
-    return { type, files: props.data!.files[type].slice(start, end) }
-  }
-
-  const largeCameraFiles = getFiles(props.largeCameraType, 'qcameras')!
-  const smallCameraFiles = getFiles(props.smallCameraType)
-  const logFiles = getFiles(props.logType)
-
-  const prefetchedLogs = logFiles && props.prefetchLogs ? await Promise.all(logFiles.files.map((url) => (url ? readLogs({ url }) : undefined))) : undefined
-
-  const totalDuration = getRouteDurationMs(props.data.route)! / 1000
-  const lastSegmentDuration = end === props.data.files.length ? totalDuration % 60 : 60
-  const duration = (end - start - 1) * 60 + lastSegmentDuration
-
-  return { duration, largeCameraFiles, logFiles, prefetchedLogs, smallCameraFiles }
-}
-
-export const previewCalculateMetadata: CalculateMetadataFunction<PreviewProps> = async ({ props }) => {
-  if (!props.data) props.data = await getPreviewData(props)
-  if (!props.generated) props.generated = await getPreviewGenerated(props)
-
-  return {
-    durationInFrames: props.generated!.duration * FPS,
-    props: props,
-  }
+const getFiles = (files: SegmentFiles, preffered?: FileType, fallback?: FileType) => {
+  // only use the files if at least some of them are uploaded
+  const type = !preffered ? undefined : files[preffered].some(Boolean) ? preffered : fallback
+  if (!type) return
+  return { type, files: files[type] }
 }
 
 const Camera = ({ className, files, name }: { name: string; files?: PreviewFiles; className?: string }) => {
@@ -83,38 +51,30 @@ const Camera = ({ className, files, name }: { name: string; files?: PreviewFiles
   )
 }
 
-const UI = ({
-  files,
-  routeName,
-  prefetchedLogs,
-  showPath,
-  unitFormat,
-}: {
-  files?: PreviewFiles
-  routeName: string
-  prefetchedLogs?: (Record<string, FrameData> | undefined)[]
-  showPath: boolean
-  unitFormat?: UnitFormat
-}) => {
+const UI = ({ files, routeName, showPath, unitFormat }: { files?: PreviewFiles; routeName: string; showPath: boolean; unitFormat?: UnitFormat }) => {
   if (!files) return null
   return (
     <Series>
       {files.files.map((url, i) => (
         <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
-          {url && <OpenpilotUI i={i} unitFormat={unitFormat} routeName={routeName} url={url} prefetchedFrames={prefetchedLogs?.[i]} showPath={showPath} />}
+          {url && <OpenpilotUI i={i} unitFormat={unitFormat} routeName={routeName} url={url} showPath={showPath} />}
         </Series.Sequence>
       ))}
     </Series>
   )
 }
 
-export const Preview = ({ generated, routeName, showPath, unitFormat }: PreviewProps) => {
-  if (!generated) return null
+export const Preview = ({ routeName, showPath, unitFormat, largeCameraType, smallCameraType, data, logType }: PreviewProps) => {
+  if (!data) return null
   return (
     <AbsoluteFill>
-      <Camera files={generated.largeCameraFiles} name="Large" className="inset-0" />
-      <UI files={generated.logFiles} routeName={routeName} prefetchedLogs={generated.prefetchedLogs} showPath={!!showPath} unitFormat={unitFormat} />
-      <Camera files={generated.smallCameraFiles} name="Small" className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden" />
+      <Camera files={getFiles(data.files, largeCameraType, 'qcameras')} name="Large" className="inset-0" />
+      <UI files={getFiles(data.files, logType)} routeName={routeName} showPath={!!showPath} unitFormat={unitFormat} />
+      <Camera
+        files={getFiles(data.files, smallCameraType)}
+        name="Small"
+        className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden"
+      />
     </AbsoluteFill>
   )
 }

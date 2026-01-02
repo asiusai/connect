@@ -19,19 +19,17 @@ export const OpenpilotUI = ({
   url,
   routeName,
   i,
-  prefetchedFrames,
   showPath,
   unitFormat,
 }: {
   i: number
   url: string
   routeName: string
-  prefetchedFrames?: Record<string, FrameData>
   showPath: boolean
   unitFormat?: UnitFormat
 }) => {
   const _frame = useCurrentFrame()
-  const [frames, setFrames] = useState<Record<string, FrameData> | undefined>(prefetchedFrames)
+  const [frames, setFrames] = useState<Record<string, FrameData> | undefined>()
   const logType: LogType = url.includes('qlog') ? 'qlogs' : 'logs'
 
   useAsyncEffect(async () => {

@@ -16,4 +16,4 @@ export const webpackOverride: WebpackOverrideFn = (config) =>
 
 Config.overrideWebpackConfig(webpackOverride)
 
-Config.setExperimentalClientSideRenderingEnabled(true);
+Config.setExperimentalClientSideRenderingEnabled(true)

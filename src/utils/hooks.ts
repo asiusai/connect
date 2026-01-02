@@ -119,7 +119,7 @@ export const useUploadProgress = (dongleId: string, routeId: string, onComplete?
     fetchQueue()
 
     // Poll every 2 seconds
-    const interval = setInterval(fetchQueue, 2000)
+    const interval = setInterval(fetchQueue, 10_000)
     return () => clearInterval(interval)
   }, [fetchQueue, enabled])
 

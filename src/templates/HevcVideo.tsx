@@ -1,66 +1,58 @@
-import { CSSProperties, useEffect, useRef } from 'react'
-import { OffthreadVideo, Html5Video } from 'remotion'
-import { hevcStreamToMp4 } from '../utils/ffmpeg'
-import { createChunker, extractHevcHeaders, stripMp4Headers } from '../utils/hevc'
+import { CSSProperties, useEffect, useState } from 'react'
+import { Video } from '@remotion/media'
+import { hevcToMp4 } from '../utils/ffmpeg'
+import { createChunker } from '../utils/hevc'
+import { useDelayRender } from 'remotion'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 
+type Cache = { data?: string; done?: boolean }
+const cache = new Map<string, Cache>()
+
+const triggerVideo = async (src: string) => {
+  let entry = cache.get(src)
+  if (entry) return
+
+  entry = {}
+  cache.set(src, entry)
+
+  const res = await fetch(src)
+  if (!res.ok || !res.body) return
+
+  let data = new Uint8Array()
+  for await (const chunk of createChunker(res.body, 6 * 1024 * 1024)) {
+    const newData = new Uint8Array(data.length + chunk.length)
+    newData.set(data, 0)
+    newData.set(chunk, data.length)
+    data = newData
+    hevcToMp4(data).then((x) => {
+      if (entry.data) URL.revokeObjectURL(entry.data)
+      entry.data = URL.createObjectURL(x)
+    })
+  }
+  entry.done = true
+}
+
 export const HevcVideo = ({ src, ...props }: VideoProps) => {
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const [data, setData] = useState<string>()
+  const { continueRender, delayRender } = useDelayRender()
+
   useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
+    const handle = delayRender(`Video ${src}`)
+    triggerVideo(src)
 
-    if (!window.MediaSource) return console.error('No Media Source API available')
+    const getData = () => {
+      const entry = cache.get(src)
+      if (!entry?.data) return
 
-    const ms = new MediaSource()
-    video.src = window.URL.createObjectURL(ms)
-
-    const onMediaSourceOpen = async () => {
-      const sourceBuffer = ms.addSourceBuffer('video/mp4; codecs="hvc1.1.6.L123.b0"')
-      sourceBuffer.mode = 'sequence'
-
-      const queue: ArrayBuffer[] = []
-      const processQueue = async () => {
-        if (sourceBuffer.updating || queue.length === 0) return
-        const buffer = queue.shift()
-        if (!buffer) throw new Error(`Queue length larger than 0, but buffer undefined`)
-
-        sourceBuffer.appendBuffer(buffer as ArrayBuffer)
-      }
-      sourceBuffer.addEventListener('updateend', () => processQueue())
-
-      const res = await fetch(src)
-      if (!res.ok || !res.body) return
-
-      const stream = res.body
-      const chunker = createChunker(stream, 6 * 1024 * 1024)
-
-      let count = 0
-      let headers: Uint8Array | null = null
-
-      for await (const chunk of chunker) {
-        let chunkToConvert = chunk
-        if (!headers) headers = extractHevcHeaders(chunk)
-        else if (headers) {
-          const newChunk = new Uint8Array(headers.length + chunk.length)
-          newChunk.set(headers)
-          newChunk.set(chunk, headers.length)
-          chunkToConvert = newChunk
-        }
-
-        let mp4Segment = await hevcStreamToMp4(chunkToConvert)
-        if (count > 0) mp4Segment = stripMp4Headers(mp4Segment)
-
-        count++
-        queue.push(mp4Segment.buffer)
-        processQueue()
-      }
+      setData(entry.data)
+      if (entry.done) continueRender(handle)
     }
 
-    ms.addEventListener('sourceopen', onMediaSourceOpen)
+    getData()
+    setInterval(getData, 200)
   }, [src])
 
-  if (src.endsWith('.mp4')) return <OffthreadVideo src={src} {...props} />
-  return <Html5Video src={src} ref={videoRef} {...props} showInTimeline={false} className="relative" />
+  if (!data) return null
+  return <Video src={data} {...props} showInTimeline={false} className="relative" />
 }

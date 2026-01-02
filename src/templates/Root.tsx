@@ -1,7 +1,7 @@
 import '../index.css'
 import { Composition, Still } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { Preview, previewCalculateMetadata } from './Preview'
+import { Preview } from './Preview'
 import { PreviewProps } from '../types'
 import { env } from '../utils/env'
 import { OG, ogCalculateMetadata, OGProps } from './OG'
@@ -17,7 +17,6 @@ export const RemotionRoot = () => {
         width={WIDTH}
         height={HEIGHT}
         schema={PreviewProps}
-        calculateMetadata={previewCalculateMetadata}
         defaultProps={{
           routeName: env.EXAMPLE_ROUTE_NAME,
           largeCameraType: 'cameras',

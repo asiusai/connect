@@ -13,8 +13,6 @@ import {
   UploadFileMetadata,
   AthenaRequest,
   AthenaResponse,
-  PreviewProps,
-  RenderInfo,
 } from '../types'
 import { z } from 'zod'
 import { env } from '../utils/env'
@@ -359,42 +357,6 @@ const prime = c.router({
   },
 })
 
-export const renderer = c.router({
-  status: {
-    metadata: { baseUrl: env.RENDERER_URL },
-    method: 'GET',
-    path: '/v1/status',
-    responses: {
-      200: z.object({ alive: z.boolean() }),
-    },
-  },
-  render: {
-    metadata: { baseUrl: env.RENDERER_URL },
-    method: 'POST',
-    path: '/v1/render',
-    body: z.object({
-      props: PreviewProps,
-      serveUrl: z.string(),
-    }),
-    responses: {
-      200: z.object({
-        renderId: z.string(),
-      }),
-    },
-  },
-  progress: {
-    metadata: { baseUrl: env.RENDERER_URL },
-    method: 'GET',
-    path: '/v1/progress',
-    query: z.object({
-      renderId: z.string(),
-    }),
-    responses: {
-      200: RenderInfo,
-    },
-  },
-})
-
 const Err = z
   .object({ error: z.string() })
   .or(z.string())
@@ -408,7 +370,6 @@ export const contract = c.router(
     athena,
     file,
     prime,
-    renderer,
   },
   {
     commonResponses: {
