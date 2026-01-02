@@ -10,7 +10,7 @@ import { Logo } from '../components/Logo'
 export const Component = () => {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const { mutate, error } = api.profile.auth.useMutation({
+  const { mutate, error } = api.auth.auth.useMutation({
     onSuccess: ({ body }) => {
       setAccessToken(body.access_token)
       navigate('/')

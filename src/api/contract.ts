@@ -19,7 +19,7 @@ import { env } from '../utils/env'
 
 const c = initContract()
 
-const profile = c.router({
+const auth = c.router({
   me: {
     method: 'GET',
     path: '/v1/me/',
@@ -34,6 +34,30 @@ const profile = c.router({
     contentType: 'application/x-www-form-urlencoded',
     responses: {
       200: z.object({ access_token: z.string() }),
+    },
+  },
+  googleRedirect: {
+    method: 'GET',
+    path: '/v2/auth/g/redirect/',
+    query: z.object({ code: z.string(), state: z.string() }),
+    responses: {
+      200: z.any(),
+    },
+  },
+  appleRedirect: {
+    method: 'POST',
+    path: '/v2/auth/a/redirect/',
+    body: z.object({ code: z.string(), state: z.string() }),
+    responses: {
+      200: z.any(),
+    },
+  },
+  githubRedirect: {
+    method: 'GET',
+    path: '/v2/auth/h/redirect/',
+    query: z.object({ code: z.string(), state: z.string() }),
+    responses: {
+      200: z.any(),
     },
   },
 })
@@ -364,7 +388,7 @@ const Err = z
 
 export const contract = c.router(
   {
-    profile,
+    auth,
     routes,
     devices,
     athena,

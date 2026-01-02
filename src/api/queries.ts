@@ -48,7 +48,7 @@ export const useShareSignature = (routeName: string) =>
   )
 
 export const useDevices = () => w(api.devices.devices.useQuery({ queryKey: ['devices'] }))
-export const useProfile = () => w(api.profile.me.useQuery({ queryKey: ['me'], enabled: isSignedIn() }))
+export const useProfile = () => w(api.auth.me.useQuery({ queryKey: ['me'], enabled: isSignedIn() }))
 
 export const useRoute = (routeName: string) =>
   w(
