@@ -39,15 +39,15 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
           width: WIDTH,
           height: HEIGHT,
           id: 'preview',
-          defaultProps: props
+          defaultProps: props,
         },
         inputProps: props,
         frameRange: [startFrame, endFrame - 1],
-        onProgress: ({ renderedFrames }) =>           setState({ status: 'rendering', progress: Math.round((renderedFrames / durationInFrames) * 100) }),
+        onProgress: ({ renderedFrames }) => setState({ status: 'rendering', progress: Math.round((renderedFrames / durationInFrames) * 100) }),
         signal: abortRef.current.signal,
         videoBitrate: 'medium',
         delayRenderTimeoutInMilliseconds: 120000,
-        licenseKey:"free-license"
+        licenseKey: 'free-license',
       })
 
       const blob = await getBlob()
@@ -538,17 +538,7 @@ export const VideoControls = ({ playerRef, className, props }: { className?: str
   )
 }
 
-
-
-export const RouteVideoPlayer = ({
-  playerRef,
-  className,
-  props,
-}: {
-  playerRef: RefObject<PlayerRef | null>
-  className?: string
-  props: PreviewProps
-}) => {
+export const RouteVideoPlayer = ({ playerRef, className, props }: { playerRef: RefObject<PlayerRef | null>; className?: string; props: PreviewProps }) => {
   const { start } = useRouteParams()
   const [route] = useRoute(props.routeName)
 
