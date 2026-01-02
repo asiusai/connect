@@ -65,3 +65,31 @@ export const hevcStreamToMp4 = async (file: string | Uint8Array, onLoad?: OnDown
   const data = await ffmpeg.readFile(output)
   return new Uint8Array<ArrayBuffer>((data as any).buffer)
 }
+
+export const tsFilesToMp4 = async (urls: (string | undefined)[], onProgress?: (loaded: number, total: number) => void) => {
+  await init()
+
+  let loaded = 0
+
+  const inputs = await Promise.all(
+    urls.map(async (url, i) => {
+      const bin = await downloadFile(url!, (p) => onProgress?.(loaded + p.loaded, urls.length * p.length))
+      loaded += bin.length
+      return [`input_${i}.ts`, bin] as const
+    }),
+  )
+  for (const [name, bin] of inputs) await ffmpeg.writeFile(name, bin)
+
+  await ffmpeg.writeFile('concat.txt', inputs.map(([f]) => `file '${f}'`).join('\n'))
+
+  const output = randomName('mp4')
+  await ffmpeg.exec(['-f', 'concat', '-safe', '0', '-i', 'concat.txt', '-c', 'copy', output])
+
+  const data = await ffmpeg.readFile(output)
+
+  for (const [name] of inputs) await ffmpeg.deleteFile(name)
+  await ffmpeg.deleteFile('concat.txt')
+  await ffmpeg.deleteFile(output)
+
+  return new Blob([(data as any).buffer], { type: 'video/mp4' })
+}

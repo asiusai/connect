@@ -77,7 +77,7 @@ export const Component = () => {
         )}
       </TopAppBar>
 
-      <div className="grid md:grid-cols-3 gap-3 md:gap-4 p-4 max-w-screen-xl">
+      <div className="grid md:grid-cols-3 gap-3 md:gap-4 p-4 max-w-screen-xl mx-auto">
         <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:order-1" props={previewProps} />
         <VideoControls playerRef={playerRef} className="md:col-span-2 md:order-3" props={previewProps} />
         <Stats route={route} className="md:order-6" />

@@ -1,9 +1,37 @@
-import { useEffect, useRef } from 'react'
-import { Html5Video } from 'remotion'
+import { useEffect, useRef, useState } from 'react'
+import { Html5Video, useDelayRender, useRemotionEnvironment } from 'remotion'
+import { Video } from '@remotion/media'
 import Hls from 'hls.js'
 import { PreviewFiles } from '../types'
+import { tsFilesToMp4 } from '../utils/ffmpeg'
 
 export const HlsVideo = ({ files }: { files: PreviewFiles }) => {
+  const env = useRemotionEnvironment()
+
+  if (env.isRendering) return <RenderingVideo files={files} />
+  return <PlaybackVideo files={files} />
+}
+
+const RenderingVideo = ({ files }: { files: PreviewFiles }) => {
+  const [src, setSrc] = useState<string>()
+  const { continueRender, delayRender } = useDelayRender()
+
+  useEffect(() => {
+    if (!files.files.length) return
+
+    const handle = delayRender('HLS Video conversion')
+
+    tsFilesToMp4(files.files).then((blob) => {
+      setSrc(URL.createObjectURL(blob))
+      continueRender(handle)
+    })
+  }, [files.files])
+
+  if (!src) return null
+  return <Video src={src} className="h-full w-full" showInTimeline={false} />
+}
+
+const PlaybackVideo = ({ files }: { files: PreviewFiles }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -23,7 +51,6 @@ export const HlsVideo = ({ files }: { files: PreviewFiles }) => {
     const manifestUrl = URL.createObjectURL(blob)
 
     const hls = new Hls({ enableWorker: true, lowLatencyMode: true })
-
     hls.loadSource(manifestUrl)
     hls.attachMedia(videoRef.current)
 
