@@ -1,8 +1,7 @@
 FROM oven/bun:1-alpine
 WORKDIR /app
-COPY package.json bun.lock ./
-COPY api ./api
-COPY connect ./connect
-RUN bun install --frozen-lockfile --production
+COPY . .
+COPY git submodule update --init connect
+RUN bun install
 EXPOSE 8080
 CMD ["bun", "run", "api/index.ts"]
