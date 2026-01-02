@@ -198,6 +198,8 @@ export const Coord = z.object({
 })
 
 export const FileType = z.enum(['cameras', 'ecameras', 'dcameras', 'logs', 'qcameras', 'qlogs'])
+export const FileName = z.enum(['fcamera.hevc', 'ecamera.hevc', 'dcamera.hevc', 'qcamera.ts', 'rlog.zst', 'qlog.zst'])
+export type FileName = z.infer<typeof FileName>
 export const CameraType = z.enum(['cameras', 'ecameras', 'dcameras', 'qcameras'])
 export const LogType = z.enum(['logs', 'qlogs'])
 

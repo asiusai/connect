@@ -13,11 +13,65 @@ import {
   UploadFileMetadata,
   AthenaRequest,
   AthenaResponse,
+  FileName,
 } from '../types'
 import { z } from 'zod'
 import { env } from '../utils/env'
 
 const c = initContract()
+
+const files = c.router({
+  events: {
+    method: 'GET',
+    path: '/connectdata/:dongleId/:routeStr/:segmentIndex/events.json',
+    pathParams: z.object({
+      dongleId: z.string(),
+      routeStr: z.string(),
+      segmentIndex: z.number(),
+    }),
+    responses: {
+      200: z.any(),
+    },
+  },
+  coords: {
+    method: 'GET',
+    path: '/connectdata/:dongleId/:routeStr/:segmentIndex/coords.json',
+    pathParams: z.object({
+      dongleId: z.string(),
+      routeStr: z.string(),
+      segmentIndex: z.number(),
+    }),
+    responses: {
+      200: z.any(),
+    },
+  },
+  sprite: {
+    method: 'GET',
+    path: '/connectdata/:dongleId/:routeStr/:segmentIndex/sprite.jpg',
+    pathParams: z.object({
+      dongleId: z.string(),
+      routeStr: z.string(),
+      segmentIndex: z.number(),
+    }),
+    responses: {
+      // TODO: image
+      200: z.any(),
+    },
+  },
+  files: {
+    method: 'GET',
+    path: '/connectdata/:dongleId/:routeName/:segmentIndex/:fileName',
+    pathParams: z.object({
+      dongleId: z.string(),
+      routeName: z.string(),
+      segmentIndex: z.number(),
+      fileName: FileName,
+    }),
+    responses: {
+      200: z.any(),
+    },
+  },
+})
 
 const auth = c.router({
   me: {
@@ -393,6 +447,7 @@ export const contract = c.router(
     devices,
     athena,
     prime,
+    files,
   },
   {
     commonResponses: {

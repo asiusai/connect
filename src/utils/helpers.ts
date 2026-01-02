@@ -1,4 +1,4 @@
-import { Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from '../types'
+import { FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from '../types'
 import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 import { storage } from './storage'
@@ -54,7 +54,7 @@ export const concatBins = (chunks: Uint8Array[]) => {
 
 export const capitalize = (str: string) => str[0].toUpperCase() + str.slice(1)
 
-export const FILE_INFO: Record<FileType, { name: string; raw: string; processed?: string; label: string; short: string }> = {
+export const FILE_INFO: Record<FileType, { name: FileName; raw: string; processed?: string; label: string; short: string }> = {
   cameras: {
     label: 'Road camera',
     short: 'Road',
