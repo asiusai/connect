@@ -290,6 +290,7 @@ const apiServer = new hcloud.Server('api-server', {
 cd /root
 git clone https://github.com/asiusai/asiusai.git
 cd asiusai
+git submodule update --init connect
 docker build -f Dockerfile.api -t api .
 docker run -d --restart=always -p 80:8080 api
 `,
