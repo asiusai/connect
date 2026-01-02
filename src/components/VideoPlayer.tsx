@@ -28,7 +28,8 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
 
     const startFrame = toFrames(selection.start)
     const endFrame = toFrames(selection.end)
-    const durationInFrames = endFrame - startFrame
+    const duration = getRouteDurationMs(props.data?.route)
+    const durationInFrames = duration ? toFrames(duration) : 0
 
     try {
       const { getBlob } = await renderMediaOnWeb({
@@ -45,7 +46,7 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
         frameRange: [startFrame, endFrame - 1],
         onProgress: ({ renderedFrames }) => setState({ status: 'rendering', progress: Math.round((renderedFrames / durationInFrames) * 100) }),
         signal: abortRef.current.signal,
-        videoBitrate: 'medium',
+        videoBitrate: 'high',
         delayRenderTimeoutInMilliseconds: 120000,
         licenseKey: 'free-license',
       })
@@ -68,7 +69,7 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
     return (
       <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
         <Icon name="movie" className="text-base opacity-70" />
-        <span className="text-xs opacity-70 min-w-[32px]">{state.progress === 0 ? 'Downloading...' : `${state.progress}%`}</span>
+        <span className="text-xs opacity-70 min-w-[32px]">{state.progress === 0 ? 'Loading...' : `${state.progress}%`}</span>
         <button onClick={cancel} className="text-white/50 hover:text-white/80 transition-colors" title="Cancel render">
           <Icon name="close" className="text-base" />
         </button>
