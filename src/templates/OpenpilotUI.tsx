@@ -1,4 +1,4 @@
-import { AbsoluteFill, staticFile, useCurrentFrame } from 'remotion'
+import { AbsoluteFill, staticFile, useCurrentFrame, useDelayRender } from 'remotion'
 import { WIDTH, HEIGHT, FPS } from './shared'
 import { useMemo, useState } from 'react'
 import { DB } from '../utils/db'
@@ -31,16 +31,20 @@ export const OpenpilotUI = ({
   const _frame = useCurrentFrame()
   const [frames, setFrames] = useState<Record<string, FrameData> | undefined>()
   const logType: LogType = url.includes('qlog') ? 'qlogs' : 'logs'
+  const { continueRender, delayRender, cancelRender } = useDelayRender()
 
   useAsyncEffect(async () => {
-    if (frames) return
+    const handle = delayRender('Logs')
     const db = await DB.init('logs')
     const workers: Worker[] = []
 
     const cacheKey = `${routeName}--${i}--${logType}`
     const cached = await db.get<string>(cacheKey)
 
-    if (cached) return setFrames((prev) => ({ ...prev, ...JSON.parse(cached) }))
+    if (cached) {
+      continueRender(handle)
+      return setFrames((prev) => ({ ...prev, ...JSON.parse(cached) }))
+    }
 
     const Worker = await import('../log-reader/worker?worker').then((x) => x.default)
     const worker = new Worker()
@@ -48,12 +52,14 @@ export const OpenpilotUI = ({
 
     worker.onmessage = async ({ data }) => {
       if (data.error) {
+        cancelRender(data.error)
         console.error('Worker error:', data.error)
       }
 
       if (data.frames) {
         setFrames((prev) => ({ ...prev, ...data.frames }))
         await db.set(cacheKey, JSON.stringify(data.frames))
+        continueRender(handle)
       }
 
       worker.terminate()
