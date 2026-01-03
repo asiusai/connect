@@ -2,6 +2,7 @@ import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
 import { router } from './router'
 import { openApiDoc, swaggerHtml } from './swagger'
 import { env } from '../connect/src/utils/env'
+import { contract } from '../connect/src/api/contract'
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -11,8 +12,10 @@ const headers = {
 
 const server = Bun.serve({
   port: 8080,
+  hostname: '0.0.0.0',
   idleTimeout: 255,
   fetch: async (request) => {
+    console.log(request.method, new URL(request.url).pathname)
     try {
       if (request.method === 'OPTIONS') return new Response(null, { headers })
 
@@ -28,7 +31,7 @@ const server = Bun.serve({
       }
 
       const res = await fetchRequestHandler({
-        contract: router,
+        contract,
         router,
         request,
         platformContext: {},
@@ -39,6 +42,7 @@ const server = Bun.serve({
 
       return res
     } catch (e) {
+      console.error(e)
       return new Response(`Server error: ${e}`, { status: 500 })
     }
   },

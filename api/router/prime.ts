@@ -1,5 +1,5 @@
 import { contract } from '../../connect/src/api/contract'
-import { tsr } from '../tsr'
+import { tsr } from '../helpers'
 
 export const prime = tsr.router(contract.prime, {
   // TODO
