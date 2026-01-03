@@ -488,6 +488,7 @@ export const contract = c.router(
       403: Err,
       404: Err,
       500: Err,
+      501: Err,
     },
   },
 )
