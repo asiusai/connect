@@ -16,7 +16,7 @@ const headers = {
 }
 
 const server = Bun.serve({
-  port: 8080,
+  port: Number(process.env.PORT) || 8080,
   hostname: '0.0.0.0',
   idleTimeout: 255,
   websocket,
