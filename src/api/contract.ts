@@ -4,7 +4,7 @@ import {
   DeviceLocation,
   DrivingStatistics,
   Files,
-  Profile,
+  User,
   Route,
   RouteShareSignature,
   SubscribeInfo,
@@ -14,6 +14,7 @@ import {
   AthenaRequest,
   AthenaResponse,
   FileName,
+  Permission,
 } from '../types'
 import { z } from 'zod'
 import { env } from '../utils/env'
@@ -78,7 +79,7 @@ const auth = c.router({
     method: 'GET',
     path: '/v1/me/',
     responses: {
-      200: Profile,
+      200: User,
     },
   },
   auth: {
@@ -276,7 +277,7 @@ const devices = c.router({
       200: z
         .object({
           email: z.string(),
-          permission: z.enum(['owner', 'read_access']),
+          permission: Permission,
         })
         .array(),
     },

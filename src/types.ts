@@ -2,13 +2,17 @@ import { z } from 'zod'
 
 export const UnitFormat = z.enum(['metric', 'imperial'])
 export const TimeFormat = z.enum(['24h', '12h'])
+export const Permission = z.enum(['owner', 'read_access'])
+export type Permission = z.infer<typeof Permission>
 
-export const Profile = z.object({
+export const User = z.object({
   id: z.string(),
-  email: z.string().nullable(),
+  email: z.string().nullish(),
+  prime: z.boolean().nullish(),
   regdate: z.number(),
   superuser: z.boolean(),
   user_id: z.string(),
+  username: z.string().nullish(),
 })
 
 export const DeviceLocation = z.object({
@@ -49,8 +53,8 @@ export const Device = z.object({
   prime_type: z.number(),
   public_key: z.string(),
   serial: z.string(),
-  sim_id: z.string(),
-  sim_type: z.number(),
+  sim_id: z.string().nullish(),
+  sim_type: z.number().nullish(),
   trial_claimed: z.boolean(),
 })
 export const isDeviceOnline = (device: Device) => !!device.last_athena_ping && device.last_athena_ping >= Math.floor(Date.now() / 1000) - 120
@@ -344,7 +348,7 @@ export const Service = z.enum([
 
 // TYPES
 export type Service = z.infer<typeof Service>
-export type Profile = z.infer<typeof Profile>
+export type User = z.infer<typeof User>
 export type DeviceLocation = z.infer<typeof DeviceLocation>
 export type Device = z.infer<typeof Device>
 export type DrivingStatisticsAggregation = z.infer<typeof DrivingStatisticsAggregation>
