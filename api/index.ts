@@ -24,7 +24,7 @@ const server = Bun.serve({
       console.log(`WS close ${ws.data.dongleId}`)
     },
     message: (ws, msg) => {
-      const message = typeof msg === 'string' ? parse<{method:string}>(msg) : undefined
+      const message = typeof msg === 'string' ? parse<{ method: string }>(msg) : undefined
       console.log(`WS message ${ws.data.dongleId} ${message?.method}`)
     },
   },

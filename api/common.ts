@@ -3,7 +3,7 @@ import { contract } from '../connect/src/api/contract'
 import { TsRestResponseError } from '@ts-rest/serverless/fetch'
 import jwt from 'jsonwebtoken'
 
-export const tsr = tsrest.platformContext<{token?:string}>()
+export const tsr = tsrest.platformContext<{ token?: string }>()
 
 export const verify = <T extends string | object>(token: string | undefined, key: string) => {
   if (!token) return
@@ -56,5 +56,5 @@ export class NotImplementedError extends TsRestResponseError<typeof contract> {
 export const randomId = () => {
   const bytes = new Uint8Array(8)
   crypto.getRandomValues(bytes)
-  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
 }
