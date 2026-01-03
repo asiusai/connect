@@ -32,23 +32,26 @@ const NAMES: Record<string, string> = {
   freon: 'freon',
   unknown: 'unknown',
 }
-export const getCommaName = (device: { device_type: string }) => NAMES[device.device_type] || `comma ${device.device_type}`
+export const getCommaName = (device: { device_type?: string|null }) => {
+  if (!device.device_type) return `Unknown device`
+  return NAMES[device.device_type] || `comma ${device.device_type}`
+}
 export const Device = z.object({
-  alias: z.string().nullable(),
-  athena_host: z.string().nullable(),
-  device_type: z.string(),
+  alias: z.string().nullish(),
+  athena_host: z.string().nullish(),
+  device_type: z.string().nullish(),
   dongle_id: z.string(),
   eligible_features: z.object({
     prime: z.boolean(),
     prime_data: z.boolean(),
     nav: z.boolean().optional(),
   }),
-  ignore_uploads: z.boolean().nullable(),
+  ignore_uploads: z.boolean().nullish(),
   is_paired: z.boolean(),
   is_owner: z.boolean(),
   last_athena_ping: z.number(),
   // ...
-  openpilot_version: z.string().nullable(),
+  openpilot_version: z.string().nullish(),
   prime: z.boolean(),
   prime_type: z.number(),
   public_key: z.string(),
