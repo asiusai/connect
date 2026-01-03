@@ -4,6 +4,8 @@ import { openApiDoc, swaggerHtml } from './swagger'
 import { env } from '../connect/src/utils/env'
 import { contract } from '../connect/src/api/contract'
 import { parse } from '../connect/src/utils/helpers'
+import { db } from './db/client'
+import { athenaPingsTable } from './db/schema'
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -17,13 +19,16 @@ const server = Bun.serve({
   idleTimeout: 255,
   websocket: {
     data: {} as WebSocketData,
-    open: (ws) => {
+    open: async (ws) => {
+      await db.insert(athenaPingsTable).values({ dongle_id: ws.data.dongleId })
       console.log(`WS open ${ws.data.dongleId}`)
     },
-    close: (ws) => {
+    close: async (ws) => {
+      await db.insert(athenaPingsTable).values({ dongle_id: ws.data.dongleId })
       console.log(`WS close ${ws.data.dongleId}`)
     },
-    message: (ws, msg) => {
+    message: async (ws, msg) => {
+      await db.insert(athenaPingsTable).values({ dongle_id: ws.data.dongleId })
       const message = typeof msg === 'string' ? parse<{ method: string }>(msg) : undefined
       console.log(`WS message ${ws.data.dongleId} ${message?.method}`)
     },

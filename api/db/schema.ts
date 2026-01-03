@@ -2,6 +2,11 @@ import { relations } from 'drizzle-orm'
 import { integer, sqliteTable, text, real } from 'drizzle-orm/sqlite-core'
 import { Permission } from '../../connect/src/types'
 
+const time = (name: string) =>
+  integer(name, { mode: 'timestamp' })
+    .$defaultFn(() => new Date())
+    .notNull()
+
 export const usersTable = sqliteTable('users', {
   id: text('id').primaryKey(),
   email: text('email').notNull().unique(),
@@ -9,6 +14,8 @@ export const usersTable = sqliteTable('users', {
   superuser: integer('superuser', { mode: 'boolean' }).default(false),
   user_id: text('user_id').notNull(),
   username: text('username'),
+
+  create_time: time('created_time'),
 })
 
 export const devicesTable = sqliteTable('devices', {
@@ -17,23 +24,26 @@ export const devicesTable = sqliteTable('devices', {
 
   alias: text('alias'),
   device_type: text('device_type'),
-  ignore_uploads: text('ignore_uploads'),
+  ignore_uploads: integer('ignore_uploads', { mode: 'boolean' }),
   openpilot_version: text('openpilot_version'),
 
-  serial: text('serial'),
-  imei: text('imei'),
-  imei2: text('imei2'),
+  serial: text('serial').notNull(),
+  imei: text('imei').notNull(),
+  imei2: text('imei2').notNull(),
+
+  create_time: time('created_time'),
 })
 
 export const deviceUsersTable = sqliteTable('device_users', {
   user_id: text('user_id').notNull(),
   dongle_id: text('dongle_id'),
   permission: text('permission').$type<Permission>(),
+
+  create_time: time('create_time'),
 })
 
 export const routesTable = sqliteTable('routes', {
   fullname: text('fullname').primaryKey(),
-  create_time: integer('create_time', { mode: 'timestamp' }).notNull(),
   dongle_id: text('dongle_id').notNull(),
   end_lat: real('end_lat'),
   end_lng: real('end_lng'),
@@ -59,6 +69,13 @@ export const routesTable = sqliteTable('routes', {
   id: real('id'),
   car_id: real('car_id'),
   version_id: real('version_id'),
+
+  create_time: time('create_time'),
+})
+
+export const athenaPingsTable = sqliteTable('athena_pings', {
+  dongle_id: text('dongle_id').primaryKey(),
+  create_time: time("create_time"),
 })
 
 // RELATIONS
@@ -69,6 +86,7 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
 export const devicesRelations = relations(devicesTable, ({ many }) => ({
   users: many(deviceUsersTable),
   routes: many(routesTable),
+  pings: many(athenaPingsTable),
 }))
 
 export const deviceUserRelations = relations(deviceUsersTable, ({ one }) => ({
@@ -85,6 +103,13 @@ export const deviceUserRelations = relations(deviceUsersTable, ({ one }) => ({
 export const routesRelations = relations(routesTable, ({ one }) => ({
   device: one(devicesTable, {
     fields: [routesTable.dongle_id],
+    references: [devicesTable.dongle_id],
+  }),
+}))
+
+export const athenaPingsRelations = relations(athenaPingsTable, ({ one }) => ({
+  device: one(devicesTable, {
+    fields: [athenaPingsTable.dongle_id],
     references: [devicesTable.dongle_id],
   }),
 }))

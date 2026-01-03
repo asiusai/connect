@@ -14,7 +14,8 @@
     "@ts-rest/serverless": "3.52.1",
     "@types/jsonwebtoken": "^9.0.10",
     "drizzle-orm": "^0.45.1",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "luxon": "^3.7.2"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.8"
