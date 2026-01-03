@@ -54,13 +54,13 @@ const Camera = ({ className, files, name }: { name: string; files?: PreviewFiles
 const UI = ({ files, routeName, showPath, unitFormat }: { files?: PreviewFiles; routeName: string; showPath: boolean; unitFormat?: UnitFormat }) => {
   if (!files) return null
   return (
-    <Series>
+    <>
       {files.files.map((url, i) => (
-        <Series.Sequence key={i} name={`UI ${i}`} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
+        <Sequence key={i} name={`UI ${i}`} from={i * 60 * FPS} durationInFrames={60 * FPS} premountFor={60 * FPS} postmountFor={60 * FPS}>
           {url && <OpenpilotUI i={i} unitFormat={unitFormat} routeName={routeName} url={url} showPath={showPath} />}
-        </Series.Sequence>
+        </Sequence>
       ))}
-    </Series>
+    </>
   )
 }
 
