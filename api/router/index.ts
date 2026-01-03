@@ -1,5 +1,5 @@
 import { contract } from '../../connect/src/api/contract'
-import { tsr } from '../helpers'
+import { tsr } from '../common'
 import { athena } from './athena'
 import { devices } from './devices'
 import { prime } from './prime'
