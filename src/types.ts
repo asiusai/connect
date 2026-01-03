@@ -32,7 +32,7 @@ const NAMES: Record<string, string> = {
   freon: 'freon',
   unknown: 'unknown',
 }
-export const getCommaName = (device: { device_type?: string|null }) => {
+export const getCommaName = (device: { device_type?: string | null }) => {
   if (!device.device_type) return `Unknown device`
   return NAMES[device.device_type] || `comma ${device.device_type}`
 }
