@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 import { storage } from './storage'
 import { Derived } from './derived'
+import jwt from 'jsonwebtoken'
 
 export const getRouteUrl = (route: Route, segment: number, fn: Derived | 'sprite.jpg') =>
   `${route.url?.replace('https://api.konik.ai', env.API_URL)}/${segment}/${fn}`
@@ -151,3 +152,16 @@ export const parse = <T>(str: string | null | undefined): T | undefined => {
 }
 
 export const truncate = (s: string, len: number) => (s.length > len ? s.slice(0, len) + '...' : s)
+
+
+export const verify = <T extends string | object>(token: string, key: string) => {
+  try {
+    return jwt.verify(token, key) as T
+  } catch {
+    return null
+  }
+}
+
+export const sign = <T extends string | object>(data: T, key: string, expiresIn?: number) => {
+  return jwt.sign(data, key, { expiresIn })
+}

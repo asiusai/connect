@@ -439,20 +439,16 @@ const device = c.router({
   register: {
     method: 'POST',
     path: '/v2/pilotauth/',
-    contentType: 'application/x-www-form-urlencoded',
-    body: z.object({
+    query: z.object({
       imei: z.string(),
       imei2: z.string(),
       serial: z.string(),
       public_key: z.string(),
       register_token: z.string(),
     }),
+    body: z.any(),
     responses: {
       200: z.object({ dongle_id: z.string() }),
-      402: z.object({ error: z.string() }), // Not authorized
-      403: z.object({ error: z.string() }), // Forbidden
-      409: z.object({ error: z.string() }), // Public key already registered
-      412: z.object({ error: z.string() }), // Unsafe key
     },
   },
   getUploadUrl: {

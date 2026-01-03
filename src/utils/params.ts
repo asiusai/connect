@@ -819,6 +819,8 @@ export const DEVICE_PARAMS = {
   JoystickDebugMode: { label: 'Joystick Debug', description: 'Enable joystick debugging', category: 'developer', icon: 'joystick', advanced: true },
   EnableWebRTC: { label: 'Enable WebRTC', description: 'Allow remote live streaming', category: 'developer', icon: 'live_tv', advanced: true },
   EnableRemoteParams: { label: 'Enable Remote Params', description: 'Allow remote parameter editing', category: 'developer', icon: 'settings', advanced: true },
+  APIHost: { label: 'API Host', description: 'API server URL (requires reboot)', category: 'developer', icon: 'dns', advanced: true },
+  AthenaHost: { label: 'Athena Host', description: 'Athena WebSocket URL (requires reboot)', category: 'developer', icon: 'cloud', advanced: true },
   ModelManager_LastSyncTime: {
     label: 'Model Sync Time',
     description: 'Last model list sync',
