@@ -1,8 +1,9 @@
 import { eq } from 'drizzle-orm'
 import { contract } from '../../connect/src/api/contract'
-import { BadRequestError, NotImplementedError, randomId, tsr, verify } from '../common'
+import { BadRequestError, getDevice, NotFoundError, randomId, tsr, verify } from '../common'
 import { db } from '../db/client'
 import { devicesTable } from '../db/schema'
+import { env } from '../env'
 
 export const device = tsr.router(contract.device, {
   register: async ({ query: { public_key, register_token, ...info } }) => {
@@ -20,7 +21,13 @@ export const device = tsr.router(contract.device, {
     await db.insert(devicesTable).values({ dongle_id: dongleId, ...info, public_key })
     return { status: 200, body: { dongle_id: dongleId } }
   },
-  getUploadUrl: async () => {
-    throw new NotImplementedError()
+  getUploadUrl: async ({ params, query }, { token }) => {
+    // const device = await getDevice(params.dongleId, token)
+    // if (!device) throw new NotFoundError()
+      console.log(query)
+    return {
+      status: 200,
+      body: { url: `${env.API_URL}/storage/${params.dongleId}/${query.path}`, headers: {} },
+    }
   },
 })

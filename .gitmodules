@@ -7,3 +7,6 @@
 [submodule "sunnypilot"]
 	path = sunnypilot
 	url = https://github.com/asiusai/sunnypilot.git
+[submodule "minikeyvalue"]
+	path = minikeyvalue
+	url = https://github.com/asiusai/minikeyvalue

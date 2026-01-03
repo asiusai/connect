@@ -4,6 +4,10 @@ import { openApiDoc, swaggerHtml } from './swagger'
 import { contract } from '../connect/src/api/contract'
 import { getDevice } from './common'
 import { websocket } from './ws'
+import { startMkv } from './mkv'
+import { env } from './env'
+
+await startMkv()
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -36,6 +40,21 @@ const server = Bun.serve({
 
         console.error(`WS failed for ${dongleId}`)
         return new Response('WS failed', { status: 400 })
+      }
+
+      // STORAGE PROXY - /storage/:dongleId/path/to/file
+      if (url.pathname.startsWith('/storage/')) {
+        const path = url.pathname.replace('/storage/', '')
+        // const dongleId = path.split('/')[0]
+        // const device = await getDevice(dongleId, token)
+        // if (!device) return new Response('Unauthorized', { status: 401, headers })
+
+        const res = await fetch(`http://localhost:${env.MKV_PORT}/${path}`, { method: req.method, body: req.body, redirect: 'follow' })
+        console[res.status < 400 ? 'log' : 'error'](req.method, url.pathname, res.status)
+        return new Response(res.body, {
+          status: res.status,
+          headers: { ...headers, 'Content-Type': res.headers.get('Content-Type') || 'application/octet-stream' },
+        })
       }
 
       // API ROUTES
