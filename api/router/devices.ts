@@ -1,16 +1,13 @@
-import { desc, eq } from 'drizzle-orm'
+import { desc } from 'drizzle-orm'
 import { contract } from '../../connect/src/api/contract'
-import { NotFoundError, NotImplementedError, tsr, UnauthorizedError, verify } from '../common'
+import { getDevice, NotFoundError, NotImplementedError, tsr } from '../common'
 import { db } from '../db/client'
-import { athenaPingsTable, devicesTable } from '../db/schema'
+import { athenaPingsTable } from '../db/schema'
 
 export const devices = tsr.router(contract.devices, {
   get: async ({ params }, { token }) => {
-    const device = await db.query.devicesTable.findFirst({ where: eq(devicesTable.dongle_id, params.dongleId) })
+    const device = await getDevice(params.dongleId, token)
     if (!device) throw new NotFoundError()
-
-    const res = verify<{ identity: string }>(token, device.public_key)
-    if (!res || res.identity !== params.dongleId) throw new UnauthorizedError()
 
     const lastPing = await db.query.athenaPingsTable.findFirst({ orderBy: desc(athenaPingsTable.create_time) })
     return {
@@ -66,7 +63,9 @@ export const devices = tsr.router(contract.devices, {
   users: async () => {
     throw new NotImplementedError()
   },
-  firehoseStats: async () => {
-    throw new NotImplementedError()
+  firehoseStats: async ({ params }, { token }) => {
+    const device = await getDevice(params.dongleId, token)
+    if (!device) throw new NotFoundError()
+    return { status: 200, body: { firehose: 69 } }
   },
 })

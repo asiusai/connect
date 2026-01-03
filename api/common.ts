@@ -2,6 +2,9 @@ import { tsr as tsrest } from '@ts-rest/serverless/fetch'
 import { contract } from '../connect/src/api/contract'
 import { TsRestResponseError } from '@ts-rest/serverless/fetch'
 import jwt from 'jsonwebtoken'
+import { db } from './db/client'
+import { eq } from 'drizzle-orm'
+import { devicesTable } from './db/schema'
 
 export const tsr = tsrest.platformContext<{ token?: string }>()
 
@@ -57,4 +60,13 @@ export const randomId = () => {
   const bytes = new Uint8Array(8)
   crypto.getRandomValues(bytes)
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+export const getDevice = async (dongleId: string, token: string | undefined) => {
+  const device = await db.query.devicesTable.findFirst({ where: eq(devicesTable.dongle_id, dongleId) })
+  if (!device) return
+
+  const res = verify<{ identity: string }>(token, device.public_key)
+  if (!res || res.identity !== dongleId) return
+  return device
 }
