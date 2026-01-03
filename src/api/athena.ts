@@ -33,6 +33,10 @@ export const ParamValue = z.object({
 export type ParamValue = z.infer<typeof ParamValue>
 
 const REQUESTS = {
+  echo: {
+    params: z.object({ s: z.string() }),
+    result: z.string(),
+  },
   getNetworkMetered: {
     params: z.void(),
     result: z.boolean(),
