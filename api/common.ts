@@ -52,3 +52,9 @@ export class NotImplementedError extends TsRestResponseError<typeof contract> {
     super(contract, { status: 501, body })
   }
 }
+
+export const randomId = () => {
+  const bytes = new Uint8Array(8)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+}

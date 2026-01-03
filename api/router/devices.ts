@@ -3,7 +3,8 @@ import { NotImplementedError, tsr, verify } from '../common'
 
 export const devices = tsr.router(contract.devices, {
   get: async ({ params }, { token }) => {
-    console.log(token, verify(token, ''), params.dongleId)
+    const res = verify(token, '')
+    if (res) console.log(params, res)
 
     throw new NotImplementedError()
   },
@@ -44,6 +45,9 @@ export const devices = tsr.router(contract.devices, {
     throw new NotImplementedError()
   },
   users: async () => {
+    throw new NotImplementedError()
+  },
+  firehoseStats: async () => {
     throw new NotImplementedError()
   },
 })
