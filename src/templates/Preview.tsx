@@ -1,4 +1,4 @@
-import { AbsoluteFill, Sequence, Series } from 'remotion'
+import { AbsoluteFill, Sequence } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
 import { FileType, PreviewData, PreviewFiles, PreviewProps, SegmentFiles, UnitFormat } from '../types'
 import { api } from '../api'

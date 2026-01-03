@@ -482,7 +482,7 @@ export const contract = c.router(
     athena,
     prime,
     files,
-    device
+    device,
   },
   {
     commonResponses: {
