@@ -298,6 +298,77 @@ new cloudflare.DnsRecord('api-dns', {
   ttl: 1,
 })
 
+// Storage Box usernames - add server's SSH public key to each Storage Box in Hetzner Console
+const storageBoxes = ['u526268', 'u526270'] // TODO: replace with your actual usernames
+
+const sshPrivateKey = config.requireSecret('sshPrivateKey')
+
+const cmd = pulumi.interpolate`set -e
+
+# Install SSH key for Storage Box access
+mkdir -p ~/.ssh
+cat > ~/.ssh/id_rsa << 'SSHKEY'
+${sshPrivateKey}
+SSHKEY
+chmod 600 ~/.ssh/id_rsa
+
+# Install sshfs for mounting Storage Boxes
+apt-get update && apt-get install -y sshfs nginx golang-go unzip
+
+# Mount Storage Boxes via SSHFS
+${storageBoxes.map((user, i) => `mkdir -p /mnt/mkv${i}
+umount /mnt/mkv${i} 2>/dev/null || true
+sshfs -p 23 -o IdentityFile=~/.ssh/id_rsa,allow_other,reconnect,ServerAliveInterval=15,StrictHostKeyChecking=no ${user}@${user}.your-storagebox.de: /mnt/mkv${i}
+grep -q "mkv${i}" /etc/fstab || echo "${user}@${user}.your-storagebox.de: /mnt/mkv${i} fuse.sshfs port=23,IdentityFile=/root/.ssh/id_rsa,allow_other,reconnect,ServerAliveInterval=15,StrictHostKeyChecking=no,_netdev 0 0" >> /etc/fstab`).join('\n')}
+
+# Clone/update repo
+cd /root
+[ -d asiusai ] || git clone https://github.com/asiusai/asiusai.git
+cd asiusai
+git pull
+git submodule update --init connect minikeyvalue
+
+# Install bun
+curl -fsSL https://bun.sh/install | bash
+export PATH="/root/.bun/bin:$PATH"
+
+# Build minikeyvalue
+cd minikeyvalue/src && go build -o mkv && cd ../..
+
+# Install API dependencies
+bun install
+
+# Stop existing services
+docker stop api 2>/dev/null || true
+docker rm api 2>/dev/null || true
+systemctl stop mkv-vol0 mkv-vol1 mkv-master api nginx 2>/dev/null || true
+systemctl disable mkv-vol0 mkv-vol1 mkv-master nginx 2>/dev/null || true
+
+# Create systemd service
+cat > /etc/systemd/system/api.service << 'EOF'
+[Unit]
+Description=Asius API
+After=network.target
+[Service]
+WorkingDirectory=/root/asiusai/api
+Environment=PORT=80
+Environment=MKV_VOLUMES=${storageBoxes.map((_, i) => `/mnt/mkv${i}`).join(',')}
+Environment=MKV_DB=/root/mkvdb
+Environment=API_URL=https://api.asius.ai
+Environment=BUN_INSTALL=/root/.bun
+Environment=PATH=/root/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/root/.bun/bin/bun run index.ts
+Restart=always
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload and start
+mkdir -p /root/mkvdb
+systemctl daemon-reload
+systemctl enable api
+systemctl restart api`
+
 new command.remote.Command(
   'api-deploy',
   {
@@ -306,17 +377,7 @@ new command.remote.Command(
       user: 'root',
       privateKey: config.requireSecret('sshPrivateKey'),
     },
-    create: `
-cd /root
-[ -d asiusai ] || git clone https://github.com/asiusai/asiusai.git
-cd asiusai
-git pull
-git submodule update --init connect
-docker build -f Dockerfile.api -t api .
-docker stop api 2>/dev/null || true
-docker rm api 2>/dev/null || true
-docker run -d --name api --restart=always -p 80:8080 api
-`,
+    create: cmd,
     triggers: [Date.now()],
   },
   { dependsOn: [apiServer] },
