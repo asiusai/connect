@@ -3,7 +3,7 @@ import { contract } from '../../connect/src/api/contract'
 import { BadRequestError, NotImplementedError, randomId, tsr, verify } from '../common'
 import { db } from '../db/client'
 import { athenaPingsTable, devicesTable } from '../db/schema'
-import { authenticatedMiddleware, createDataSignature, deviceMiddleware, unAuthenticatedMiddleware } from '../middleware'
+import { authenticatedMiddleware, createDataSignature, deviceMiddleware, noMiddleware } from '../middleware'
 
 export const devices = tsr.routerWithMiddleware(contract.devices)<{ userId?: string }>({
   get: deviceMiddleware(async (_, { device }) => {
@@ -65,7 +65,7 @@ export const devices = tsr.routerWithMiddleware(contract.devices)<{ userId?: str
     // TODO
     return { status: 200, body: { firehose: 69 } }
   }),
-  register: unAuthenticatedMiddleware(async ({ query: { public_key, register_token, ...info } }) => {
+  register: noMiddleware(async ({ query: { public_key, register_token, ...info } }) => {
     const data = verify<{ register: boolean; exp: number }>(register_token, public_key)
     if (!data?.register) throw new BadRequestError()
 

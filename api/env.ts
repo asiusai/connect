@@ -12,6 +12,9 @@ export const Environment = z.object({
 
   DB_URL: zString('file:///tmp/data.db'),
   DB_AUTH: zString().optional(),
+
+  GOOGLE_CLIENT_ID: zString(),
+  GOOGLE_CLIENT_SECRET: zString(),
 })
 
 export const env = Environment.parse(process.env)

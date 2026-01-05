@@ -1,11 +1,12 @@
 import { eq } from 'drizzle-orm'
 import { db } from './db/client'
 import { UserData, DeviceData, usersTable, devicesTable } from './db/schema'
-import { decode, verify } from './common'
+import { decode, sign, verify } from './common'
 import { env } from './env'
 
 export type Identity = { type: 'user'; id: string; user: UserData } | { type: 'device'; id: string; device: DeviceData }
-export type Claim = { exp: number; nbf: number; iat: number; identity: string }
+export type Claim = { exp?: number; nbf?: number; iat?: number; identity: string }
+
 export const auth = async (req: Request): Promise<Identity | undefined> => {
   const token = req.headers.get('Authorization')?.replace('JWT ', '') ?? req.headers.get('cookie')?.replace('jwt=', '')
   const claim = decode<Claim>(token)
@@ -27,4 +28,8 @@ export const auth = async (req: Request): Promise<Identity | undefined> => {
   if (!isDevice) return
 
   return { type: 'device', id: device.dongle_id, device }
+}
+
+export const generateAuthToken = (userId: string) => {
+  return sign<Claim>({ identity: userId }, env.JWT_SECRET, 60 * 60 * 24 * 30)
 }

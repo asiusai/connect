@@ -10,12 +10,10 @@ const createdAt = (name: string) =>
 export const usersTable = sqliteTable('users', {
   id: text('id').primaryKey(),
   email: text('email').notNull().unique(),
-  regdate: integer('regdate', { mode: 'timestamp' }).notNull(),
-  superuser: integer('superuser', { mode: 'boolean' }).default(false),
+  regdate: createdAt('regdate'),
+  superuser: integer('superuser', { mode: 'boolean' }).default(false).notNull(),
   user_id: text('user_id').notNull(),
   username: text('username'),
-
-  create_time: createdAt('created_time'),
 })
 export type UserData = InferSelectModel<typeof usersTable>
 

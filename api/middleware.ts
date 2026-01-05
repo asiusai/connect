@@ -18,16 +18,18 @@ export const createMiddleware = <OuterReq, CtxOut>(middleware: MiddleWare<OuterR
   }
 }
 
+export const noMiddleware = createMiddleware(async (_, ctx) => ({ ...ctx }))
+
 export const authenticatedMiddleware = createMiddleware(async (_, ctx) => {
   const identity = ctx.identity
   if (!identity) throw new UnauthorizedError()
   return { ...ctx, identity }
 })
 
-export const unAuthenticatedMiddleware = createMiddleware(async (_, ctx) => {
+export const userMiddleware = createMiddleware(async (_, ctx) => {
   const identity = ctx.identity
-  if (identity) throw new BadRequestError()
-  return { ...ctx }
+  if (!identity || identity.type !== 'user') throw new UnauthorizedError()
+  return { ...ctx, identity }
 })
 
 /**
