@@ -86,7 +86,7 @@ const auth = c.router({
     method: 'POST',
     path: '/v2/auth/',
     body: z.object({ code: z.string(), provider: z.string() }),
-    contentType: 'application/x-www-form-urlencoded',
+    contentType: env.MODE === 'asius' ? undefined : 'application/x-www-form-urlencoded',
     responses: {
       200: z.object({ access_token: z.string() }),
     },
@@ -96,7 +96,7 @@ const auth = c.router({
     path: '/v2/auth/g/redirect/',
     query: z.object({ code: z.string(), state: z.string() }),
     responses: {
-      200: z.any(),
+      302: c.noBody(),
     },
   },
   appleRedirect: {
@@ -104,7 +104,7 @@ const auth = c.router({
     path: '/v2/auth/a/redirect/',
     body: z.object({ code: z.string(), state: z.string() }),
     responses: {
-      200: z.any(),
+      302: c.noBody(),
     },
   },
   githubRedirect: {
@@ -112,7 +112,7 @@ const auth = c.router({
     path: '/v2/auth/h/redirect/',
     query: z.object({ code: z.string(), state: z.string() }),
     responses: {
-      200: z.any(),
+      302: c.noBody(),
     },
   },
 })

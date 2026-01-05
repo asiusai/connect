@@ -10,9 +10,10 @@
   },
   "scripts": {
     "build": "bun run --bun vite build --mode comma",
-    "dev": "bun run --bun vite --open --mode comma",
-    "konik": "bun run --bun vite --open --mode konik --port 3001",
-    "asius": "bun run --bun vite --open --mode asius --port 3002",
+    "dev": "bun run asius",
+    "comma": "bun run --bun vite --open --mode konik --port 3001",
+    "konik": "bun run --bun vite --open --mode konik --port 3002",
+    "asius": "bun run --bun vite --open --mode asius --port 3003",
     "serve": "vite preview --mode comma",
     "check": "biome check",
     "fix": "biome check --write",
