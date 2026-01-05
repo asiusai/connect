@@ -3,7 +3,7 @@ import { contract } from '../../connect/src/api/contract'
 import { BadRequestError, NotImplementedError, randomId, tsr, verify } from '../common'
 import { db } from '../db/client'
 import { athenaPingsTable, devicesTable } from '../db/schema'
-import { authenticatedMiddleware, deviceMiddleware, unAuthenticatedMiddleware } from '../middleware'
+import { authenticatedMiddleware, createDataSignature, deviceMiddleware, unAuthenticatedMiddleware } from '../middleware'
 
 export const devices = tsr.routerWithMiddleware(contract.devices)<{ userId?: string }>({
   get: deviceMiddleware(async (_, { device }) => {
@@ -81,7 +81,9 @@ export const devices = tsr.routerWithMiddleware(contract.devices)<{ userId?: str
     return { status: 200, body: { dongle_id: dongleId } }
   }),
   getUploadUrl: deviceMiddleware(async ({ params, query }, { origin }) => {
-    const url = `${origin}/connectdata/${params.dongleId}/${query.path}`
+    const key = `${params.dongleId}/${query.path}`
+    const sig = createDataSignature(key, 'owner')
+    const url = `${origin}/connectdata/${key}?sig=${sig}`
     return { status: 200, body: { url, headers: {} } }
   }),
 })

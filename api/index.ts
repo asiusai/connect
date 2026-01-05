@@ -24,10 +24,12 @@ const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?
   // WS
   if (url.pathname.startsWith('/ws/v2/')) {
     const dongleId = url.pathname.replace(`/ws/v2/`, '')
-    if (identity && identity.type === 'device' && server.upgrade(req, { data: { dongleId, device: identity.device } })) return
+    if (!identity || identity.type !== 'device' || identity.device.dongle_id !== dongleId) {
+      return new Response(`Bad request: ${JSON.stringify({ identity, headers: req.headers })}`, { status: 400 })
+    }
 
-    console.error(`WS failed for ${dongleId}`)
-    return new Response('WS failed', { status: 400 })
+    if (server.upgrade(req, { data: { dongleId, device: identity.device } })) return
+    else return new Response('WS upgrade failed', { status: 400 })
   }
 
   // API ROUTES
@@ -56,8 +58,13 @@ const server = Bun.serve({
       console.error(e)
       return new Response(`Server error: ${e}`, { status: 500 })
     })
+    console[res && res.status >= 400 ? 'error' : 'log'](
+      req.method,
+      res?.status ?? 200,
+      (identity ? `${identity.type}(${identity.id})` : '-').padEnd(24),
+      req.url.split('?')[0],
+    )
     if (!res) return
-    console[res.status < 400 ? 'log' : 'error'](req.method, res.status, (identity ? `${identity.type}(${identity.id})` : '-').padEnd(24), req.url)
     return res
   },
 })

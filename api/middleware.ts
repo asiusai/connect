@@ -1,7 +1,9 @@
 import { and, eq } from 'drizzle-orm'
-import { Context, UnauthorizedError, BadRequestError, ForbiddenError, NotFoundError } from './common'
+import { Context, UnauthorizedError, BadRequestError, ForbiddenError, NotFoundError, verify, sign } from './common'
 import { db } from './db/client'
 import { deviceUsersTable, routesTable } from './db/schema'
+import { env } from './env'
+import { Permission } from '../connect/src/types'
 
 type Ctx = { request: Request; appRoute: any; responseHeaders: Headers } & Context
 type MiddleWare<Req, CtxOut> = (req: Req, ctx: Ctx) => Promise<CtxOut>
@@ -31,8 +33,7 @@ export const unAuthenticatedMiddleware = createMiddleware(async (_, ctx) => {
 /**
  * Checks if device or user has access to the requested device
  */
-export const deviceMiddleware = createMiddleware(async (req: { params: { dongleId: string } }, ctx) => {
-  const identity = ctx.identity
+export const deviceMiddleware = createMiddleware(async (req: { params: { dongleId: string } }, { identity, ...ctx }) => {
   if (!identity) throw new UnauthorizedError()
   if (identity.type === 'device') {
     if (identity.device.dongle_id !== req.params.dongleId) throw new ForbiddenError()
@@ -51,8 +52,7 @@ export const deviceMiddleware = createMiddleware(async (req: { params: { dongleI
 /**
  * Checks if route is public or user has access to the requested route
  */
-export const routeMiddleware = createMiddleware(async (req: { params: { routeName: string } }, ctx) => {
-  const identity = ctx.identity
+export const routeMiddleware = createMiddleware(async (req: { params: { routeName: string } }, { identity, ...ctx }) => {
   if (!identity) throw new UnauthorizedError()
   if (identity.type === 'device') throw new ForbiddenError()
 
@@ -69,10 +69,12 @@ export const routeMiddleware = createMiddleware(async (req: { params: { routeNam
   return { ...ctx, identity, device: deviceUser.device, permission: deviceUser.permission }
 })
 
+type DataSignature = { key: string; permission: Permission }
+export const createDataSignature = (key: string, permission: Permission) => sign({ key, permission }, env.JWT_SECRET)
 /**
- * Checks if user or device has access to specific key
+ * Checks if sig or user or device has access to specific key
  */
-export const dataMiddleware = createMiddleware(async (_: { params: { _key: string } }, ctx) => {
+export const dataMiddleware = createMiddleware(async (req: { params: { _key: string }; query: { sig?: string } }, { identity, ...ctx }) => {
   const keys = new URL(ctx.request.url).pathname.replace('/connectdata/', '').replaceAll('%2F', '/').replaceAll('*', '').trim().split('/').filter(Boolean)
   const key = keys.join('/')
 
@@ -80,14 +82,18 @@ export const dataMiddleware = createMiddleware(async (_: { params: { _key: strin
   const dongleId = keys[0]
   if (!dongleId) throw new BadRequestError(`No dongleId`)
 
-  const identity = ctx.identity
+  if (req.query.sig) {
+    const signature = verify<DataSignature>(req.query.sig, env.JWT_SECRET)
+    if (!signature || signature.key !== key) throw new ForbiddenError()
+    return { ...ctx, permission: signature.permission, key }
+  }
 
-  // if (dongleId === 'test') return { ...ctx, identity, permission: 'owner', key, keys }
+  // if (dongleId) return { ...ctx, identity, permission: 'owner', key }
 
   if (!identity) throw new UnauthorizedError()
   if (identity.type === 'device') {
     if (identity.device.dongle_id !== dongleId) throw new ForbiddenError()
-    return { ...ctx, identity, permission: 'owner' as const, device: identity.device, key, keys }
+    return { ...ctx, identity, permission: 'owner' as const, device: identity.device, key }
   }
 
   const deviceUser = await db.query.deviceUsersTable.findFirst({
@@ -96,5 +102,5 @@ export const dataMiddleware = createMiddleware(async (_: { params: { _key: strin
   })
   if (!deviceUser) throw new ForbiddenError()
 
-  return { ...ctx, identity, permission: deviceUser.permission, key, keys, device: deviceUser.device }
+  return { ...ctx, identity, permission: deviceUser.permission, key, device: deviceUser.device }
 })

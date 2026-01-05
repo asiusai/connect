@@ -1,5 +1,5 @@
 import { contract } from '../../connect/src/api/contract'
-import { BadRequestError, NotFoundError, tsr, UnauthorizedError } from '../common'
+import { InternalServerError, NotFoundError, tsr, UnauthorizedError } from '../common'
 import { env } from '../env'
 import { dataMiddleware } from '../middleware'
 
@@ -19,7 +19,8 @@ export const data = tsr.router(contract.data, {
     }
 
     const res = await fetch(mkv(key), { headers, redirect: 'follow' })
-    if (!res.ok) throw new NotFoundError()
+    if (res.status === 404) throw new NotFoundError()
+    if (!res.ok) throw new InternalServerError()
 
     // Copy response headers
     for (const h of ['Content-Type', 'Content-Length', 'Content-Range', 'Accept-Ranges', 'Content-Md5']) {
@@ -40,14 +41,14 @@ export const data = tsr.router(contract.data, {
       // @ts-expect-error bun supports duplex
       duplex: 'half',
     })
-    if (!res.ok) throw new BadRequestError(`MKV: ${res.status}`)
+    if (!res.ok) throw new InternalServerError()
     return { status: 201, body: undefined }
   }),
   delete: dataMiddleware(async (_, { key, permission }) => {
     if (permission !== 'owner') throw new UnauthorizedError('User only has read access')
 
     const res = await fetch(mkv(key), { method: 'DELETE' })
-    if (!res.ok) throw new NotFoundError()
+    if (!res.ok) throw new InternalServerError()
 
     return { status: 204, body: undefined }
   }),

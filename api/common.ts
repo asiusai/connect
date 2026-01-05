@@ -24,7 +24,7 @@ export const decode = <T extends string | object>(token: string | undefined) => 
   }
 }
 
-export const sign = <T extends string | object>(data: T, key: string, expiresIn?: number) => {
+export const sign = <T extends string | object>(data: T, key: string, expiresIn: number = 60 * 60) => {
   return jwt.sign(data, key, { expiresIn })
 }
 
