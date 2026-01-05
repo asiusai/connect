@@ -13,7 +13,6 @@ import {
   UploadFileMetadata,
   AthenaRequest,
   AthenaResponse,
-  FileName,
   Permission,
 } from '../types'
 import { z } from 'zod'
@@ -21,55 +20,43 @@ import { env } from '../utils/env'
 
 const c = initContract()
 
-const files = c.router({
-  events: {
+const data = c.router({
+  get: {
     method: 'GET',
-    path: '/connectdata/:dongleId/:routeStr/:segmentIndex/events.json',
+    path: '/connectdata/:_key*',
     pathParams: z.object({
-      dongleId: z.string(),
-      routeStr: z.string(),
-      segmentIndex: z.number(),
+      _key: z.string(),
+    }),
+    query: z.object({
+      list: z.string().optional(),
+      start: z.string().optional(),
+      limit: z.string().optional(),
     }),
     responses: {
-      200: z.any(),
+      200: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
+      206: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
     },
   },
-  coords: {
-    method: 'GET',
-    path: '/connectdata/:dongleId/:routeStr/:segmentIndex/coords.json',
+  put: {
+    method: 'PUT',
+    path: '/connectdata/:_key*',
     pathParams: z.object({
-      dongleId: z.string(),
-      routeStr: z.string(),
-      segmentIndex: z.number(),
+      _key: z.string(),
     }),
+    body: c.type<ReadableStream | Blob | ArrayBuffer>(),
     responses: {
-      200: z.any(),
+      201: c.noBody(),
     },
   },
-  sprite: {
-    method: 'GET',
-    path: '/connectdata/:dongleId/:routeStr/:segmentIndex/sprite.jpg',
+  delete: {
+    method: 'DELETE',
+    path: '/connectdata/:_key*',
     pathParams: z.object({
-      dongleId: z.string(),
-      routeStr: z.string(),
-      segmentIndex: z.number(),
+      _key: z.string(),
     }),
+    body: c.noBody(),
     responses: {
-      // TODO: image
-      200: z.any(),
-    },
-  },
-  files: {
-    method: 'GET',
-    path: '/connectdata/:dongleId/:routeName/:segmentIndex/:fileName',
-    pathParams: z.object({
-      dongleId: z.string(),
-      routeName: z.string(),
-      segmentIndex: z.number(),
-      fileName: FileName,
-    }),
-    responses: {
-      200: z.any(),
+      204: c.noBody(),
     },
   },
 })
@@ -183,7 +170,7 @@ const routes = c.router({
     pathParams: z.object({
       routeName: z.string(),
     }),
-    body: z.any(),
+    body: c.noBody(),
     responses: {
       200: z.object({ success: z.number() }),
     },
@@ -191,7 +178,7 @@ const routes = c.router({
   unPreserve: {
     method: 'DELETE',
     path: '/v1/route/:routeName/preserve',
-    body: z.any(),
+    body: c.noBody(),
     pathParams: z.object({ routeName: z.string() }),
     responses: {
       200: z.object({ success: z.number() }),
@@ -263,7 +250,7 @@ const devices = c.router({
     method: 'POST',
     path: '/v1/devices/:dongleId/unpair',
     pathParams: z.object({ dongleId: z.string() }),
-    body: z.any(),
+    body: c.noBody(),
     responses: {
       200: z.object({ success: z.number() }),
     },
@@ -358,7 +345,7 @@ const devices = c.router({
       public_key: z.string(),
       register_token: z.string(),
     }),
-    body: z.any(),
+    body: c.noBody(),
     responses: {
       200: z.object({ dongle_id: z.string() }),
     },
@@ -483,7 +470,7 @@ export const contract = c.router(
     devices,
     athena,
     prime,
-    files,
+    data,
   },
   {
     commonResponses: {
