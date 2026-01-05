@@ -31,6 +31,7 @@ const data = c.router({
       list: z.string().optional(),
       start: z.string().optional(),
       limit: z.string().optional(),
+      sig: z.string().optional(),
     }),
     headers: z.object({
       Range: z.string().optional(),
@@ -46,6 +47,9 @@ const data = c.router({
     pathParams: z.object({
       _key: z.string(),
     }),
+    query: z.object({
+      sig: z.string().optional(),
+    }),
     headers: z.object({
       'Content-Length': z.string().optional(),
     }),
@@ -59,6 +63,9 @@ const data = c.router({
     path: '/connectdata/:_key*',
     pathParams: z.object({
       _key: z.string(),
+    }),
+    query: z.object({
+      sig: z.string().optional(),
     }),
     body: c.noBody(),
     responses: {
