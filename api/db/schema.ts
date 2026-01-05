@@ -41,7 +41,7 @@ export const deviceUsersTable = sqliteTable(
   {
     user_id: text('user_id').notNull(),
     dongle_id: text('dongle_id').notNull(),
-    permission: text('permission').$type<Permission>(),
+    permission: text('permission').$type<Permission>().notNull(),
 
     create_time: createdAt('create_time'),
   },

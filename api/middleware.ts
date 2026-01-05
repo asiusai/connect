@@ -72,9 +72,29 @@ export const routeMiddleware = createMiddleware(async (req: { params: { routeNam
 /**
  * Checks if user or device has access to specific key
  */
-export const dataMiddleware = createMiddleware(async (req: { params: { key: string } }, ctx) => {
+export const dataMiddleware = createMiddleware(async (_: { params: { _key: string } }, ctx) => {
+  const keys = new URL(ctx.request.url).pathname.replace('/connectdata/', '').replaceAll('%2F', '/').replaceAll('*', '').trim().split('/').filter(Boolean)
+  const key = keys.join('/')
+
+  // We only support keys that prefix with /dongleId/
+  const dongleId = keys[0]
+  if (!dongleId) throw new BadRequestError(`No dongleId`)
+
   const identity = ctx.identity
-  console.log(req.params.key)
-  // TODO: add all file access rules
-  return { ...ctx, identity, permission: 'read_access' }
+
+  // if (dongleId === 'test') return { ...ctx, identity, permission: 'owner', key, keys }
+
+  if (!identity) throw new UnauthorizedError()
+  if (identity.type === 'device') {
+    if (identity.device.dongle_id !== dongleId) throw new ForbiddenError()
+    return { ...ctx, identity, permission: 'owner' as const, device: identity.device, key, keys }
+  }
+
+  const deviceUser = await db.query.deviceUsersTable.findFirst({
+    where: and(eq(deviceUsersTable.dongle_id, dongleId), eq(deviceUsersTable.user_id, identity.user.id)),
+    with: { device: true },
+  })
+  if (!deviceUser) throw new ForbiddenError()
+
+  return { ...ctx, identity, permission: deviceUser.permission, key, keys, device: deviceUser.device }
 })

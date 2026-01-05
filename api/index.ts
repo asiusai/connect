@@ -4,7 +4,6 @@ import { openApiDoc, swaggerHtml } from './swagger'
 import { contract } from '../connect/src/api/contract'
 import { websocket, WebSocketData } from './ws'
 import { startMkv } from './mkv'
-import { env } from './env'
 import { auth, Identity } from './auth'
 
 await startMkv()
@@ -29,18 +28,6 @@ const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?
 
     console.error(`WS failed for ${dongleId}`)
     return new Response('WS failed', { status: 400 })
-  }
-
-  // TODO: move to tsrest
-  if (url.pathname.startsWith('/connectdata/')) {
-    const path = url.pathname.replace('/connectdata/', '')
-    if (!identity) return
-
-    const res = await fetch(`http://localhost:${env.MKV_PORT}/${path}`, { method: req.method, body: req.body, redirect: 'follow' })
-    return new Response(res.body, {
-      status: res.status,
-      headers: { ...headers, 'Content-Type': res.headers.get('Content-Type') || 'application/octet-stream' },
-    })
   }
 
   // API ROUTES
