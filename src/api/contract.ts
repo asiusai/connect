@@ -348,7 +348,7 @@ const devices = c.router({
       }),
     },
   },
-    register: {
+  register: {
     method: 'POST',
     path: '/v2/pilotauth/',
     query: z.object({
