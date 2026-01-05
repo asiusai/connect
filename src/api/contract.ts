@@ -348,6 +348,33 @@ const devices = c.router({
       }),
     },
   },
+    register: {
+    method: 'POST',
+    path: '/v2/pilotauth/',
+    query: z.object({
+      imei: z.string(),
+      imei2: z.string(),
+      serial: z.string(),
+      public_key: z.string(),
+      register_token: z.string(),
+    }),
+    body: z.any(),
+    responses: {
+      200: z.object({ dongle_id: z.string() }),
+    },
+  },
+  getUploadUrl: {
+    method: 'GET',
+    path: '/v1.4/:dongleId/upload_url/',
+    pathParams: z.object({ dongleId: z.string() }),
+    query: z.object({
+      path: z.string(),
+      expiry_days: z.number().optional(),
+    }),
+    responses: {
+      200: UploadFileMetadata,
+    },
+  },
 })
 
 const athena = c.router({
@@ -444,36 +471,6 @@ const prime = c.router({
   },
 })
 
-const device = c.router({
-  register: {
-    method: 'POST',
-    path: '/v2/pilotauth/',
-    query: z.object({
-      imei: z.string(),
-      imei2: z.string(),
-      serial: z.string(),
-      public_key: z.string(),
-      register_token: z.string(),
-    }),
-    body: z.any(),
-    responses: {
-      200: z.object({ dongle_id: z.string() }),
-    },
-  },
-  getUploadUrl: {
-    method: 'GET',
-    path: '/v1.4/:dongleId/upload_url/',
-    pathParams: z.object({ dongleId: z.string() }),
-    query: z.object({
-      path: z.string(),
-      expiry_days: z.number().optional(),
-    }),
-    responses: {
-      200: UploadFileMetadata,
-    },
-  },
-})
-
 const Err = z
   .object({ error: z.string() })
   .or(z.string())
@@ -487,7 +484,6 @@ export const contract = c.router(
     athena,
     prime,
     files,
-    device,
   },
   {
     commonResponses: {
