@@ -13,14 +13,14 @@ export const Users = () => {
   // needed for Konik API
   if (users && typeof users === 'object' && 'users' in users) users = users.users as any
 
-  const addUser = api.devices.addUser.useMutation({
+  const addUser = api.users.addUser.useMutation({
     onSuccess: () => {
       setEmail('')
       setIsAdding(false)
       refetch()
     },
   })
-  const deleteUser = api.devices.deleteUser.useMutation({
+  const deleteUser = api.users.deleteUser.useMutation({
     onSuccess: () => refetch(),
   })
   const [email, setEmail] = useState('')

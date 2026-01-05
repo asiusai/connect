@@ -14,8 +14,8 @@ const useIsPreserved = (route: Route, isOwner: boolean) => {
     async (isPreserved: boolean) => {
       setIsPreserved(isPreserved)
       isPreserved
-        ? await api.routes.preserve.mutate({ params: { routeName: route.fullname } })
-        : await api.routes.unPreserve.mutate({ params: { routeName: route.fullname } })
+        ? await api.route.preserve.mutate({ params: { routeName: route.fullname } })
+        : await api.route.unPreserve.mutate({ params: { routeName: route.fullname } })
     },
   ] as const
 }
@@ -25,7 +25,7 @@ const useIsPublic = (route: Route) => {
   return [
     isPublic,
     async (isPublic: boolean) => {
-      await api.routes.setPublic.mutate({ body: { is_public: isPublic }, params: { routeName: route.fullname } })
+      await api.route.setPublic.mutate({ body: { is_public: isPublic }, params: { routeName: route.fullname } })
       setIsPublic(isPublic)
     },
   ] as const

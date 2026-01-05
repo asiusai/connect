@@ -8,13 +8,13 @@ const w = <Res extends { data?: { status: number; body: any } }>(res: Res): [Non
   return [res.data?.body, res] as any
 }
 
-export const useDevice = (dongleId: string) => w(api.devices.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } }))
+export const useDevice = (dongleId: string) => w(api.device.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } } }))
 
-export const useStats = (dongleId: string) => w(api.devices.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } }))
+export const useStats = (dongleId: string) => w(api.device.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } }))
 
 export const useDeviceLocation = (dongleId: string) =>
   w(
-    api.devices.location.useQuery({
+    api.device.location.useQuery({
       queryKey: ['location', dongleId],
       queryData: { params: { dongleId } },
       enabled: dongleId !== env.DEMO_DONGLE_ID,
@@ -41,7 +41,7 @@ export const useRoutesSegments = (dongleId: string, query: { start?: number; end
 
 export const useShareSignature = (routeName: string) =>
   w(
-    api.routes.shareSignature.useQuery({
+    api.route.shareSignature.useQuery({
       queryKey: ['shareSignature', routeName],
       queryData: { params: { routeName: routeName.replace('/', '|') } },
     }),
@@ -52,7 +52,7 @@ export const useProfile = () => w(api.auth.me.useQuery({ queryKey: ['me'], enabl
 
 export const useRoute = (routeName: string) =>
   w(
-    api.routes.get.useQuery({
+    api.route.get.useQuery({
       queryKey: ['route', routeName],
       queryData: { params: { routeName: routeName.replace('/', '|') } },
     }),
@@ -85,7 +85,7 @@ export const usePortal = (dongleId: string) =>
 
 export const useFiles = (routeName: string, route: Route | undefined, refetchInterval?: number) => {
   const [files, res] = w(
-    api.routes.files.useQuery({
+    api.route.files.useQuery({
       queryKey: ['files', routeName],
       queryData: { params: { routeName: routeName.replace('/', '|') } },
       refetchInterval,
@@ -95,6 +95,6 @@ export const useFiles = (routeName: string, route: Route | undefined, refetchInt
   return [files2, res] as const
 }
 
-export const useUsers = (dongleId: string) => w(api.devices.users.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))
+export const useUsers = (dongleId: string) => w(api.users.get.useQuery({ queryKey: ['users', dongleId], queryData: { params: { dongleId } } }))
 
-export const useLocation = (dongleId: string) => w(api.devices.location.useQuery({ queryKey: ['location', dongleId], queryData: { params: { dongleId } } }))
+export const useLocation = (dongleId: string) => w(api.device.location.useQuery({ queryKey: ['location', dongleId], queryData: { params: { dongleId } } }))

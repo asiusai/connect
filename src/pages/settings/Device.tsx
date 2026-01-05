@@ -15,12 +15,12 @@ export const Device = () => {
   const [alias, setAlias] = useState('')
   useEffect(() => setAlias(device?.alias || ''), [device?.alias])
 
-  const unpair = api.devices.unpair.useMutation({
+  const unpair = api.device.unpair.useMutation({
     onSuccess: (res) => {
       if (res.body.success) navigate(window.location.origin)
     },
   })
-  const changeName = api.devices.set.useMutation({
+  const changeName = api.device.set.useMutation({
     onSuccess: () => {
       refetch()
       devices.refetch()

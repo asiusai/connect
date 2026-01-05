@@ -20,60 +20,6 @@ import { env } from '../utils/env'
 
 const c = initContract()
 
-const data = c.router({
-  get: {
-    method: 'GET',
-    path: '/connectdata/:_key*',
-    pathParams: z.object({
-      _key: z.string(),
-    }),
-    query: z.object({
-      list: z.string().optional(),
-      start: z.string().optional(),
-      limit: z.string().optional(),
-      sig: z.string().optional(),
-    }),
-    headers: z.object({
-      Range: z.string().optional(),
-    }),
-    responses: {
-      200: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
-      206: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
-    },
-  },
-  put: {
-    method: 'PUT',
-    path: '/connectdata/:_key*',
-    pathParams: z.object({
-      _key: z.string(),
-    }),
-    query: z.object({
-      sig: z.string().optional(),
-    }),
-    headers: z.object({
-      'Content-Length': z.string().optional(),
-    }),
-    body: c.type<ReadableStream | Blob | ArrayBuffer>(),
-    responses: {
-      201: c.noBody(),
-    },
-  },
-  delete: {
-    method: 'DELETE',
-    path: '/connectdata/:_key*',
-    pathParams: z.object({
-      _key: z.string(),
-    }),
-    query: z.object({
-      sig: z.string().optional(),
-    }),
-    body: c.noBody(),
-    responses: {
-      204: c.noBody(),
-    },
-  },
-})
-
 const auth = c.router({
   me: {
     method: 'GET',
@@ -117,6 +63,146 @@ const auth = c.router({
   },
 })
 
+const devices = c.router({
+  devices: {
+    method: 'GET',
+    path: '/v1/me/devices/',
+    responses: {
+      200: Device.array(),
+    },
+  },
+  pair: {
+    method: 'POST',
+    path: '/v2/pilotpair/',
+    contentType: 'multipart/form-data',
+    body: z.object({ pair_token: z.string() }),
+    responses: {
+      200: z.object({
+        dongle_id: z.string(),
+        first_pair: z.boolean(),
+      }),
+    },
+  },
+  register: {
+    method: 'POST',
+    path: '/v2/pilotauth/',
+    query: z.object({
+      imei: z.string(),
+      imei2: z.string(),
+      serial: z.string(),
+      public_key: z.string(),
+      register_token: z.string(),
+    }),
+    body: c.noBody(),
+    responses: {
+      200: z.object({ dongle_id: z.string() }),
+    },
+  },
+})
+
+const device = c.router({
+  get: {
+    method: 'GET',
+    path: '/v1.1/devices/:dongleId/',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: Device,
+    },
+  },
+  set: {
+    method: 'PATCH',
+    path: '/v1/devices/:dongleId/',
+    pathParams: z.object({ dongleId: z.string() }),
+    body: z.object({
+      alias: z.string(),
+    }),
+    responses: {
+      200: Device,
+    },
+  },
+  athenaOfflineQueue: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/athena_offline_queue',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: AthenaRequest.array(),
+    },
+  },
+  location: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/location',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: DeviceLocation,
+    },
+  },
+  stats: {
+    method: 'GET',
+    path: '/v1.1/devices/:dongleId/stats',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: DrivingStatistics,
+    },
+  },
+  unpair: {
+    method: 'POST',
+    path: '/v1/devices/:dongleId/unpair',
+    pathParams: z.object({ dongleId: z.string() }),
+    body: c.noBody(),
+    responses: {
+      200: z.object({ success: z.number() }),
+    },
+  },
+  bootlogs: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/bootlogs',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: z.string().array(),
+    },
+  },
+  crashlogs: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/crashlogs',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: z.string().array(),
+    },
+  },
+  firehoseStats: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/firehose_stats',
+    pathParams: z.object({ dongleId: z.string() }),
+    responses: {
+      200: z.object({ firehose: z.number() }),
+    },
+  },
+  uploadFiles: {
+    method: 'POST',
+    path: '/v1/:dongleId/upload_urls/',
+    pathParams: z.object({ dongleId: z.string() }),
+    body: z.object({
+      expiry_days: z.number(),
+      paths: z.string().array(),
+    }),
+    responses: {
+      200: UploadFileMetadata.array(),
+    },
+  },
+  getUploadUrl: {
+    method: 'GET',
+    path: '/v1.4/:dongleId/upload_url/',
+    pathParams: z.object({ dongleId: z.string() }),
+    query: z.object({
+      path: z.string(),
+      expiry_days: z.number().optional(),
+    }),
+    responses: {
+      200: UploadFileMetadata,
+    },
+  },
+})
+
 const routes = c.router({
   allRoutes: {
     method: 'GET',
@@ -149,6 +235,9 @@ const routes = c.router({
       200: Route.array(),
     },
   },
+})
+
+const route = c.router({
   get: {
     method: 'GET',
     path: '/v1/route/:routeName/',
@@ -207,69 +296,8 @@ const routes = c.router({
   },
 })
 
-const devices = c.router({
-  devices: {
-    method: 'GET',
-    path: '/v1/me/devices/',
-    responses: {
-      200: Device.array(),
-    },
-  },
+const users = c.router({
   get: {
-    method: 'GET',
-    path: '/v1.1/devices/:dongleId/',
-    pathParams: z.object({ dongleId: z.string() }),
-    responses: {
-      200: Device,
-    },
-  },
-  set: {
-    method: 'PATCH',
-    path: '/v1/devices/:dongleId/',
-    pathParams: z.object({ dongleId: z.string() }),
-    body: z.object({
-      alias: z.string(),
-    }),
-    responses: {
-      200: Device,
-    },
-  },
-  athenaOfflineQueue: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/athena_offline_queue',
-    pathParams: z.object({ dongleId: z.string() }),
-    responses: {
-      200: AthenaRequest.array(),
-    },
-  },
-  location: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/location',
-    pathParams: z.object({ dongleId: z.string() }),
-    responses: {
-      200: DeviceLocation,
-    },
-  },
-  stats: {
-    method: 'GET',
-    path: '/v1.1/devices/:dongleId/stats',
-    pathParams: z.object({ dongleId: z.string() }),
-    responses: {
-      200: DrivingStatistics,
-    },
-  },
-
-  unpair: {
-    method: 'POST',
-    path: '/v1/devices/:dongleId/unpair',
-    pathParams: z.object({ dongleId: z.string() }),
-    body: c.noBody(),
-    responses: {
-      200: z.object({ success: z.number() }),
-    },
-  },
-
-  users: {
     method: 'GET',
     path: '/v1/devices/:dongleId/users',
     pathParams: z.object({ dongleId: z.string() }),
@@ -298,81 +326,6 @@ const devices = c.router({
     body: z.object({ email: z.string() }),
     responses: {
       200: z.object({ success: z.number() }),
-    },
-  },
-  bootlogs: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/bootlogs',
-    pathParams: z.object({ dongleId: z.string() }),
-    responses: {
-      200: z.string().array(),
-    },
-  },
-  crashlogs: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/crashlogs',
-    pathParams: z.object({ dongleId: z.string() }),
-    responses: {
-      200: z.string().array(),
-    },
-  },
-  firehoseStats: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/firehose_stats',
-    pathParams: z.object({ dongleId: z.string() }),
-    responses: {
-      200: z.object({ firehose: z.number() }),
-    },
-  },
-  uploadFiles: {
-    method: 'POST',
-    path: '/v1/:dongleId/upload_urls/',
-    pathParams: z.object({ dongleId: z.string() }),
-    body: z.object({
-      expiry_days: z.number(),
-      paths: z.string().array(),
-    }),
-    responses: {
-      200: UploadFileMetadata.array(),
-    },
-  },
-  pair: {
-    method: 'POST',
-    path: '/v2/pilotpair/',
-    contentType: 'multipart/form-data',
-    body: z.object({ pair_token: z.string() }),
-    responses: {
-      200: z.object({
-        dongle_id: z.string(),
-        first_pair: z.boolean(),
-      }),
-    },
-  },
-  register: {
-    method: 'POST',
-    path: '/v2/pilotauth/',
-    query: z.object({
-      imei: z.string(),
-      imei2: z.string(),
-      serial: z.string(),
-      public_key: z.string(),
-      register_token: z.string(),
-    }),
-    body: c.noBody(),
-    responses: {
-      200: z.object({ dongle_id: z.string() }),
-    },
-  },
-  getUploadUrl: {
-    method: 'GET',
-    path: '/v1.4/:dongleId/upload_url/',
-    pathParams: z.object({ dongleId: z.string() }),
-    query: z.object({
-      path: z.string(),
-      expiry_days: z.number().optional(),
-    }),
-    responses: {
-      200: UploadFileMetadata,
     },
   },
 })
@@ -471,6 +424,60 @@ const prime = c.router({
   },
 })
 
+const data = c.router({
+  get: {
+    method: 'GET',
+    path: '/connectdata/:_key*',
+    pathParams: z.object({
+      _key: z.string(),
+    }),
+    query: z.object({
+      list: z.string().optional(),
+      start: z.string().optional(),
+      limit: z.string().optional(),
+      sig: z.string().optional(),
+    }),
+    headers: z.object({
+      Range: z.string().optional(),
+    }),
+    responses: {
+      200: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
+      206: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
+    },
+  },
+  put: {
+    method: 'PUT',
+    path: '/connectdata/:_key*',
+    pathParams: z.object({
+      _key: z.string(),
+    }),
+    query: z.object({
+      sig: z.string().optional(),
+    }),
+    headers: z.object({
+      'Content-Length': z.string().optional(),
+    }),
+    body: c.type<ReadableStream | Blob | ArrayBuffer>(),
+    responses: {
+      201: c.noBody(),
+    },
+  },
+  delete: {
+    method: 'DELETE',
+    path: '/connectdata/:_key*',
+    pathParams: z.object({
+      _key: z.string(),
+    }),
+    query: z.object({
+      sig: z.string().optional(),
+    }),
+    body: c.noBody(),
+    responses: {
+      204: c.noBody(),
+    },
+  },
+})
+
 const Err = z
   .object({ error: z.string() })
   .or(z.string())
@@ -479,8 +486,11 @@ const Err = z
 export const contract = c.router(
   {
     auth,
-    routes,
     devices,
+    device,
+    routes,
+    route,
+    users,
     athena,
     prime,
     data,

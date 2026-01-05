@@ -31,7 +31,7 @@ const uploadSegments = async (routeName: string, segments: number[], types: File
   }
 
   // Generating presigned urls for every one
-  const presignedUrls = await api.devices.uploadFiles.mutate({ params: { dongleId }, body: { expiry_days: 7, paths } })
+  const presignedUrls = await api.device.uploadFiles.mutate({ params: { dongleId }, body: { expiry_days: 7, paths } })
   if (presignedUrls.status !== 200) throw new Error()
 
   if (paths.length === 0) return []
