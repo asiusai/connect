@@ -14,8 +14,8 @@ const useIsPreserved = (route: Route, isOwner: boolean) => {
     async (isPreserved: boolean) => {
       setIsPreserved(isPreserved)
       isPreserved
-        ? await api.routes.preserve.mutate({ body: {}, params: { routeName: route.fullname } })
-        : await api.routes.unPreserve.mutate({ body: {}, params: { routeName: route.fullname } })
+        ? await api.routes.preserve.mutate({ params: { routeName: route.fullname } })
+        : await api.routes.unPreserve.mutate({ params: { routeName: route.fullname } })
     },
   ] as const
 }

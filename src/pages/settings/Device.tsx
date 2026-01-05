@@ -65,7 +65,7 @@ export const Device = () => {
         className="flex items-center justify-center gap-2 p-4 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors font-medium"
         onClick={() => {
           if (confirm('Are you sure you want to unpair this device?')) {
-            unpair.mutate({ body: {}, params: { dongleId } })
+            unpair.mutate({ params: { dongleId } })
           }
         }}
         disabled={unpair.isPending}

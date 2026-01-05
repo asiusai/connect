@@ -32,6 +32,9 @@ const data = c.router({
       start: z.string().optional(),
       limit: z.string().optional(),
     }),
+    headers: z.object({
+      Range: z.string().optional(),
+    }),
     responses: {
       200: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
       206: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
@@ -42,6 +45,9 @@ const data = c.router({
     path: '/connectdata/:_key*',
     pathParams: z.object({
       _key: z.string(),
+    }),
+    headers: z.object({
+      'Content-Length': z.string().optional(),
     }),
     body: c.type<ReadableStream | Blob | ArrayBuffer>(),
     responses: {
