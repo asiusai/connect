@@ -5,7 +5,7 @@ const zNumber = (def?: string) => (def ? z.string().default(def) : z.string()).t
 const zArray = (def?: string) => (def ? z.string().default(def) : z.string()).transform((x) => x.split(','))
 
 export const Environment = z.object({
-  API_URL: zString('http://localhost:8080'),
+  JWT_SECRET: zString('sdfasjh43h5j3h4jhsadgfjharjhty345tsdfhjsjdhf'),
   MKV_PORT: zNumber('5100'),
   MKV_VOLUMES: zArray('/tmp/mkv0,/tmp/mkv1'),
   MKV_DB: zString('/tmp/mkvdb'),

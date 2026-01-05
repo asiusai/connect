@@ -1,14 +1,12 @@
-import { desc } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { contract } from '../../connect/src/api/contract'
-import { getDevice, NotFoundError, NotImplementedError, tsr } from '../common'
+import { BadRequestError, NotImplementedError, randomId, tsr, verify } from '../common'
 import { db } from '../db/client'
-import { athenaPingsTable } from '../db/schema'
+import { athenaPingsTable, devicesTable } from '../db/schema'
+import { authenticatedMiddleware, deviceMiddleware, unAuthenticatedMiddleware } from '../middleware'
 
-export const devices = tsr.router(contract.devices, {
-  get: async ({ params }, { token }) => {
-    const device = await getDevice(params.dongleId, token)
-    if (!device) throw new NotFoundError()
-
+export const devices = tsr.routerWithMiddleware(contract.devices)<{ userId?: string }>({
+  get: deviceMiddleware(async (_, { device }) => {
     const lastPing = await db.query.athenaPingsTable.findFirst({ orderBy: desc(athenaPingsTable.create_time) })
     return {
       status: 200,
@@ -23,49 +21,67 @@ export const devices = tsr.router(contract.devices, {
         last_athena_ping: lastPing?.create_time.getTime() ?? device.create_time.getTime(),
       },
     }
-  },
-  addUser: async () => {
+  }),
+  addUser: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  athenaOfflineQueue: async () => {
+  }),
+  athenaOfflineQueue: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  bootlogs: async () => {
+  }),
+  bootlogs: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  crashlogs: async () => {
+  }),
+  crashlogs: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  deleteUser: async () => {
+  }),
+  deleteUser: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  devices: async () => {
+  }),
+  devices: authenticatedMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  location: async () => {
+  }),
+  location: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  pair: async () => {
+  }),
+  pair: authenticatedMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  set: async () => {
+  }),
+  set: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  stats: async () => {
+  }),
+  stats: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  unpair: async () => {
+  }),
+  unpair: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  uploadFiles: async () => {
+  }),
+  uploadFiles: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  users: async () => {
+  }),
+  users: deviceMiddleware(async () => {
     throw new NotImplementedError()
-  },
-  firehoseStats: async ({ params }, { token }) => {
-    const device = await getDevice(params.dongleId, token)
-    if (!device) throw new NotFoundError()
+  }),
+  firehoseStats: deviceMiddleware(async () => {
+    // TODO
     return { status: 200, body: { firehose: 69 } }
-  },
+  }),
+  register: unAuthenticatedMiddleware(async ({ query: { public_key, register_token, ...info } }) => {
+    const data = verify<{ register: boolean; exp: number }>(register_token, public_key)
+    if (!data?.register) throw new BadRequestError()
+
+    // Checking if device alread has registered
+    const device = await db.query.devicesTable.findFirst({ where: eq(devicesTable.public_key, public_key) })
+    if (device) {
+      await db.update(devicesTable).set(info).where(eq(devicesTable.dongle_id, device.dongle_id))
+      return { status: 200, body: { dongle_id: device.dongle_id } }
+    }
+
+    const dongleId = randomId()
+    await db.insert(devicesTable).values({ dongle_id: dongleId, ...info, public_key })
+    return { status: 200, body: { dongle_id: dongleId } }
+  }),
+  getUploadUrl: deviceMiddleware(async ({ params, query }, { origin }) => {
+    const url = `${origin}/connectdata/${params.dongleId}/${query.path}`
+    return { status: 200, body: { url, headers: {} } }
+  }),
 })

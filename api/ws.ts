@@ -1,9 +1,9 @@
 import { parse } from '../connect/src/utils/helpers'
-import { getDevice, randomId } from './common'
+import { randomId } from './common'
 import { db } from './db/client'
-import { athenaPingsTable, logsTable, statsTable } from './db/schema'
+import { athenaPingsTable, DeviceData, logsTable, statsTable } from './db/schema'
 
-type WebSocketData = { dongleId: string; device: Awaited<ReturnType<typeof getDevice>> }
+export type WebSocketData = { dongleId: string; device: DeviceData }
 
 const athenaPing = async (dongleId: string) => await db.insert(athenaPingsTable).values({ id: randomId(), dongle_id: dongleId })
 

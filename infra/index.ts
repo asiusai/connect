@@ -316,10 +316,14 @@ chmod 600 ~/.ssh/id_rsa
 apt-get update && apt-get install -y sshfs nginx golang-go unzip
 
 # Mount Storage Boxes via SSHFS
-${storageBoxes.map((user, i) => `mkdir -p /mnt/mkv${i}
+${storageBoxes
+  .map(
+    (user, i) => `mkdir -p /mnt/mkv${i}
 umount /mnt/mkv${i} 2>/dev/null || true
 sshfs -p 23 -o IdentityFile=~/.ssh/id_rsa,allow_other,reconnect,ServerAliveInterval=15,StrictHostKeyChecking=no ${user}@${user}.your-storagebox.de: /mnt/mkv${i}
-grep -q "mkv${i}" /etc/fstab || echo "${user}@${user}.your-storagebox.de: /mnt/mkv${i} fuse.sshfs port=23,IdentityFile=/root/.ssh/id_rsa,allow_other,reconnect,ServerAliveInterval=15,StrictHostKeyChecking=no,_netdev 0 0" >> /etc/fstab`).join('\n')}
+grep -q "mkv${i}" /etc/fstab || echo "${user}@${user}.your-storagebox.de: /mnt/mkv${i} fuse.sshfs port=23,IdentityFile=/root/.ssh/id_rsa,allow_other,reconnect,ServerAliveInterval=15,StrictHostKeyChecking=no,_netdev 0 0" >> /etc/fstab`,
+  )
+  .join('\n')}
 
 # Clone/update repo
 cd /root

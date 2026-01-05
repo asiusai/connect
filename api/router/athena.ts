@@ -1,6 +1,9 @@
 import { contract } from '../../connect/src/api/contract'
-import { tsr } from '../common'
+import { NotImplementedError, tsr } from '../common'
+import { deviceMiddleware } from '../middleware'
 
 export const athena = tsr.router(contract.athena, {
-  // TODO
-} as any)
+  athena: deviceMiddleware(async () => {
+    throw new NotImplementedError()
+  }),
+})

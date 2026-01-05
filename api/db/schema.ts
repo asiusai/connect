@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm'
+import { relations, InferSelectModel } from 'drizzle-orm'
 import { integer, sqliteTable, text, real, primaryKey } from 'drizzle-orm/sqlite-core'
 import { Permission } from '../../connect/src/types'
 
@@ -17,6 +17,7 @@ export const usersTable = sqliteTable('users', {
 
   create_time: createdAt('created_time'),
 })
+export type UserData = InferSelectModel<typeof usersTable>
 
 export const devicesTable = sqliteTable('devices', {
   dongle_id: text('dongle_id').primaryKey(),
@@ -33,6 +34,7 @@ export const devicesTable = sqliteTable('devices', {
 
   create_time: createdAt('created_time'),
 })
+export type DeviceData = InferSelectModel<typeof devicesTable>
 
 export const deviceUsersTable = sqliteTable(
   'device_users',
@@ -45,6 +47,7 @@ export const deviceUsersTable = sqliteTable(
   },
   (x) => [primaryKey({ columns: [x.user_id, x.dongle_id] })],
 )
+export type DeviceUserData = InferSelectModel<typeof deviceUsersTable>
 
 export const routesTable = sqliteTable('routes', {
   fullname: text('fullname').primaryKey(),
