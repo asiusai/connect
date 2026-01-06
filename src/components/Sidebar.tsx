@@ -14,7 +14,7 @@ import { Logo } from './Logo'
 
 export const Sidebar = () => {
   const { dongleId } = useRouteParams()
-  const [device] = useDevice(dongleId || '')
+  const [device] = useDevice(dongleId)
   const [profile] = useProfile()
   const [showDeviceList, setShowDeviceList] = useState(false)
 

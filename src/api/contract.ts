@@ -74,7 +74,7 @@ const devices = c.router({
   pair: {
     method: 'POST',
     path: '/v2/pilotpair/',
-    contentType: 'multipart/form-data',
+    contentType: env.MODE === 'asius' ? undefined : 'multipart/form-data',
     body: z.object({ pair_token: z.string() }),
     responses: {
       200: z.object({
@@ -213,6 +213,16 @@ const routes = c.router({
       200: Route.array(),
     },
   },
+  preserved: {
+    method: 'GET',
+    path: '/v1/devices/:dongleId/routes/preserved',
+    pathParams: z.object({
+      dongleId: z.string(),
+    }),
+    responses: {
+      200: Route.array(),
+    },
+  },
   routesSegments: {
     method: 'GET',
     path: '/v1/devices/:dongleId/routes_segments',
@@ -224,16 +234,6 @@ const routes = c.router({
       limit: z.number().optional(),
     }),
     responses: { 200: RouteSegment.array() },
-  },
-  preserved: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/routes/preserved',
-    pathParams: z.object({
-      dongleId: z.string(),
-    }),
-    responses: {
-      200: Route.array(),
-    },
   },
 })
 
