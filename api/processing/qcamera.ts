@@ -28,7 +28,8 @@ export const extractSprite = async (videoStream: ReadableStream<Uint8Array>): Pr
     await Bun.write(tempInput, videoData)
 
     // Extract frame from middle of video as thumbnail, scaled to sprite size
-    const result = await $`ffmpeg -y -ss ${SPRITE_SEEK_SECONDS} -i ${tempInput} -vframes 1 -vf scale=${SPRITE_WIDTH}:${SPRITE_HEIGHT} -q:v 2 -update 1 ${tempOutput}`.quiet()
+    const result =
+      await $`ffmpeg -y -ss ${SPRITE_SEEK_SECONDS} -i ${tempInput} -vframes 1 -vf scale=${SPRITE_WIDTH}:${SPRITE_HEIGHT} -q:v 2 -update 1 ${tempOutput}`.quiet()
 
     if (result.exitCode !== 0) {
       console.error('ffmpeg failed:', result.stderr.toString())
@@ -51,7 +52,8 @@ export const extractSpriteFromFile = async (filePath: string): Promise<Uint8Arra
     const tempOutput = `/tmp/sprite-${Date.now()}.jpg`
 
     // Extract frame from middle of video as thumbnail, scaled to sprite size
-    const result = await $`ffmpeg -y -ss ${SPRITE_SEEK_SECONDS} -i ${filePath} -vframes 1 -vf scale=${SPRITE_WIDTH}:${SPRITE_HEIGHT} -q:v 2 -update 1 ${tempOutput}`.quiet()
+    const result =
+      await $`ffmpeg -y -ss ${SPRITE_SEEK_SECONDS} -i ${filePath} -vframes 1 -vf scale=${SPRITE_WIDTH}:${SPRITE_HEIGHT} -q:v 2 -update 1 ${tempOutput}`.quiet()
 
     if (result.exitCode !== 0) {
       console.error('ffmpeg failed:', result.stderr.toString())

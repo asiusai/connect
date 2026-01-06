@@ -45,15 +45,12 @@ const processSegmentQcamera = async (dongleId: string, routeId: string, segment:
 
   // Try qcamera.ts first, then qcamera
   let res = await mkv.get(`${baseKey}/qcamera.ts`)
-  if (!res.ok) {
-    res = await mkv.get(`${baseKey}/qcamera`)
-  }
   if (!res.ok || !res.body) return
 
   const sprite = await extractSprite(res.body)
   if (!sprite) return
 
-  const blob = new Blob([sprite], { type: 'image/jpeg' })
+  const blob = new Blob([sprite as BlobPart], { type: 'image/jpeg' })
   await mkv.put(`${baseKey}/sprite.jpg`, blob.stream(), { 'Content-Type': 'image/jpeg' })
 }
 
@@ -80,7 +77,9 @@ export const processRoute = async (dongleId: string, routeId: string): Promise<b
   // Get segment count by listing files
   const files = await mkv.list(`${dongleId}/${routeId}`)
   const segments = new Set(files.map((f) => f.split('/')[0]).filter((s) => /^\d+$/.test(s)))
-  const segmentNumbers = Array.from(segments).map(Number).sort((a, b) => a - b)
+  const segmentNumbers = Array.from(segments)
+    .map(Number)
+    .sort((a, b) => a - b)
   const maxSegment = segmentNumbers.length > 0 ? Math.max(...segmentNumbers) : 0
 
   // Process all segments to generate events.json, coords.json, and sprite.jpg

@@ -76,12 +76,11 @@ export type SegmentQlogData = {
   lastGps: GpsLocation | null
 }
 
-
 export const processQlogStream = async (
   stream: ReadableStream<Uint8Array>,
   segment: number,
   dongleId?: string,
-  routeId?: string
+  routeId?: string,
 ): Promise<SegmentQlogData | null> => {
   const events: RouteEvent[] = []
   const coords: Coord[] = []
