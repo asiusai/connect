@@ -8,7 +8,8 @@ const w = <Res extends { data?: { status: number; body: any } }>(res: Res): [Non
   return [res.data?.body, res] as any
 }
 
-export const useDevice = (dongleId: string) => w(api.device.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } },enabled:!!dongleId }))
+export const useDevice = (dongleId: string) =>
+  w(api.device.get.useQuery({ queryKey: ['device', dongleId], queryData: { params: { dongleId } }, enabled: !!dongleId }))
 
 export const useStats = (dongleId: string) => w(api.device.stats.useQuery({ queryKey: ['stats', dongleId], queryData: { params: { dongleId } } }))
 
