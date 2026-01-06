@@ -20,6 +20,7 @@ type GpsLocation = {
   Longitude?: number
   Speed?: number
   UnixTimestampMillis?: string
+  HasFix?: boolean
 }
 
 type SelfdriveState = {
@@ -75,15 +76,6 @@ export type SegmentQlogData = {
   lastGps: GpsLocation | null
 }
 
-const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371 // km
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLng = ((lng2 - lng1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
 
 export const processQlogStream = async (
   stream: ReadableStream<Uint8Array>,
@@ -147,10 +139,10 @@ export const processQlogStream = async (
         }
       }
 
-      // Extract GPS coordinates
+      // Extract GPS coordinates (only with valid fix)
       if ('GpsLocationExternal' in event || 'GpsLocation' in event) {
         const gps = (event.GpsLocationExternal || event.GpsLocation) as GpsLocation
-        if (gps.Latitude && gps.Longitude && gps.UnixTimestampMillis) {
+        if (gps.HasFix && gps.Latitude && gps.Longitude && gps.UnixTimestampMillis) {
           if (!firstGps) firstGps = gps
           lastGps = gps
 
@@ -159,8 +151,10 @@ export const processQlogStream = async (
           const lng = gps.Longitude
           const speed = gps.Speed || 0
 
+          // Calculate distance using speed (matches comma API behavior)
           if (lastCoord) {
-            totalDist += haversineDistance(lastCoord.lat, lastCoord.lng, lat, lng)
+            const dt = t - lastCoord.t
+            totalDist += (speed * dt) / 1000 // speed is m/s, convert to km
           }
 
           const coord: Coord = { t, lat, lng, speed, dist: Math.round(totalDist * 1e6) / 1e6 }
