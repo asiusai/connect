@@ -39,7 +39,7 @@ export const deviceMiddleware = createMiddleware(async (req: { params: { dongleI
   if (!identity) throw new UnauthorizedError()
   if (identity.type === 'device') {
     if (identity.device.dongle_id !== req.params.dongleId) throw new ForbiddenError()
-    return { ...ctx, identity, device: identity.device, permission: 'owner' }
+    return { ...ctx, identity, device: identity.device, permission: 'owner' as const }
   }
 
   const deviceUser = await db.query.deviceUsersTable.findFirst({
@@ -60,7 +60,7 @@ export const routeMiddleware = createMiddleware(async (req: { params: { routeNam
 
   const route = await db.query.routesTable.findFirst({ where: eq(routesTable.fullname, req.params.routeName) })
   if (!route) throw new NotFoundError()
-  if (route.is_public) return { ...ctx, identity, route, permission: 'read_access' }
+  if (route.is_public) return { ...ctx, identity, route, permission: 'read_access' as const }
 
   const deviceUser = await db.query.deviceUsersTable.findFirst({
     where: and(eq(deviceUsersTable.user_id, identity.user.id), eq(deviceUsersTable.dongle_id, route.dongle_id)),
@@ -74,7 +74,7 @@ export const routeMiddleware = createMiddleware(async (req: { params: { routeNam
 })
 
 type DataSignature = { key: string; permission: Permission }
-export const createDataSignature = (key: string, permission: Permission) => sign({ key, permission }, env.JWT_SECRET)
+export const createDataSignature = (key: string, permission: Permission, expiresIn?: number) => sign({ key, permission }, env.JWT_SECRET, expiresIn)
 /**
  * Checks if sig or user or device has access to specific key
  */

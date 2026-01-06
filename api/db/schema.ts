@@ -77,6 +77,7 @@ export const routesTable = sqliteTable('routes', {
 
   create_time: createdAt('create_time'),
 })
+export type RouteData = InferSelectModel<typeof routesTable>
 
 export const athenaPingsTable = sqliteTable('athena_pings', {
   id: text('id').primaryKey(),
