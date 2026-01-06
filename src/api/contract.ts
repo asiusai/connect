@@ -195,7 +195,7 @@ const device = c.router({
     pathParams: z.object({ dongleId: z.string() }),
     query: z.object({
       path: z.string(),
-      expiry_days: z.number().optional(),
+      expiry_days: z.coerce.number().optional(),
     }),
     responses: {
       200: UploadFileMetadata,
@@ -208,7 +208,7 @@ const routes = c.router({
     method: 'GET',
     path: '/v1/devices/:dongleId/routes',
     pathParams: z.object({ dongleId: z.string() }),
-    query: z.object({ limit: z.number(), created_before: z.number().optional() }),
+    query: z.object({ limit: z.coerce.number().optional(), created_before: z.coerce.number().optional() }),
     responses: {
       200: Route.array(),
     },
@@ -229,21 +229,22 @@ const routes = c.router({
     pathParams: z.object({ dongleId: z.string() }),
     query: z.object({
       route_str: z.string().optional(),
-      start: z.number().optional(),
-      end: z.number().optional(),
-      limit: z.number().optional(),
+      start: z.coerce.number().optional(),
+      end: z.coerce.number().optional(),
+      limit: z.coerce.number().optional(),
     }),
     responses: { 200: RouteSegment.array() },
   },
 })
 
+const routeQuery = z.object({ sig: z.string().optional() })
+
 const route = c.router({
   get: {
     method: 'GET',
     path: '/v1/route/:routeName/',
-    pathParams: z.object({
-      routeName: z.string(),
-    }),
+    pathParams: z.object({ routeName: z.string() }),
+    query: routeQuery,
     responses: {
       200: Route,
     },
@@ -251,6 +252,8 @@ const route = c.router({
   shareSignature: {
     method: 'GET',
     path: '/v1/route/:routeName/share_signature',
+    pathParams: z.object({ routeName: z.string() }),
+    query: routeQuery,
     responses: {
       200: RouteShareSignature,
     },
@@ -258,6 +261,8 @@ const route = c.router({
   setPublic: {
     method: 'PATCH',
     path: '/v1/route/:routeName/',
+    pathParams: z.object({ routeName: z.string() }),
+    query: routeQuery,
     body: z.object({
       is_public: z.boolean(),
     }),
@@ -269,9 +274,8 @@ const route = c.router({
   preserve: {
     method: 'POST',
     path: '/v1/route/:routeName/preserve',
-    pathParams: z.object({
-      routeName: z.string(),
-    }),
+    pathParams: z.object({ routeName: z.string() }),
+    query: routeQuery,
     body: c.noBody(),
     responses: {
       200: z.object({ success: z.number() }),
@@ -280,8 +284,9 @@ const route = c.router({
   unPreserve: {
     method: 'DELETE',
     path: '/v1/route/:routeName/preserve',
-    body: c.noBody(),
     pathParams: z.object({ routeName: z.string() }),
+    query: routeQuery,
+    body: c.noBody(),
     responses: {
       200: z.object({ success: z.number() }),
     },
@@ -290,6 +295,7 @@ const route = c.router({
     method: 'GET',
     path: '/v1/route/:routeName/files',
     pathParams: z.object({ routeName: z.string() }),
+    query: routeQuery,
     responses: {
       200: Files,
     },
