@@ -194,6 +194,20 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
   )
 }
 
+const EmptyState = ({ preserved }: { preserved?: boolean }) => (
+  <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+    <Icon name="directions_car" className="text-white/20 text-5xl mb-4" />
+    <h3 className="text-lg font-semibold text-white/70 mb-2">
+      {preserved ? 'No preserved drives' : 'No drives yet'}
+    </h3>
+    <p className="text-sm text-white/40 max-w-xs">
+      {preserved
+        ? 'Preserve drives from the route page to keep them from being deleted.'
+        : 'Go for a drive and connect your device to the internet to see your routes here.'}
+    </p>
+  </div>
+)
+
 const All = () => {
   const { dongleId } = useRouteParams()
   const query = api.routes.routesSegments.useInfiniteQuery({
@@ -208,6 +222,8 @@ const All = () => {
 
   let prevDayHeader: string | undefined
   const routes = query.data?.pages.flatMap((x) => x.body)
+
+  if (query.isSuccess && (!routes || routes.length === 0)) return <EmptyState />
 
   return (
     <>
@@ -246,9 +262,12 @@ const Preserved = () => {
   const { dongleId } = useRouteParams()
   const [preserved] = usePreservedRoutes(dongleId)
   let prevDayHeader: string | undefined
+
+  if (!preserved || preserved.length === 0) return <EmptyState preserved />
+
   return (
     <div className="flex flex-col gap-4">
-      {preserved?.map((route) => {
+      {preserved.map((route) => {
         let dayHeader = route.start_time ? formatDate(route.start_time) : undefined
         if (dayHeader === prevDayHeader) dayHeader = undefined
         else prevDayHeader = dayHeader
