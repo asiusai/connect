@@ -1,24 +1,24 @@
 import { env } from './env'
 
-const url = (key: string) => `${env.MKV_URL}/${key}`
+const mkvUrl = (key: string) => `${env.MKV_URL}/${key}`
 
 export const mkv = {
   list: async (key: string, start?: string, limit?: string): Promise<string[]> => {
     let qs = 'list'
     if (start) qs += `&start=${start}`
     if (limit) qs += `&limit=${limit}`
-    const res = await fetch(`${url(key)}?${qs}`)
+    const res = await fetch(`${mkvUrl(key)}?${qs}`)
     if (!res.ok) return []
     const data = await res.json()
     return data.keys ?? []
   },
 
   get: async (key: string, headers?: HeadersInit): Promise<Response> => {
-    return fetch(url(key), { headers, redirect: 'follow' })
+    return fetch(mkvUrl(key), { headers, redirect: 'follow' })
   },
 
   put: async (key: string, body: ReadableStream<Uint8Array> | null, headers?: HeadersInit): Promise<Response> => {
-    return fetch(url(key), {
+    return fetch(mkvUrl(key), {
       method: 'PUT',
       body,
       headers,
@@ -28,6 +28,6 @@ export const mkv = {
   },
 
   delete: async (key: string): Promise<Response> => {
-    return fetch(url(key), { method: 'DELETE' })
+    return fetch(mkvUrl(key), { method: 'DELETE' })
   },
 }
