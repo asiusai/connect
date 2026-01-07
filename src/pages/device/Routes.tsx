@@ -197,9 +197,7 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
 const EmptyState = ({ preserved }: { preserved?: boolean }) => (
   <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
     <Icon name="directions_car" className="text-white/20 text-5xl mb-4" />
-    <h3 className="text-lg font-semibold text-white/70 mb-2">
-      {preserved ? 'No preserved drives' : 'No drives yet'}
-    </h3>
+    <h3 className="text-lg font-semibold text-white/70 mb-2">{preserved ? 'No preserved drives' : 'No drives yet'}</h3>
     <p className="text-sm text-white/40 max-w-xs">
       {preserved
         ? 'Preserve drives from the route page to keep them from being deleted.'

@@ -3,8 +3,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 import { storage } from './storage'
 
-export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) =>
-  `${route.url?.replace('https://api.konik.ai', env.API_URL)}/${segment}/${fn}`
+export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${route.url?.replace('https://api.konik.ai', env.API_URL)}/${segment}/${fn}`
 
 export const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnMount: false } } })
 

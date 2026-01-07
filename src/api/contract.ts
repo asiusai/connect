@@ -249,7 +249,7 @@ const route = c.router({
     responses: {
       200: Route,
     },
-  },  
+  },
   derived: {
     method: 'GET',
     path: '/v1/route/:routeName/derived/:sig/:segment/:file',
