@@ -3,10 +3,7 @@ import { router } from './router'
 import { openApiDoc, swaggerHtml } from './swagger'
 import { contract } from '../connect/src/api/contract'
 import { websocket, WebSocketData } from './ws'
-import { startMkv } from './mkv'
 import { auth, Identity } from './auth'
-
-await startMkv()
 
 const headers = {
   'Access-Control-Allow-Origin': '*',

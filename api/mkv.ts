@@ -1,8 +1,6 @@
-import { $ } from 'bun'
-import { existsSync } from 'fs'
 import { env } from './env'
 
-const url = (key: string) => `http://localhost:${env.MKV_PORT}/${key}`
+const url = (key: string) => `${env.MKV_URL}/${key}`
 
 export const mkv = {
   list: async (key: string, start?: string, limit?: string): Promise<string[]> => {
@@ -32,32 +30,4 @@ export const mkv = {
   delete: async (key: string): Promise<Response> => {
     return fetch(url(key), { method: 'DELETE' })
   },
-}
-
-export const startMkv = async () => {
-  await $`mkdir -p ${env.MKV_VOLUMES.join(' ')} ${env.MKV_DB}`
-
-  // Build mkv if needed
-  if (!existsSync('../minikeyvalue/src/mkv')) await $`cd ../minikeyvalue/src && go build -o mkv`
-
-  const volumes = env.MKV_VOLUMES.map((vol, i) => {
-    const PORT = String(env.MKV_PORT + 1 + i)
-    Bun.spawn(['../minikeyvalue/volume', `${vol}/`], { env: { ...process.env, PORT } })
-    return `localhost:${PORT}`
-  })
-
-  Bun.spawn([
-    '../minikeyvalue/src/mkv',
-    '-volumes',
-    volumes.join(','),
-    '-db',
-    env.MKV_DB,
-    '-replicas',
-    String(volumes.length),
-    '--port',
-    String(env.MKV_PORT),
-    'server',
-  ])
-
-  console.log(`MKV started with ${volumes.length} volumes`)
 }
