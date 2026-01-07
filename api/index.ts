@@ -37,7 +37,7 @@ const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?
     contract,
     router,
     request: req,
-    platformContext: { identity, origin: url.origin },
+    platformContext: { identity, origin: url.origin.replace('http://', 'https://') },
     options: { responseValidation: true },
   })
 
