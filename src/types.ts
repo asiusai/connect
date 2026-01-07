@@ -4,6 +4,8 @@ export const UnitFormat = z.enum(['metric', 'imperial'])
 export const TimeFormat = z.enum(['24h', '12h'])
 export const Permission = z.enum(['owner', 'read_access'])
 export type Permission = z.infer<typeof Permission>
+export const  DerivedFile = z.enum(['events.json', 'coords.json',"sprite.jpg"])
+export type DerivedFile = z.infer<typeof DerivedFile>
 
 export const User = z.object({
   id: z.string(),

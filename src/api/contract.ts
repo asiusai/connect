@@ -14,6 +14,7 @@ import {
   AthenaRequest,
   AthenaResponse,
   Permission,
+  DerivedFile,
 } from '../types'
 import { z } from 'zod'
 import { env } from '../utils/env'
@@ -247,6 +248,14 @@ const route = c.router({
     query: routeQuery,
     responses: {
       200: Route,
+    },
+  },  
+  derived: {
+    method: 'GET',
+    path: '/v1/route/:routeName/derived/:sig/:segment/:file',
+    pathParams: z.object({ routeName: z.string(), sig: z.string(), segment: z.string(), file: DerivedFile }),
+    responses: {
+      200: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
     },
   },
   shareSignature: {

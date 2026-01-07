@@ -1,4 +1,4 @@
-import type { Route } from '../types'
+import type { DerivedFile, Route } from '../types'
 import { getRouteDurationMs } from '../utils/format'
 import { DB } from './db'
 import { getRouteUrl } from './helpers'
@@ -25,8 +25,7 @@ export type TimelineEvent = { route_offset_millis: number } & (
   | { type: 'user_flag' }
 )
 
-export type Derived = 'events.json' | 'coords.json'
-const getDerived = async <T>(route: Route, fn: Derived): Promise<T[]> => {
+const getDerived = async <T>(route: Route, fn: DerivedFile): Promise<T[]> => {
   if (!route) return []
 
   const db = await DB.init(fn)

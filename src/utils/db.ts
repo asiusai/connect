@@ -1,6 +1,6 @@
-import type { Derived } from './derived'
+import type { DerivedFile } from '../types'
 
-type StoreName = Derived | 'logs' | 'geocode'
+type StoreName = DerivedFile | 'logs' | 'geocode'
 
 const DB_VERSION = 3
 
