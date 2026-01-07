@@ -21,12 +21,10 @@ export const Logo = ({ className, style }: { className?: string; style?: CSSProp
         </g>
       </svg>
     )
-  if (env.MODE === 'asius')
-    return (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 151 136" fill="currentColor" className={className} style={style}>
-        <path d="M74.881 0L91.2064 29.2778L47.4921 104.833H88.5079L69.3492 136L0 135.73L74.881 0Z" />
-        <path d="M77.5791 63.0079L93.095 32.7857L150.166 136H118.73L77.5791 63.0079Z" />
-      </svg>
-    )
-  return null
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 151 136" fill="currentColor" className={className} style={style}>
+      <path d="M74.881 0L91.2064 29.2778L47.4921 104.833H88.5079L69.3492 136L0 135.73L74.881 0Z" />
+      <path d="M77.5791 63.0079L93.095 32.7857L150.166 136H118.73L77.5791 63.0079Z" />
+    </svg>
+  )
 }

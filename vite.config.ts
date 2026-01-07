@@ -10,6 +10,7 @@ const PWA_NAMES: Record<string, string> = {
   comma: 'comma connect',
   konik: 'konik connect',
   asius: 'asius connect',
+  dev: 'asius connect',
 }
 
 export default defineConfig(({ mode }) => {
@@ -31,7 +32,7 @@ export default defineConfig(({ mode }) => {
           id: '/',
         },
         pwaAssets: {
-          config: `pwa-assets-${mode}.config.ts`,
+          config: `pwa-assets-${mode === 'dev' ? 'asius' : mode}.config.ts`,
         },
         workbox: {
           navigateFallback: null,

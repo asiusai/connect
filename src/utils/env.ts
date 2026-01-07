@@ -1,7 +1,10 @@
 import { z } from 'zod'
 
+export const Mode = z.enum(['comma', 'konik', 'asius', 'dev'])
+export type Mode = z.infer<typeof Mode>
+
 export const Environment = z.object({
-  MODE: z.string().default('comma'),
+  MODE: Mode.default('comma'),
   ATHENA_URL: z.string().default('https://athena-comma-proxy.asius.ai'),
   API_URL: z.string().default('https://api.comma.ai'),
   AUTH_URL: z.string().default('https://api.comma.ai'),
@@ -56,6 +59,12 @@ const MODES = {
     domain: 'connect.asius.ai',
     api: 'api.konik.ai',
   },
+  dev: {
+    name: 'asius connect',
+    favicon: '/asius-favicon.svg',
+    domain: 'connect.asius.ai',
+    api: 'api.konik.ai',
+  },
 }
 
-export const mode = MODES[(env.MODE as keyof typeof MODES) ?? 'comma']
+export const mode = MODES[env.MODE]
