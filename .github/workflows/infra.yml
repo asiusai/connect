@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - run: git submodule update --init connect
+      - run: git submodule update --init connect minikeyvalue
 
       - uses: oven-sh/setup-bun@v2
 
