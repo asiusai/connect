@@ -1,69 +1,112 @@
 import { z } from 'zod'
 
+const sysEnv = typeof process !== 'undefined' ? process.env : import.meta.env
+
 export const Mode = z.enum(['comma', 'konik', 'asius', 'dev'])
 export type Mode = z.infer<typeof Mode>
 
 export const Environment = z.object({
-  MODE: Mode.default('comma'),
-  ATHENA_URL: z.string().default('https://athena-comma-proxy.asius.ai'),
-  API_URL: z.string().default('https://api.comma.ai'),
-  AUTH_URL: z.string().default('https://api.comma.ai'),
-  BILLING_URL: z.string().default('https://billing-comma-proxy.asius.ai'),
-  USERADMIN_URL: z.string().default('https://useradmin.comma.ai'),
+  MODE: Mode,
 
-  DEMO_DONGLE_ID: z.string().default('1d3dc3e03047b0c7'),
-  DEMO_ACCESS_TOKEN: z
-    .string()
-    .default(
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwMzg5NTgwNzM1LCJuYmYiOjE3NDk1ODA3MzUsImlhdCI6MTc0OTU4MDczNSwiaWRlbnRpdHkiOiIwZGVjZGRjZmRmMjQxYTYwIn0.KsDzqJxgkYhAs4tCgrMJIdORyxO0CQNb0gHXIf8aUT0',
-    ),
+  NAME: z.string(),
+  FAVICON: z.string(),
 
-  MAPBOX_USERNAME: z.string().default('commaai'),
-  MAPBOX_LIGHT_STYLE_ID: z.string().default('clcl7mnu2000214s2zgcdly6e'),
-  MAPBOX_DARK_STYLE_ID: z.string().default('clcgvbi4f000q15t6o2s8gys3'),
-  MAPBOX_TOKEN: z.string().default('pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDluMWR4amUydGl5In0.6Vb11S6tdX6Arpj6trRE_g'),
+  ATHENA_URL: z.string(),
+  API_URL: z.string(),
+  AUTH_URL: z.string(),
+  BILLING_URL: z.string().optional(),
+  CONNECT_URL: z.string(),
 
-  HACK_LOGIN_CALLBACK_HOST: z.string().default('612.connect-d5y.pages.dev'),
-  HACK_DEFAULT_REDICT_HOST: z.string().default('comma.asius.ai'),
+  DEMO_DONGLE_ID: z.string().optional(),
+  DEMO_ACCESS_TOKEN: z.string().optional(),
 
-  EXAMPLE_ROUTE_NAME: z.string().default('a2a0ccea32023010/2023-07-27--13-01-19'),
+  MAPBOX_USERNAME: z.string(),
+  MAPBOX_LIGHT_STYLE_ID: z.string(),
+  MAPBOX_DARK_STYLE_ID: z.string(),
+  MAPBOX_TOKEN: z.string(),
 
-  USER_CONTENT_DIR: z.string().default('user-content'),
+  HACK_LOGIN_CALLBACK_HOST: z.string().optional(),
+  HACK_DEFAULT_REDICT_HOST: z.string().optional(),
 
-  GOOGLE_CLIENT_ID: z.string().default('45471411055-ornt4svd2miog6dnopve7qtmh5mnu6id.apps.googleusercontent.com'),
-  APPLE_CLIENT_ID: z.string().default('ai.comma.login'),
-  GITHUB_CLIENT_ID: z.string().default('28c4ecb54bb7272cb5a4'),
-  FORK: z.string().default('asius/sunnypilot'),
+  EXAMPLE_ROUTE_NAME: z.string().optional(),
+
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  APPLE_CLIENT_ID: z.string().optional(),
+  GITHUB_CLIENT_ID: z.string().optional(),
+  FORK: z.string(),
 })
+export type Environment = z.infer<typeof Environment>
 
-const fullEnv = typeof process !== 'undefined' ? process.env : import.meta.env
-export const env = Environment.parse(Object.fromEntries(Object.entries(fullEnv).map(([k, v]) => [k.replace('VITE_', ''), v])))
+const MODE = Mode.safeParse(sysEnv.MODE).success ? (sysEnv.MODE! as Mode) : 'dev'
 
-const MODES = {
-  comma: {
-    name: 'comma connect',
-    favicon: '/comma-favicon.svg',
-    domain: 'comma.asius.ai',
-    api: 'api.comma.ai',
-  },
-  konik: {
-    name: 'konik connect',
-    favicon: '/konik-favicon.svg',
-    domain: 'konik.asius.ai',
-    api: 'api.konik.ai',
-  },
-  asius: {
-    name: 'asius connect',
-    favicon: '/asius-favicon.svg',
-    domain: 'connect.asius.ai',
-    api: 'api.konik.ai',
-  },
-  dev: {
-    name: 'asius connect',
-    favicon: '/asius-favicon.svg',
-    domain: 'connect.asius.ai',
-    api: 'api.konik.ai',
-  },
+const defaults = {
+  MODE,
+  MAPBOX_USERNAME: 'commaai',
+  MAPBOX_LIGHT_STYLE_ID: 'clcl7mnu2000214s2zgcdly6e',
+  MAPBOX_DARK_STYLE_ID: 'clcgvbi4f000q15t6o2s8gys3',
+  MAPBOX_TOKEN: 'pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDluMWR4amUydGl5In0.6Vb11S6tdX6Arpj6trRE_g',
+  FORK: 'asiusai/sunnypilot',
 }
 
-export const mode = MODES[env.MODE]
+const comma: Environment = {
+  ...defaults,
+
+  NAME: 'comma connect',
+  FAVICON: '/comma-favicon.svg',
+
+  ATHENA_URL: 'https://athena-comma-proxy.asius.ai',
+  API_URL: 'https://api.comma.ai',
+  AUTH_URL: 'https://api.comma.ai',
+  BILLING_URL: 'https://billing-comma-proxy.asius.ai',
+  CONNECT_URL: 'https://comma.asius.ai',
+
+  DEMO_DONGLE_ID: '1d3dc3e03047b0c7',
+  DEMO_ACCESS_TOKEN:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwMzg5NTgwNzM1LCJuYmYiOjE3NDk1ODA3MzUsImlhdCI6MTc0OTU4MDczNSwiaWRlbnRpdHkiOiIwZGVjZGRjZmRmMjQxYTYwIn0.KsDzqJxgkYhAs4tCgrMJIdORyxO0CQNb0gHXIf8aUT0',
+
+  HACK_LOGIN_CALLBACK_HOST: '612.connect-d5y.pages.dev',
+  HACK_DEFAULT_REDICT_HOST: 'comma.asius.ai',
+
+  EXAMPLE_ROUTE_NAME: 'a2a0ccea32023010/2023-07-27--13-01-19',
+
+  GOOGLE_CLIENT_ID: '45471411055-ornt4svd2miog6dnopve7qtmh5mnu6id.apps.googleusercontent.com',
+  APPLE_CLIENT_ID: 'ai.comma.login',
+  GITHUB_CLIENT_ID: '28c4ecb54bb7272cb5a4',
+}
+const konik: Environment = {
+  ...defaults,
+
+  NAME: 'konik connect',
+  FAVICON: '/konik-favicon.svg',
+
+  ATHENA_URL: 'https://api-konik-proxy.asius.ai/ws',
+  API_URL: 'https://api-konik-proxy.asius.ai',
+  AUTH_URL: 'https://api.konik.ai',
+  CONNECT_URL: 'https://konik.asius.ai',
+
+  GITHUB_CLIENT_ID: 'Ov23liy0AI1YCd15pypf',
+}
+const asius: Environment = {
+  ...defaults,
+
+  NAME: 'asius connect',
+  FAVICON: '/asius-favicon.svg',
+
+  ATHENA_URL: 'https://api.asius.ai',
+  API_URL: 'https://api.asius.ai',
+  AUTH_URL: 'https://api.asius.ai',
+  CONNECT_URL: 'https://connect.asius.ai',
+
+  GOOGLE_CLIENT_ID: '888462999677-0kqf5j0rkfvd47j7d34pnjsf29gqr39p.apps.googleusercontent.com',
+}
+const dev: Environment = {
+  ...asius,
+
+  ATHENA_URL: 'http://localhost:8080',
+  API_URL: 'http://localhost:8080',
+  AUTH_URL: 'http://localhost:8080',
+  CONNECT_URL: 'http://localhost:4000',
+}
+
+const def = { comma, konik, asius, dev: dev }[MODE]
+export const env = Environment.parse(Object.fromEntries(Object.entries({ ...def, ...sysEnv }).map(([k, v]) => [k.replace('VITE_', ''), v])))

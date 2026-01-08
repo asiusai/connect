@@ -1,9 +1,7 @@
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ButtonBase } from '../components/ButtonBase'
 import { Icon } from '../components/Icon'
 import { env } from '../utils/env'
-import { useEffect } from 'react'
-import { mode } from '../utils/env'
 import { Logo } from '../components/Logo'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
@@ -11,62 +9,52 @@ const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toSt
 // Redirecting straight back on localhost, but elsewhere redirect to the HACK url
 const state = `service,${window.location.hostname === 'localhost' || !env.HACK_LOGIN_CALLBACK_HOST ? window.location.host : env.HACK_LOGIN_CALLBACK_HOST}`
 
-const GOOGLE_OAUTH_PARAMS = {
-  type: 'web_server',
-  client_id: env.GOOGLE_CLIENT_ID,
-  redirect_uri: `${env.AUTH_URL}/v2/auth/g/redirect/`,
-  response_type: 'code',
-  scope: 'https://www.googleapis.com/auth/userinfo.email',
-  prompt: 'select_account',
-  state,
-}
-
-const APPLE_OAUTH_PARAMS = {
-  client_id: env.APPLE_CLIENT_ID,
-  redirect_uri: `${env.AUTH_URL}/v2/auth/a/redirect/`,
-  response_type: 'code',
-  response_mode: 'form_post',
-  scope: 'name email',
-  state,
-}
-
-const GITHUB_OAUTH_PARAMS = {
-  client_id: env.GITHUB_CLIENT_ID,
-  redirect_uri: `${env.AUTH_URL}/v2/auth/h/redirect/`,
-  scope: 'read:user',
-  state,
-}
-
 const PROVIDERS = {
   google: {
-    enabled: !!env.GOOGLE_CLIENT_ID,
-    href: `https://accounts.google.com/o/oauth2/auth?${stringify(GOOGLE_OAUTH_PARAMS)}`,
-    image: '/logo-google.svg',
     title: 'Google',
+    image: '/logo-google.svg',
+    href: env.GOOGLE_CLIENT_ID
+      ? `https://accounts.google.com/o/oauth2/auth?${stringify({
+          type: 'web_server',
+          client_id: env.GOOGLE_CLIENT_ID,
+          redirect_uri: `${env.AUTH_URL}/v2/auth/g/redirect/`,
+          response_type: 'code',
+          scope: 'https://www.googleapis.com/auth/userinfo.email',
+          prompt: 'select_account',
+          state,
+        })}`
+      : undefined,
   },
   apple: {
-    enabled: !!env.APPLE_CLIENT_ID,
-    href: `https://appleid.apple.com/auth/authorize?${stringify(APPLE_OAUTH_PARAMS)}`,
-    image: '/logo-apple.svg',
     title: 'Apple',
+    image: '/logo-apple.svg',
+    href: env.APPLE_CLIENT_ID
+      ? `https://appleid.apple.com/auth/authorize?${stringify({
+          client_id: env.APPLE_CLIENT_ID,
+          redirect_uri: `${env.AUTH_URL}/v2/auth/a/redirect/`,
+          response_type: 'code',
+          response_mode: 'form_post',
+          scope: 'name email',
+          state,
+        })}`
+      : undefined,
   },
   github: {
-    enabled: !!env.GITHUB_CLIENT_ID,
-    href: `https://github.com/login/oauth/authorize?${stringify(GITHUB_OAUTH_PARAMS)}`,
-    image: '/logo-github.svg',
     title: 'GitHub',
+    image: '/logo-github.svg',
+    href: env.GITHUB_CLIENT_ID
+      ? `https://github.com/login/oauth/authorize?${stringify({
+          client_id: env.GITHUB_CLIENT_ID,
+          redirect_uri: `${env.AUTH_URL}/v2/auth/h/redirect/`,
+          scope: 'read:user',
+          state,
+        })}`
+      : undefined,
   },
 }
-type Provider = keyof typeof PROVIDERS
 
 export const Component = () => {
   const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const provider = params.get('provider')
-
-  useEffect(() => {
-    if (provider && provider in PROVIDERS) window.location.href = PROVIDERS[provider as Provider].href
-  }, [provider])
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-background text-foreground">
@@ -76,14 +64,14 @@ export const Component = () => {
             <Logo className="text-black h-16 w-16" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">{mode.name}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{env.NAME}</h1>
             <p className="text-white/60">Manage your openpilot experience.</p>
           </div>
         </div>
 
         <div className="flex flex-col items-stretch gap-3 self-stretch">
           {Object.entries(PROVIDERS)
-            .filter(([_, { enabled }]) => enabled)
+            .filter(([_, { href }]) => href)
             .map(([key, { href, image, title }]) => (
               <ButtonBase
                 key={key}

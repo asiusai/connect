@@ -13,7 +13,7 @@ import { env } from './utils/env'
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
 
-  if (window.location.host === env.HACK_LOGIN_CALLBACK_HOST) {
+  if (window.location.host === env.HACK_LOGIN_CALLBACK_HOST && env.HACK_DEFAULT_REDICT_HOST) {
     const newUrl = new URL(window.location.href)
     newUrl.hostname = env.HACK_DEFAULT_REDICT_HOST
     window.location.replace(newUrl.toString())

@@ -4,8 +4,8 @@ import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
 import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
-import { mode } from '../utils/env'
 import { Logo } from '../components/Logo'
+import { env } from '../utils/env'
 
 export const Component = () => {
   const navigate = useNavigate()
@@ -30,7 +30,7 @@ export const Component = () => {
     <div className="flex min-h-screen max-w-lg flex-col gap-8 items-center mx-auto justify-center p-6">
       <div className="flex flex-col gap-4 items-center">
         <Logo className="h-24 w-24" />
-        <h1 className="text-2xl">{mode.name}</h1>
+        <h1 className="text-2xl">{env.NAME}</h1>
       </div>
       {error ? (
         <>

@@ -12,7 +12,6 @@ const PWA_NAMES: Record<string, string> = {
   asius: 'asius connect',
   dev: 'asius connect',
 }
-
 export default defineConfig(({ mode }) => {
   return {
     optimizeDeps: {

@@ -9,8 +9,8 @@ import { formatDistance, formatDuration, getRouteDurationMs } from '../utils/for
 import { Route } from '../types'
 import { DateTime } from 'luxon'
 import clsx from 'clsx'
-import { mode } from '../utils/env'
 import { Logo } from '../components/Logo'
+import { env } from '../utils/env'
 
 export const OGProps = z.object({
   routeName: z.string(),
@@ -129,7 +129,7 @@ export const OG = ({ data }: OGProps) => {
         </div>
         <div className="flex items-center gap-4 opacity-80">
           <Logo className="" />
-          <Img src={staticFile(mode.favicon)} className="h-10 w-auto" />
+          <Img src={staticFile(env.FAVICON)} className="h-10 w-auto" />
           <span className="text-3xl font-bold tracking-tight">
             comma <span className="opacity-70">connect</span>
           </span>

@@ -18,7 +18,7 @@ export const RemotionRoot = () => {
         height={HEIGHT}
         schema={PreviewProps}
         defaultProps={{
-          routeName: env.EXAMPLE_ROUTE_NAME,
+          routeName: env.EXAMPLE_ROUTE_NAME!,
           largeCameraType: 'cameras',
           smallCameraType: 'dcameras',
         }}
@@ -31,7 +31,7 @@ export const RemotionRoot = () => {
         schema={OGProps}
         calculateMetadata={ogCalculateMetadata}
         defaultProps={{
-          routeName: env.EXAMPLE_ROUTE_NAME,
+          routeName: env.EXAMPLE_ROUTE_NAME!,
         }}
       />
     </>
