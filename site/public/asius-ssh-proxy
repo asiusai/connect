@@ -9,7 +9,6 @@
 #
 # Requires:
 #   - websocat (https://github.com/vi/websocat)
-#   - ASIUS_TOKEN environment variable set to your JWT token
 #
 # SSH config (~/.ssh/config):
 #   Host asius-*
@@ -27,18 +26,11 @@ else
   DONGLE_ID="$1"
 fi
 
-API_URL="${ASIUS_API_URL:-https://api.asius.ai}"
-TOKEN="${ASIUS_TOKEN}"
+API_URL="${ASIUS_API_URL:-wss://api.asius.ai}"
 
 if [ -z "$DONGLE_ID" ]; then
   echo "Usage: asius-ssh-proxy <dongle_id>" >&2
   echo "       asius-ssh-proxy asius-<dongle_id>" >&2
-  exit 1
-fi
-
-if [ -z "$TOKEN" ]; then
-  echo "Error: ASIUS_TOKEN environment variable not set" >&2
-  echo "Get your token from https://connect.asius.ai" >&2
   exit 1
 fi
 
@@ -49,25 +41,8 @@ if ! command -v websocat &> /dev/null; then
   exit 1
 fi
 
-# Create SSH session via API
-RESPONSE=$(curl -s -X POST "$API_URL/v1/devices/$DONGLE_ID/ssh" \
-  -H "Authorization: JWT $TOKEN" \
-  -H "Content-Type: application/json")
+# Connect directly to WebSocket relay
+# No auth needed - SSH protocol handles authentication via GitHub keys on device
+WS_URL="${API_URL}/ssh/${DONGLE_ID}"
 
-# Parse response for wsUrl
-WS_URL=$(echo "$RESPONSE" | grep -o '"wsUrl":"[^"]*"' | cut -d'"' -f4)
-
-if [ -z "$WS_URL" ]; then
-  # Check for error message
-  ERROR=$(echo "$RESPONSE" | grep -o '"error":"[^"]*"' | cut -d'"' -f4)
-  if [ -n "$ERROR" ]; then
-    echo "Error: $ERROR" >&2
-  else
-    echo "Error: Failed to create SSH session" >&2
-    echo "Response: $RESPONSE" >&2
-  fi
-  exit 1
-fi
-
-# Connect to WebSocket relay (binary mode for SSH traffic)
-exec websocat -b "$WS_URL" --header "Authorization: JWT $TOKEN"
+exec websocat -b "$WS_URL"

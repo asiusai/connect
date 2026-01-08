@@ -4,7 +4,7 @@ description: How to SSH into your comma device remotely via the Asius API
 order: 4
 ---
 
-With an Asius subscription, you can SSH into your comma device from anywhere using our WebSocket relay.
+With Asius, you can SSH into your comma device from anywhere using your GitHub SSH keys.
 
 ## Prerequisites
 
@@ -12,7 +12,6 @@ With an Asius subscription, you can SSH into your comma device from anywhere usi
 - Device online (connected to athena)
 - SSH enabled on your device with your GitHub SSH keys configured
 - `websocat` installed ([github.com/vi/websocat](https://github.com/vi/websocat))
-- Your Asius API token
 
 ## Quick Start
 
@@ -28,54 +27,15 @@ chmod +x websocat
 sudo mv websocat /usr/local/bin/
 ```
 
-### 2. Get Your API Token
-
-Get your JWT token from [connect.asius.ai](https://connect.asius.ai) (Settings > API Token).
-
-### 3. Create SSH Proxy Script
-
-Create a file called `asius-ssh-proxy` and make it executable:
+### 2. Install SSH Proxy Script
 
 ```bash
-#!/bin/bash
-# asius-ssh-proxy - SSH proxy for Asius devices
-# Usage: asius-ssh-proxy <dongle_id>
-
-DONGLE_ID="$1"
-API_URL="${ASIUS_API_URL:-https://api.asius.ai}"
-TOKEN="${ASIUS_TOKEN}"
-
-if [ -z "$DONGLE_ID" ]; then
-  echo "Usage: asius-ssh-proxy <dongle_id>" >&2
-  exit 1
-fi
-
-if [ -z "$TOKEN" ]; then
-  echo "Error: ASIUS_TOKEN environment variable not set" >&2
-  exit 1
-fi
-
-# Create SSH session
-RESPONSE=$(curl -s -X POST "$API_URL/v1/devices/$DONGLE_ID/ssh" \
-  -H "Authorization: JWT $TOKEN")
-
-WS_URL=$(echo "$RESPONSE" | grep -o '"wsUrl":"[^"]*"' | cut -d'"' -f4)
-
-if [ -z "$WS_URL" ]; then
-  echo "Error: Failed to create SSH session: $RESPONSE" >&2
-  exit 1
-fi
-
-# Connect to WebSocket relay
-exec websocat -b "$WS_URL" --header "Authorization: JWT $TOKEN"
-```
-
-```bash
+curl -fsSL https://asius.ai/asius-ssh-proxy -o asius-ssh-proxy
 chmod +x asius-ssh-proxy
 sudo mv asius-ssh-proxy /usr/local/bin/
 ```
 
-### 4. Configure SSH
+### 3. Configure SSH
 
 Add this to your `~/.ssh/config`:
 
@@ -88,15 +48,7 @@ Host asius-*
   UserKnownHostsFile /dev/null
 ```
 
-### 5. Set Environment Variable
-
-Add to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
-
-```bash
-export ASIUS_TOKEN="your-jwt-token-here"
-```
-
-### 6. Connect
+### 4. Connect
 
 Replace `ffffffffffffffff` with your dongle ID:
 
@@ -104,12 +56,13 @@ Replace `ffffffffffffffff` with your dongle ID:
 ssh asius-ffffffffffffffff
 ```
 
+That's it! Your GitHub SSH key (configured on your device) handles authentication.
+
 ## One-off Connection
 
-For a quick one-off connection without the SSH config:
+For a quick one-off connection without SSH config:
 
 ```bash
-export ASIUS_TOKEN="your-jwt-token"
 ssh -o ProxyCommand="asius-ssh-proxy ffffffffffffffff" comma@localhost
 ```
 
@@ -124,21 +77,21 @@ If you get "Device offline", make sure your device is:
 
 ### Connection Timeout
 
-The SSH session has a 30-second window for the device to connect. If your device has slow connectivity, try again.
+The SSH session has a 60-second window for the device to connect. If your device has slow connectivity, try again.
 
 ### Permission Denied
 
 Make sure:
-- Your GitHub SSH keys are configured on the device
+- Your GitHub SSH keys are configured on the device (Settings > SSH Keys > Add GitHub username)
 - You're using the correct SSH key (`-i ~/.ssh/your_key`)
 - SSH is enabled on the device
 
 ## How It Works
 
-1. Your SSH client calls the proxy script
-2. The script requests an SSH session from the Asius API
-3. The API tells your device to connect to a WebSocket relay
-4. Your SSH traffic is relayed through the WebSocket to your device
-5. The device proxies the traffic to its local SSH server (port 22)
+1. Your SSH client calls the proxy script with your dongle ID
+2. The proxy connects to the Asius WebSocket relay at `wss://api.asius.ai/ssh/{dongle_id}`
+3. The API tells your device to connect to the relay
+4. SSH traffic flows through the WebSocket relay to your device
+5. Your device authenticates you using your GitHub SSH keys
 
-This approach works through firewalls and NAT without requiring port forwarding.
+This works through firewalls and NAT without requiring port forwarding - just like comma's ssh.comma.ai, but using WebSocket relay.

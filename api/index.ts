@@ -2,7 +2,7 @@ import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
 import { router } from './router'
 import { contract } from '../connect/src/api/contract'
 import { websocket, WebSocketData } from './ws'
-import { sshWebsocket, SshWebSocketData, getSshSession } from './ssh'
+import { sshWebsocket, SshWebSocketData, getSshSession, createSshSession, notifyDeviceForSsh } from './ssh'
 import { auth, Identity } from './auth'
 import { startQueueWorker } from './processing/queue'
 import { rateLimit, getClientIp } from './ratelimit'
@@ -29,31 +29,36 @@ const handle = async (req: Request, server: Bun.Server<AllWebSocketData>, identi
     else return new Response('WS upgrade failed', { status: 400 })
   }
 
-  // SSH WebSocket relay
+  // SSH WebSocket relay - direct connection at /ssh/{dongleId}
+  // No auth required for clients - SSH protocol handles authentication via GitHub keys on device
   if (url.pathname.startsWith('/ssh/')) {
-    const sessionId = url.pathname.replace('/ssh/', '')
-    const session = getSshSession(sessionId)
-    if (!session) {
-      return new Response('Session not found', { status: 404 })
-    }
+    const pathId = url.pathname.replace('/ssh/', '')
 
-    // Determine if this is a client or device connection
-    // Device uses JWT auth, client uses user auth
-    const type = identity?.type === 'device' ? 'device' : 'client'
-
-    // Verify device owns this session
-    if (type === 'device') {
-      if (identity?.type !== 'device' || identity.device.dongle_id !== session.dongleId) {
+    // Check if this is a device connecting to an existing session
+    if (identity?.type === 'device') {
+      const session = getSshSession(pathId)
+      if (!session) {
+        return new Response('Session not found', { status: 404 })
+      }
+      if (identity.device.dongle_id !== session.dongleId) {
         return new Response('Unauthorized', { status: 401 })
       }
+      if (server.upgrade(req, { data: { sessionId: pathId, type: 'device', dongleId: session.dongleId } })) return
+      else return new Response('WS upgrade failed', { status: 400 })
     }
 
-    // Verify user has access to the device
-    if (type === 'client' && (!identity || identity.type !== 'user')) {
-      return new Response('Unauthorized', { status: 401 })
-    }
+    // Client connecting - pathId is the dongleId
+    // Create session and notify device to connect
+    const dongleId = pathId
+    const sessionId = createSshSession(dongleId)
+    const origin = url.origin.includes('localhost') ? url.origin : url.origin.replace('http://', 'https://')
 
-    if (server.upgrade(req, { data: { sessionId, type, dongleId: session.dongleId } })) return
+    // Tell device to connect (don't await - let it happen async)
+    notifyDeviceForSsh(dongleId, sessionId, origin).then((res) => {
+      if (res.error) console.error(`SSH session ${sessionId}: device notification failed:`, res.error)
+    })
+
+    if (server.upgrade(req, { data: { sessionId, type: 'client', dongleId } })) return
     else return new Response('WS upgrade failed', { status: 400 })
   }
 
