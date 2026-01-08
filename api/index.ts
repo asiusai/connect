@@ -2,9 +2,12 @@ import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
 import { router } from './router'
 import { contract } from '../connect/src/api/contract'
 import { websocket, WebSocketData } from './ws'
+import { sshWebsocket, SshWebSocketData, getSshSession } from './ssh'
 import { auth, Identity } from './auth'
 import { startQueueWorker } from './processing/queue'
 import { rateLimit, getClientIp } from './ratelimit'
+
+type AllWebSocketData = WebSocketData | SshWebSocketData
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -12,10 +15,10 @@ const headers = {
   'Access-Control-Allow-Headers': '*',
 }
 
-const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?: Identity): Promise<Response | undefined> => {
+const handle = async (req: Request, server: Bun.Server<AllWebSocketData>, identity?: Identity): Promise<Response | undefined> => {
   const url = new URL(req.url)
 
-  // WS
+  // Athena WS (device connection)
   if (url.pathname.startsWith('/ws/v2/')) {
     const dongleId = url.pathname.replace(`/ws/v2/`, '')
     if (!identity || identity.type !== 'device' || identity.device.dongle_id !== dongleId) {
@@ -23,6 +26,34 @@ const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?
     }
 
     if (server.upgrade(req, { data: { dongleId, device: identity.device } })) return
+    else return new Response('WS upgrade failed', { status: 400 })
+  }
+
+  // SSH WebSocket relay
+  if (url.pathname.startsWith('/ssh/')) {
+    const sessionId = url.pathname.replace('/ssh/', '')
+    const session = getSshSession(sessionId)
+    if (!session) {
+      return new Response('Session not found', { status: 404 })
+    }
+
+    // Determine if this is a client or device connection
+    // Device uses JWT auth, client uses user auth
+    const type = identity?.type === 'device' ? 'device' : 'client'
+
+    // Verify device owns this session
+    if (type === 'device') {
+      if (identity?.type !== 'device' || identity.device.dongle_id !== session.dongleId) {
+        return new Response('Unauthorized', { status: 401 })
+      }
+    }
+
+    // Verify user has access to the device
+    if (type === 'client' && (!identity || identity.type !== 'user')) {
+      return new Response('Unauthorized', { status: 401 })
+    }
+
+    if (server.upgrade(req, { data: { sessionId, type, dongleId: session.dongleId } })) return
     else return new Response('WS upgrade failed', { status: 400 })
   }
 
@@ -43,11 +74,36 @@ const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?
   return res
 }
 
+// Combined WebSocket handler that dispatches to athena or SSH handlers
+const combinedWebsocket: Bun.WebSocketHandler<AllWebSocketData> = {
+  open: (ws) => {
+    if ('sessionId' in ws.data) {
+      sshWebsocket.open?.(ws as Bun.ServerWebSocket<SshWebSocketData>)
+    } else {
+      websocket.open?.(ws as Bun.ServerWebSocket<WebSocketData>)
+    }
+  },
+  close: (ws, code, reason) => {
+    if ('sessionId' in ws.data) {
+      sshWebsocket.close?.(ws as Bun.ServerWebSocket<SshWebSocketData>, code, reason)
+    } else {
+      websocket.close?.(ws as Bun.ServerWebSocket<WebSocketData>, code, reason)
+    }
+  },
+  message: (ws, msg) => {
+    if ('sessionId' in ws.data) {
+      sshWebsocket.message?.(ws as Bun.ServerWebSocket<SshWebSocketData>, msg)
+    } else {
+      websocket.message?.(ws as Bun.ServerWebSocket<WebSocketData>, msg)
+    }
+  },
+}
+
 const server = Bun.serve({
   port: Number(process.env.PORT) || 8080,
   hostname: '0.0.0.0',
   idleTimeout: 255,
-  websocket,
+  websocket: combinedWebsocket,
   fetch: async (req, server) => {
     try {
       if (req.method === 'OPTIONS') return new Response(null, { headers })

@@ -10,6 +10,7 @@ import { device } from './device'
 import { route } from './route'
 import { users } from './users'
 import { admin } from './admin'
+import { ssh } from './ssh'
 
 export const router = tsr.router(contract, {
   auth,
@@ -22,4 +23,5 @@ export const router = tsr.router(contract, {
   prime,
   data,
   admin,
+  ssh,
 })
