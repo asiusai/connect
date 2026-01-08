@@ -23,7 +23,7 @@ export const devices = tsr.routerWithMiddleware(contract.devices)<{ userId?: str
     if (!device) throw new NotFoundError('No device found!')
     if (device.users.some((x) => x.permission === 'owner')) throw new BadRequestError('Device already paired!')
 
-    if (!verify(pair_token, device.public_key)) throw new BadRequestError('Token verifycation failed')
+    if (!verify(pair_token, device.public_key)) throw new BadRequestError('Token verification failed')
 
     await db.insert(deviceUsersTable).values({ dongle_id: device.dongle_id, permission: 'owner', user_id: identity.user.id })
     return { status: 200, body: { dongle_id: device.dongle_id, first_pair: true } }

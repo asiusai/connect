@@ -4,6 +4,7 @@ import { contract } from '../connect/src/api/contract'
 import { websocket, WebSocketData } from './ws'
 import { auth, Identity } from './auth'
 import { startQueueWorker } from './processing'
+import { rateLimit, getClientIp } from './ratelimit'
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -53,6 +54,11 @@ const server = Bun.serve({
   fetch: async (req, server) => {
     try {
       if (req.method === 'OPTIONS') return new Response(null, { headers })
+
+      // Rate limit: 300 requests per minute per IP
+      const ip = getClientIp(req)
+      if (!rateLimit(ip, 300)) return new Response('Too many requests', { status: 429, headers: { ...headers, 'Retry-After': '60' } })
+
       const identity = await auth(req)
       const res = await handle(req, server, identity)
       console[res && res.status >= 400 ? 'error' : 'log'](
