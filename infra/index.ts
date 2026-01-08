@@ -294,7 +294,7 @@ docker run -d \
   -e PORT=80 \
   -e MKV_DB=/data/mkvdb \
   -e MKV_DATA=/data/mkv \
-  -e DB_URL=file:///data/data.db \
+  -e DB_URL=/data/data.db \
   -e JWT_SECRET='${config.requireSecret('jwtSecret')}' \
   -e GOOGLE_CLIENT_ID='${config.requireSecret('googleClientId')}' \
   -e GOOGLE_CLIENT_SECRET='${config.requireSecret('googleClientSecret')}' \
