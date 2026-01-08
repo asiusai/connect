@@ -2,11 +2,15 @@ import { describe, expect, test } from 'bun:test'
 import { processQlogStream, type RouteEvent, type Coord } from './qlogs'
 
 const TEST_DATA_DIR = import.meta.dir + '/../../example-data'
-const ROUTES = [{ name: '9748a98e983e0b39_0000002c--d68dde99ca', segmentCount: 3 }]
+const ROUTES = [
+  { name: '9748a98e983e0b39_0000002c--d68dde99ca', segmentCount: 3, hasMetadata: true },
+  { name: 'd2e453e372f4d0d4_00000042--67cdb4c4ee', segmentCount: 1, hasMetadata: false },
+]
 
 describe('qlogs', () => {
   for (const route of ROUTES) {
-    test(`${route.name} metadata matches comma API`, async () => {
+    if (route.hasMetadata) {
+      test(`${route.name} metadata matches comma API`, async () => {
       const expected = (await Bun.file(`${TEST_DATA_DIR}/${route.name}.json`).json()) as {
         version: string
         git_commit: string
@@ -71,7 +75,8 @@ describe('qlogs', () => {
       // Check distance is reasonable (same order of magnitude)
       expect(totalDistance).toBeGreaterThan(0)
       expect(totalDistance).toBeLessThan(expected.distance * 2)
-    })
+      })
+    }
 
     for (let segment = 0; segment < route.segmentCount; segment++) {
       const prefix = `${route.name}--${segment}`
@@ -116,4 +121,5 @@ describe('qlogs', () => {
       })
     }
   }
+
 })
