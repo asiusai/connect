@@ -6,7 +6,12 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:integration": "INTEGRATION=1 playwright test",
+    "test:debug": "playwright test --debug"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
@@ -17,5 +22,8 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
   }
 }

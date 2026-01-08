@@ -13,6 +13,11 @@
     "fix": "bun --cwd connect fix && biome check --write",
     "test": "bun test",
     "test:device": "INTEGRATION=1 bun test api/scripts/device.test.ts",
+    "test:frontend": "bun --cwd site test",
+    "test:frontend:ui": "bun --cwd site test:ui",
+    "test:frontend:integration": "INTEGRATION=1 bun --cwd site test",
+    "test:all": "bun test && bun --cwd site test",
+    "test:all:integration": "INTEGRATION=1 bun test api/scripts/device.test.ts && INTEGRATION=1 bun --cwd site test",
     "infra": "bun --cwd infra up",
     "db:push": "bun --cwd api db:push"
   },
