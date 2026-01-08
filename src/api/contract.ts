@@ -440,32 +440,42 @@ const prime = c.router({
   },
 })
 
+const ServiceStatus = z.object({
+  status: z.enum(['ok', 'error']),
+  latency: z.number().optional(),
+  error: z.string().optional(),
+})
+
 const admin = c.router({
-  queueStats: {
+  health: {
     method: 'GET',
-    path: '/v1/admin/queue/stats',
+    path: '/health',
+    responses: {
+      200: z.object({ status: z.literal('ok') }),
+    },
+  },
+  status: {
+    method: 'GET',
+    path: '/status.json',
     responses: {
       200: z.object({
-        uploaded: z.number(),
-        processing: z.number(),
-        done: z.number(),
-        error: z.number(),
+        status: z.enum(['ok', 'degraded']),
+        uptime: z.number(),
+        services: z.object({
+          mkv: ServiceStatus,
+          database: ServiceStatus,
+        }),
+        stats: z.object({
+          users: z.number(),
+          devices: z.number(),
+          routes: z.number(),
+          segments: z.number(),
+          queue: z.record(z.string(), z.number()),
+          totalSize: z.number(),
+        }),
+        frontends: z.array(ServiceStatus.extend({ name: z.string() })),
+        ci: z.array(ServiceStatus.extend({ name: z.string() })),
       }),
-    },
-  },
-  queueErrors: {
-    method: 'GET',
-    path: '/v1/admin/queue/errors',
-    responses: {
-      200: z.object({ key: z.string(), error: z.string().nullable(), create_time: z.number() }).array(),
-    },
-  },
-  requeue: {
-    method: 'POST',
-    path: '/v1/admin/queue/requeue',
-    body: z.object({ key: z.string() }),
-    responses: {
-      200: z.object({ success: z.number() }),
     },
   },
 })
