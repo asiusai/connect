@@ -283,22 +283,22 @@ export async function* LogReader(stream: ReadableStream<Uint8Array>): AsyncGener
 
       // Process loop
       while (true) {
-        // We need at least 8 bytes for the header to determine size
-        // But getMessageSize handles partial headers gracefully if we pass enough data
-        // Let's peek a reasonable amount for a header (e.g. 64 bytes) or whatever we have
-        // Actually getMessageSize needs to read the segment table.
-        // The first word (4 bytes) is segment count.
+        // First peek 4 bytes to get segment count, then calculate required header size
+        const countPeek = buffer.peek(4)
+        if (!countPeek) break
 
-        const headerPeek = buffer.peek(16) // Peek enough for basic header info
-        if (!headerPeek) break // Not enough data even for a tiny header
+        const segmentCount = new DataView(countPeek.buffer, countPeek.byteOffset, 4).getUint32(0, true) + 1
+        const headerSize = 4 + segmentCount * 4
+        const paddedHeaderSize = headerSize + (headerSize % 8 === 0 ? 0 : 8 - (headerSize % 8))
+
+        // Peek enough for the full header
+        const headerPeek = buffer.peek(paddedHeaderSize)
+        if (!headerPeek) break
 
         const view = new DataView(headerPeek.buffer, headerPeek.byteOffset, headerPeek.byteLength)
         const msgSize = getMessageSize(view)
 
-        if (!msgSize) {
-          // Not enough data to determine size yet
-          break
-        }
+        if (!msgSize) break
 
         if (buffer.length < msgSize) {
           // We know the size, but don't have the full message yet
