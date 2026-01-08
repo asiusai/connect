@@ -47,6 +47,18 @@ export const deviceUsersTable = sqliteTable(
 )
 export type DeviceUserData = InferSelectModel<typeof deviceUsersTable>
 
+export const routesTable = sqliteTable(
+  'route_settings',
+  {
+    dongle_id: text('dongle_id').notNull(),
+    route_id: text('route_id').notNull(),
+    is_public: integer('is_public', { mode: 'boolean' }).default(false).notNull(),
+    is_preserved: integer('is_preserved', { mode: 'boolean' }).default(false).notNull(),
+  },
+  (x) => [primaryKey({ columns: [x.dongle_id, x.route_id] })],
+)
+export type RouteData = InferSelectModel<typeof routesTable>
+
 export const segmentsTable = sqliteTable(
   'segments',
   {
@@ -79,16 +91,6 @@ export const segmentsTable = sqliteTable(
 )
 export type SegmentData = InferSelectModel<typeof segmentsTable>
 
-export const routeSettingsTable = sqliteTable(
-  'route_settings',
-  {
-    dongle_id: text('dongle_id').notNull(),
-    route_id: text('route_id').notNull(),
-    is_public: integer('is_public', { mode: 'boolean' }).default(false).notNull(),
-    is_preserved: integer('is_preserved', { mode: 'boolean' }).default(false).notNull(),
-  },
-  (x) => [primaryKey({ columns: [x.dongle_id, x.route_id] })],
-)
 
 export const athenaPingsTable = sqliteTable('athena_pings', {
   id: text('id').primaryKey(),
@@ -119,11 +121,20 @@ export const athenaQueueTable = sqliteTable('athena_queue', {
   create_time: createdAt('create_time'),
 })
 
-export const uploadQueueTable = sqliteTable('upload_queue', {
-  key: text('key').primaryKey(), // dongleId/routeId/segment/file
-  status: text('status').$type<'uploaded' | 'processing' | 'done' | 'error'>().default('uploaded').notNull(),
-  error: text('error'),
+export const filesTable = sqliteTable('files', {
+  key: text('key').primaryKey(), // dongleId/path (e.g. dongleId/routeId/segment/file or dongleId/boot/file)
+  dongle_id: text('dongle_id').notNull(),
+  route_id: text('route_id'),
+  segment: integer('segment'),
+  file: text('file').notNull(),
+  size: integer('size').notNull(),
+  processingStatus: text('processing_status').$type<'queued' | 'processing' | 'done' | 'error'>().default('queued').notNull(),
+  processingError: text('processing_error'),
   create_time: createdAt('create_time'),
+  updated_time: integer('updated_time')
+    .$defaultFn(() => Date.now())
+    .$onUpdateFn(() => Date.now())
+    .notNull(),
 })
 
 // RELATIONS
@@ -136,6 +147,7 @@ export const devicesRelations = relations(devicesTable, ({ many }) => ({
   segments: many(segmentsTable),
   pings: many(athenaPingsTable),
   athenaQueue: many(athenaQueueTable),
+  files: many(filesTable),
 }))
 
 export const deviceUserRelations = relations(deviceUsersTable, ({ one }) => ({
@@ -149,11 +161,25 @@ export const deviceUserRelations = relations(deviceUsersTable, ({ one }) => ({
   }),
 }))
 
-export const segmentsRelations = relations(segmentsTable, ({ one }) => ({
+export const routesRelations = relations(routesTable, ({ one, many }) => ({
+  device: one(devicesTable, {
+    fields: [routesTable.dongle_id],
+    references: [devicesTable.dongle_id],
+  }),
+  segments: many(segmentsTable),
+  files: many(filesTable),
+}))
+
+export const segmentsRelations = relations(segmentsTable, ({ one, many }) => ({
   device: one(devicesTable, {
     fields: [segmentsTable.dongle_id],
     references: [devicesTable.dongle_id],
   }),
+  route: one(routesTable, {
+    fields: [segmentsTable.dongle_id, segmentsTable.route_id],
+    references: [routesTable.dongle_id, routesTable.route_id],
+  }),
+  files: many(filesTable),
 }))
 
 export const athenaPingsRelations = relations(athenaPingsTable, ({ one }) => ({
@@ -180,5 +206,20 @@ export const athenaQueueRelations = relations(athenaQueueTable, ({ one }) => ({
   device: one(devicesTable, {
     fields: [athenaQueueTable.dongle_id],
     references: [devicesTable.dongle_id],
+  }),
+}))
+
+export const filesRelations = relations(filesTable, ({ one }) => ({
+  device: one(devicesTable, {
+    fields: [filesTable.dongle_id],
+    references: [devicesTable.dongle_id],
+  }),
+  route: one(routesTable, {
+    fields: [filesTable.dongle_id, filesTable.route_id],
+    references: [routesTable.dongle_id, routesTable.route_id],
+  }),
+  segment: one(segmentsTable, {
+    fields: [filesTable.dongle_id, filesTable.route_id, filesTable.segment],
+    references: [segmentsTable.dongle_id, segmentsTable.route_id, segmentsTable.segment],
   }),
 }))

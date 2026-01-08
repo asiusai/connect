@@ -3,7 +3,7 @@ import { router } from './router'
 import { contract } from '../connect/src/api/contract'
 import { websocket, WebSocketData } from './ws'
 import { auth, Identity } from './auth'
-import { startQueueWorker } from './processing'
+import { startQueueWorker } from './processing/queue'
 import { rateLimit, getClientIp } from './ratelimit'
 
 const headers = {
@@ -14,9 +14,6 @@ const headers = {
 
 const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?: Identity): Promise<Response | undefined> => {
   const url = new URL(req.url)
-
-  // HEALTH
-  if (url.pathname === '/health') return Response.json({ status: 'ok' }, { headers })
 
   // WS
   if (url.pathname.startsWith('/ws/v2/')) {

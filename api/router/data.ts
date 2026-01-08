@@ -2,7 +2,7 @@ import { contract } from '../../connect/src/api/contract'
 import { InternalServerError, NotFoundError, tsr, UnauthorizedError } from '../common'
 import { dataMiddleware } from '../middleware'
 import { mkv } from '../mkv'
-import { processUploadedFile } from '../processing'
+import { queueFile, deleteFile } from '../processing/queue'
 
 export const data = tsr.router(contract.data, {
   get: dataMiddleware(async ({ query, headers }, { key, responseHeaders }) => {
@@ -29,10 +29,10 @@ export const data = tsr.router(contract.data, {
     // 403 means file already exists in MKV - treat as success
     if (!res.ok && res.status !== 403) throw new InternalServerError('Failed to write file')
 
-    // Process route metadata when qlog is uploaded
-    // Key format: dongleId/routeId/segment/file
-    const [dongleId, ...pathParts] = key.split('/')
-    processUploadedFile(dongleId, pathParts.join('/')).catch(console.error)
+    // Track file in database and queue for processing
+    const headRes = await mkv.head(key)
+    const size = parseInt(headRes.headers.get('content-length') || '0', 10)
+    queueFile(key, size).catch(console.error)
 
     return { status: 201, body: undefined }
   }),
@@ -41,6 +41,8 @@ export const data = tsr.router(contract.data, {
 
     const res = await mkv.delete(key)
     if (!res.ok) throw new InternalServerError('Failed to delete file')
+
+    deleteFile(key).catch(console.error)
 
     return { status: 204, body: undefined }
   }),

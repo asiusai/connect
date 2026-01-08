@@ -251,9 +251,8 @@ const serverSetup = new command.remote.Command(
 # Install sshfs for mounting storage boxes
 apt-get update && apt-get install -y sshfs
 
-# Create data directories
-mkdir -p /root/mkv1 /root/mkv2 /root/mkvdb
-touch /root/data.db
+# Create data directories on host
+mkdir -p /data/mkv1 /data/mkv2 /data/mkvdb /data/db
 
 # Setup SSH key for storage boxes
 mkdir -p /root/.ssh
@@ -265,19 +264,19 @@ ssh-keyscan -p 23 u526268.your-storagebox.de >> /root/.ssh/known_hosts 2>/dev/nu
 ssh-keyscan -p 23 u526270.your-storagebox.de >> /root/.ssh/known_hosts 2>/dev/null || true
 
 # Unmount if already mounted
-fusermount -u /root/mkv1 2>/dev/null || true
-fusermount -u /root/mkv2 2>/dev/null || true
+fusermount -u /data/mkv1 2>/dev/null || true
+fusermount -u /data/mkv2 2>/dev/null || true
 
 # Mount storage boxes via SSHFS
 sshfs -o IdentityFile=/root/.ssh/storagebox_key,port=23,allow_other,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 \
-  u526268@u526268.your-storagebox.de: /root/mkv1
+  u526268@u526268.your-storagebox.de: /data/mkv1
 
 sshfs -o IdentityFile=/root/.ssh/storagebox_key,port=23,allow_other,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 \
-  u526270@u526270.your-storagebox.de: /root/mkv2
+  u526270@u526270.your-storagebox.de: /data/mkv2
 
 # Create required subdirs on storage boxes
-mkdir -p /root/mkv1/tmp /root/mkv1/body_temp
-mkdir -p /root/mkv2/tmp /root/mkv2/body_temp
+mkdir -p /data/mkv1/tmp /data/mkv1/body_temp
+mkdir -p /data/mkv2/tmp /data/mkv2/body_temp
 
 # Stop old services if any
 systemctl stop api 2>/dev/null || true
@@ -316,15 +315,15 @@ docker run -d \
   --restart always \
   --privileged \
   -p 80:80 \
-  -v /root/mkv1:/data/mkv1:shared \
-  -v /root/mkv2:/data/mkv2:shared \
-  -v /root/mkvdb:/data/mkvdb \
-  -v /root/data.db:/data/data.db \
+  -v /data/mkv1:/data/mkv1:shared \
+  -v /data/mkv2:/data/mkv2:shared \
+  -v /data/mkvdb:/data/mkvdb \
+  -v /data/db:/data/db \
   -e PORT=80 \
   -e MKV_DB=/data/mkvdb \
   -e MKV_DATA1=/data/mkv1 \
   -e MKV_DATA2=/data/mkv2 \
-  -e DB_URL=/data/data.db \
+  -e DB_PATH=/data/db/data.db \
   -e JWT_SECRET='${config.requireSecret('jwtSecret')}' \
   -e GOOGLE_CLIENT_ID='${config.requireSecret('googleClientId')}' \
   -e GOOGLE_CLIENT_SECRET='${config.requireSecret('googleClientSecret')}' \

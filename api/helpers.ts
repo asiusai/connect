@@ -1,7 +1,7 @@
-import { and, asc, eq } from 'drizzle-orm'
+import { asc, and, eq } from 'drizzle-orm'
 import { Permission, Route, RouteSegment } from '../connect/src/types'
 import { db } from './db/client'
-import { segmentsTable, routeSettingsTable } from './db/schema'
+import { routesTable } from './db/schema'
 import { env } from './env'
 import { sign } from './common'
 
@@ -20,15 +20,13 @@ export const aggregateRoute = async (
   routeId: string,
   origin: string,
 ): Promise<AggregatedRoute | null> => {
-  const segments = await db.query.segmentsTable.findMany({
-    where: and(eq(segmentsTable.dongle_id, dongleId), eq(segmentsTable.route_id, routeId)),
-    orderBy: (s) => asc(s.segment),
+  const route = await db.query.routesTable.findFirst({
+    where: and(eq(routesTable.dongle_id, dongleId), eq(routesTable.route_id, routeId)),
+    with: { segments: { orderBy: (s) => asc(s.segment) } },
   })
-  if (segments.length === 0) return null
 
-  const settings = await db.query.routeSettingsTable.findFirst({
-    where: and(eq(routeSettingsTable.dongle_id, dongleId), eq(routeSettingsTable.route_id, routeId)),
-  })
+  const segments = route?.segments ?? []
+  if (segments.length === 0) return null
 
   const firstSeg = segments[0]
   const lastSeg = segments[segments.length - 1]
@@ -60,8 +58,8 @@ export const aggregateRoute = async (
     vin: firstSeg.vin,
     maxqlog: maxSegment,
     procqlog: maxSegment,
-    is_public: settings?.is_public ?? false,
-    is_preserved: settings?.is_preserved ?? false,
+    is_public: route?.is_public ?? false,
+    is_preserved: route?.is_preserved ?? false,
     url: `${origin}/v1/route/${routeName}/derived/${sig}`,
     user_id: null,
     make,

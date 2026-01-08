@@ -1,7 +1,7 @@
 import { contract } from '../../connect/src/api/contract'
 import { ForbiddenError, NotFoundError, tsr } from '../common'
 import { db } from '../db/client'
-import { routeSettingsTable } from '../db/schema'
+import { routesTable } from '../db/schema'
 import { routeMiddleware } from '../middleware'
 import { Files } from '../../connect/src/types'
 import { mkv } from '../mkv'
@@ -24,9 +24,9 @@ export const route = tsr.router(contract.route, {
     const routeId = route.fullname.split('|')[1]
 
     await db
-      .insert(routeSettingsTable)
+      .insert(routesTable)
       .values({ dongle_id: route.dongle_id, route_id: routeId, is_public: body.is_public })
-      .onConflictDoUpdate({ target: [routeSettingsTable.dongle_id, routeSettingsTable.route_id], set: { is_public: body.is_public } })
+      .onConflictDoUpdate({ target: [routesTable.dongle_id, routesTable.route_id], set: { is_public: body.is_public } })
 
     return { status: 200, body: { ...route, is_public: body.is_public } }
   }),
@@ -35,9 +35,9 @@ export const route = tsr.router(contract.route, {
     const routeId = route.fullname.split('|')[1]
 
     await db
-      .insert(routeSettingsTable)
+      .insert(routesTable)
       .values({ dongle_id: route.dongle_id, route_id: routeId, is_preserved: true })
-      .onConflictDoUpdate({ target: [routeSettingsTable.dongle_id, routeSettingsTable.route_id], set: { is_preserved: true } })
+      .onConflictDoUpdate({ target: [routesTable.dongle_id, routesTable.route_id], set: { is_preserved: true } })
 
     return { status: 200, body: { success: 1 } }
   }),
@@ -46,9 +46,9 @@ export const route = tsr.router(contract.route, {
     const routeId = route.fullname.split('|')[1]
 
     await db
-      .insert(routeSettingsTable)
+      .insert(routesTable)
       .values({ dongle_id: route.dongle_id, route_id: routeId, is_preserved: false })
-      .onConflictDoUpdate({ target: [routeSettingsTable.dongle_id, routeSettingsTable.route_id], set: { is_preserved: false } })
+      .onConflictDoUpdate({ target: [routesTable.dongle_id, routesTable.route_id], set: { is_preserved: false } })
 
     return { status: 200, body: { success: 1 } }
   }),

@@ -1,23 +1,23 @@
 import { eq, and } from 'drizzle-orm'
 import { db } from '../db/client'
-import { uploadQueueTable } from '../db/schema'
+import { filesTable } from '../db/schema'
 import { processFile } from './index'
 import { env } from '../env'
 
 declare const self: Worker
 
 const claimAndProcess = async (): Promise<boolean> => {
-  // Find an uploaded file and atomically claim it
-  const item = await db.query.uploadQueueTable.findFirst({
-    where: eq(uploadQueueTable.status, 'uploaded'),
+  // Find a queued file and atomically claim it
+  const item = await db.query.filesTable.findFirst({
+    where: eq(filesTable.processingStatus, 'queued'),
   })
   if (!item) return false
 
-  // Try to claim it (only update if still 'uploaded')
+  // Try to claim it (only update if still 'queued')
   const claimed = await db
-    .update(uploadQueueTable)
-    .set({ status: 'processing' })
-    .where(and(eq(uploadQueueTable.key, item.key), eq(uploadQueueTable.status, 'uploaded')))
+    .update(filesTable)
+    .set({ processingStatus: 'processing' })
+    .where(and(eq(filesTable.key, item.key), eq(filesTable.processingStatus, 'queued')))
     .returning()
 
   if (claimed.length === 0) return true // Someone else claimed it, try again
@@ -28,11 +28,11 @@ const claimAndProcess = async (): Promise<boolean> => {
 
   try {
     await processFile(dongleId, path)
-    await db.update(uploadQueueTable).set({ status: 'done' }).where(eq(uploadQueueTable.key, key))
+    await db.update(filesTable).set({ processingStatus: 'done' }).where(eq(filesTable.key, key))
     self.postMessage({ type: 'processed', key })
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err)
-    await db.update(uploadQueueTable).set({ status: 'error', error }).where(eq(uploadQueueTable.key, key))
+    await db.update(filesTable).set({ processingStatus: 'error', processingError: error }).where(eq(filesTable.key, key))
     self.postMessage({ type: 'error', key, error })
   }
 

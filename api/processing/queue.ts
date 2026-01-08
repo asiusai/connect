@@ -1,12 +1,30 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../db/client'
-import { uploadQueueTable } from '../db/schema'
+import { filesTable } from '../db/schema'
 import { env } from '../env'
 
 const workers: Worker[] = []
 
-export const queueFile = async (key: string): Promise<void> => {
-  await db.insert(uploadQueueTable).values({ key }).onConflictDoNothing()
+export const queueFile = async (key: string, size: number): Promise<void> => {
+  const parts = key.split('/')
+  const dongle_id = parts[0]
+  const file = parts[parts.length - 1]
+
+  // Check if this is a route file (dongleId/routeId/segment/file)
+  let route_id: string | undefined
+  let segment: number | undefined
+  if (parts.length >= 4) {
+    const segmentNum = parseInt(parts[2], 10)
+    if (!Number.isNaN(segmentNum)) {
+      route_id = parts[1]
+      segment = segmentNum
+    }
+  }
+
+  await db
+    .insert(filesTable)
+    .values({ key, dongle_id, route_id, segment, file, size })
+    .onConflictDoUpdate({ target: filesTable.key, set: { size } })
 }
 
 export const startQueueWorker = () => {
@@ -32,14 +50,18 @@ export const stopQueueWorker = () => {
   workers.length = 0
 }
 
+export const deleteFile = async (key: string): Promise<void> => {
+  await db.delete(filesTable).where(eq(filesTable.key, key))
+}
+
 export const getQueueStats = async () => {
-  const uploaded = await db.select().from(uploadQueueTable).where(eq(uploadQueueTable.status, 'uploaded'))
-  const processing = await db.select().from(uploadQueueTable).where(eq(uploadQueueTable.status, 'processing'))
-  const done = await db.select().from(uploadQueueTable).where(eq(uploadQueueTable.status, 'done'))
-  const error = await db.select().from(uploadQueueTable).where(eq(uploadQueueTable.status, 'error'))
+  const queued = await db.select().from(filesTable).where(eq(filesTable.processingStatus, 'queued'))
+  const processing = await db.select().from(filesTable).where(eq(filesTable.processingStatus, 'processing'))
+  const done = await db.select().from(filesTable).where(eq(filesTable.processingStatus, 'done'))
+  const error = await db.select().from(filesTable).where(eq(filesTable.processingStatus, 'error'))
 
   return {
-    uploaded: uploaded.length,
+    queued: queued.length,
     processing: processing.length,
     done: done.length,
     error: error.length,

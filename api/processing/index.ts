@@ -1,10 +1,8 @@
 import { db } from '../db/client'
-import { segmentsTable } from '../db/schema'
+import { segmentsTable, routesTable } from '../db/schema'
 import { mkv } from '../mkv'
 import { processQlogStream, type SegmentQlogData } from './qlogs'
 import { extractSprite } from './qcamera'
-
-export { startQueueWorker, stopQueueWorker, queueFile, getQueueStats } from './queue'
 
 const saveJson = async (key: string, data: unknown): Promise<void> => {
   const json = JSON.stringify(data)
@@ -71,6 +69,9 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
       platform: data?.metadata?.carFingerprint ?? null,
       vin: data?.metadata?.vin ?? null,
     }
+    // Create route entry if it doesn't exist
+    await db.insert(routesTable).values({ dongle_id: dongleId, route_id: routeId }).onConflictDoNothing()
+
     await db
       .insert(segmentsTable)
       .values({ dongle_id: dongleId, route_id: routeId, segment, ...segmentData })
@@ -91,7 +92,3 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
   }
 }
 
-export const processUploadedFile = async (dongleId: string, path: string) => {
-  const { queueFile } = await import('./queue')
-  await queueFile(`${dongleId}/${path}`)
-}

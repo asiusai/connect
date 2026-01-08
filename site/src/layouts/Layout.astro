@@ -1,0 +1,54 @@
+---
+import '../global.css'
+
+type Props = {
+  title: string
+  description: string
+  class?: string
+}
+
+const { title, description, class: className } = Astro.props
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body class="min-h-screen bg-black text-white">
+    <header class="container mx-auto px-6 py-8">
+      <nav class="flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="/asius-logo.svg" alt="Asius" class="h-8 w-auto group-hover:scale-110 transition-transform" />
+          <span class="text-2xl font-bold">Asius</span>
+        </a>
+        <div class="flex gap-6 text-sm text-gray-400">
+          <a href="/guides" class="hover:text-white transition">Guides</a>
+          <a href="/status" class="hover:text-white transition">Status</a>
+          <a href="https://github.com/asiusai" class="hover:text-white transition">GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class={className}>
+      <slot />
+    </main>
+
+    <footer class="container mx-auto px-6 py-12 border-t border-gray-800">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-sm">
+        <div class="flex items-center gap-3">
+          <img src="/asius-logo.svg" alt="Asius" class="h-5 w-auto opacity-50" />
+          <span>Asius AI</span>
+        </div>
+        <div class="flex gap-6">
+          <a href="/guides" class="hover:text-white transition">Guides</a>
+          <a href="/status" class="hover:text-white transition">Status</a>
+          <a href="https://github.com/asiusai" class="hover:text-white transition">GitHub</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
