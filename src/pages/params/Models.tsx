@@ -33,7 +33,8 @@ export const Models = () => {
 
   const handleSend = async () => {
     if (isAlreadyActive || !dongleId) return
-    const res = await save(selected === 'default' ? { ModelManager_ActiveBundle: null } : { ModelManager_DownloadIndex: selectedModel!.index.toString() })
+    const params = selected === 'default' ? { ModelManager_ActiveBundle: null } : { ModelManager_DownloadIndex: selectedModel!.index.toString() }
+    const res = await save({ ...params, CalibrationParams: '' })
     if (res?.error) toast.error(res.error.data?.message ?? res.error.message)
   }
 
