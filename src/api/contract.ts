@@ -21,6 +21,7 @@ import { env } from '../utils/env'
 
 const c = initContract()
 
+const isOurAPI =["asius","dev"].includes(env.MODE)
 const auth = c.router({
   me: {
     method: 'GET',
@@ -33,7 +34,7 @@ const auth = c.router({
     method: 'POST',
     path: '/v2/auth/',
     body: z.object({ code: z.string(), provider: z.string() }),
-    contentType: env.MODE === 'asius' ? undefined : 'application/x-www-form-urlencoded',
+    contentType: isOurAPI ? undefined : 'application/x-www-form-urlencoded',
     responses: {
       200: z.object({ access_token: z.string() }),
     },
@@ -75,7 +76,7 @@ const devices = c.router({
   pair: {
     method: 'POST',
     path: '/v2/pilotpair/',
-    contentType: env.MODE === 'asius' ? undefined : 'multipart/form-data',
+    contentType: isOurAPI? undefined : 'multipart/form-data',
     body: z.object({ pair_token: z.string() }),
     responses: {
       200: z.object({
@@ -439,6 +440,36 @@ const prime = c.router({
   },
 })
 
+const admin = c.router({
+  queueStats: {
+    method: 'GET',
+    path: '/v1/admin/queue/stats',
+    responses: {
+      200: z.object({
+        uploaded: z.number(),
+        processing: z.number(),
+        done: z.number(),
+        error: z.number(),
+      }),
+    },
+  },
+  queueErrors: {
+    method: 'GET',
+    path: '/v1/admin/queue/errors',
+    responses: {
+      200: z.object({ key: z.string(), error: z.string().nullable(), create_time: z.number() }).array(),
+    },
+  },
+  requeue: {
+    method: 'POST',
+    path: '/v1/admin/queue/requeue',
+    body: z.object({ key: z.string() }),
+    responses: {
+      200: z.object({ success: z.number() }),
+    },
+  },
+})
+
 const data = c.router({
   get: {
     method: 'GET',
@@ -509,6 +540,7 @@ export const contract = c.router(
     athena,
     prime,
     data,
+    admin,
   },
   {
     commonResponses: {
