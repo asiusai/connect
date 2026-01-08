@@ -12,8 +12,11 @@ const findOrCreateUser = async (email: string) => {
   if (existing) return existing
 
   const id = randomId()
-  const user = { id, email, user_id: id }
-  await db.insert(usersTable).values(user)
+  const user = await db
+    .insert(usersTable)
+    .values({ id, email, user_id: id, superuser: env.SUPERUSERS.includes(email) })
+    .returning()
+    .then((x) => x[0])
   return { ...user, regdate: Date.now(), superuser: false, username: null }
 }
 

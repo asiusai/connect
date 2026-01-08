@@ -4,10 +4,12 @@ import { mkv } from '../mkv'
 import { processQlogStream, type SegmentQlogData } from './qlogs'
 import { extractSprite } from './qcamera'
 
+export { startQueueWorker, stopQueueWorker, queueFile, getQueueStats } from './queue'
+
 const saveJson = async (key: string, data: unknown): Promise<void> => {
   const json = JSON.stringify(data)
   const blob = new Blob([json], { type: 'application/json' })
-  await mkv.put(key, blob.stream(), { 'Content-Type': 'application/json' })
+  await mkv.put(key, blob.stream(), { 'Content-Type': 'application/json' }, true)
 }
 
 const processSegmentQlog = async (dongleId: string, routeId: string, segment: number): Promise<SegmentQlogData | null> => {
@@ -21,9 +23,6 @@ const processSegmentQlog = async (dongleId: string, routeId: string, segment: nu
 const processSegmentQcamera = async (dongleId: string, routeId: string, segment: number): Promise<void> => {
   const baseKey = `${dongleId}/${routeId}/${segment}`
 
-  const existingSprite = await mkv.get(`${baseKey}/sprite.jpg`)
-  if (existingSprite.ok) return
-
   const res = await mkv.get(`${baseKey}/qcamera.ts`)
   if (!res.ok || !res.body) return
 
@@ -31,10 +30,10 @@ const processSegmentQcamera = async (dongleId: string, routeId: string, segment:
   if (!sprite) return
 
   const blob = new Blob([sprite as BlobPart], { type: 'image/jpeg' })
-  await mkv.put(`${baseKey}/sprite.jpg`, blob.stream(), { 'Content-Type': 'image/jpeg' })
+  await mkv.put(`${baseKey}/sprite.jpg`, blob.stream(), { 'Content-Type': 'image/jpeg' }, true)
 }
 
-export const processUploadedFile = async (dongleId: string, path: string): Promise<void> => {
+export const processFile = async (dongleId: string, path: string): Promise<void> => {
   // Path is already normalized to: routeId/segment/filename (e.g., 2025-01-07--12-00-00/0/qlog.zst)
   const parts = path.split('/')
   if (parts.length < 3) return
@@ -90,4 +89,9 @@ export const processUploadedFile = async (dongleId: string, path: string): Promi
   if (filename === 'qcamera.ts') {
     await processSegmentQcamera(dongleId, routeId, segment)
   }
+}
+
+export const processUploadedFile = async (dongleId: string, path: string) => {
+  const { queueFile } = await import('./queue')
+  await queueFile(`${dongleId}/${path}`)
 }

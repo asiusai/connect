@@ -11,7 +11,7 @@ export const usersTable = sqliteTable('users', {
   id: text('id').primaryKey(),
   email: text('email').notNull().unique(),
   regdate: createdAt('regdate'),
-  superuser: integer('superuser', { mode: 'boolean' }).default(false).notNull(),
+  superuser: integer('superuser', { mode: 'boolean' }).notNull(),
   user_id: text('user_id').notNull(),
   username: text('username'),
 })
@@ -116,6 +116,13 @@ export const athenaQueueTable = sqliteTable('athena_queue', {
   method: text('method').notNull(),
   params: text('params').notNull(),
   expiry: integer('expiry'),
+  create_time: createdAt('create_time'),
+})
+
+export const uploadQueueTable = sqliteTable('upload_queue', {
+  key: text('key').primaryKey(), // dongleId/routeId/segment/file
+  status: text('status').$type<'uploaded' | 'processing' | 'done' | 'error'>().default('uploaded').notNull(),
+  error: text('error'),
   create_time: createdAt('create_time'),
 })
 

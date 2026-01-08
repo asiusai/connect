@@ -3,17 +3,18 @@ import { contract } from '../../connect/src/api/contract'
 import { ForbiddenError, InternalServerError, tsr } from '../common'
 import { db } from '../db/client'
 import { athenaPingsTable, DeviceData, devicesTable, deviceUsersTable, segmentsTable } from '../db/schema'
-import { createDataSignature, deviceMiddleware } from '../middleware'
+import { deviceMiddleware } from '../middleware'
 import { normalizeDataKey } from '../common'
 import { Device } from '../../connect/src/types'
 import { Identity } from '../auth'
 import { getOfflineQueue } from '../ws'
 import { mkv } from '../mkv'
+import { createDataSignature } from '../helpers'
 
 const getLogUrls = async (dongleId: string, type: 'boot' | 'crash', origin: string) => {
   const files = await mkv.list(`${dongleId}/${type}`)
   return files.map((f) => {
-    const key = `${dongleId}/${type}/${f}`
+    const key = `${dongleId}/${type}/${f.split('/').pop()}`
     const sig = createDataSignature(key, 'read_access', 24 * 60 * 60)
     return `${origin}/connectdata/${key}?sig=${sig}`
   })

@@ -2,9 +2,10 @@ import { contract } from '../../connect/src/api/contract'
 import { ForbiddenError, NotFoundError, tsr } from '../common'
 import { db } from '../db/client'
 import { routeSettingsTable } from '../db/schema'
-import { createDataSignature, createRouteSignature, routeMiddleware } from '../middleware'
+import { routeMiddleware } from '../middleware'
 import { Files } from '../../connect/src/types'
 import { mkv } from '../mkv'
+import { createDataSignature, createRouteSignature } from '../helpers'
 
 export const route = tsr.router(contract.route, {
   get: routeMiddleware(async (_, { route }) => {
@@ -81,8 +82,7 @@ export const route = tsr.router(contract.route, {
       'qlog.zst': 'qlogs',
     }
 
-    // Files are stored as: /dongleId/routeId/segment/filename
-    // e.g. /2fde85940920ed77/2025-01-07--12-00-00/0/qlog.zst
+    // Files are stored as: dongleId/routeId/segment/filename
     for (const file of existingFiles) {
       const filename = file.split('/').pop()
       if (!filename) continue

@@ -30,6 +30,7 @@ export const data = tsr.router(contract.data, {
     if (!res.ok && res.status !== 403) throw new InternalServerError('Failed to write file')
 
     // Process route metadata when qlog is uploaded
+    // Key format: dongleId/routeId/segment/file
     const [dongleId, ...pathParts] = key.split('/')
     processUploadedFile(dongleId, pathParts.join('/')).catch(console.error)
 

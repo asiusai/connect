@@ -17,7 +17,9 @@ export const mkv = {
     return fetch(mkvUrl(key), { headers, redirect: 'follow' })
   },
 
-  put: async (key: string, body: ReadableStream<Uint8Array> | null, headers?: HeadersInit): Promise<Response> => {
+  put: async (key: string, body: ReadableStream<Uint8Array> | null, headers?: HeadersInit, overwrite = false): Promise<Response> => {
+    if (overwrite) await fetch(mkvUrl(key), { method: 'DELETE' }).catch(() => {})
+
     return fetch(mkvUrl(key), {
       method: 'PUT',
       body,

@@ -1,7 +1,13 @@
 import { z } from 'zod'
 
+const zArray = () =>
+  z
+    .string()
+    .or(z.string().array())
+    .transform((x) => (typeof x === 'string' ? x.split(',') : x))
+    
 export const Environment = z.object({
-  MKV_URL: z.string().default("http://localhost:3000"),
+  MKV_URL: z.string().default('http://localhost:3000'),
 
   DB_URL: z.string().default('file:///tmp/data.db'),
   DB_AUTH: z.string().optional(),
@@ -9,6 +15,11 @@ export const Environment = z.object({
   JWT_SECRET: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
+
+  WORKER_COUNT: z.coerce.number().default(2),
+  WORKER_POLL_INTERVAL:z.coerce.number().default(5000),
+
+  SUPERUSERS: zArray().default(['nagelkarel@gmail.com']),
 })
 
 export const env = Environment.parse(process.env)

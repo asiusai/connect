@@ -1,9 +1,9 @@
 import { and, eq } from 'drizzle-orm'
-import { Context, UnauthorizedError, BadRequestError, ForbiddenError, NotFoundError, verify, sign } from './common'
+import { Context, UnauthorizedError, BadRequestError, ForbiddenError, NotFoundError, verify } from './common'
 import { db } from './db/client'
-import { deviceUsersTable, devicesTable, segmentsTable, routeSettingsTable } from './db/schema'
+import { deviceUsersTable, devicesTable } from './db/schema'
 import { env } from './env'
-import { Permission, Route } from '../connect/src/types'
+import { aggregateRoute, DataSignature, RouteSignature } from './helpers'
 
 type Ctx = { request: Request; appRoute: any; responseHeaders: Headers } & Context
 type MiddleWare<Req, CtxOut> = (req: Req, ctx: Ctx) => Promise<CtxOut>
@@ -32,78 +32,38 @@ export const userMiddleware = createMiddleware(async (_, ctx) => {
   return { ...ctx, identity }
 })
 
+export const superuserMiddleware = createMiddleware(async (_, ctx) => {
+  const identity = ctx.identity
+  if (!identity || identity.type !== 'user') throw new UnauthorizedError('User authentication required')
+  if (!identity.user.superuser) throw new ForbiddenError('Superuser access required')
+  return { ...ctx, identity }
+})
+
 /**
  * Checks if device or user has access to the requested device
  */
 export const deviceMiddleware = createMiddleware(async (req: { params: { dongleId: string } }, { identity, ...ctx }) => {
   if (!identity) throw new UnauthorizedError('Authentication required')
+
+  // device
   if (identity.type === 'device') {
     if (identity.device.dongle_id !== req.params.dongleId) throw new ForbiddenError('Device mismatch')
     return { ...ctx, identity, device: identity.device, permission: 'owner' as const }
   }
+  const device = await db.query.devicesTable.findFirst({ where: eq(devicesTable.dongle_id, req.params.dongleId) })
+  if (!device) throw new NotFoundError('Device not found')
 
+  // superuser
+  if (identity.user.superuser) return { ...ctx, identity, device, permission: 'owner' as const }
+
+  // user
   const deviceUser = await db.query.deviceUsersTable.findFirst({
     where: and(eq(deviceUsersTable.user_id, identity.id), eq(deviceUsersTable.dongle_id, req.params.dongleId)),
-    with: { device: true },
   })
   if (!deviceUser) throw new ForbiddenError('No access to device')
 
-  return { ...ctx, identity, device: deviceUser.device, permission: deviceUser.permission }
+  return { ...ctx, identity, device, permission: deviceUser.permission }
 })
-
-type RouteSignature = { key: string; permission: Permission }
-export const createRouteSignature = (dongleId: string, routeId: string, permission: Permission, expiresIn?: number) =>
-  sign({ key: `${dongleId}/${routeId}`, permission }, env.JWT_SECRET, expiresIn)
-
-// Aggregate route from segments
-const aggregateRouteFromSegments = async (dongleId: string, routeId: string, origin: string): Promise<Route | null> => {
-  const segments = await db.query.segmentsTable.findMany({
-    where: and(eq(segmentsTable.dongle_id, dongleId), eq(segmentsTable.route_id, routeId)),
-    orderBy: segmentsTable.segment,
-  })
-  if (segments.length === 0) return null
-
-  const settings = await db.query.routeSettingsTable.findFirst({
-    where: and(eq(routeSettingsTable.dongle_id, dongleId), eq(routeSettingsTable.route_id, routeId)),
-  })
-
-  const firstSeg = segments[0]
-  const lastSeg = segments[segments.length - 1]
-  const maxSegment = Math.max(...segments.map((s) => s.segment))
-
-  const sig = createDataSignature(`${dongleId}/${routeId}`, 'read_access', 24 * 60 * 60)
-  const routeName = encodeURIComponent(`${dongleId}|${routeId}`)
-
-  return {
-    dongle_id: dongleId,
-    fullname: `${dongleId}|${routeId}`,
-    create_time: firstSeg.create_time,
-    start_time: firstSeg.start_time ? new Date(firstSeg.start_time).toISOString() : null,
-    end_time: lastSeg.end_time ? new Date(lastSeg.end_time).toISOString() : null,
-    start_lat: firstSeg.start_lat,
-    start_lng: firstSeg.start_lng,
-    end_lat: lastSeg.end_lat,
-    end_lng: lastSeg.end_lng,
-    distance: segments.reduce((sum, s) => sum + (s.distance ?? 0), 0),
-    version: firstSeg.version,
-    git_branch: firstSeg.git_branch,
-    git_commit: firstSeg.git_commit,
-    git_commit_date: firstSeg.git_commit_date,
-    git_dirty: firstSeg.git_dirty,
-    git_remote: firstSeg.git_remote,
-    maxqlog: maxSegment,
-    procqlog: maxSegment,
-    is_public: settings?.is_public ?? false,
-    platform: firstSeg.platform,
-    url: `${origin}/v1/route/${routeName}/derived/${sig}`,
-    user_id: null,
-    vin: firstSeg.vin,
-    make: firstSeg.platform?.split('_')[0]?.toLowerCase() ?? null,
-    id: null,
-    car_id: null,
-    version_id: null,
-  }
-}
 
 /**
  * Checks if route is public, has valid signature, or user has access to the requested route
@@ -113,7 +73,7 @@ export const routeMiddleware = createMiddleware(
     const [dongleId, routeId] = decodeURIComponent(req.params.routeName).split('|')
     if (!dongleId || !routeId) throw new NotFoundError('Invalid route name')
 
-    const route = await aggregateRouteFromSegments(dongleId, routeId, ctx.origin)
+    const route = await aggregateRoute(dongleId, routeId, ctx.origin)
     if (!route) throw new NotFoundError('Route not found')
 
     // Check signature access
@@ -133,6 +93,10 @@ export const routeMiddleware = createMiddleware(
     if (!identity) throw new UnauthorizedError('Authentication required')
     if (identity.type === 'device') throw new ForbiddenError('Device cannot access user routes')
 
+    // superuser
+    if (identity.user.superuser) return { ...ctx, identity, route, permission: 'owner' as const }
+
+    // user
     const deviceUser = await db.query.deviceUsersTable.findFirst({
       where: and(eq(deviceUsersTable.user_id, identity.user.id), eq(deviceUsersTable.dongle_id, dongleId)),
       with: { device: true },
@@ -143,20 +107,19 @@ export const routeMiddleware = createMiddleware(
   },
 )
 
-type DataSignature = { key: string; permission: Permission }
-export const createDataSignature = (key: string, permission: Permission, expiresIn?: number) => sign({ key, permission }, env.JWT_SECRET, expiresIn)
-
 /**
  * Checks if sig or user or device has access to specific key
+ * Keys are expected in format: dongleId/routeId/segment/file
  */
 export const dataMiddleware = createMiddleware(async (req: { params: { _key: string }; query: { sig?: string } }, { identity, ...ctx }) => {
   const rawKeys = new URL(ctx.request.url).pathname.replace('/connectdata/', '').replaceAll('%2F', '/').replaceAll('*', '').trim().split('/').filter(Boolean)
   const key = rawKeys.join('/')
 
-  // We only support keys that prefix with /dongleId/
+  // Keys must start with dongleId/
   const dongleId = key.split('/')[0]
-  if (!dongleId) throw new BadRequestError(`No dongleId`)
+  if (!dongleId) throw new BadRequestError('Invalid key format')
 
+  // signature
   if (req.query.sig) {
     const signature = verify<DataSignature>(req.query.sig, env.JWT_SECRET)
     if (!signature || signature.key !== key) throw new ForbiddenError('Invalid signature')
@@ -165,19 +128,24 @@ export const dataMiddleware = createMiddleware(async (req: { params: { _key: str
     return { ...ctx, identity, permission: signature.permission, key, device }
   }
 
-  // if (dongleId) return { ...ctx, identity, permission: 'owner', key }
-
   if (!identity) throw new UnauthorizedError('Authentication required')
+
+  // device
   if (identity.type === 'device') {
     if (identity.device.dongle_id !== dongleId) throw new ForbiddenError('Device mismatch')
     return { ...ctx, identity, permission: 'owner' as const, device: identity.device, key }
   }
 
+  const device = await db.query.devicesTable.findFirst({ where: eq(devicesTable.dongle_id, dongleId) })
+  if (!device) throw new NotFoundError('Device not found')
+  // superuser
+  if (identity.user.superuser) return { ...ctx, identity, permission: 'owner' as const, key, device }
+
+  // user
   const deviceUser = await db.query.deviceUsersTable.findFirst({
     where: and(eq(deviceUsersTable.dongle_id, dongleId), eq(deviceUsersTable.user_id, identity.user.id)),
-    with: { device: true },
   })
   if (!deviceUser) throw new ForbiddenError('No access to data')
 
-  return { ...ctx, identity, permission: deviceUser.permission, key, device: deviceUser.device }
+  return { ...ctx, identity, permission: deviceUser.permission, key, device }
 })

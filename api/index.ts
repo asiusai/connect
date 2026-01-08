@@ -4,6 +4,7 @@ import { openApiDoc, swaggerHtml } from './swagger'
 import { contract } from '../connect/src/api/contract'
 import { websocket, WebSocketData } from './ws'
 import { auth, Identity } from './auth'
+import { startQueueWorker } from './processing'
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -72,3 +73,5 @@ const server = Bun.serve({
 })
 
 console.log(`Started server on http://${server.hostname}:${server.port}`)
+
+startQueueWorker()
