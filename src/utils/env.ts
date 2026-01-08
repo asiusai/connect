@@ -10,7 +10,6 @@ export const Environment = z.object({
   AUTH_URL: z.string().default('https://api.comma.ai'),
   BILLING_URL: z.string().default('https://billing-comma-proxy.asius.ai'),
   USERADMIN_URL: z.string().default('https://useradmin.comma.ai'),
-  RENDERER_URL: z.string().default('https://api.asius.ai'),
 
   DEMO_DONGLE_ID: z.string().default('1d3dc3e03047b0c7'),
   DEMO_ACCESS_TOKEN: z

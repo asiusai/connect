@@ -69,6 +69,11 @@ const router = createBrowserRouter([
     lazy: () => import('./pages/test'),
     errorElement: <ErrorPage />,
   },
+  {
+    path: 'docs',
+    lazy: () => import('./pages/docs'),
+    errorElement: <ErrorPage />,
+  },
 
   // Route pages
   {

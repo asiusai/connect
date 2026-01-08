@@ -21,7 +21,7 @@ import { env } from '../utils/env'
 
 const c = initContract()
 
-const isOurAPI =["asius","dev"].includes(env.MODE)
+const isOurAPI = ['asius', 'dev'].includes(env.MODE)
 const auth = c.router({
   me: {
     method: 'GET',
@@ -76,7 +76,7 @@ const devices = c.router({
   pair: {
     method: 'POST',
     path: '/v2/pilotpair/',
-    contentType: isOurAPI? undefined : 'multipart/form-data',
+    contentType: isOurAPI ? undefined : 'multipart/form-data',
     body: z.object({ pair_token: z.string() }),
     responses: {
       200: z.object({
