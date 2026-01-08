@@ -1,6 +1,5 @@
 import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
 import { router } from './router'
-import { openApiDoc, swaggerHtml } from './swagger'
 import { contract } from '../connect/src/api/contract'
 import { websocket, WebSocketData } from './ws'
 import { auth, Identity } from './auth'
@@ -18,10 +17,6 @@ const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?
   // HEALTH
   if (url.pathname === '/health') return Response.json({ status: 'ok' }, { headers })
 
-  // SWAGGER
-  if (url.pathname === '/') return new Response(swaggerHtml, { headers: { ...headers, 'Content-Type': 'text/html' } })
-  if (url.pathname === '/openapi.json') return Response.json(openApiDoc, { headers })
-
   // WS
   if (url.pathname.startsWith('/ws/v2/')) {
     const dongleId = url.pathname.replace(`/ws/v2/`, '')
@@ -33,12 +28,15 @@ const handle = async (req: Request, server: Bun.Server<WebSocketData>, identity?
     else return new Response('WS upgrade failed', { status: 400 })
   }
 
+  // for cloudflare the origin has only http://, but we should use https://
+  const origin = url.origin.includes('localhost') ? url.origin : url.origin.replace('http://', 'https://')
+
   // API ROUTES
   const res = await fetchRequestHandler({
     contract,
     router,
     request: req,
-    platformContext: { identity, origin: url.origin.replace('http://', 'https://') },
+    platformContext: { identity, origin },
     options: { responseValidation: true },
   })
 
