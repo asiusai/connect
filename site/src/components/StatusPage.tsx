@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 
 type ServiceStatus = { status: 'ok' | 'error'; name?: string; latency?: number; error?: string }
+type UptimeEvent = { event: 'start' | 'stop'; timestamp: number }
 
 type StatusData = {
   status: 'ok' | 'degraded'
   uptime: number
+  uptimeHistory?: UptimeEvent[]
   services: { mkv: ServiceStatus; database: ServiceStatus }
   stats: { users: number; devices: number; routes: number; segments: number; queue: Record<string, number>; totalSize: number }
   frontends: ServiceStatus[]
@@ -64,6 +66,30 @@ const Card = ({ title, children }: { title: string; children: React.ReactNode })
     {children}
   </div>
 )
+
+const formatDate = (ms: number) => {
+  const d = new Date(ms)
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+type DowntimePeriod = { start: number; end: number; duration: number }
+
+const calculateDowntimes = (events: UptimeEvent[]): DowntimePeriod[] => {
+  if (events.length < 2) return []
+  const sorted = [...events].sort((a, b) => a.timestamp - b.timestamp)
+  const downtimes: DowntimePeriod[] = []
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].event === 'start' && sorted[i - 1].event === 'start') {
+      // Two consecutive starts = server crashed between them
+      downtimes.push({
+        start: sorted[i - 1].timestamp,
+        end: sorted[i].timestamp,
+        duration: sorted[i].timestamp - sorted[i - 1].timestamp,
+      })
+    }
+  }
+  return downtimes.sort((a, b) => b.end - a.end) // Most recent first
+}
 
 const Stat = ({ value, label }: { value: string | number; label: string }) => (
   <div className="text-center">
@@ -176,6 +202,31 @@ export const StatusPage = () => {
           </div>
         )}
       </Card>
+
+      {data.uptimeHistory && data.uptimeHistory.length > 1 && (
+        <Card title="Uptime History">
+          {(() => {
+            const downtimes = calculateDowntimes(data.uptimeHistory)
+            if (downtimes.length === 0) {
+              return <div className="text-green-500">No downtime recorded</div>
+            }
+            return (
+              <div className="space-y-2">
+                <div className="text-sm text-[#737373] mb-3">
+                  {downtimes.length} restart{downtimes.length > 1 ? 's' : ''} detected
+                </div>
+                {downtimes.slice(0, 10).map((d, i) => (
+                  <div key={i} className="flex justify-between items-center py-1 border-b border-[#262626] last:border-0">
+                    <span className="text-sm">{formatDate(d.end)}</span>
+                    <span className="text-sm text-[#737373]">down ~{formatUptime(d.duration)}</span>
+                  </div>
+                ))}
+                {downtimes.length > 10 && <div className="text-xs text-[#525252]">+ {downtimes.length - 10} more</div>}
+              </div>
+            )
+          })()}
+        </Card>
+      )}
 
       <div className="text-xs text-[#525252] text-center mt-8">Uptime: {formatUptime(data.uptime)}</div>
     </>

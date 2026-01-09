@@ -221,9 +221,7 @@ export const processQlogStream = async (
     // Determine the reference time for offset_millis (firstPandaStatesTime is the anchor)
     // offset_millis is relative to firstPandaStatesTime (can be negative if event is before it)
     // route_offset_millis adds segment offset based on routeStartTimeFromQlog
-    const segmentStartOffset = routeStartTimeFromQlog && firstPandaStatesTime
-      ? Math.floor((firstPandaStatesTime - routeStartTimeFromQlog) / 1e6)
-      : 0
+    const segmentStartOffset = routeStartTimeFromQlog && firstPandaStatesTime ? Math.floor((firstPandaStatesTime - routeStartTimeFromQlog) / 1e6) : 0
 
     // Add derived events
     const derivedEvents: RouteEvent[] = []

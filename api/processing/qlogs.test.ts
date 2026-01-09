@@ -23,7 +23,10 @@ const discoverRoutes = async () => {
       continue
     }
     if (segments.length > 0) {
-      routes.set(routeDir, segments.sort((a, b) => a - b))
+      routes.set(
+        routeDir,
+        segments.sort((a, b) => a - b),
+      )
     }
   }
 
@@ -31,11 +34,7 @@ const discoverRoutes = async () => {
 }
 
 // Routes with full segments downloaded (for route metadata testing)
-const ROUTES_WITH_ALL_SEGMENTS = [
-  '9748a98e983e0b39_0000002c--d68dde99ca',
-  '9748a98e983e0b39_00000030--c299dc644f',
-  '9748a98e983e0b39_00000032--f036598e01',
-]
+const ROUTES_WITH_ALL_SEGMENTS = ['9748a98e983e0b39_0000002c--d68dde99ca', '9748a98e983e0b39_00000030--c299dc644f', '9748a98e983e0b39_00000032--f036598e01']
 
 describe('qlogs', () => {
   test('discovers test data', async () => {
@@ -172,7 +171,7 @@ describe('qlogs', () => {
 
           // All expected events should exist with matching data (order may differ slightly due to timing)
           for (const exp of expected) {
-            const found = events.find(e => e.type === exp.type && JSON.stringify(e.data) === JSON.stringify(exp.data))
+            const found = events.find((e) => e.type === exp.type && JSON.stringify(e.data) === JSON.stringify(exp.data))
             expect(found, `${routeName}/${segment} missing ${exp.type} event`).toBeDefined()
           }
         }

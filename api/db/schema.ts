@@ -222,3 +222,10 @@ export const filesRelations = relations(filesTable, ({ one }) => ({
     references: [segmentsTable.dongle_id, segmentsTable.route_id, segmentsTable.segment],
   }),
 }))
+
+// Uptime tracking - records server start/stop events
+export const uptimeTable = sqliteTable('uptime', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  event: text('event').$type<'start' | 'stop'>().notNull(),
+  timestamp: integer('timestamp').notNull(), // unix ms
+})

@@ -1,11 +1,21 @@
 import { contract } from '../../connect/src/api/contract'
 import { tsr } from '../common'
 import { db } from '../db/client'
-import { devicesTable, usersTable, segmentsTable, filesTable } from '../db/schema'
-import { sql, count, countDistinct } from 'drizzle-orm'
+import { devicesTable, usersTable, segmentsTable, filesTable, uptimeTable } from '../db/schema'
+import { sql, count, countDistinct, desc } from 'drizzle-orm'
 import { env } from '../env'
 
 const startTime = Date.now()
+
+// Record server start event
+const recordStart = () => {
+  try {
+    db.insert(uptimeTable).values({ event: 'start', timestamp: startTime }).run()
+  } catch {
+    // Table might not exist yet, ignore
+  }
+}
+recordStart()
 
 type ServiceStatus = { status: 'ok' | 'error'; latency?: number; error?: string }
 
@@ -127,16 +137,27 @@ const getCI = async () => {
   return results
 }
 
+const getUptimeHistory = () => {
+  try {
+    const events = db.select().from(uptimeTable).orderBy(desc(uptimeTable.timestamp)).limit(100).all()
+    return events.map((e) => ({ event: e.event, timestamp: e.timestamp }))
+  } catch {
+    return []
+  }
+}
+
 export const admin = tsr.router(contract.admin, {
   health: async () => ({ status: 200 as const, body: { status: 'ok' as const } }),
   status: async () => {
     const [mkv, database, stats, frontends, ci] = await Promise.all([checkMkv(), checkDb(), getStats(), getFrontends(), getCI()])
+    const uptimeHistory = getUptimeHistory()
 
     return {
       status: 200,
       body: {
         status: (mkv.status === 'ok' && database.status === 'ok' ? 'ok' : 'degraded') as 'ok' | 'degraded',
         uptime: Date.now() - startTime,
+        uptimeHistory,
         services: { mkv, database },
         stats,
         frontends,
