@@ -42,7 +42,7 @@ export const SSH = () => {
       <h2 className="text-xl font-bold px-2">SSH Remote Access</h2>
       <div className="bg-background-alt rounded-xl p-4 flex flex-col gap-4">
         <p className="text-sm text-white/70">
-          SSH into your device from anywhere using{" "}
+          SSH into your device from anywhere using{' '}
           <a href="https://ssh.asius.ai" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
             ssh.asius.ai
           </a>
