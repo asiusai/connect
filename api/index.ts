@@ -1,3 +1,6 @@
+import { restoreFromR2, startBackupSchedule } from './db/backup'
+await restoreFromR2()
+
 import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
 import { router } from './router'
 import { contract } from '../connect/src/api/contract'
@@ -64,3 +67,4 @@ const server = Bun.serve<WebSocketData>({
 console.log(`Started server on http://${server.hostname}:${server.port}`)
 
 startQueueWorker()
+startBackupSchedule()

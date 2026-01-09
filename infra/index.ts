@@ -10,6 +10,12 @@ const config = new pulumi.Config()
 // ------------------------- CONSTS -------------------------
 const ACCOUNT_ID = '558df022e422781a34f239d7de72c8ae'
 const ASIUS_ZONE_ID = 'f4c49c38916764f43e3854fb5461db31'
+
+// R2 bucket for SQLite backups (uses same credentials as Pulumi state)
+const dbBackupBucket = new cloudflare.R2Bucket('db-backup-bucket', {
+  accountId: ACCOUNT_ID,
+  name: 'asius-db-backup',
+})
 const NEW_CONNECT_ZONE_ID = '9dbe2445beeb3c44e991656fada0231c'
 
 // ------------------------- PROXIES -------------------------
@@ -348,6 +354,10 @@ docker run -d \
   -e GOOGLE_CLIENT_SECRET='${config.requireSecret('googleClientSecret')}' \
   -e API_ORIGIN='wss://api.asius.ai' \
   -e SSH_API_KEY='${config.requireSecret('sshApiKey')}' \
+  -e R2_BUCKET='${dbBackupBucket.name}' \
+  -e R2_ACCOUNT_ID='${ACCOUNT_ID}' \
+  -e R2_ACCESS_KEY_ID='${process.env.AWS_ACCESS_KEY_ID}' \
+  -e R2_SECRET_ACCESS_KEY='${process.env.AWS_SECRET_ACCESS_KEY}' \
   ${IMAGE}
 sleep 5
 docker logs asius-api --tail 50

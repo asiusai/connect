@@ -21,6 +21,12 @@ export const Environment = z.object({
   SUPERUSERS: zArray().default(['nagelkarel@gmail.com']),
 
   SSH_API_KEY: z.string().optional(),
+
+  // R2 backup (optional)
+  R2_BUCKET: z.string().optional(),
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
 })
 
 export const env = Environment.parse(process.env)
