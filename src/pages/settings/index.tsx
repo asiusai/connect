@@ -5,6 +5,7 @@ import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
+import { SSH } from './SSH'
 import { env } from '../../utils/env'
 import { useProfile } from '../../api/queries'
 import { Button } from '../../components/Button'
@@ -21,6 +22,7 @@ export const Component = () => {
         <Device />
         <Preferences />
         <Users />
+        <SSH />
         {!!env.BILLING_URL && <Prime />}
 
         {profile && (
