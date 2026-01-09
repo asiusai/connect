@@ -1,10 +1,48 @@
 import { describe, expect, test, setDefaultTimeout } from 'bun:test'
 import { readdir } from 'fs/promises'
-import { processQlogStream, type RouteEvent, type Coord } from './qlogs'
+import { processQlogStreaming, type RouteEvent, type Coord, type StreamingQlogResult } from './qlogs'
 
 setDefaultTimeout(60000) // 60 seconds for parsing all test data
 
 const TEST_DATA_DIR = import.meta.dir + '/../../example-data'
+
+// Helper to capture streamed JSON arrays into memory for testing
+const createCaptureStream = () => {
+  const chunks: Uint8Array[] = []
+  const stream = new WritableStream<Uint8Array>({
+    write(chunk) {
+      chunks.push(chunk)
+    },
+  })
+  const getData = () => {
+    const combined = new Uint8Array(chunks.reduce((acc, c) => acc + c.length, 0))
+    let offset = 0
+    for (const chunk of chunks) {
+      combined.set(chunk, offset)
+      offset += chunk.length
+    }
+    return JSON.parse(new TextDecoder().decode(combined))
+  }
+  return { stream, getData }
+}
+
+// Wrapper to run streaming processor and capture results for testing
+const processQlogForTest = async (
+  inputStream: ReadableStream<Uint8Array>,
+  segment: number,
+): Promise<{ result: StreamingQlogResult; events: RouteEvent[]; coords: Coord[] } | null> => {
+  const eventsCapture = createCaptureStream()
+  const coordsCapture = createCaptureStream()
+
+  const result = await processQlogStreaming(inputStream, segment, eventsCapture.stream, coordsCapture.stream)
+  if (!result) return null
+
+  return {
+    result,
+    events: eventsCapture.getData() as RouteEvent[],
+    coords: coordsCapture.getData() as Coord[],
+  }
+}
 
 // Discover all routes from test data (new folder structure: routeId/segment/files)
 const discoverRoutes = async () => {
@@ -66,10 +104,10 @@ describe('qlogs', () => {
         }
 
         const qlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/0/qlog.zst`)
-        const result = await processQlogStream(qlogFile.stream(), 0)
-        expect(result).not.toBeNull()
+        const parsed = await processQlogForTest(qlogFile.stream(), 0)
+        expect(parsed).not.toBeNull()
 
-        const metadata = result!.metadata
+        const metadata = parsed!.result.metadata
         expect(metadata?.version).toBe(expected.version)
         expect(metadata?.gitCommit).toBe(expected.git_commit)
         expect(metadata?.gitBranch).toBe(expected.git_branch)
@@ -80,8 +118,8 @@ describe('qlogs', () => {
         expect(metadata?.vin).toBe(expected.vin)
 
         // GPS coordinates from first segment
-        expect(result!.firstGps?.Latitude).toBeCloseTo(expected.start_lat, 2)
-        expect(result!.firstGps?.Longitude).toBeCloseTo(expected.start_lng, 2)
+        expect(parsed!.result.firstGps?.Latitude).toBeCloseTo(expected.start_lat, 2)
+        expect(parsed!.result.firstGps?.Longitude).toBeCloseTo(expected.start_lng, 2)
       })
     }
   })
@@ -102,21 +140,21 @@ describe('qlogs', () => {
 
         // Parse first segment for start GPS
         const firstQlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/0/qlog.zst`)
-        const firstResult = await processQlogStream(firstQlogFile.stream(), 0)
-        expect(firstResult).not.toBeNull()
+        const firstParsed = await processQlogForTest(firstQlogFile.stream(), 0)
+        expect(firstParsed).not.toBeNull()
 
         // Parse last segment for end GPS
         const lastQlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/${expected.maxqlog}/qlog.zst`)
-        const lastResult = await processQlogStream(lastQlogFile.stream(), expected.maxqlog)
-        expect(lastResult).not.toBeNull()
+        const lastParsed = await processQlogForTest(lastQlogFile.stream(), expected.maxqlog)
+        expect(lastParsed).not.toBeNull()
 
         // Start GPS from first segment
-        expect(firstResult!.firstGps?.Latitude).toBeCloseTo(expected.start_lat, 2)
-        expect(firstResult!.firstGps?.Longitude).toBeCloseTo(expected.start_lng, 2)
+        expect(firstParsed!.result.firstGps?.Latitude).toBeCloseTo(expected.start_lat, 2)
+        expect(firstParsed!.result.firstGps?.Longitude).toBeCloseTo(expected.start_lng, 2)
 
         // End GPS from last segment
-        expect(lastResult!.lastGps?.Latitude).toBeCloseTo(expected.end_lat, 2)
-        expect(lastResult!.lastGps?.Longitude).toBeCloseTo(expected.end_lng, 2)
+        expect(lastParsed!.result.lastGps?.Latitude).toBeCloseTo(expected.end_lat, 2)
+        expect(lastParsed!.result.lastGps?.Longitude).toBeCloseTo(expected.end_lng, 2)
       })
     }
   })
@@ -132,11 +170,11 @@ describe('qlogs', () => {
         if (!(await eventsFile.exists())) continue
 
         const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-        const result = await processQlogStream(qlogFile.stream(), 0)
-        expect(result, `${routeName}/0 failed to parse`).not.toBeNull()
+        const parsed = await processQlogForTest(qlogFile.stream(), 0)
+        expect(parsed, `${routeName}/0 failed to parse`).not.toBeNull()
 
         const expected = (await eventsFile.json()) as RouteEvent[]
-        const events = result!.events
+        const events = parsed!.events
 
         // Event count should match
         expect(events.length, `${routeName}/0 event count`).toBe(expected.length)
@@ -160,18 +198,18 @@ describe('qlogs', () => {
           if (!(await eventsFile.exists())) continue
 
           const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-          const result = await processQlogStream(qlogFile.stream(), segment)
-          expect(result, `${routeName}/${segment} failed to parse`).not.toBeNull()
+          const parsed = await processQlogForTest(qlogFile.stream(), segment)
+          expect(parsed, `${routeName}/${segment} failed to parse`).not.toBeNull()
 
           const expected = (await eventsFile.json()) as RouteEvent[]
-          const events = result!.events
+          const events = parsed!.events
 
           // Event count should match
           expect(events.length, `${routeName}/${segment} event count`).toBe(expected.length)
 
           // All expected events should exist with matching data (order may differ slightly due to timing)
           for (const exp of expected) {
-            const found = events.find((e) => e.type === exp.type && JSON.stringify(e.data) === JSON.stringify(exp.data))
+            const found = events.find((e: RouteEvent) => e.type === exp.type && JSON.stringify(e.data) === JSON.stringify(exp.data))
             expect(found, `${routeName}/${segment} missing ${exp.type} event`).toBeDefined()
           }
         }
@@ -188,16 +226,16 @@ describe('qlogs', () => {
         if (!(await eventsFile.exists())) continue
 
         const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-        const result = await processQlogStream(qlogFile.stream(), 0)
-        if (!result) continue
+        const parsed = await processQlogForTest(qlogFile.stream(), 0)
+        if (!parsed) continue
 
         const expected = (await eventsFile.json()) as RouteEvent[]
 
         // Find the first two derived events in both
-        const expFirst = expected.find((e) => e.type === 'event')
-        const expSecond = expected.filter((e) => e.type === 'event')[1]
-        const ourFirst = result.events.find((e) => e.type === 'event')
-        const ourSecond = result.events.filter((e) => e.type === 'event')[1]
+        const expFirst = expected.find((e: RouteEvent) => e.type === 'event')
+        const expSecond = expected.filter((e: RouteEvent) => e.type === 'event')[1]
+        const ourFirst = parsed.events.find((e: RouteEvent) => e.type === 'event')
+        const ourSecond = parsed.events.filter((e: RouteEvent) => e.type === 'event')[1]
 
         if (expFirst && expSecond && ourFirst && ourSecond) {
           const expFirstType = (expFirst.data as { event_type: string }).event_type
@@ -223,11 +261,11 @@ describe('qlogs', () => {
           if (!(await coordsFile.exists())) continue
 
           const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-          const result = await processQlogStream(qlogFile.stream(), segment)
-          expect(result, `${routeName}/${segment} failed to parse`).not.toBeNull()
+          const parsed = await processQlogForTest(qlogFile.stream(), segment)
+          expect(parsed, `${routeName}/${segment} failed to parse`).not.toBeNull()
 
           const expected = (await coordsFile.json()) as Coord[]
-          const coords = result!.coords
+          const coords = parsed!.coords
 
           // Count should be close (we may have 1-2 extra at segment boundary)
           expect(Math.abs(coords.length - expected.length), `${routeName}/${segment} coord count diff`).toBeLessThan(5)

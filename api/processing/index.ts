@@ -1,21 +1,50 @@
 import { db } from '../db/client'
 import { segmentsTable, routesTable } from '../db/schema'
 import { mkv } from '../mkv'
-import { processQlogStream, type SegmentQlogData } from './qlogs'
+import { processQlogStreaming, type StreamingQlogResult } from './qlogs'
 import { extractSprite } from './qcamera'
 
-const saveJson = async (key: string, data: unknown): Promise<void> => {
-  const json = JSON.stringify(data)
-  const blob = new Blob([json], { type: 'application/json' })
-  await mkv.put(key, blob.stream(), { 'Content-Type': 'application/json' }, true)
+// Creates a passthrough stream that can be written to and read from
+const createPassthroughStream = () => {
+  let controller: ReadableStreamDefaultController<Uint8Array>
+  const readable = new ReadableStream<Uint8Array>({
+    start(c) {
+      controller = c
+    },
+  })
+  const writable = new WritableStream<Uint8Array>({
+    write(chunk) {
+      controller.enqueue(chunk)
+    },
+    close() {
+      controller.close()
+    },
+  })
+  return { readable, writable }
 }
 
-const processSegmentQlog = async (dongleId: string, routeId: string, segment: number): Promise<SegmentQlogData | null> => {
+const processSegmentQlogStreaming = async (dongleId: string, routeId: string, segment: number): Promise<StreamingQlogResult | null> => {
   const key = `${dongleId}/${routeId}/${segment}/qlog.zst`
   const res = await mkv.get(key)
   if (!res.ok || !res.body) return null
 
-  return processQlogStream(res.body, segment, dongleId, routeId)
+  const baseKey = `${dongleId}/${routeId}/${segment}`
+
+  // Create passthrough streams for events and coords
+  const eventsPassthrough = createPassthroughStream()
+  const coordsPassthrough = createPassthroughStream()
+
+  // Start uploading to MKV in parallel with processing
+  const eventsUpload = mkv.put(`${baseKey}/events.json`, eventsPassthrough.readable, { 'Content-Type': 'application/json' }, true)
+  const coordsUpload = mkv.put(`${baseKey}/coords.json`, coordsPassthrough.readable, { 'Content-Type': 'application/json' }, true)
+
+  // Process the qlog, streaming output to the passthrough streams
+  const result = await processQlogStreaming(res.body, segment, eventsPassthrough.writable, coordsPassthrough.writable, dongleId, routeId)
+
+  // Wait for uploads to complete
+  await Promise.all([eventsUpload, coordsUpload])
+
+  return result
 }
 
 const processSegmentQcamera = async (dongleId: string, routeId: string, segment: number): Promise<void> => {
@@ -45,13 +74,11 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
   // Validate routeId format
   if (!/^(\d{4}-\d{2}-\d{2}--\d{2}-\d{2}-\d{2}|[0-9a-f]{8}--[0-9a-f]{10})$/.test(routeId)) return
 
-  const baseKey = `${dongleId}/${routeId}/${segment}`
-
-  // Process qlog - this creates the segment record
+  // Process qlog - this creates the segment record and streams events/coords to storage
   if (filename === 'qlog.zst' || filename === 'qlog') {
-    const data = await processSegmentQlog(dongleId, routeId, segment)
+    const data = await processSegmentQlogStreaming(dongleId, routeId, segment)
 
-    // Upsert segment
+    // Upsert segment with data from streaming result
     const segmentData = {
       start_time: data?.firstGps?.UnixTimestampMillis ? Number(data.firstGps.UnixTimestampMillis) : null,
       end_time: data?.lastGps?.UnixTimestampMillis ? Number(data.lastGps.UnixTimestampMillis) : null,
@@ -59,7 +86,7 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
       start_lng: data?.firstGps?.Longitude ?? null,
       end_lat: data?.lastGps?.Latitude ?? null,
       end_lng: data?.lastGps?.Longitude ?? null,
-      distance: data?.coords.length ? data.coords[data.coords.length - 1].dist : null,
+      distance: data?.totalDistance ?? null,
       version: data?.metadata?.version ?? null,
       git_branch: data?.metadata?.gitBranch ?? null,
       git_commit: data?.metadata?.gitCommit ?? null,
@@ -69,6 +96,7 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
       platform: data?.metadata?.carFingerprint ?? null,
       vin: data?.metadata?.vin ?? null,
     }
+
     // Create route entry if it doesn't exist
     await db.insert(routesTable).values({ dongle_id: dongleId, route_id: routeId }).onConflictDoNothing()
 
@@ -79,11 +107,6 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
         target: [segmentsTable.dongle_id, segmentsTable.route_id, segmentsTable.segment],
         set: segmentData,
       })
-
-    if (data) {
-      await saveJson(`${baseKey}/events.json`, data.events)
-      await saveJson(`${baseKey}/coords.json`, data.coords)
-    }
   }
 
   // Process qcamera to extract sprite

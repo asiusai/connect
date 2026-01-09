@@ -219,7 +219,7 @@ const firewall = new hcloud.Firewall('api-firewall', {
 })
 
 const apiServer = new hcloud.Server('api-server', {
-  serverType: 'cpx22',
+  serverType: 'cpx22', // upgraded to cpx32
   image: 'docker-ce',
   location: 'nbg1',
   sshKeys: [sshKey.id],
