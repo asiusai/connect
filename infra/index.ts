@@ -215,6 +215,7 @@ const firewall = new hcloud.Firewall('api-firewall', {
   rules: [
     { direction: 'in', protocol: 'tcp', port: '22', sourceIps: ['0.0.0.0/0', '::/0'] },
     { direction: 'in', protocol: 'tcp', port: '80', sourceIps: ['0.0.0.0/0', '::/0'] },
+    { direction: 'in', protocol: 'tcp', port: '2222', sourceIps: ['0.0.0.0/0', '::/0'] }, // SSH proxy
   ],
 })
 
@@ -232,6 +233,16 @@ new cloudflare.DnsRecord('api-dns', {
   type: 'A',
   content: apiServer.ipv4Address,
   proxied: true,
+  ttl: 1,
+})
+
+// SSH proxy - direct to IP (not proxied, SSH needs direct connection)
+new cloudflare.DnsRecord('ssh-dns', {
+  zoneId: ASIUS_ZONE_ID,
+  name: 'ssh',
+  type: 'A',
+  content: apiServer.ipv4Address,
+  proxied: false,
   ttl: 1,
 })
 
@@ -334,6 +345,7 @@ docker run -d \
   --restart always \
   --privileged \
   -p 80:80 \
+  -p 2222:2222 \
   -v /data/mkv1:/data/mkv1:shared \
   -v /data/mkv2:/data/mkv2:shared \
   -v /data/mkvdb:/data/mkvdb \
@@ -346,6 +358,7 @@ docker run -d \
   -e JWT_SECRET='${config.requireSecret('jwtSecret')}' \
   -e GOOGLE_CLIENT_ID='${config.requireSecret('googleClientId')}' \
   -e GOOGLE_CLIENT_SECRET='${config.requireSecret('googleClientSecret')}' \
+  -e API_ORIGIN='wss://api.asius.ai' \
   ${IMAGE}
 sleep 5
 docker logs asius-api --tail 50

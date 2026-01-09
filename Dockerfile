@@ -29,5 +29,5 @@ RUN sed -i 's/"infra",//g; s/"site"//g' package.json && bun install --no-save
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-EXPOSE 80
+EXPOSE 80 2222
 CMD ["./docker-entrypoint.sh"]
