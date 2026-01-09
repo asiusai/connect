@@ -476,6 +476,7 @@ const admin = c.router({
         }),
         frontends: z.array(ServiceStatus.extend({ name: z.string() })),
         ci: z.array(ServiceStatus.extend({ name: z.string() })),
+        lastBackup: z.number().nullable(),
       }),
     },
   },
