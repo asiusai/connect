@@ -397,6 +397,16 @@ new cloudflare.DnsRecord('ssh-dns', {
   ttl: 1,
 })
 
+// Temporary alias while rate-limited on ssh.asius.ai
+new cloudflare.DnsRecord('ssh2-dns', {
+  zoneId: ASIUS_ZONE_ID,
+  name: 'ssh2',
+  type: 'A',
+  content: sshProxyServer.ipv4Address,
+  proxied: false,
+  ttl: 1,
+})
+
 const SSH_IMAGE = 'ghcr.io/asiusai/ssh:latest'
 
 const buildAndPushSsh = new command.local.Command('build-and-push-ssh', {
@@ -435,16 +445,18 @@ echo '${config.requireSecret('ghToken')}' | docker login ghcr.io -u asiusai --pa
 docker pull ${SSH_IMAGE}
 docker stop asius-ssh 2>/dev/null || true
 docker rm asius-ssh 2>/dev/null || true
+mkdir -p /root/caddy_data
 docker run -d \
   --name asius-ssh \
   --restart always \
   -p 2222:2222 \
   -p 80:80 \
   -p 443:443 \
+  -v /root/caddy_data:/root/.local/share/caddy \
   -e SSH_PORT=2222 \
   -e WS_PORT=8080 \
   -e API_KEY='${config.requireSecret('sshApiKey')}' \
-  -e WS_ORIGIN='wss://ssh.asius.ai' \
+  -e WS_ORIGIN='wss://ssh2.asius.ai' \
   ${SSH_IMAGE}
 sleep 3
 docker logs asius-ssh --tail 20

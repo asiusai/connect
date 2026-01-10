@@ -1,4 +1,4 @@
-ssh.asius.ai {
+ssh.asius.ai, ssh2.asius.ai {
     # Redirect root to docs
     redir / https://asius.ai/docs/ssh permanent
 
