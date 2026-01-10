@@ -107,7 +107,7 @@ export const StatusPage = () => {
 
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`${apiUrl}/status.json`)
+        const res = await fetch(`${apiUrl}/status`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         setData(await res.json())
         setError(null)
