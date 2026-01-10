@@ -1,4 +1,4 @@
-name: Infrastructure
+name: Deploy
 
 on:
   push:
@@ -6,24 +6,20 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  packages: write
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - run: git submodule update --init connect minikeyvalue
-
-      - uses: docker/setup-qemu-action@v3
-
-      - uses: docker/setup-buildx-action@v3
+        with:
+          fetch-depth: 0
 
       - uses: oven-sh/setup-bun@v2
 
       - run: bun install
+        working-directory: infra
 
       - uses: pulumi/actions@v6
         with:

@@ -225,8 +225,8 @@ const firewall = new hcloud.Firewall('api-firewall', {
 })
 
 const apiServer = new hcloud.Server('api-server', {
-  serverType: 'cpx22', // upgraded to cpx32
-  image: 'docker-ce',
+  serverType: 'cpx22',
+  image: 'ubuntu-24.04',
   location: 'nbg1',
   sshKeys: [sshKey.id],
   firewallIds: [firewall.id.apply((id) => parseInt(id, 10))],
@@ -243,7 +243,7 @@ new cloudflare.DnsRecord('api-dns', {
 
 const sshPrivateKey = config.requireSecret('sshPrivateKey')
 
-// One-time server setup
+// One-time server setup (installs bun, go, clones repo, creates systemd service)
 const serverSetup = new command.remote.Command(
   'server-setup',
   {
@@ -254,15 +254,14 @@ const serverSetup = new command.remote.Command(
     },
     create: pulumi.interpolate`set -e
 
-# Disable and remove nginx (comes with docker-ce image, conflicts with port 80)
-systemctl stop nginx 2>/dev/null || true
-systemctl disable nginx 2>/dev/null || true
-apt-get remove -y nginx nginx-common 2>/dev/null || true
+# Install dependencies
+apt-get update && apt-get install -y sshfs golang-go curl git unzip
 
-# Install sshfs for mounting storage boxes
-apt-get update && apt-get install -y sshfs
+# Install bun
+curl -fsSL https://bun.sh/install | bash
+export PATH="/root/.bun/bin:$PATH"
 
-# Create data directories on host
+# Create data directories
 mkdir -p /data/mkv1 /data/mkv2 /data/mkvdb /data/db
 
 # Setup SSH key for storage boxes
@@ -274,7 +273,7 @@ chmod 600 /root/.ssh/storagebox_key
 ssh-keyscan -p 23 u526268.your-storagebox.de >> /root/.ssh/known_hosts 2>/dev/null || true
 ssh-keyscan -p 23 u526270.your-storagebox.de >> /root/.ssh/known_hosts 2>/dev/null || true
 
-# Create systemd service for SSHFS mounts (runs on boot)
+# Create systemd service for SSHFS mounts
 cat > /etc/systemd/system/sshfs-mounts.service << 'SSHFS_EOF'
 [Unit]
 Description=Mount storage boxes via SSHFS
@@ -303,71 +302,112 @@ systemctl start sshfs-mounts
 mkdir -p /data/mkv1/tmp /data/mkv1/body_temp
 mkdir -p /data/mkv2/tmp /data/mkv2/body_temp
 
-# Stop old services if any
+# Clone repo if not exists
+if [ ! -d /app ]; then
+  git clone https://github.com/asiusai/asiusai.git /app
+  cd /app && git submodule update --init
+fi
+
+# Build MKV binary
+cd /app/minikeyvalue/src && go build -o mkv
+
+# Create systemd service for API
+cat > /etc/systemd/system/asius-api.service << 'EOF'
+[Unit]
+Description=Asius API
+After=network.target sshfs-mounts.service
+Requires=sshfs-mounts.service
+
+[Service]
+Type=simple
+WorkingDirectory=/app
+ExecStart=/app/start-api.sh
+Restart=always
+Environment=PORT=80
+Environment=MKV_DB=/data/mkvdb
+Environment=MKV_DATA1=/data/mkv1
+Environment=MKV_DATA2=/data/mkv2
+Environment=DB_PATH=/data/db/data.db
+Environment=JWT_SECRET=${config.requireSecret('jwtSecret')}
+Environment=GOOGLE_CLIENT_ID=${config.requireSecret('googleClientId')}
+Environment=GOOGLE_CLIENT_SECRET=${config.requireSecret('googleClientSecret')}
+Environment=API_ORIGIN=wss://api.asius.ai
+Environment=SSH_API_KEY=${config.requireSecret('sshApiKey')}
+Environment=R2_BUCKET=${dbBackupBucket.name}
+Environment=R2_ACCOUNT_ID=${ACCOUNT_ID}
+Environment=R2_ACCESS_KEY_ID=${process.env.AWS_ACCESS_KEY_ID}
+Environment=R2_SECRET_ACCESS_KEY=${process.env.AWS_SECRET_ACCESS_KEY}
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable asius-api
+
+# Stop old docker services if any
 systemctl stop api 2>/dev/null || true
 systemctl disable api 2>/dev/null || true
+docker stop asius-api 2>/dev/null || true
+docker rm asius-api 2>/dev/null || true
 `,
   },
   { dependsOn: [apiServer] },
 )
 
-// Container image name
-const IMAGE = 'ghcr.io/asiusai/api:latest'
-
-// Build and push Docker image to GitHub Container Registry
-const buildAndPush = new command.local.Command('build-and-push', {
-  create: pulumi.interpolate`echo '${config.requireSecret('ghToken')}' | docker login ghcr.io -u asiusai --password-stdin && docker build --platform linux/amd64 -t ${IMAGE} . && docker push ${IMAGE}`,
+// Push current commit to deploy branch
+const pushApi = new command.local.Command('push-api-branch', {
+  create: 'git push origin HEAD:refs/heads/deploy-api --force',
   dir: join(__dirname, '..'),
   triggers: [Date.now()],
 })
 
-// Start container with secrets from Pulumi config
-const startContainer = new command.remote.Command(
-  'start-container',
+// Deploy API to server
+const deployApi = new command.remote.Command(
+  'deploy-api',
   {
     connection: {
       host: apiServer.ipv4Address,
       user: 'root',
       privateKey: sshPrivateKey,
     },
-    create: pulumi.interpolate`
-echo '${config.requireSecret('ghToken')}' | docker login ghcr.io -u asiusai --password-stdin
-docker pull ${IMAGE}
-docker stop asius-api 2>/dev/null || true
-docker rm asius-api 2>/dev/null || true
-docker run -d \
-  --name asius-api \
-  --restart always \
-  --privileged \
-  -p 80:80 \
-  -v /data/mkv1:/data/mkv1:shared \
-  -v /data/mkv2:/data/mkv2:shared \
-  -v /data/mkvdb:/data/mkvdb \
-  -v /data/db:/data/db \
-  -e PORT=80 \
-  -e MKV_DB=/data/mkvdb \
-  -e MKV_DATA1=/data/mkv1 \
-  -e MKV_DATA2=/data/mkv2 \
-  -e DB_PATH=/data/db/data.db \
-  -e JWT_SECRET='${config.requireSecret('jwtSecret')}' \
-  -e GOOGLE_CLIENT_ID='${config.requireSecret('googleClientId')}' \
-  -e GOOGLE_CLIENT_SECRET='${config.requireSecret('googleClientSecret')}' \
-  -e API_ORIGIN='wss://api.asius.ai' \
-  -e SSH_API_KEY='${config.requireSecret('sshApiKey')}' \
-  -e R2_BUCKET='${dbBackupBucket.name}' \
-  -e R2_ACCOUNT_ID='${ACCOUNT_ID}' \
-  -e R2_ACCESS_KEY_ID='${process.env.AWS_ACCESS_KEY_ID}' \
-  -e R2_SECRET_ACCESS_KEY='${process.env.AWS_SECRET_ACCESS_KEY}' \
-  ${IMAGE}
-sleep 5
-docker logs asius-api --tail 50
+    create: `set -e
+export PATH="/root/.bun/bin:$PATH"
+
+cd /app
+
+# Fetch and checkout the deployed commit
+git fetch origin deploy-api
+git checkout FETCH_HEAD --force
+git submodule update --init
+
+# Install dependencies
+bun install
+
+# Rebuild MKV if source changed
+cd minikeyvalue/src && go build -o mkv
+cd /app
+
+# Restart service
+systemctl restart asius-api
+
+# Wait for health
+for i in $(seq 1 30); do
+  if curl -sf http://localhost/health > /dev/null; then
+    echo "API healthy"
+    exit 0
+  fi
+  sleep 1
+done
+echo "Health check failed"
+exit 1
 `,
-    triggers: [buildAndPush.stdout],
+    triggers: [pushApi.stdout],
   },
-  { dependsOn: [buildAndPush, serverSetup] },
+  { dependsOn: [pushApi, serverSetup] },
 )
 
-export const containerLogs = startContainer.stdout
+export const apiDeployOutput = deployApi.stdout
 
 // ------------------------- SSH PROXY SERVER -------------------------
 const sshFirewall = new hcloud.Firewall('ssh-firewall', {
@@ -381,7 +421,7 @@ const sshFirewall = new hcloud.Firewall('ssh-firewall', {
 
 const sshProxyServer = new hcloud.Server('ssh-server', {
   serverType: 'cax11',
-  image: 'docker-ce',
+  image: 'ubuntu-24.04',
   location: 'fsn1',
   sshKeys: [sshKey.id],
   firewallIds: [sshFirewall.id.apply((id) => parseInt(id, 10))],
@@ -407,14 +447,7 @@ new cloudflare.DnsRecord('ssh2-dns', {
   ttl: 1,
 })
 
-const SSH_IMAGE = 'ghcr.io/asiusai/ssh:latest'
-
-const buildAndPushSsh = new command.local.Command('build-and-push-ssh', {
-  create: pulumi.interpolate`echo '${config.requireSecret('ghToken')}' | docker login ghcr.io -u asiusai --password-stdin && docker buildx build --platform linux/arm64 -t ${SSH_IMAGE} --push ./ssh`,
-  dir: join(__dirname, '..'),
-  triggers: [Date.now()],
-})
-
+// One-time SSH server setup
 const sshServerSetup = new command.remote.Command(
   'ssh-server-setup',
   {
@@ -423,47 +456,97 @@ const sshServerSetup = new command.remote.Command(
       user: 'root',
       privateKey: sshPrivateKey,
     },
-    create: `
-systemctl stop nginx 2>/dev/null || true
-systemctl disable nginx 2>/dev/null || true
-apt-get remove -y nginx nginx-common 2>/dev/null || true
+    create: pulumi.interpolate`set -e
+
+# Install dependencies
+apt-get update && apt-get install -y curl git unzip
+
+# Install bun
+curl -fsSL https://bun.sh/install | bash
+export PATH="/root/.bun/bin:$PATH"
+
+# Install Caddy
+apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+apt-get update && apt-get install -y caddy
+
+# Clone repo if not exists
+if [ ! -d /app ]; then
+  git clone https://github.com/asiusai/asiusai.git /app
+fi
+
+# Create systemd service for SSH proxy
+cat > /etc/systemd/system/asius-ssh.service << 'EOF'
+[Unit]
+Description=Asius SSH Proxy
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/app/ssh
+ExecStart=/app/ssh/start.sh
+Restart=always
+Environment=SSH_PORT=2222
+Environment=WS_PORT=8080
+Environment=API_KEY=${config.requireSecret('sshApiKey')}
+Environment=WS_ORIGIN=wss://ssh2.asius.ai
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable asius-ssh
+
+# Stop old docker services if any
+docker stop asius-ssh 2>/dev/null || true
+docker rm asius-ssh 2>/dev/null || true
 `,
   },
   { dependsOn: [sshProxyServer] },
 )
 
-const startSshContainer = new command.remote.Command(
-  'start-ssh-container',
+// Push current commit to deploy branch for SSH
+const pushSsh = new command.local.Command('push-ssh-branch', {
+  create: 'git push origin HEAD:refs/heads/deploy-ssh --force',
+  dir: join(__dirname, '..'),
+  triggers: [Date.now()],
+})
+
+// Deploy SSH proxy to server
+const deploySsh = new command.remote.Command(
+  'deploy-ssh',
   {
     connection: {
       host: sshProxyServer.ipv4Address,
       user: 'root',
       privateKey: sshPrivateKey,
     },
-    create: pulumi.interpolate`
-echo '${config.requireSecret('ghToken')}' | docker login ghcr.io -u asiusai --password-stdin
-docker pull ${SSH_IMAGE}
-docker stop asius-ssh 2>/dev/null || true
-docker rm asius-ssh 2>/dev/null || true
-mkdir -p /root/caddy_data
-docker run -d \
-  --name asius-ssh \
-  --restart always \
-  -p 2222:2222 \
-  -p 80:80 \
-  -p 443:443 \
-  -v /root/caddy_data:/root/.local/share/caddy \
-  -e SSH_PORT=2222 \
-  -e WS_PORT=8080 \
-  -e API_KEY='${config.requireSecret('sshApiKey')}' \
-  -e WS_ORIGIN='wss://ssh2.asius.ai' \
-  ${SSH_IMAGE}
+    create: `set -e
+export PATH="/root/.bun/bin:$PATH"
+
+cd /app
+
+# Fetch and checkout the deployed commit
+git fetch origin deploy-ssh
+git checkout FETCH_HEAD --force
+
+# Install dependencies
+cd ssh && bun install
+cd /app
+
+# Restart service
+systemctl restart asius-ssh
+
+# Wait for health
 sleep 3
-docker logs asius-ssh --tail 20
+curl -sf https://ssh2.asius.ai/health || echo "Health check via HTTPS not ready yet (may need Caddy to get cert)"
+echo "SSH proxy deployed"
 `,
-    triggers: [buildAndPushSsh.stdout],
+    triggers: [pushSsh.stdout],
   },
-  { dependsOn: [buildAndPushSsh, sshServerSetup] },
+  { dependsOn: [pushSsh, sshServerSetup] },
 )
 
-export const sshContainerLogs = startSshContainer.stdout
+export const sshDeployOutput = deploySsh.stdout
