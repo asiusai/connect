@@ -456,7 +456,7 @@ const admin = c.router({
   },
   status: {
     method: 'GET',
-    path: '/status.json',
+    path: '/status',
     responses: {
       200: z.object({
         status: z.enum(['ok', 'degraded']),
