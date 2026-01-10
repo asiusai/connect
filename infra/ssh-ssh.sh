@@ -3,7 +3,7 @@
 # Usage: ./ssh-ssh.sh [command]
 
 cd "$(dirname "$0")"
-IP=$(dotenv pulumi stack export 2>/dev/null | grep -oE '"ipv4Address": "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"' | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+IP=$(dotenv pulumi stack export 2>/dev/null | grep -oE '"ipv4Address": "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+"' | tail -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 
 if [[ -z "$IP" ]]; then
   echo "Error: Could not get server IP from Pulumi"

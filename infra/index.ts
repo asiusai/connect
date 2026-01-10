@@ -400,7 +400,7 @@ new cloudflare.DnsRecord('ssh-dns', {
 const SSH_IMAGE = 'ghcr.io/asiusai/ssh:latest'
 
 const buildAndPushSsh = new command.local.Command('build-and-push-ssh', {
-  create: pulumi.interpolate`echo '${config.requireSecret('ghToken')}' | docker login ghcr.io -u asiusai --password-stdin && docker build --platform linux/amd64 -t ${SSH_IMAGE} ./ssh && docker push ${SSH_IMAGE}`,
+  create: pulumi.interpolate`echo '${config.requireSecret('ghToken')}' | docker login ghcr.io -u asiusai --password-stdin && docker buildx build --platform linux/arm64 -t ${SSH_IMAGE} --push ./ssh`,
   dir: join(__dirname, '..'),
   triggers: [Date.now()],
 })
