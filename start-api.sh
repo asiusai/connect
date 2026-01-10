@@ -30,7 +30,7 @@ echo "Starting MKV master on port $MKV_PORT"
 
 # Wait for MKV to be ready (active polling instead of sleep)
 echo "Waiting for MKV..."
-until curl -sf "http://localhost:${MKV_PORT}/" > /dev/null 2>&1; do
+until curl -s -o /dev/null -w "%{http_code}" "http://localhost:${MKV_PORT}/" 2>/dev/null | grep -q "404"; do
   sleep 0.2
 done
 echo "MKV ready"
