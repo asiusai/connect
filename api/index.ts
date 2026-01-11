@@ -1,13 +1,15 @@
 import { restoreFromR2, startBackupSchedule } from './db/backup'
 await restoreFromR2()
 
-import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
-import { router } from './router'
-import { contract } from '../connect/src/api/contract'
-import { websocket, WebSocketData } from './ws'
-import { auth } from './auth'
-import { startQueueWorker } from './processing/queue'
-import { rateLimit, getClientIp } from './ratelimit'
+const { fetchRequestHandler } = await import('@ts-rest/serverless/fetch')
+const { router } = await import('./router')
+const { contract } = await import('../connect/src/api/contract')
+const { websocket } = await import('./ws')
+const { auth } = await import('./auth')
+const { startQueueWorker } = await import('./processing/queue')
+const { rateLimit, getClientIp } = await import('./ratelimit')
+
+type WebSocketData = { dongleId: string; device: unknown }
 
 const headers = {
   'Access-Control-Allow-Origin': '*',

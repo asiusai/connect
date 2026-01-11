@@ -12,6 +12,18 @@ const runMigrations = () => {
   console.log('[backup] Running migrations...')
   const sqlite = new Database(env.DB_PATH)
   sqlite.run('PRAGMA journal_mode = WAL')
+
+  // Check if this is an existing database with tables but no migration tracking
+  const tables = sqlite.query("SELECT name FROM sqlite_master WHERE type='table'").all() as { name: string }[]
+  const hasTables = tables.some((t) => t.name !== '__drizzle_migrations' && !t.name.startsWith('sqlite_'))
+  const hasMigrationTable = tables.some((t) => t.name === '__drizzle_migrations')
+
+  if (hasTables && !hasMigrationTable) {
+    console.log('[backup] Existing database without migration tracking, skipping migrations')
+    sqlite.close()
+    return
+  }
+
   migrate(drizzle(sqlite), { migrationsFolder: './db/migrations' })
   sqlite.close()
   console.log('[backup] Migrations complete')
