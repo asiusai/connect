@@ -9,7 +9,7 @@ const RSYNC_EXCLUDES = ['.env*', 'node_modules', 'dist', '.git', 'openpilot', 's
 type ServiceArgs = Record<string, Record<string, string | string[] | { [key: string]: pulumi.Input<string> }>>
 type ServerArgs = {
   allowedPorts: string[]
-  sshPublicKey: pulumi.Output<string>
+  sshKeyId: pulumi.Input<string>
   sshPrivateKey: pulumi.Input<string>
   zoneId: string
   serverType: string
@@ -17,7 +17,7 @@ type ServerArgs = {
   createScript: pulumi.Input<string>
   deployScript: pulumi.Input<string>
   proxied: boolean
-  services: { name: string; service: ServiceArgs }[]
+  services: { name: string; service: ServiceArgs; check?: string }[]
 }
 
 const generateService = (service: ServiceArgs): pulumi.Output<string> => {
@@ -36,6 +36,8 @@ const generateService = (service: ServiceArgs): pulumi.Output<string> => {
 }
 
 export class Server extends pulumi.ComponentResource {
+  public readonly ipAddress: pulumi.Output<string>
+
   constructor(name: string, args: ServerArgs, opts?: pulumi.ComponentResourceOptions) {
     super('asius:hetzner:Server', name, {}, opts)
 
@@ -47,25 +49,19 @@ export class Server extends pulumi.ComponentResource {
       { parent: this },
     )
 
-    const sshKey = new hcloud.SshKey(
-      `${name}-ssh-key`,
-      {
-        publicKey: args.sshPublicKey,
-      },
-      { parent: this },
-    )
-
     const server = new hcloud.Server(
       `${name}-server`,
       {
-        serverType: 'cpx32',
+        serverType: args.serverType,
         image: 'ubuntu-24.04',
         location: 'nbg1',
-        sshKeys: [sshKey.id],
+        sshKeys: [args.sshKeyId],
         firewallIds: [firewall.id.apply((id) => parseInt(id, 10))],
       },
       { parent: this },
     )
+
+    this.ipAddress = server.ipv4Address
 
     new cloudflare.DnsRecord(
       `${name}-dns`,
@@ -113,11 +109,12 @@ rm -f $KEY
       { parent: this, dependsOn: [setup] },
     )
 
-    // Write systemd service files and restart services after deploy
-    args.services.map((service) => {
+    // Write systemd service files and restart services after deploy (in order)
+    args.services.reduce<command.remote.Command | typeof deploy>((prev, service) => {
       const content = generateService(service.service)
+      const check = service.check ? `\ntimeout 30 bash -c '${service.check}' || (journalctl -u ${service.name} -n 20 --no-pager && exit 1)` : ''
       return new command.remote.Command(
-        `${service.name}-setup`,
+        `${name}-${service.name}`,
         {
           connection,
           create: pulumi.interpolate`
@@ -126,12 +123,12 @@ ${content}
 EOF
 systemctl daemon-reload
 systemctl enable ${service.name}
-systemctl restart ${service.name}
+systemctl restart ${service.name}${check}
 `,
           triggers: [content, deployTimestamp],
         },
-        { parent: this, dependsOn: [deploy] },
+        { parent: this, dependsOn: [prev] },
       )
-    })
+    }, deploy)
   }
 }

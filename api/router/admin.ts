@@ -7,23 +7,16 @@ import { env } from '../env'
 import { getLastBackupTime } from '../db/backup'
 
 const startTime = Date.now()
-
-// Record server start event
-const recordStart = () => {
-  try {
-    db.insert(uptimeTable).values({ event: 'start', timestamp: startTime }).run()
-  } catch {
-    // Table might not exist yet, ignore
-  }
-}
-recordStart()
+try {
+  db.insert(uptimeTable).values({ event: 'start', timestamp: startTime }).run()
+} catch {}
 
 type ServiceStatus = { status: 'ok' | 'error'; latency?: number; error?: string }
 
 const checkUrl = async (url: string): Promise<ServiceStatus> => {
   const start = Date.now()
   try {
-    const res = await fetch(url, { method: 'HEAD' })
+    const res = await fetch(url)
     if (!res.ok) return { status: 'error', error: `HTTP ${res.status}` }
     return { status: 'ok', latency: Date.now() - start }
   } catch (e) {
@@ -42,25 +35,11 @@ const checkMkv = async (): Promise<ServiceStatus> => {
   }
 }
 
-const checkDb = async (): Promise<ServiceStatus> => {
+const checkDb = (): ServiceStatus => {
   const start = Date.now()
   try {
     db.run(sql`SELECT 1`)
     return { status: 'ok', latency: Date.now() - start }
-  } catch (e) {
-    return { status: 'error', error: String(e) }
-  }
-}
-
-const checkGitHubCI = async (repo: string): Promise<ServiceStatus> => {
-  try {
-    const res = await fetch(`https://api.github.com/repos/asiusai/${repo}/actions/runs?per_page=1&status=completed`)
-    if (!res.ok) return { status: 'error', error: `HTTP ${res.status}` }
-    const data = await res.json()
-    const run = data.workflow_runs?.[0]
-    if (!run) return { status: 'ok' }
-    const ok = run.conclusion === 'success' || run.conclusion === 'skipped'
-    return { status: ok ? 'ok' : 'error', error: ok ? undefined : run.conclusion }
   } catch (e) {
     return { status: 'error', error: String(e) }
   }
@@ -97,63 +76,49 @@ const getStats = async () => {
   return { users, devices, routes, segments, queue, totalSize }
 }
 
-const checkApiHealth = async (): Promise<ServiceStatus> => {
-  const start = Date.now()
-  try {
-    const res = await fetch('https://api.asius.ai/health')
-    if (!res.ok) return { status: 'error', error: `HTTP ${res.status}` }
-    return { status: 'ok', latency: Date.now() - start }
-  } catch (e) {
-    return { status: 'error', error: String(e) }
-  }
-}
+const FRONTENDS: [string, string][] = [
+  ['api.asius.ai', 'https://api.asius.ai/health'],
+  ['ssh.asius.ai', 'https://ssh.asius.ai/health'],
+  ['comma.asius.ai', 'https://comma.asius.ai'],
+  ['konik.asius.ai', 'https://konik.asius.ai'],
+  ['connect.asius.ai', 'https://connect.asius.ai'],
+  ['openpilot.asius.ai', 'https://openpilot.asius.ai'],
+  ['sunnypilot.asius.ai', 'https://sunnypilot.asius.ai'],
+]
+const getFrontends = () => Promise.all(FRONTENDS.map(async ([name, url]) => ({ name, ...(await checkUrl(url)) })))
 
-const checkSshHealth = async (): Promise<ServiceStatus> => {
-  const start = Date.now()
-  try {
-    const res = await fetch('https://ssh.asius.ai/health')
-    if (!res.ok) return { status: 'error', error: `HTTP ${res.status}` }
-    return { status: 'ok', latency: Date.now() - start }
-  } catch (e) {
-    return { status: 'error', error: String(e) }
-  }
-}
-
-const getFrontends = async () => {
-  const sites = [
-    { name: 'api.asius.ai', check: checkApiHealth },
-    { name: 'ssh.asius.ai', check: checkSshHealth },
-    { name: 'comma.asius.ai', url: 'https://comma.asius.ai' },
-    { name: 'konik.asius.ai', url: 'https://konik.asius.ai' },
-    { name: 'connect.asius.ai', url: 'https://connect.asius.ai' },
-    { name: 'openpilot.asius.ai', url: 'https://openpilot.asius.ai' },
-    { name: 'sunnypilot.asius.ai', url: 'https://sunnypilot.asius.ai' },
-  ]
-  const results = await Promise.all(
-    sites.map(async (s) => ({
-      name: s.name,
-      ...(s.check ? await s.check() : await checkUrl(s.url!)),
-    })),
-  )
-  return results
-}
-
+const CI_REPOS = ['asiusai', 'openpilot', 'sunnypilot']
 let ciCache: { data: { name: string; status: 'ok' | 'error'; error?: string }[]; time: number } | null = null
-const CI_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 const getCI = async () => {
-  if (ciCache && Date.now() - ciCache.time < CI_CACHE_TTL) return ciCache.data
-
-  const repos = ['asiusai', 'connect', 'openpilot', 'sunnypilot']
-  const results = await Promise.all(repos.map(async (r) => ({ name: r, ...(await checkGitHubCI(r)) })))
+  if (ciCache && Date.now() - ciCache.time < 5 * 60 * 1000) return ciCache.data
+  const results = await Promise.all(
+    CI_REPOS.map(async (name) => {
+      try {
+        const res = await fetch(`https://api.github.com/repos/asiusai/${name}/actions/runs?per_page=1&status=completed`)
+        if (!res.ok) return { name, status: 'error' as const, error: `HTTP ${res.status}` }
+        const run = (await res.json()).workflow_runs?.[0]
+        if (!run) return { name, status: 'ok' as const }
+        const ok = run.conclusion === 'success' || run.conclusion === 'skipped'
+        return { name, status: ok ? ('ok' as const) : ('error' as const), error: ok ? undefined : run.conclusion }
+      } catch (e) {
+        return { name, status: 'error' as const, error: String(e) }
+      }
+    }),
+  )
   ciCache = { data: results, time: Date.now() }
   return results
 }
 
 const getUptimeHistory = () => {
   try {
-    const events = db.select().from(uptimeTable).orderBy(desc(uptimeTable.timestamp)).limit(100).all()
-    return events.map((e) => ({ event: e.event, timestamp: e.timestamp }))
+    return db
+      .select()
+      .from(uptimeTable)
+      .orderBy(desc(uptimeTable.timestamp))
+      .limit(100)
+      .all()
+      .map((e) => ({ event: e.event, timestamp: e.timestamp }))
   } catch {
     return []
   }
@@ -170,14 +135,12 @@ export const admin = tsr.router(contract.admin, {
       getCI(),
       getLastBackupTime(),
     ])
-    const uptimeHistory = getUptimeHistory()
-
     return {
       status: 200,
       body: {
         status: (mkv.status === 'ok' && database.status === 'ok' ? 'ok' : 'degraded') as 'ok' | 'degraded',
         uptime: Date.now() - startTime,
-        uptimeHistory,
+        uptimeHistory: getUptimeHistory(),
         services: { mkv, database },
         stats,
         frontends,

@@ -1,4 +1,5 @@
 import * as cloudflare from '@pulumi/cloudflare'
+import * as hcloud from '@pulumi/hcloud'
 import * as pulumi from '@pulumi/pulumi'
 import { Site } from './Site'
 import { Worker } from './Worker'
@@ -87,49 +88,31 @@ new Site('asius-site', {
 const sshPublicKey = config.requireSecret('sshPublicKey')
 const sshPrivateKey = config.requireSecret('sshPrivateKey')
 
+const sshKey = new hcloud.SshKey('hetzner-ssh-key', { publicKey: sshPublicKey })
+
 // ------------------------- API SERVER -------------------------
 const R2_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID!
 const R2_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY!
 
-new Server('api', {
+const apiServer = new Server('api', {
   allowedPorts: ['22', '80'],
-  sshPublicKey,
+  sshKeyId: sshKey.id,
   zoneId,
   serverType: 'cpx32',
   domain: 'api.asius.ai',
   sshPrivateKey,
   proxied: true,
   services: [
-    {
-      name: 'asius-sshfs',
-      service: {
-        Unit: {
-          Description: 'Mount storage boxes via SSHFS',
-          After: 'network-online.target',
-          Wants: 'network-online.target',
-        },
-        Service: {
-          Type: 'oneshot',
-          RemainAfterExit: 'yes',
-          ExecStartPre: ["/bin/bash -c 'fusermount -u /data/mkv1 2>/dev/null || true'", "/bin/bash -c 'fusermount -u /data/mkv2 2>/dev/null || true'"],
-          ExecStart: [
-            '/usr/bin/sshfs -o IdentityFile=/root/.ssh/storagebox_key,port=23,allow_other,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 u526268@u526268.your-storagebox.de: /data/mkv1',
-            '/usr/bin/sshfs -o IdentityFile=/root/.ssh/storagebox_key,port=23,allow_other,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 u526270@u526270.your-storagebox.de: /data/mkv2',
-          ],
-          ExecStop: ['/bin/fusermount -u /data/mkv1', '/bin/fusermount -u /data/mkv2'],
-        },
-        Install: {
-          WantedBy: 'multi-user.target',
-        },
-      },
-    },
-    ...[1, 2].map((i) => ({
+    ...[
+      { i: 1, user: 'u526268' },
+      { i: 2, user: 'u526270' },
+    ].map(({ i, user }) => ({
       name: `asius-mkv${i}`,
+      check: `until nc -z localhost 300${i}; do sleep 0.5; done`,
       service: {
         Unit: {
           Description: `MiniKeyValue Volume ${i}`,
-          After: 'network.target asius-sshfs.service',
-          Requires: 'asius-sshfs.service',
+          After: 'network.target',
         },
         Service: {
           Type: 'simple',
@@ -139,8 +122,14 @@ new Server('api', {
             MKV_TMP: `/tmp/mkv${i}_tmp`,
             MKV_BODY: `/tmp/mkv${i}_body`,
           },
-          ExecStartPre: `/bin/mkdir -p /tmp/mkv${i}_tmp /tmp/mkv${i}_body`,
+          ExecStartPre: [
+            `/bin/bash -c 'fusermount -u /data/mkv${i} 2>/dev/null || true'`,
+            `/bin/bash -c 'ssh-keyscan -p 23 ${user}.your-storagebox.de >> /root/.ssh/known_hosts 2>/dev/null || true'`,
+            `/usr/bin/sshfs -o IdentityFile=/root/.ssh/storagebox_key,port=23,allow_other,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 ${user}@${user}.your-storagebox.de: /data/mkv${i}`,
+            `/bin/mkdir -p /tmp/mkv${i}_tmp /tmp/mkv${i}_body`,
+          ],
           ExecStart: `/app/minikeyvalue/volume /data/mkv${i}/`,
+          ExecStopPost: `/bin/fusermount -u /data/mkv${i}`,
           Restart: 'always',
         },
         Install: {
@@ -150,6 +139,7 @@ new Server('api', {
     })),
     {
       name: 'asius-mkv',
+      check: 'until nc -z localhost 3000; do sleep 0.5; done',
       service: {
         Unit: {
           Description: 'MiniKeyValue Master',
@@ -170,6 +160,7 @@ new Server('api', {
     },
     {
       name: 'asius-api',
+      check: 'until curl -sf http://localhost:80/health; do sleep 0.5; done',
       service: {
         Unit: {
           Description: 'Asius API',
@@ -218,8 +209,6 @@ mkdir -p /data/mkv1 /data/mkv2 /data/mkvdb /data/db /app
 mkdir -p /root/.ssh
 echo '${sshPrivateKey}' > /root/.ssh/storagebox_key
 chmod 600 /root/.ssh/storagebox_key
-ssh-keyscan -p 23 u526268.your-storagebox.de >> /root/.ssh/known_hosts 2>/dev/null || true
-ssh-keyscan -p 23 u526270.your-storagebox.de >> /root/.ssh/known_hosts 2>/dev/null || true
 
 # Disable nginx (only used by MKV volume)
 systemctl stop nginx
@@ -229,73 +218,88 @@ systemctl disable nginx
 })
 
 // ------------------------- SSH SERVER -------------------------
-// new Server('ssh', {
-//   allowedPorts: ['22', '2222', '80', '443'],
-//   serverType: 'cpx22',
-//   sshPrivateKey,
-//   sshPublicKey,
-//   zoneId,
-//   domain: 'api.asius.ai',
-//   proxied: false,
-//   services: [
-//     {
-//       name: 'ssh',
-//       service: {
-//         Unit: {
-//           Description: 'Asius SSH Proxy',
-//           After: 'network.target',
-//         },
-//         Service: {
-//           Type: 'simple',
-//           WorkingDirectory: '/app/ssh',
-//           ExecStart: '/app/ssh/start.sh',
-//           Restart: 'always',
-//           Environment: {
-//             SSH_PORT: '2222',
-//             WS_PORT: '8080',
-//             API_KEY: config.requireSecret('sshApiKey'),
-//             WS_ORIGIN: 'wss://ssh.asius.ai',
-//           },
-//           Install: {
-//             WantedBy: 'multi-user.target',
-//           },
-//         },
-//       },
-//     },
-//   ],
-//   createScript: pulumi.interpolate`set -e
-// # Install dependencies
-// apt-get update && apt-get install -y curl git unzip
+const sshServer = new Server('ssh', {
+  allowedPorts: ['22', '2222', '80', '443'],
+  serverType: 'cpx22',
+  sshPrivateKey,
+  sshKeyId: sshKey.id,
+  zoneId,
+  domain: 'ssh.asius.ai',
+  proxied: false,
+  services: [
+    {
+      name: 'asius-caddy',
+      check: 'until curl -sf http://localhost:80/health; do sleep 0.5; done',
+      service: {
+        Unit: {
+          Description: 'Caddy web server for SSH proxy',
+          After: 'network.target',
+        },
+        Service: {
+          Type: 'simple',
+          ExecStart: '/usr/bin/caddy run --config /app/ssh/Caddyfile',
+          ExecReload: '/usr/bin/caddy reload --config /app/ssh/Caddyfile',
+          Restart: 'always',
+          Environment: {
+            XDG_DATA_HOME: '/data/caddy',
+            XDG_CONFIG_HOME: '/data/caddy',
+          },
+        },
+        Install: {
+          WantedBy: 'multi-user.target',
+        },
+      },
+    },
+    {
+      name: 'asius-ssh',
+      check: 'until nc -z localhost 2222; do sleep 0.5; done',
+      service: {
+        Unit: {
+          Description: 'Asius SSH Proxy',
+          After: 'network.target asius-caddy.service',
+        },
+        Service: {
+          Type: 'simple',
+          WorkingDirectory: '/app/ssh',
+          ExecStart: 'bun run index.ts',
+          Restart: 'always',
+          Environment: {
+            SSH_PORT: '2222',
+            WS_PORT: '8080',
+            API_KEY: config.requireSecret('sshApiKey'),
+            WS_ORIGIN: 'wss://ssh.asius.ai',
+          },
+        },
+        Install: {
+          WantedBy: 'multi-user.target',
+        },
+      },
+    },
+  ],
+  createScript: pulumi.interpolate`set -e
+# Install dependencies
+apt-get update && apt-get install -y curl git unzip
 
-// # Install bun
-// curl -fsSL https://bun.sh/install | bash
-// export PATH="/root/.bun/bin:$PATH"
+# Install bun
+curl -fsSL https://bun.sh/install | bash
+ln -sf /root/.bun/bin/bun /usr/local/bin/bun
 
-// # Install Caddy
-// apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
-// curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --batch --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-// curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-// apt-get update && apt-get install -y caddy
+# Install Caddy
+apt-get install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --batch --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+apt-get update && apt-get install -y caddy
 
-// # Clone repo if not exists
-// if [ ! -d /app ]; then
-//   git clone https://github.com/asiusai/asiusai.git /app
-// fi
-// `,
-//   deployScript: `set -e
-// export PATH="/root/.bun/bin:$PATH"
+# Create Caddy data directory for TLS certs
+mkdir -p /data/caddy
 
-// cd /app
+# Stop default Caddy service (we use our own)
+systemctl stop caddy || true
+systemctl disable caddy || true
+`,
+  deployScript: `cd /app/ssh && bun install`,
+})
 
-// # Fetch and checkout the deployed commit
-// git fetch origin deploy-ssh
-// git checkout FETCH_HEAD --force
-
-// # Install dependencies
-// cd ssh && bun install
-// cd /app
-
-// # Restart service
-// systemctl restart asius-ssh
-// `,
-// })
+// ------------------------- EXPORTS -------------------------
+export const apiIp = apiServer.ipAddress
+export const sshIp = sshServer.ipAddress
