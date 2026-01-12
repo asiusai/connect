@@ -1,7 +1,8 @@
 import { z } from 'zod'
 
-export const Providers = z.enum(['comma', 'konik', 'asius', 'dev'])
-export type Providers = z.infer<typeof Providers>
+export const Mode = z.enum(["asius",'comma', 'konik', 'dev'])
+export type Mode = z.infer<typeof Mode>
+
 const zArray = () =>
   z
     .string()
@@ -9,7 +10,7 @@ const zArray = () =>
     .transform((x) => (typeof x === 'string' ? x.split(',') : x))
 
 export const Provider = z.object({
-  MODE: Providers,
+  MODE: Mode,
   IS_OURS:z.coerce.boolean(),
 
   NAME: z.string(),
@@ -132,6 +133,6 @@ export const PROVIDERS = { comma, konik, asius, dev }
 
 const sysEnv = typeof process !== 'undefined' ? process.env : import.meta.env
 
-const MODE = Providers.safeParse(sysEnv.MODE).success ? (sysEnv.MODE! as Providers) : 'asius'
+const MODE = Mode.safeParse(sysEnv.MODE).success ? (sysEnv.MODE! as Mode) : 'asius'
 
 export const env = Provider.parse(Object.fromEntries(Object.entries({ ...PROVIDERS[MODE], ...sysEnv }).map(([k, v]) => [k.replace('VITE_', ''), v])))
