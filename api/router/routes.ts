@@ -1,4 +1,4 @@
-import { and, eq, lt, desc } from 'drizzle-orm'
+import { and, eq, lt, gt, desc } from 'drizzle-orm'
 import { contract } from '../../connect/src/api/contract'
 import { tsr } from '../common'
 import { db } from '../db/client'
@@ -6,15 +6,23 @@ import { deviceMiddleware } from '../middleware'
 import { segmentsTable } from '../db/schema'
 import { AggregatedRoute, aggregateRoute, routeToSegment } from '../helpers'
 
-const getDistinctRoutes = async (dongleId: string, origin: string, options?: { limit?: number; createdBefore?: number; preservedOnly?: boolean }) => {
-  const conditions = [eq(segmentsTable.dongle_id, dongleId)]
-  if (options?.createdBefore) conditions.push(lt(segmentsTable.create_time, options.createdBefore))
+type GetRoutesOptions = {
+   limit?: number
+  startBefore?: number
+  startAfter?: number
+  preservedOnly?: boolean
+}
+
+const getDistinctRoutes = async (dongleId: string, origin: string, options?: GetRoutesOptions) => {
+  const conditions = [eq(segmentsTable.dongle_id, dongleId), eq(segmentsTable.segment, 0)]
+  if (options?.startBefore) conditions.push(lt(segmentsTable.start_time, options.startBefore))
+  if (options?.startAfter) conditions.push(gt(segmentsTable.start_time, options.startAfter))
 
   const routeIds = await db
     .selectDistinct({ route_id: segmentsTable.route_id })
     .from(segmentsTable)
     .where(and(...conditions))
-    .orderBy(desc(segmentsTable.create_time))
+    .orderBy(desc(segmentsTable.start_time))
     .limit(options?.limit ?? 100)
 
   const routes: AggregatedRoute[] = []
@@ -32,7 +40,7 @@ export const routes = tsr.router(contract.routes, {
   allRoutes: deviceMiddleware(async ({ query }, { device, origin }) => {
     const routes = await getDistinctRoutes(device.dongle_id, origin, {
       limit: query.limit,
-      createdBefore: query.created_before,
+      startBefore: query.created_before,
     })
     return { status: 200, body: routes }
   }),
@@ -51,15 +59,11 @@ export const routes = tsr.router(contract.routes, {
       const route = await aggregateRoute(dongleId, routeId, origin)
       routes = route ? [route] : []
     } else {
-      routes = await getDistinctRoutes(device.dongle_id, origin, { limit: query.limit })
-
-      if (query.start || query.end) {
-        routes = routes.filter((r) => {
-          if (query.start && r.create_time < query.start) return false
-          if (query.end && r.create_time > query.end) return false
-          return true
-        })
-      }
+      routes = await getDistinctRoutes(device.dongle_id, origin, {
+        limit: query.limit,
+        startAfter: query.start,
+        startBefore: query.end,
+      })
     }
 
     return { status: 200, body: routes.map(routeToSegment) }
