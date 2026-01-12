@@ -292,7 +292,7 @@ const PrimeManage = () => {
 
       {cancelDialog && (
         <div className="bg-black/60 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4" onClick={() => setCancelDialog(false)}>
-          <div className="flex w-full flex-col gap-4 bg-surface p-6 rounded-2xl shadow-2xl max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="flex w-full flex-col gap-4 bg-background p-6 rounded-2xl shadow-2xl max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-xl font-bold">Cancel subscription</h2>
             <p className="text-white/60">Are you sure you want to cancel your subscription?</p>
             <div className="flex flex-col gap-3 mt-2">
