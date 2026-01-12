@@ -15,8 +15,8 @@
     "build:site": "bun --cwd site build",
     "tsc": "tsc --noEmit",
     "fix": "biome check --write",
-    "test": "bun test --concurrent",
-    "integration": "INTEGRATION=1 bun test api/scripts/device.test.ts ssh/ssh.test.ts",
+    "test": "bun test api connect site --concurrent",
+    "integration": "bun test ./integration/",
     "infra": "bun --cwd infra up"
   },
   "workspaces": [

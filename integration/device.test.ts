@@ -3,12 +3,9 @@ import { join, dirname } from 'path'
 import jwt from 'jsonwebtoken'
 import { generateKeyPairSync } from 'crypto'
 import { describe, test, expect, beforeAll } from 'bun:test'
-import { env } from '../../connect/src/utils/env'
+import { env } from '../connect/src/utils/env'
 
-// Skip unless INTEGRATION=1 is set
-const SKIP = !process.env.INTEGRATION
-
-const EXAMPLE_DATA_DIR = join(dirname(import.meta.path), '../../example-data')
+const EXAMPLE_DATA_DIR = join(dirname(import.meta.path), '../example-data')
 const ROUTE_PREFIX = '9748a98e983e0b39_'
 const ROUTE_ID = '0000002c--d68dde99ca'
 const SEGMENTS_COUNT = 3
@@ -64,7 +61,7 @@ const apiPatch = async (path: string, body: unknown, token?: string) => {
 }
 
 // Tests
-describe.skipIf(SKIP)(`Device Integration (${env.MODE})`, () => {
+describe(`Device Integration (${env.MODE})`, () => {
   // Test state
   let dongleId: string
   let deviceToken: string

@@ -4,11 +4,13 @@ const SPRITE_WIDTH = 128
 const SPRITE_HEIGHT = 96
 const SPRITE_SEEK_SECONDS = 5 // Seek to 5 seconds (matches comma API)
 
+const randomId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`
+
 export const extractSprite = async (videoStream: ReadableStream<Uint8Array>): Promise<Uint8Array | null> => {
   try {
     // Write stream to temp file since ffmpeg needs seekable input for .ts files
-    const tempInput = `/tmp/qcamera-${Date.now()}.ts`
-    const tempOutput = `/tmp/sprite-${Date.now()}.jpg`
+    const tempInput = `/tmp/qcamera-${randomId()}.ts`
+    const tempOutput = `/tmp/sprite-${randomId()}.jpg`
 
     const chunks: Uint8Array[] = []
     const reader = videoStream.getReader()
@@ -49,7 +51,7 @@ export const extractSprite = async (videoStream: ReadableStream<Uint8Array>): Pr
 
 export const extractSpriteFromFile = async (filePath: string): Promise<Uint8Array | null> => {
   try {
-    const tempOutput = `/tmp/sprite-${Date.now()}.jpg`
+    const tempOutput = `/tmp/sprite-${randomId()}.jpg`
 
     // Extract frame from middle of video as thumbnail, scaled to sprite size
     const result =

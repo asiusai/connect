@@ -3,9 +3,6 @@ import { Client, utils } from 'ssh2'
 import { generateKeyPairSync } from 'crypto'
 import jwt from 'jsonwebtoken'
 
-// Skip unless INTEGRATION=1 is set
-const SKIP = !process.env.INTEGRATION
-
 const SSH_HOST = 'ssh.asius.ai'
 const SSH_PORT = 2222
 const WS_URL = 'wss://ssh.asius.ai'
@@ -22,7 +19,7 @@ const jwtAlgorithm = 'RS256' as const
 // Generate SSH key pair for connection
 const { private: sshPrivateKey } = utils.generateKeyPairSync('ed25519')
 
-describe.skipIf(SKIP)('SSH Proxy Integration', () => {
+describe('SSH Proxy Integration', () => {
   let dongleId: string
 
   beforeAll(async () => {
