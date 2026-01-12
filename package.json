@@ -16,7 +16,7 @@
     "tsc": "tsc --noEmit",
     "fix": "biome check --write",
     "test": "bun test --concurrent",
-    "test:device": "INTEGRATION=1 bun test api/scripts/device.test.ts",
+    "test:integration": "INTEGRATION=1 bun test api/scripts/device.test.ts",
     "infra": "bun --cwd infra up"
   },
   "workspaces": [

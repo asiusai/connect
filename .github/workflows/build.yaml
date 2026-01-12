@@ -21,4 +21,11 @@ jobs:
 
       - run: bun install
 
-      - run: ./test.sh
+      - run: bun biome ci
+      
+      - run: bun run tsc
+      
+      - run: bun run build
+      
+      - run: bun run test
+
