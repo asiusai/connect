@@ -75,6 +75,7 @@ export type StreamingQlogResult = {
   totalDistance: number
   eventCount: number
   coordCount: number
+  monoStartTime: string | null // first log monotonic time in ns (for route_offset_millis calculation)
 }
 
 // JSON array streaming writer - writes items as they come, producing valid JSON array
@@ -105,6 +106,7 @@ class JsonArrayWriter {
 
 // Streaming version - writes events and coords to provided streams as they are parsed
 // This significantly reduces memory usage for large qlogs
+// routeStartMonoTime: The first monotonic time from segment 0 (used to calculate route_offset_millis for non-zero segments)
 export const processQlogStreaming = async (
   inputStream: ReadableStream<Uint8Array>,
   segment: number,
@@ -112,6 +114,7 @@ export const processQlogStreaming = async (
   coordsStream: WritableStream<Uint8Array>,
   dongleId?: string,
   routeId?: string,
+  routeStartMonoTime?: string,
 ): Promise<StreamingQlogResult | null> => {
   const metadata: RouteMetadata = { dongleId: dongleId ?? '', routeId: routeId ?? '' }
   const coordsWriter = new JsonArrayWriter(coordsStream)
@@ -133,6 +136,13 @@ export const processQlogStreaming = async (
   let firstRoadCameraAfterPandaTime: number | null = null
   let initDataTime: number | null = null
   let routeStartTimeFromQlog: number | null = null
+  // For non-zero segments, track the minimum Sentinel timestamp after the previous segment's timeframe
+  // This is used to determine the segment's actual start time for route_offset_millis calculation
+  let minSentinelTimeAfterPrevSegment: number | null = null
+  const routeStartMono = routeStartMonoTime ? Number(routeStartMonoTime) : null
+  // Threshold: if routeStartMonoTime is provided, only consider timestamps > routeStartMono + 30 seconds
+  // (segment 0 is ~60 seconds, so this ensures we're looking at current segment's data)
+  const prevSegmentThreshold = routeStartMono ? routeStartMono + 30e9 : null
 
   try {
     await coordsWriter.start()
@@ -176,6 +186,13 @@ export const processQlogStreaming = async (
 
       if ('PandaStates' in event && firstPandaStatesTime === null) {
         firstPandaStatesTime = logMonoTime
+      }
+
+      // Track minimum Sentinel (Valid) timestamp for segment boundary detection
+      if ('Valid' in event && prevSegmentThreshold !== null && logMonoTime > prevSegmentThreshold) {
+        if (minSentinelTimeAfterPrevSegment === null || logMonoTime < minSentinelTimeAfterPrevSegment) {
+          minSentinelTimeAfterPrevSegment = logMonoTime
+        }
       }
 
       if ('RoadCameraState' in event) {
@@ -242,40 +259,53 @@ export const processQlogStreaming = async (
     await coordsWriter.end()
 
     // Process events (same logic as before, but write to stream)
-    const segmentStartOffset = routeStartTimeFromQlog && firstPandaStatesTime ? Math.floor((firstPandaStatesTime - routeStartTimeFromQlog) / 1e6) : 0
+    // The reference point for route_offset_millis is segment 0's routeStartTimeFromQlog (first log entry time).
+    // For segment 0, routeStartMonoTime is not provided, so we use routeStartTimeFromQlog.
+    // For other segments, routeStartMonoTime should be segment 0's routeStartTimeFromQlog.
+    const routeRefTime = routeStartMonoTime ? Number(routeStartMonoTime) : routeStartTimeFromQlog
+
+    // segmentStartTime: the reference time for this segment's events
+    // For segment 0: use firstPandaStatesTime
+    // For other segments: use the minimum Sentinel timestamp after the previous segment (more accurate)
+    const segmentStartTime = segment === 0 ? firstPandaStatesTime : (minSentinelTimeAfterPrevSegment ?? firstPandaStatesTime)
+
+    // offset_millis is always relative to this segment's start time
+    const calcOffsetMillis = (eventTime: number) => (segmentStartTime ? Math.floor((eventTime - segmentStartTime) / 1e6) : 0)
+
+    // route_offset_millis is always relative to the route's reference time (segment 0's routeStartTimeFromQlog)
+    const calcRouteOffsetMillis = (eventTime: number) => (routeRefTime ? Math.floor((eventTime - routeRefTime) / 1e6) : segment * 60000)
+
     const derivedEvents: RouteEvent[] = []
 
-    if (recordFrontValue !== null && firstPandaStatesTime !== null) {
+    if (recordFrontValue !== null && segmentStartTime !== null) {
       derivedEvents.push({
         type: 'event',
-        time: firstPandaStatesTime,
+        time: segmentStartTime,
         offset_millis: 0,
-        route_offset_millis: segmentStartOffset + segment * 60000,
+        route_offset_millis: calcRouteOffsetMillis(segmentStartTime),
         data: { event_type: 'record_front_toggle', value: recordFrontValue },
       })
     }
 
-    if (firstPandaStatesTime !== null) {
+    if (segmentStartTime !== null) {
       const useAfterPanda = initDataTime !== null && firstRoadCameraFrameTime !== null && firstRoadCameraFrameTime < initDataTime
       const cameraTime = useAfterPanda ? firstRoadCameraAfterPandaTime : firstRoadCameraFrameTime
 
       if (cameraTime !== null) {
-        const offsetMillis = Math.floor((cameraTime - firstPandaStatesTime) / 1e6)
         derivedEvents.push({
           type: 'event',
           time: cameraTime,
-          offset_millis: offsetMillis,
-          route_offset_millis: segmentStartOffset + offsetMillis + segment * 60000,
+          offset_millis: calcOffsetMillis(cameraTime),
+          route_offset_millis: calcRouteOffsetMillis(cameraTime),
           data: { event_type: 'first_road_camera_frame' },
         })
       }
     }
 
-    if (firstPandaStatesTime !== null) {
+    if (segmentStartTime !== null) {
       for (const ev of pendingEvents) {
-        const offsetMillis = Math.floor((ev.time - firstPandaStatesTime) / 1e6)
-        ev.offset_millis = offsetMillis
-        ev.route_offset_millis = segmentStartOffset + offsetMillis + segment * 60000
+        ev.offset_millis = calcOffsetMillis(ev.time)
+        ev.route_offset_millis = calcRouteOffsetMillis(ev.time)
       }
     }
 
@@ -294,6 +324,7 @@ export const processQlogStreaming = async (
       totalDistance: totalDist,
       eventCount: allEvents.length,
       coordCount,
+      monoStartTime: routeStartTimeFromQlog ? String(routeStartTimeFromQlog) : null,
     }
   } catch (e) {
     console.error(`Failed to parse qlog:`, e)

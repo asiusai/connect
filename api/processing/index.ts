@@ -1,3 +1,4 @@
+import { eq, and } from 'drizzle-orm'
 import { db } from '../db/client'
 import { segmentsTable, routesTable } from '../db/schema'
 import { mkv } from '../mkv'
@@ -30,6 +31,16 @@ const processSegmentQlogStreaming = async (dongleId: string, routeId: string, se
 
   const baseKey = `${dongleId}/${routeId}/${segment}`
 
+  // For non-zero segments, get segment 0's mono_start_time for route_offset_millis calculation
+  let routeStartMonoTime: string | undefined
+  if (segment !== 0) {
+    const seg0 = await db.query.segmentsTable.findFirst({
+      where: and(eq(segmentsTable.dongle_id, dongleId), eq(segmentsTable.route_id, routeId), eq(segmentsTable.segment, 0)),
+      columns: { mono_start_time: true },
+    })
+    routeStartMonoTime = seg0?.mono_start_time ?? undefined
+  }
+
   // Create passthrough streams for events and coords
   const eventsPassthrough = createPassthroughStream()
   const coordsPassthrough = createPassthroughStream()
@@ -39,7 +50,7 @@ const processSegmentQlogStreaming = async (dongleId: string, routeId: string, se
   const coordsUpload = mkv.put(`${baseKey}/coords.json`, coordsPassthrough.readable, { 'Content-Type': 'application/json' }, true)
 
   // Process the qlog, streaming output to the passthrough streams
-  const result = await processQlogStreaming(res.body, segment, eventsPassthrough.writable, coordsPassthrough.writable, dongleId, routeId)
+  const result = await processQlogStreaming(res.body, segment, eventsPassthrough.writable, coordsPassthrough.writable, dongleId, routeId, routeStartMonoTime)
 
   // Wait for uploads to complete
   await Promise.all([eventsUpload, coordsUpload])
@@ -82,6 +93,7 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
     const segmentData = {
       start_time: data?.firstGps?.UnixTimestampMillis ? Number(data.firstGps.UnixTimestampMillis) : null,
       end_time: data?.lastGps?.UnixTimestampMillis ? Number(data.lastGps.UnixTimestampMillis) : null,
+      mono_start_time: data?.monoStartTime ?? null,
       start_lat: data?.firstGps?.Latitude ?? null,
       start_lng: data?.firstGps?.Longitude ?? null,
       end_lat: data?.lastGps?.Latitude ?? null,

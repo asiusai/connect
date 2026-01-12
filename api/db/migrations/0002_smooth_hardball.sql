@@ -1,0 +1,1 @@
+ALTER TABLE `segments` ADD `mono_start_time` text;

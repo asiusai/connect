@@ -30,11 +30,12 @@ const createCaptureStream = () => {
 const processQlogForTest = async (
   inputStream: ReadableStream<Uint8Array>,
   segment: number,
+  routeStartMonoTime?: string,
 ): Promise<{ result: StreamingQlogResult; events: RouteEvent[]; coords: Coord[] } | null> => {
   const eventsCapture = createCaptureStream()
   const coordsCapture = createCaptureStream()
 
-  const result = await processQlogStreaming(inputStream, segment, eventsCapture.stream, coordsCapture.stream)
+  const result = await processQlogStreaming(inputStream, segment, eventsCapture.stream, coordsCapture.stream, undefined, undefined, routeStartMonoTime)
   if (!result) return null
 
   return {
@@ -187,10 +188,16 @@ describe('qlogs', () => {
       }
     }, 180000)
 
-    test('non-segment-0 events have correct types and data', async () => {
+    test('non-segment-0 events have correct types, data, and route_offset_millis', async () => {
       const routes = await discoverRoutes()
 
       for (const [routeName, segments] of routes) {
+        // First parse segment 0 to get monoStartTime
+        const seg0QlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/0/qlog.zst`)
+        if (!(await seg0QlogFile.exists())) continue
+        const seg0Parsed = await processQlogForTest(seg0QlogFile.stream(), 0)
+        const routeStartMonoTime = seg0Parsed?.result.monoStartTime ?? undefined
+
         for (const segment of segments) {
           if (segment === 0) continue // Tested above
           const segmentDir = `${TEST_DATA_DIR}/${routeName}/${segment}`
@@ -198,7 +205,7 @@ describe('qlogs', () => {
           if (!(await eventsFile.exists())) continue
 
           const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-          const parsed = await processQlogForTest(qlogFile.stream(), segment)
+          const parsed = await processQlogForTest(qlogFile.stream(), segment, routeStartMonoTime)
           expect(parsed, `${routeName}/${segment} failed to parse`).not.toBeNull()
 
           const expected = (await eventsFile.json()) as RouteEvent[]
@@ -207,10 +214,17 @@ describe('qlogs', () => {
           // Event count should match
           expect(events.length, `${routeName}/${segment} event count`).toBe(expected.length)
 
-          // All expected events should exist with matching data (order may differ slightly due to timing)
+          // All expected events should exist with matching data and close route_offset_millis
+          // (Order may differ slightly due to small timing differences in event detection)
           for (const exp of expected) {
-            const found = events.find((e: RouteEvent) => e.type === exp.type && JSON.stringify(e.data) === JSON.stringify(exp.data))
-            expect(found, `${routeName}/${segment} missing ${exp.type} event`).toBeDefined()
+            const found = events.find(
+              (e: RouteEvent) =>
+                e.type === exp.type && JSON.stringify(e.data) === JSON.stringify(exp.data) && Math.abs(e.route_offset_millis - exp.route_offset_millis) <= 20,
+            )
+            expect(
+              found,
+              `${routeName}/${segment} missing ${exp.type} event with data ${JSON.stringify(exp.data)} and route_offset_millis ~${exp.route_offset_millis}`,
+            ).toBeDefined()
           }
         }
       }
