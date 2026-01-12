@@ -250,11 +250,11 @@ describe('qlogs', () => {
     })
   })
 
-  describe('coords parsing', () => {
-    test('all routes coords match comma API', async () => {
-      const routes = await discoverRoutes()
+  describe('coords parsing', async () => {
+    const routes = await discoverRoutes()
 
-      for (const [routeName, segments] of routes) {
+    for (const [routeName, segments] of routes) {
+      test(`${routeName} coords match comma API`, async () => {
         for (const segment of segments) {
           const segmentDir = `${TEST_DATA_DIR}/${routeName}/${segment}`
           const coordsFile = Bun.file(`${segmentDir}/coords.json`)
@@ -276,7 +276,7 @@ describe('qlogs', () => {
             expect(coords[0].lng, `${routeName}/${segment} first lng`).toBeCloseTo(expected[0].lng, 3)
           }
         }
-      }
-    })
+      })
+    }
   })
 })
