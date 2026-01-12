@@ -5,6 +5,7 @@ export type Providers = z.infer<typeof Providers>
 
 export const Provider = z.object({
   MODE: Providers,
+  IS_OURS:z.coerce.boolean(),
 
   NAME: z.string(),
   FAVICON: z.string(),
@@ -47,6 +48,7 @@ const comma: Provider = {
   ...defaults,
 
   MODE: 'comma',
+  IS_OURS:false,
   NAME: 'comma connect',
   FAVICON: '/comma-favicon.svg',
 
@@ -73,6 +75,7 @@ const konik: Provider = {
   ...defaults,
 
   MODE: 'konik',
+  IS_OURS:false,
   NAME: 'konik connect',
   FAVICON: '/konik-favicon.svg',
 
@@ -87,6 +90,8 @@ const asius: Provider = {
   ...defaults,
 
   MODE: 'asius',
+  IS_OURS: true,
+
   NAME: 'asius connect',
   FAVICON: '/asius-favicon.svg',
 

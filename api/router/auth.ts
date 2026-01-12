@@ -63,7 +63,7 @@ export const auth = tsr.router(contract.auth, {
       const res2 = await fetch('https://api.github.com/user/emails', {
         headers: { Authorization: `Bearer ${access_token}`, 'User-Agent': 'Asius' },
       })
-      if (!res2.ok) throw new BadRequestError('Failed to get user emails')
+      if (!res2.ok) throw new BadRequestError(`Failed to get user emails: ${await res2.text()}`)
       const emails = (await res2.json()) as { email: string; primary: boolean; verified: boolean }[]
       const primaryEmail = emails.find((e) => e.primary && e.verified)?.email
       if (!primaryEmail) throw new BadRequestError('No verified primary email found')

@@ -46,7 +46,7 @@ const PROVIDERS = {
       ? `https://github.com/login/oauth/authorize?${stringify({
           client_id: env.GITHUB_CLIENT_ID,
           redirect_uri: `${env.AUTH_URL}/v2/auth/h/redirect/`,
-          scope: 'read:user',
+          scope: env.IS_OURS ? 'user:email':"read:user",
           state,
         })}`
       : undefined,
