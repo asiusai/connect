@@ -16,7 +16,7 @@
     "tsc": "tsc --noEmit",
     "fix": "biome check --write",
     "test": "bun test --concurrent",
-    "integration": "INTEGRATION=1 bun test api/scripts/device.test.ts",
+    "integration": "INTEGRATION=1 bun test api/scripts/device.test.ts ssh/ssh.test.ts",
     "infra": "bun --cwd infra up"
   },
   "workspaces": [
@@ -34,7 +34,9 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/ssh2": "^1.15.5",
+    "jsonwebtoken": "^9.0.3",
     "ssh2": "^1.17.0"
   }
 }
