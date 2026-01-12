@@ -22,6 +22,8 @@ export const Environment = z.object({
 
   SSH_API_KEY: z.string().optional(),
 
+  GITHUB_TOKEN: z.string().optional(),
+
   // R2 backup (optional)
   R2_BUCKET: z.string().optional(),
   R2_ACCOUNT_ID: z.string().optional(),

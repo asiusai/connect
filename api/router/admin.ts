@@ -92,18 +92,20 @@ let ciCache: { data: { name: string; status: 'ok' | 'error' | 'pending'; error?:
 
 const getCI = async () => {
   if (ciCache && Date.now() - ciCache.time < 5 * 60 * 1000) return ciCache.data
+  const headers: Record<string, string> = { Accept: 'application/vnd.github+json' }
+  if (env.GITHUB_TOKEN) headers.Authorization = `Bearer ${env.GITHUB_TOKEN}`
   const results = await Promise.all(
     CI_REPOS.map(async (name) => {
       try {
         // First check for any in-progress runs
-        const pendingRes = await fetch(`https://api.github.com/repos/asiusai/${name}/actions/runs?per_page=1&status=in_progress`)
+        const pendingRes = await fetch(`https://api.github.com/repos/asiusai/${name}/actions/runs?per_page=1&status=in_progress`, { headers })
         if (pendingRes.ok) {
           const pendingRun = (await pendingRes.json()).workflow_runs?.[0]
           if (pendingRun) return { name, status: 'pending' as const }
         }
 
         // Then check the latest completed run
-        const res = await fetch(`https://api.github.com/repos/asiusai/${name}/actions/runs?per_page=1&status=completed`)
+        const res = await fetch(`https://api.github.com/repos/asiusai/${name}/actions/runs?per_page=1&status=completed`, { headers })
         if (!res.ok) return { name, status: 'error' as const, error: `HTTP ${res.status}` }
         const run = (await res.json()).workflow_runs?.[0]
         if (!run) return { name, status: 'ok' as const }

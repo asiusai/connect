@@ -182,6 +182,7 @@ const apiServer = new Server('api', {
             GOOGLE_CLIENT_SECRET: config.requireSecret('googleClientSecret'),
             API_ORIGIN: 'wss://api.asius.ai',
             SSH_API_KEY: config.requireSecret('sshApiKey'),
+            GITHUB_TOKEN: config.requireSecret('ghToken'),
             R2_BUCKET: dbBackupBucket.name,
             R2_ACCOUNT_ID: accountId,
             R2_ACCESS_KEY_ID,

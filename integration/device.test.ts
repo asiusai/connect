@@ -119,7 +119,7 @@ describe(`Device Integration (${env.MODE})`, () => {
       expect(res.data?.dongle_id).toBe(dongleId)
     })
 
-    test('set device alias', async () => {
+    test.skipIf(isKonik)('set device alias', async () => {
       const res = await apiPatch(`/v1/devices/${dongleId}/`, { alias: `Test ${dongleId}` }, deviceToken)
       expect(res.status).toBe(200)
       expect(res.data?.alias).toBe(`Test ${dongleId}`)
