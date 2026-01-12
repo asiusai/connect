@@ -150,7 +150,7 @@ const apiServer = new Server('api', {
           Type: 'simple',
           WorkingDirectory: '/app',
           ExecStartPre: "/bin/bash -c 'until curl -sf http://localhost:3001/ && curl -sf http://localhost:3002/; do sleep 0.5; done'",
-          ExecStart: '/app/minikeyvalue/src/mkv -volumes localhost:3001,localhost:3002 -db /data/mkvdb -replicas 1 --port 3000 server',
+          ExecStart: '/app/minikeyvalue/src/mkv -volumes localhost:3001,localhost:3002 -db /data/mkv1/mkvdb -replicas 1 --port 3000 server',
           Restart: 'always',
         },
         Install: {
@@ -203,7 +203,7 @@ curl -fsSL https://bun.sh/install | bash
 ln -sf /root/.bun/bin/bun /usr/local/bin/bun
 
 # Create data directories
-mkdir -p /data/mkv1 /data/mkv2 /data/mkvdb /data/db /app
+mkdir -p /data/mkv1 /data/mkv2 /data/db /app
 
 # Setup SSH key for storage boxes
 mkdir -p /root/.ssh
