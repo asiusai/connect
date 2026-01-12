@@ -38,25 +38,29 @@ const pageList = [...keys(PAGES).entries()].filter(([_, x]) => !PAGE || PAGE.spl
 const deviceList = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
 
 for (const device of deviceList) {
-  test(`${device} screenshots`, async () => {
-    const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
+  test(
+    `${device} screenshots`,
+    async () => {
+      const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
 
-    const context = await browser.newContext(DEVICES[device])
-    const page = await context.newPage()
+      const context = await browser.newContext(DEVICES[device])
+      const page = await context.newPage()
 
-    await page.goto(`${BASE_URL}/demo`, { waitUntil: 'networkidle' })
+      await page.goto(`${BASE_URL}/demo`, { waitUntil: 'networkidle' })
 
-    for (const [i, route] of pageList) {
-      const path = `${FOLDER}/${device}-${i + 1}-${route}.png`
-      await page.goto(`${BASE_URL}/${PAGES[route]}`, { waitUntil: 'networkidle' })
+      for (const [i, route] of pageList) {
+        const path = `${FOLDER}/${device}-${i + 1}-${route}.png`
+        await page.goto(`${BASE_URL}/${PAGES[route]}`, { waitUntil: 'networkidle' })
 
-      await page.screenshot({ path, fullPage: true })
-      console.log(path)
-    }
+        await page.screenshot({ path, fullPage: true })
+        console.log(path)
+      }
 
-    await page.close()
-    await context.close()
+      await page.close()
+      await context.close()
 
-    await browser.close()
-  })
+      await browser.close()
+    },
+    { timeout: 120_000 },
+  )
 }
