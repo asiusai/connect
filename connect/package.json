@@ -9,7 +9,7 @@
     "url": "https://github.com/asius/connect.git"
   },
   "scripts": {
-    "build": "bun run --bun vite build",
+    "build": "bun run --bun vite build --mode ${MODE:-dev}",
     "dev": "bun run --bun vite --host --port 4000 --mode ${MODE:-dev}",
     "check": "biome check",
     "fix": "biome check --write",

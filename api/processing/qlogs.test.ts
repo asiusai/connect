@@ -250,11 +250,15 @@ describe('qlogs', () => {
     })
   })
 
-  describe('coords parsing', async () => {
-    const routes = await discoverRoutes()
-
-    for (const [routeName, segments] of routes) {
+  describe('coords parsing', () => {
+    for (const routeName of ROUTES_WITH_ALL_SEGMENTS) {
       test(`${routeName} coords match comma API`, async () => {
+        const routeFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/route.json`)
+        if (!(await routeFile.exists())) return
+
+        const routeData = (await routeFile.json()) as { maxqlog: number }
+        const segments = Array.from({ length: routeData.maxqlog + 1 }, (_, i) => i)
+
         for (const segment of segments) {
           const segmentDir = `${TEST_DATA_DIR}/${routeName}/${segment}`
           const coordsFile = Bun.file(`${segmentDir}/coords.json`)
