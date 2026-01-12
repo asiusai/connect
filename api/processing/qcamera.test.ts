@@ -7,11 +7,9 @@ const ROUTES = [{ name: '9748a98e983e0b39_0000002c--d68dde99ca', segmentCount: 3
 describe('qcamera', () => {
   for (const route of ROUTES) {
     for (let segment = 0; segment < route.segmentCount; segment++) {
-      const prefix = `${route.name}--${segment}`
-
-      test(`${prefix} sprite matches comma API`, async () => {
-        const qcameraPath = `${TEST_DATA_DIR}/${prefix}--qcamera.ts`
-        const expectedPath = `${TEST_DATA_DIR}/${prefix}--sprite.jpg`
+      test(`${route.name}--${segment} sprite matches comma API`, async () => {
+        const qcameraPath = `${TEST_DATA_DIR}/${route.name}/${segment}/qcamera.ts`
+        const expectedPath = `${TEST_DATA_DIR}/${route.name}/${segment}/sprite.jpg`
 
         const sprite = await extractSpriteFromFile(qcameraPath)
         expect(sprite).not.toBeNull()
@@ -30,7 +28,7 @@ describe('qcamera', () => {
   }
 
   test('sprite dimensions are 128x96', async () => {
-    const qcameraPath = `${TEST_DATA_DIR}/${ROUTES[0].name}--0--qcamera.ts`
+    const qcameraPath = `${TEST_DATA_DIR}/${ROUTES[0].name}/0/qcamera.ts`
 
     const sprite = await extractSpriteFromFile(qcameraPath)
     expect(sprite).not.toBeNull()
