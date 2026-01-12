@@ -14,6 +14,8 @@ export const Environment = z.object({
   JWT_SECRET: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
+  GITHUB_CLIENT_ID: z.string(),
+  GITHUB_CLIENT_SECRET: z.string(),
 
   WORKER_COUNT: z.coerce.number().default(2),
   WORKER_POLL_INTERVAL: z.coerce.number().default(5000),

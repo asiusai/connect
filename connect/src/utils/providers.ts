@@ -96,6 +96,7 @@ const asius: Provider = {
   CONNECT_URL: 'https://connect.asius.ai',
 
   GOOGLE_CLIENT_ID: '888462999677-0kqf5j0rkfvd47j7d34pnjsf29gqr39p.apps.googleusercontent.com',
+  GITHUB_CLIENT_ID:"Ov23li0TAhCMsk5poUJw",
 }
 const dev: Provider = {
   ...asius,

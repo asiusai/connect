@@ -180,6 +180,8 @@ const apiServer = new Server('api', {
             JWT_SECRET: config.requireSecret('jwtSecret'),
             GOOGLE_CLIENT_ID: config.requireSecret('googleClientId'),
             GOOGLE_CLIENT_SECRET: config.requireSecret('googleClientSecret'),
+            GITHUB_CLIENT_ID: config.requireSecret('githubClientId'),
+            GITHUB_CLIENT_SECRET: config.requireSecret('githubClientSecret'),
             API_ORIGIN: 'wss://api.asius.ai',
             SSH_API_KEY: config.requireSecret('sshApiKey'),
             GITHUB_TOKEN: config.requireSecret('ghToken'),

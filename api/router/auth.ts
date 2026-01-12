@@ -22,36 +22,66 @@ const findOrCreateUser = async (email: string) => {
 
 export const auth = tsr.router(contract.auth, {
   auth: noMiddleware(async ({ body }, { origin }) => {
-    if (body.provider !== 'google') throw new BadRequestError('Unsupported provider')
+    if (body.provider === 'google') {
+      const res1 = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code: body.code,
+          client_id: env.GOOGLE_CLIENT_ID,
+          client_secret: env.GOOGLE_CLIENT_SECRET,
+          redirect_uri: `${origin}/v2/auth/g/redirect/`,
+          grant_type: 'authorization_code',
+        }),
+      })
+      if (!res1.ok) throw new BadRequestError(`Failed to exchange code: ${await res1.text()}`)
+      const { access_token } = (await res1.json()) as { access_token: string }
 
-    const res1 = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        code: body.code,
-        client_id: env.GOOGLE_CLIENT_ID,
-        client_secret: env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: `${origin}/v2/auth/g/redirect/`,
-        grant_type: 'authorization_code',
-      }),
-    })
-    if (!res1.ok) throw new BadRequestError(`Failed to exchange code: ${await res1.text()}`)
-    const { access_token } = (await res1.json()) as { access_token: string }
+      const res2 = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', { headers: { Authorization: `Bearer ${access_token}` } })
+      if (!res2.ok) throw new BadRequestError('Failed to get user info')
+      const googleUser = (await res2.json()) as { id: string; email: string }
 
-    const res2 = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', { headers: { Authorization: `Bearer ${access_token}` } })
-    if (!res2.ok) throw new BadRequestError('Failed to get user info')
-    const googleUser = (await res2.json()) as { id: string; email: string }
+      const user = await findOrCreateUser(googleUser.email)
+      const token = generateAuthToken(user.id)
+      return { status: 200, body: { access_token: token } }
+    }
 
-    const user = await findOrCreateUser(googleUser.email)
-    const token = generateAuthToken(user.id)
+    if (body.provider === 'github') {
+      const res1 = await fetch('https://github.com/login/oauth/access_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          code: body.code,
+          client_id: env.GITHUB_CLIENT_ID,
+          client_secret: env.GITHUB_CLIENT_SECRET,
+          redirect_uri: `${origin}/v2/auth/h/redirect/`,
+        }),
+      })
+      if (!res1.ok) throw new BadRequestError(`Failed to exchange code: ${await res1.text()}`)
+      const { access_token } = (await res1.json()) as { access_token: string }
 
-    return { status: 200, body: { access_token: token } }
+      const res2 = await fetch('https://api.github.com/user/emails', {
+        headers: { Authorization: `Bearer ${access_token}`, 'User-Agent': 'Asius' },
+      })
+      if (!res2.ok) throw new BadRequestError('Failed to get user emails')
+      const emails = (await res2.json()) as { email: string; primary: boolean; verified: boolean }[]
+      const primaryEmail = emails.find((e) => e.primary && e.verified)?.email
+      if (!primaryEmail) throw new BadRequestError('No verified primary email found')
+
+      const user = await findOrCreateUser(primaryEmail)
+      const token = generateAuthToken(user.id)
+      return { status: 200, body: { access_token: token } }
+    }
+
+    throw new BadRequestError('Unsupported provider')
   }),
   appleRedirect: noMiddleware(async () => {
     throw new NotImplementedError('Apple auth not available')
   }),
-  githubRedirect: noMiddleware(async () => {
-    throw new NotImplementedError('GitHub auth not available')
+  githubRedirect: noMiddleware(async ({ query }, { responseHeaders }) => {
+    const [_, host] = query.state.split(',')
+    responseHeaders.set('Location', `${host.includes('localhost') ? 'http' : 'https'}://${host}/auth/?code=${query.code}&provider=github`)
+    return { status: 302, body: undefined }
   }),
   googleRedirect: noMiddleware(async ({ query }, { responseHeaders }) => {
     const [_, host] = query.state.split(',')
