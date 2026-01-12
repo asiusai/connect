@@ -2,6 +2,11 @@ import { z } from 'zod'
 
 export const Providers = z.enum(['comma', 'konik', 'asius', 'dev'])
 export type Providers = z.infer<typeof Providers>
+const zArray = () =>
+  z
+    .string()
+    .or(z.string().array())
+    .transform((x) => (typeof x === 'string' ? x.split(',') : x))
 
 export const Provider = z.object({
   MODE: Providers,
@@ -33,7 +38,7 @@ export const Provider = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   APPLE_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
-  FORK: z.string(),
+  FORK: zArray(),
 })
 export type Provider = z.infer<typeof Provider>
 
@@ -42,7 +47,7 @@ const defaults = {
   MAPBOX_LIGHT_STYLE_ID: 'clcl7mnu2000214s2zgcdly6e',
   MAPBOX_DARK_STYLE_ID: 'clcgvbi4f000q15t6o2s8gys3',
   MAPBOX_TOKEN: 'pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDluMWR4amUydGl5In0.6Vb11S6tdX6Arpj6trRE_g',
-  FORK: 'asiusai/sunnypilot',
+  FORK: ['asiusai/openpilot',"asiusai/sunnypilot"],
 }
 
 const comma: Provider = {
