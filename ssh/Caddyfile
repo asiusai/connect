@@ -4,9 +4,5 @@
 }
 
 ssh.asius.ai {
-    # Redirect root to docs
-    redir / https://asius.ai/docs/ssh permanent
-
-    # Proxy everything else (health, WebSocket)
     reverse_proxy localhost:8080
 }

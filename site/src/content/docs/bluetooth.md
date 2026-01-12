@@ -1,3 +1,7 @@
+---
+title: Bluetooth
+description: Bluetooth
+---
 # Bluetooth Gamepad Setup for Comma Devices
 
 This guide explains how to set up Bluetooth gamepad (PS5 DualSense) controls on comma 3X devices running AGNOS with a custom Bluetooth-enabled kernel.

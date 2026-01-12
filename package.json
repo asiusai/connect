@@ -5,13 +5,14 @@
   "private": true,
   "packageManager": "bun@1.2.9",
   "scripts": {
-    "dev": "conc -n mkv,api,site,connect bun:dev:*",
+    "dev": "concurrently -n mkv,api,site,connect bun:dev:*",
     "dev:api": "bun --cwd api dev",
     "dev:site": "bun --cwd site dev",
     "dev:connect": "bun --cwd connect dev",
     "dev:mkv": "cd minikeyvalue && tools/bringup.sh",
+    "tsc": "tsc --noEmit",
     "fix": "biome check --write",
-    "test": "bun test",
+    "test": "bun test --concurrent",
     "test:device": "INTEGRATION=1 bun test api/scripts/device.test.ts",
     "infra": "bun --cwd infra up"
   },
@@ -22,6 +23,7 @@
     "site"
   ],
   "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
     "@types/bun": "latest",
     "concurrently": "^9.2.1"
   },
