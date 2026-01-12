@@ -28,7 +28,8 @@
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
     "@types/bun": "latest",
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "lefthook": "^2.0.14"
   },
   "peerDependencies": {
     "typescript": "^5"
