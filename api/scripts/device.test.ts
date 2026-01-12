@@ -88,18 +88,18 @@ describe.skipIf(SKIP)(`Device Integration (${env.MODE})`, () => {
     routeNameEncoded = encodeURIComponent(`${dongleId}|${ROUTE_ID}`)
     console.log(`Registered: ${dongleId}`)
 
-    // Upload qlog/qcamera files
-    const files = await readdir(EXAMPLE_DATA_DIR)
-    const qlogFiles = files.filter((f) => f.endsWith('qlog.zst') || f.endsWith('qcamera.ts'))
-
-    for (const file of qlogFiles) {
-      const match = file.match(/^[^_]+_([^-]+--.+)--(\d+)--(.+)$/)
-      if (!match) continue
-      const [, routeId, segment, filename] = match
-      const path = `${routeId}--${segment}/${filename}`
-      const uploadUrl = await getUploadInfo(path, dongleId, deviceToken)
-      const fileContent = await readFile(join(EXAMPLE_DATA_DIR, file))
-      await upload(uploadUrl, fileContent.buffer.slice(fileContent.byteOffset, fileContent.byteOffset + fileContent.byteLength) as ArrayBuffer)
+    // Upload qlog/qcamera files from folder structure: routeId/segment/files
+    const routeDir = join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}`)
+    for (let segment = 0; segment < SEGMENTS_COUNT; segment++) {
+      const segmentDir = join(routeDir, String(segment))
+      const files = await readdir(segmentDir)
+      for (const filename of files) {
+        if (!filename.endsWith('qlog.zst') && !filename.endsWith('qcamera.ts')) continue
+        const path = `${ROUTE_ID}--${segment}/${filename}`
+        const uploadUrl = await getUploadInfo(path, dongleId, deviceToken)
+        const fileContent = await readFile(join(segmentDir, filename))
+        await upload(uploadUrl, fileContent.buffer.slice(fileContent.byteOffset, fileContent.byteOffset + fileContent.byteLength) as ArrayBuffer)
+      }
     }
 
     // Upload bootlog and crashlog (local/asius only - konik has different format)
@@ -200,7 +200,7 @@ describe.skipIf(SKIP)(`Device Integration (${env.MODE})`, () => {
       const res = await apiGet(`/v1/route/${routeNameEncoded}/`, deviceToken)
       expect(res.status).toBe(200)
 
-      const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}.json`), 'utf-8'))
+      const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}/route.json`), 'utf-8'))
 
       // Local-only fields
       if (env.MODE === 'dev') {
@@ -240,7 +240,7 @@ describe.skipIf(SKIP)(`Device Integration (${env.MODE})`, () => {
           expect(data).not.toBeNull()
 
           const actual = JSON.parse(new TextDecoder().decode(data!)) as { type: string; data: unknown }[]
-          const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}--${segment}--events.json`), 'utf-8')) as typeof actual
+          const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}/${segment}/events.json`), 'utf-8')) as typeof actual
           expect(actual.length).toBe(expected.length)
           for (let i = 0; i < expected.length; i++) {
             expect(actual[i].type).toBe(expected[i].type)
@@ -255,7 +255,7 @@ describe.skipIf(SKIP)(`Device Integration (${env.MODE})`, () => {
           expect(data).not.toBeNull()
 
           const actual = JSON.parse(new TextDecoder().decode(data!)) as { lat: number; lng: number }[]
-          const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}--${segment}--coords.json`), 'utf-8')) as typeof actual
+          const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}/${segment}/coords.json`), 'utf-8')) as typeof actual
           expect(Math.abs(actual.length - expected.length)).toBeLessThanOrEqual(2)
           for (let i = 0; i < Math.min(actual.length, expected.length); i++) {
             expect(actual[i].lat).toBeCloseTo(expected[i].lat, 3)
@@ -270,7 +270,7 @@ describe.skipIf(SKIP)(`Device Integration (${env.MODE})`, () => {
           expect(data).not.toBeNull()
 
           const actual = new Uint8Array(data!)
-          const expected = new Uint8Array(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}--${segment}--sprite.jpg`)))
+          const expected = new Uint8Array(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}/${segment}/sprite.jpg`)))
           expect(actual[0]).toBe(0xff)
           expect(actual[1]).toBe(0xd8)
           expect(Math.abs(actual.length - expected.length) / expected.length).toBeLessThan(0.1)

@@ -196,7 +196,7 @@ const apiServer = new Server('api', {
   ],
   createScript: pulumi.interpolate`
 set -e
-apt-get update && apt-get install -y sshfs golang-go curl git unzip nginx
+apt-get update && apt-get install -y sshfs golang-go curl git unzip nginx ffmpeg
 
 # Install bun
 curl -fsSL https://bun.sh/install | bash
