@@ -1,8 +1,9 @@
 import fs from 'node:fs'
+import { test } from 'bun:test'
 import { chromium, devices as playDevices } from 'playwright'
-import { keys } from '../src/utils/helpers'
+import { keys } from '../connect/src/utils/helpers'
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
+const BASE_URL = process.env.BASE_URL || 'https://comma.asius.ai'
 const FOLDER = process.env.FOLDER || 'screenshots'
 const PAGE = process.env.PAGE
 const DEVICE = process.env.DEVICE
@@ -15,9 +16,6 @@ const DEVICES = {
 
 const PAGES = {
   login: 'login',
-  'login-google': 'login?provider=google',
-  'login-apple': 'login?provider=apple',
-  'login-github': 'login?provider=github',
 
   home: `1d3dc3e03047b0c7`,
 
@@ -25,35 +23,40 @@ const PAGES = {
   pair: 'pair',
   settings: `1d3dc3e03047b0c7/settings`,
   sentry: `1d3dc3e03047b0c7/sentry`,
+  params: `1d3dc3e03047b0c7/params`,
+  live: `1d3dc3e03047b0c7/live`,
+  analyze: `1d3dc3e03047b0c7/analyze`,
 
   route: `1d3dc3e03047b0c7/000000dd--455f14369d`,
-  'route-public': `a2a0ccea32023010/2023-07-27--13-01-19`,
+  'route-clip': `1d3dc3e03047b0c7/000000dd--455f14369d/10/300`,
+  'route-public-clip': `a2a0ccea32023010/2023-07-27--13-01-19/10/300`,
   'route-qlogs': `1d3dc3e03047b0c7/000000dd--455f14369d/qlogs`,
   'route-logs': `1d3dc3e03047b0c7/000000dd--455f14369d/logs`,
 }
 
-const pages = [...keys(PAGES).entries()].filter(([_, x]) => !PAGE || PAGE.split(',').includes(x))
-const devices = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
+const pageList = [...keys(PAGES).entries()].filter(([_, x]) => !PAGE || PAGE.split(',').includes(x))
+const deviceList = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
 
-const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
+for (const device of deviceList) {
+  test(`${device} screenshots`, async () => {
+    const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
 
-await Promise.all(
-  devices.map(async (device) => {
     const context = await browser.newContext(DEVICES[device])
     const page = await context.newPage()
 
     await page.goto(`${BASE_URL}/demo`, { waitUntil: 'networkidle' })
 
-    for (const [i, route] of pages) {
+    for (const [i, route] of pageList) {
+      const path = `${FOLDER}/${device}-${i + 1}-${route}.png`
       await page.goto(`${BASE_URL}/${PAGES[route]}`, { waitUntil: 'networkidle' })
 
-      const path = `${FOLDER}/${device}-${i + 1}-${route}.png`
       await page.screenshot({ path, fullPage: true })
       console.log(path)
     }
+
     await page.close()
     await context.close()
-  }),
-)
 
-await browser.close()
+    await browser.close()
+  })
+}
