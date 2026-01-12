@@ -7,7 +7,7 @@ import { segmentsTable } from '../db/schema'
 import { AggregatedRoute, aggregateRoute, routeToSegment } from '../helpers'
 
 type GetRoutesOptions = {
-   limit?: number
+    limit?: number
   startBefore?: number
   startAfter?: number
   preservedOnly?: boolean
