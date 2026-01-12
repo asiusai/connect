@@ -12,6 +12,11 @@ const connections = new Map<string, Bun.ServerWebSocket<WebSocketData>>()
 const pendingRequests = new Map<number, PendingRequest>()
 let requestCounter = 0
 
+// This is required for openpilot/sunnypilot to show "Connect online" status
+setInterval(() => {
+  for (const ws of connections.values()) ws.ping()
+}, 30000)
+
 const athenaPing = async (dongleId: string) => await db.insert(athenaPingsTable).values({ id: randomId(), dongle_id: dongleId })
 
 export const sendToDevice = async (
