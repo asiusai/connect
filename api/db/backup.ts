@@ -83,11 +83,13 @@ const uploadBackup = async (client: S3Client) => {
 
   const key = `db/${Date.now()}.db`
   console.log(`[backup] Uploading to ${key}...`)
-  await client.send(new PutObjectCommand({
-    Bucket: env.R2_BUCKET,
-    Key: key,
-    Body: new Uint8Array(await file.arrayBuffer()),
-  }))
+  await client.send(
+    new PutObjectCommand({
+      Bucket: env.R2_BUCKET,
+      Key: key,
+      Body: new Uint8Array(await file.arrayBuffer()),
+    }),
+  )
   console.log('[backup] Done')
 }
 

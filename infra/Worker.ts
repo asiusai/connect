@@ -18,9 +18,7 @@ export class Worker extends pulumi.ComponentResource {
     const parts = args.domain.split('.')
     const subdomain = parts.length > 2 ? parts[0] : '@'
     const content = readFileSync(join(__dirname, args.file), 'utf-8')
-    const bindings = args.env
-      ? Object.entries(args.env).map(([name, text]) => ({ name, type: 'plain_text', text }))
-      : undefined
+    const bindings = args.env ? Object.entries(args.env).map(([name, text]) => ({ name, type: 'plain_text', text })) : undefined
 
     const worker = new cloudflare.WorkersScript(
       name,

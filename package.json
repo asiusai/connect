@@ -10,7 +10,7 @@
     "dev:site": "bun --cwd site dev",
     "dev:connect": "bun --cwd connect dev",
     "dev:mkv": "cd minikeyvalue && tools/bringup.sh",
-    "fix": "bun --cwd connect fix && biome check --write",
+    "fix": "biome check --write",
     "test": "bun test",
     "test:device": "INTEGRATION=1 bun test api/scripts/device.test.ts",
     "infra": "bun --cwd infra up"

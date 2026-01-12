@@ -17,17 +17,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
 
-      - uses: actions/cache@v4
         id: playwright-cache
         with:
-          path: |
-            ~/.cache/ms-playwright
+          path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/bun.lockb') }}
 
       - name: Run tests
-        run: |
-          echo "::add-matcher::.github/tsc.json"
-          ./test.sh
+        run: ./test.sh
         env:
           SKIP_PLAYWRIGHT_INSTALL: ${{ steps.playwright-cache.outputs.cache-hit }}
 

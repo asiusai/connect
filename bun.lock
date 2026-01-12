@@ -34,7 +34,7 @@
       },
     },
     "connect": {
-      "name": "@asiusai/connect",
+      "name": "@asiusai/asiusai",
       "version": "1.0.0",
       "dependencies": {
         "@commaai/wasm-bz2": "^0.0.4",
@@ -141,7 +141,7 @@
 
     "@asiusai/api": ["@asiusai/api@workspace:api"],
 
-    "@asiusai/connect": ["@asiusai/connect@workspace:connect"],
+    "@asiusai/asiusai": ["@asiusai/asiusai@workspace:connect"],
 
     "@asiusai/infra": ["@asiusai/infra@workspace:infra"],
 

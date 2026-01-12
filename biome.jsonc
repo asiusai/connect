@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!openpilot", "!sunnypilot", "!connect", "!example-data"]
+    "includes": ["**", "!openpilot", "!sunnypilot", "!connect", "!example-data", "!connect/src/log-reader/capnp/*", "!api/db/migrations"]
   },
   "formatter": {
     "enabled": true,
