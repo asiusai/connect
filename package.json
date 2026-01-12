@@ -16,7 +16,7 @@
     "tsc": "tsc --noEmit",
     "fix": "biome check --write",
     "test": "bun test api connect site --concurrent",
-    "integration": "bun test ./integration/ --concurrent --timeout 120000",
+    "integration": "bun test ./integration/ --timeout 120000",
     "infra": "bun --cwd infra up"
   },
   "workspaces": [

@@ -35,7 +35,7 @@ for (const mode of Mode.options.filter((x) => x !== 'dev')) {
     'route-qlogs': `${DONGLE_ID}/${ROUTE_ID}/qlogs`,
   }
   for (const device of deviceList) {
-    test(
+    test.concurrent(
       `${mode} ${device} screenshots`,
       async () => {
         const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
@@ -50,7 +50,6 @@ for (const mode of Mode.options.filter((x) => x !== 'dev')) {
           await page.goto(`${BASE_URL}/${route}`, { waitUntil: 'networkidle', timeout: 120_000 })
 
           await page.screenshot({ path, fullPage: true })
-          console.log(path)
         }
 
         await page.close()
