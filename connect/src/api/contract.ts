@@ -75,7 +75,8 @@ const devices = c.router({
   pair: {
     method: 'POST',
     path: '/v2/pilotpair/',
-    contentType: env.IS_OURS ? undefined : 'multipart/form-data',
+    // TODO: check comma, maybe for comma it was supposed to be multipart/form-data, but this is needed for konik
+    contentType: env.IS_OURS ? undefined : 'application/x-www-form-urlencoded',
     body: z.object({ pair_token: z.string() }),
     responses: {
       200: z.object({
