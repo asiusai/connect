@@ -1,6 +1,6 @@
 #!/bin/bash
 # SSH into the API server
-# Usage: ./ssh.sh [command]
+# Usage: ./api-ssh.sh [command]
 
 cd "$(dirname "$0")"
 IP=$(dotenv pulumi stack output apiIp 2>/dev/null)
