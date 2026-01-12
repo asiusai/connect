@@ -30,7 +30,7 @@ const server = Bun.serve<WebSocketData>({
     if (req.method === 'OPTIONS') return new Response(null, { headers })
 
     const ip = getClientIp(req)
-    if (!rateLimit(ip, 300)) return new Response('Too many requests', { status: 429, headers: { ...headers, 'Retry-After': '60' } })
+    if (!rateLimit(ip, 3000)) return new Response('Too many requests', { status: 429, headers: { ...headers, 'Retry-After': '60' } })
 
     const url = new URL(req.url)
     const identity = await auth(req)
