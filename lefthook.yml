@@ -1,7 +1,7 @@
 pre-commit:
   commands:
     fix:
-      run: bun run fix
+      run: bunx biome check --write {staged_files}
       stage_fixed: true
     tsc:
       run: bun run tsc
