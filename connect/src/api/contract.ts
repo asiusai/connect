@@ -441,7 +441,7 @@ const prime = c.router({
 })
 
 const ServiceStatus = z.object({
-  status: z.enum(['ok', 'error']),
+  status: z.enum(['ok', 'error', 'pending']),
   latency: z.number().optional(),
   error: z.string().optional(),
 })

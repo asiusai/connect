@@ -19,9 +19,16 @@ const runMigrations = () => {
   const hasMigrationTable = tables.some((t) => t.name === '__drizzle_migrations')
 
   if (hasTables && !hasMigrationTable) {
-    console.log('[backup] Existing database without migration tracking, skipping migrations')
-    sqlite.close()
-    return
+    // Database exists without migration tracking - mark initial migration as done
+    // so drizzle only runs subsequent migrations
+    console.log('[backup] Existing database without migration tracking, initializing migration table')
+    sqlite.run(`CREATE TABLE IF NOT EXISTS __drizzle_migrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      hash TEXT NOT NULL,
+      created_at NUMERIC
+    )`)
+    // Mark the initial schema migration (0000_long_kylun.sql) as already applied
+    sqlite.run(`INSERT INTO __drizzle_migrations (hash, created_at) VALUES ('0000_long_kylun', ?)`, [Date.now()])
   }
 
   migrate(drizzle(sqlite), { migrationsFolder: './db/migrations' })
