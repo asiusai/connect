@@ -107,7 +107,7 @@ const asius: Provider = {
   GITHUB_CLIENT_ID:"Ov23li0TAhCMsk5poUJw",
 
   DEMO_ACCESS_TOKEN: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6IjYxMDA4MDY1NjcxMjU3YmIiLCJpYXQiOjE3NjgyMjY5MzEsImV4cCI6MTc5OTc2MjkzMX0.9fnF0nu2f7ZJidtyQGCxL60ZcQ1yrdQeiCjQzWaQyyg",
-  DEMO_DONGLE_ID: "e5755f01c962ca54"
+  DEMO_DONGLE_ID: "4f6a9c72d5ab73a3"
 }
 const dev: Provider = {
   ...asius,
