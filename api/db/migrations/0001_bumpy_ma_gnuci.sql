@@ -1,0 +1,1 @@
+ALTER TABLE `files` ADD `retries` integer DEFAULT 0 NOT NULL;

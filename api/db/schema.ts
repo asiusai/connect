@@ -129,6 +129,7 @@ export const filesTable = sqliteTable('files', {
   size: integer('size').notNull(),
   processingStatus: text('processing_status').$type<'queued' | 'processing' | 'done' | 'error'>().default('queued').notNull(),
   processingError: text('processing_error'),
+  retries: integer('retries').default(0).notNull(),
   create_time: createdAt('create_time'),
   updated_time: integer('updated_time')
     .$defaultFn(() => Date.now())

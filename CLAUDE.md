@@ -42,6 +42,7 @@ trigger: always_on
 - **NEVER commit without explicit approval** - Show diff, wait for user confirmation
 - Run `bun run fix` and `bun run tsc` before commiting
 - `bun run dev`, `bun run build` and `bun run integration` all accept MODE env to know which setup they should use, available options are `comma`, `konik`, `asius` and `dev`
+- database migrations are applied automatically but you have to create them in `api` folder by running `bun run db:generate`
 
 ## Infrastructure
 - Server is deployed via Pulumi in `infra/index.ts`, run `dotenv pulumi up --yes` to deploy

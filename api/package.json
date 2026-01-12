@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch index.ts",
+    "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "test:integration": "INTEGRATION=1 bun test scripts/device.test.ts",
     "test:integration:konik": "INTEGRATION=1 TARGET=konik bun test scripts/device.test.ts",

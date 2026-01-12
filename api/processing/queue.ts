@@ -30,9 +30,11 @@ export const startQueueWorker = () => {
   for (let i = 0; i < env.WORKER_COUNT; i++) {
     const worker = new Worker(new URL('./worker.ts', import.meta.url).href)
     worker.onmessage = (e) => {
-      const { type, key, error } = e.data
+      const { type, key, error, retries } = e.data
       if (type === 'started') console.log(`Processing worker ${i + 1} started`)
       else if (type === 'processed') console.log(`Processed: ${key}`)
+      else if (type === 'retry') console.log(`Retrying ${key} (attempt ${retries}/3): ${error}`)
+      else if (type === 'requeued') console.log(`Requeued stuck job ${key} (attempt ${retries}/3)`)
       else if (type === 'error') console.error(`Failed to process ${key}: ${error}`)
     }
     worker.onerror = (err) => console.error(`Worker ${i + 1} error:`, err)
