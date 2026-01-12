@@ -2,8 +2,8 @@ import fs from 'node:fs'
 import { test } from 'bun:test'
 import { chromium, devices as playDevices } from 'playwright'
 import { keys } from '../connect/src/utils/helpers'
+import { env } from '../connect/src/utils/env'
 
-const BASE_URL = process.env.BASE_URL || 'https://comma.asius.ai'
 const FOLDER = process.env.FOLDER || 'screenshots'
 const PAGE = process.env.PAGE
 const DEVICE = process.env.DEVICE
@@ -14,24 +14,28 @@ const DEVICES = {
   desktop: playDevices['Desktop Chrome'],
 }
 
+const BASE_URL = env.CONNECT_URL
+const DONGLE_ID = env.DEMO_DONGLE_ID
+const ROUTE_ID = env.DEMO_ROUTE_ID
+
 const PAGES = {
   login: 'login',
 
-  home: `1d3dc3e03047b0c7`,
+  home: DONGLE_ID,
 
   'first-pair': 'first-pair',
   pair: 'pair',
-  settings: `1d3dc3e03047b0c7/settings`,
-  sentry: `1d3dc3e03047b0c7/sentry`,
-  params: `1d3dc3e03047b0c7/params`,
-  live: `1d3dc3e03047b0c7/live`,
-  analyze: `1d3dc3e03047b0c7/analyze`,
+  settings: `${DONGLE_ID}/settings`,
+  // sentry: `${DONGLE_ID}/sentry`,
+  // params: `${DONGLE_ID}/params`,
+  // live: `${DONGLE_ID}/live`,
+  // analyze: `${DONGLE_ID}/analyze`,
 
-  route: `1d3dc3e03047b0c7/000000dd--455f14369d`,
-  'route-clip': `1d3dc3e03047b0c7/000000dd--455f14369d/10/300`,
-  'route-public-clip': `a2a0ccea32023010/2023-07-27--13-01-19/10/300`,
-  'route-qlogs': `1d3dc3e03047b0c7/000000dd--455f14369d/qlogs`,
-  'route-logs': `1d3dc3e03047b0c7/000000dd--455f14369d/logs`,
+  route: `${DONGLE_ID}/${ROUTE_ID}`,
+  'route-clip': `${DONGLE_ID}/${ROUTE_ID}/10/100`,
+  // 'route-public-clip': `a2a0ccea32023010/2023-07-27--13-01-19/10/300`,
+  'route-qlogs': `${DONGLE_ID}/${ROUTE_ID}/qlogs`,
+  // 'route-logs': `${DONGLE_ID}/${ROUTE_ID}/logs`,
 }
 
 const pageList = [...keys(PAGES).entries()].filter(([_, x]) => !PAGE || PAGE.split(',').includes(x))
@@ -49,7 +53,7 @@ for (const device of deviceList) {
       await page.goto(`${BASE_URL}/demo`, { waitUntil: 'networkidle' })
 
       for (const [i, route] of pageList) {
-        const path = `${FOLDER}/${device}-${i + 1}-${route}.png`
+        const path = `${FOLDER}/${env.MODE}/${device}-${i + 1}-${route}.png`
         await page.goto(`${BASE_URL}/${PAGES[route]}`, { waitUntil: 'networkidle' })
 
         await page.screenshot({ path, fullPage: true })

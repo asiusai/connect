@@ -41,7 +41,7 @@ trigger: always_on
 ## Workflow
 - **NEVER commit without explicit approval** - Show diff, wait for user confirmation
 - Run `bun run fix` and `bun run tsc` before commiting
-- `bun run dev`, `bun run build` and `bun run integration` all accept MODE env to know which setup they should use, available options are `comma`, `konik`, `asius` and `dev`
+- `bun run dev`, `bun run build` and `bun run integration` all accept MODE env to know which setup they should use, available options are `comma`, `konik`, `asius` and `dev` (defaults to `asius`)
 - database migrations are applied automatically but you have to create them in `api` folder by running `bun run db:generate`
 
 ## Infrastructure

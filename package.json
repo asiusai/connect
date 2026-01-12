@@ -16,7 +16,7 @@
     "tsc": "tsc --noEmit",
     "fix": "biome check --write",
     "test": "bun test api connect site --concurrent",
-    "integration": "bun test ./integration/",
+    "integration": "bun test ./integration/ --concurrent",
     "infra": "bun --cwd infra up"
   },
   "workspaces": [
