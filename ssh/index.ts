@@ -191,7 +191,7 @@ Bun.serve({
     const url = new URL(req.url)
 
     // Health check
-    if (url.pathname === "/") return Response.redirect("https://asius.ai/docs/ssh", 301)
+    if (url.pathname === '/') return Response.redirect('https://asius.ai/docs/ssh', 301)
     if (url.pathname === '/health') {
       return new Response('ok')
     }

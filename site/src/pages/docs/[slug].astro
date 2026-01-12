@@ -1,21 +1,21 @@
 ---
-import "../../global.css";
-import { getCollection, render } from "astro:content";
-import type { CollectionEntry } from "astro:content";
-import Layout from "../../layouts/Layout.astro";
+import '../../global.css'
+import { getCollection, render } from 'astro:content'
+import type { CollectionEntry } from 'astro:content'
+import Layout from '../../layouts/Layout.astro'
 
 export const getStaticPaths = async () => {
-  const docs = await getCollection("docs");
+  const docs = await getCollection('docs')
   return docs.map((doc) => ({
     params: { slug: doc.id },
     props: { doc },
-  }));
-};
+  }))
+}
 
-type Props = { doc: CollectionEntry<"docs"> };
+type Props = { doc: CollectionEntry<'docs'> }
 
-const { doc } = Astro.props;
-const { Content } = await render(doc);
+const { doc } = Astro.props
+const { Content } = await render(doc)
 ---
 
 <Layout title={doc.data.title} description={doc.data.description} class="container mx-auto px-6 py-12 max-w-3xl">
