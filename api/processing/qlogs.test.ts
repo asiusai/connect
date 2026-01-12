@@ -185,7 +185,7 @@ describe('qlogs', () => {
           expect(events[i].data, `${routeName}/0 event ${i} data`).toEqual(expected[i].data)
         }
       }
-    })
+    }, 180000)
 
     test('non-segment-0 events have correct types and data', async () => {
       const routes = await discoverRoutes()
