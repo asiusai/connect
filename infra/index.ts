@@ -1,12 +1,25 @@
 import * as cloudflare from '@pulumi/cloudflare'
 import * as hcloud from '@pulumi/hcloud'
 import * as pulumi from '@pulumi/pulumi'
-import { execSync } from 'child_process'
+import { createHash } from 'crypto'
+import { readdirSync, readFileSync, statSync } from 'fs'
+import { join } from 'path'
 import { Site } from './Site'
 import { Worker } from './Worker'
 import { Server } from './Server'
 
-const folderHash = (path: string) => execSync(`find ${path} -type f -exec md5 -q {} \\; | sort | md5 -q`).toString().trim()
+const folderHash = (path: string): string => {
+  const hash = createHash('md5')
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir).sort()) {
+      const full = join(dir, entry)
+      if (statSync(full).isDirectory()) walk(full)
+      else hash.update(readFileSync(full))
+    }
+  }
+  walk(path)
+  return hash.digest('hex')
+}
 
 const config = new pulumi.Config()
 
