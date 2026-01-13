@@ -40,23 +40,20 @@ export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?:
           <div
             key={device.dongle_id}
             className={clsx(
-              'flex items-center justify-between p-3 rounded-xl cursor-pointer shrink-0 relative overflow-hidden transition-colors',
-              device.dongle_id === dongleId ? 'bg-white/10' : 'hover:bg-white/5',
+              'flex flex-col gap-0.5 p-3 rounded-xl cursor-pointer shrink-0 transition-colors',
+              device.dongle_id === dongleId ? 'bg-white/10 border border-green-500/50' : 'hover:bg-white/5',
             )}
             onClick={() => {
               close()
               navigate(`/${device.dongle_id}`)
             }}
           >
-            <div className="flex flex-col gap-0.5 z-10">
-              <span className="text-sm font-bold text-white">{getDeviceName(device)}</span>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-white/60">{getCommaName(device)}</span>
-                {/* <span className="text-white/40">•</span> */}
-                {/* <Active device={device} className="text-xs" /> */}
-              </div>
+            <span className="text-sm font-bold text-white">{getDeviceName(device)}</span>
+            <div className="flex items-center gap-2 text-xs">
+              <Active device={device} className="text-xs" />
+              <span className="text-white/40">·</span>
+              <span className="text-white/60">{getCommaName(device)}</span>
             </div>
-            {device.dongle_id === dongleId && <Icon name="check" className="text-green-400" />}
           </div>
         ))}
 

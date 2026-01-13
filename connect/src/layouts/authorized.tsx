@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import { api } from '../api'
 import { useRouteParams } from '../utils/hooks'
@@ -14,7 +14,7 @@ const RedirectFromHome = () => {
   // Wait for the devices to load
   if (!devices) return null
 
-  if (lastDongleId) return <Navigate to={`/${lastDongleId}`} />
+  if (lastDongleId && devices.some((x) => x.dongle_id === lastDongleId)) return <Navigate to={`/${lastDongleId}`} />
 
   const firstDongleId = devices[0]?.dongle_id
   if (firstDongleId) {
@@ -27,27 +27,21 @@ const RedirectFromHome = () => {
 
 export const Component = () => {
   const location = useLocation()
-  const navigate = useNavigate()
   const [_, { error }] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const { dongleId } = useRouteParams()
   const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
 
   useEffect(() => {
-    if (dongleId && dongleId !== lastDongleId) {
-      setLastDongleId(dongleId)
-    }
+    if (dongleId && dongleId !== lastDongleId) setLastDongleId(dongleId)
   }, [dongleId, lastDongleId, setLastDongleId])
 
-  useEffect(() => {
-    if ((error as any)?.status !== 401) return
-    signOut()
-    navigate('/login')
-  }, [error])
+  if (error) signOut()
 
   if (!isSignedIn()) return <Navigate to="/login" />
 
   // We never want them to be at /
   if (location.pathname.replace('/', '') === '') return <RedirectFromHome />
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />

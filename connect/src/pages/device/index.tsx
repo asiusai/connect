@@ -15,6 +15,7 @@ import { useDeviceParams } from './useDeviceParams'
 import clsx from 'clsx'
 import { toast } from 'sonner'
 import { IconButton } from '../../components/IconButton'
+import { Navigate } from 'react-router-dom'
 
 const NavButton = () => {
   const { setIsSearchOpen } = useSearch()
@@ -72,16 +73,17 @@ export const Component = () => {
   if (loading) return <Loading className="h-screen w-screen" />
 
   if (!device || error) {
-    return (
-      <div className="flex flex-1 w-full flex-col items-center justify-center gap-6 bg-background text-background-x p-4">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <Icon name="error" className="text-error text-5xl" />
-          <h1 className="text-2xl font-bold text-primary">Device not found</h1>
-          <p className="text-secondary-alt-x">The device you are looking for does not exist or you don't have permission to view it.</p>
-          <p className="text-secondary-alt-x">Select another device from the dropdown list.</p>
-        </div>
-      </div>
-    )
+    return <Navigate to="/" />
+    // return (
+    //   <div className="flex flex-1 w-full flex-col items-center justify-center gap-6 bg-background text-background-x p-4">
+    //     <div className="flex flex-col items-center gap-2 text-center">
+    //       <Icon name="error" className="text-error text-5xl" />
+    //       <h1 className="text-2xl font-bold text-primary">Device not found</h1>
+    //       <p className="text-secondary-alt-x">The device you are looking for does not exist or you don't have permission to view it.</p>
+    //       <p className="text-secondary-alt-x">Select another device from the dropdown list.</p>
+    //     </div>
+    //   </div>
+    // )
   }
 
   const height = 400
