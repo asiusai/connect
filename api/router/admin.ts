@@ -1,11 +1,24 @@
 import { contract } from '../../connect/src/api/contract'
 import { tsr } from '../common'
 import { db } from '../db/client'
-import { devicesTable, usersTable, segmentsTable, filesTable, uptimeTable, deviceUsersTable } from '../db/schema'
+import {
+  devicesTable,
+  usersTable,
+  segmentsTable,
+  filesTable,
+  uptimeTable,
+  deviceUsersTable,
+  routesTable,
+  athenaPingsTable,
+  athenaQueueTable,
+  statsTable,
+  logsTable,
+} from '../db/schema'
 import { sql, count, countDistinct, desc, eq, asc, and } from 'drizzle-orm'
 import { env } from '../env'
 import { getLastBackupTime } from '../db/backup'
 import { superuserMiddleware } from '../middleware'
+import { mkv } from '../mkv'
 
 const startTime = Date.now()
 try {
@@ -355,5 +368,41 @@ export const admin = tsr.router(contract.admin, {
         total: totalResult,
       },
     }
+  }),
+  deleteFile: superuserMiddleware(async ({ params }) => {
+    const key = decodeURIComponent(params.key)
+    const file = db.select().from(filesTable).where(eq(filesTable.key, key)).get()
+    if (!file) return { status: 404, body: { error: 'File not found' } }
+
+    await mkv.delete(key)
+    db.delete(filesTable).where(eq(filesTable.key, key)).run()
+
+    return { status: 200, body: { success: true } }
+  }),
+  deleteDevice: superuserMiddleware(async ({ params }) => {
+    const device = db.select().from(devicesTable).where(eq(devicesTable.dongle_id, params.dongleId)).get()
+    if (!device) return { status: 404, body: { error: 'Device not found' } }
+
+    const files = db.select({ key: filesTable.key }).from(filesTable).where(eq(filesTable.dongle_id, params.dongleId)).all()
+
+    // Delete all MKV files for this device
+    await Promise.all(files.map((f) => mkv.delete(f.key).catch(() => {})))
+
+    // Also delete the device folder in MKV (for any other files like boot logs)
+    const mkvKeys = await mkv.list(params.dongleId)
+    await Promise.all(mkvKeys.map((k) => mkv.delete(k).catch(() => {})))
+
+    // Delete all database records
+    db.delete(filesTable).where(eq(filesTable.dongle_id, params.dongleId)).run()
+    db.delete(segmentsTable).where(eq(segmentsTable.dongle_id, params.dongleId)).run()
+    db.delete(routesTable).where(eq(routesTable.dongle_id, params.dongleId)).run()
+    db.delete(athenaPingsTable).where(eq(athenaPingsTable.dongle_id, params.dongleId)).run()
+    db.delete(athenaQueueTable).where(eq(athenaQueueTable.dongle_id, params.dongleId)).run()
+    db.delete(statsTable).where(eq(statsTable.dongle_id, params.dongleId)).run()
+    db.delete(logsTable).where(eq(logsTable.dongle_id, params.dongleId)).run()
+    db.delete(deviceUsersTable).where(eq(deviceUsersTable.dongle_id, params.dongleId)).run()
+    db.delete(devicesTable).where(eq(devicesTable.dongle_id, params.dongleId)).run()
+
+    return { status: 200, body: { success: true, deletedFiles: files.length } }
   }),
 })

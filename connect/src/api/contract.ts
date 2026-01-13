@@ -580,6 +580,26 @@ const admin = c.router({
       }),
     },
   },
+  deleteFile: {
+    method: 'DELETE',
+    path: '/admin/files/:key',
+    pathParams: z.object({
+      key: z.string(),
+    }),
+    responses: {
+      200: z.object({ success: z.boolean() }),
+    },
+  },
+  deleteDevice: {
+    method: 'DELETE',
+    path: '/admin/devices/:dongleId',
+    pathParams: z.object({
+      dongleId: z.string(),
+    }),
+    responses: {
+      200: z.object({ success: z.boolean(), deletedFiles: z.number() }),
+    },
+  },
 })
 
 const data = c.router({

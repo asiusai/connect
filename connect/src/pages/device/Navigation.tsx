@@ -42,6 +42,12 @@ export const Navigation = ({ className }: { className?: string }) => {
       color: 'text-green-500',
     },
     {
+      title: 'SSH',
+      icon: 'terminal',
+      href: `/${dongleId}/ssh`,
+      color: 'text-cyan-400',
+    },
+    {
       title: 'Settings',
       icon: 'settings',
       href: `/${dongleId}/settings`,

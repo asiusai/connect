@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { useAdminUsers, useAdminDevices, useAdminFiles, useAdminRoutes, useProfile } from '../api/queries'
 import { Loading } from '../components/Loading'
 import { Icon } from '../components/Icon'
+import { api } from '../api'
 import clsx from 'clsx'
 import { env } from '../utils/env'
 
@@ -111,8 +113,24 @@ const DevicesTable = ({
 }) => {
   const [devices] = useAdminDevices({ user_id: filter.user_id })
   const [users] = useAdminUsers()
+  const queryClient = useQueryClient()
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const user = filter.user_id ? users?.find((u) => u.id === filter.user_id) : null
+
+  const handleDelete = async (dongleId: string) => {
+    if (!confirm(`Delete device ${dongleId} and ALL its data? This cannot be undone.`)) return
+    setDeleting(dongleId)
+    try {
+      await api.admin.deleteDevice.mutate({ params: { dongleId } })
+      queryClient.invalidateQueries({ queryKey: ['admin-devices'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-files'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-routes'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    } finally {
+      setDeleting(null)
+    }
+  }
 
   if (!devices) return <Loading />
 
@@ -164,6 +182,7 @@ const DevicesTable = ({
               <th className="text-left py-3 px-4 font-medium text-white/60">Created</th>
               <th className="text-right py-3 px-4 font-medium text-white/60">Files</th>
               <th className="text-right py-3 px-4 font-medium text-white/60">Data</th>
+              <th className="py-3 px-4"></th>
             </tr>
           </thead>
           <tbody>
@@ -191,6 +210,16 @@ const DevicesTable = ({
                   )}
                 </td>
                 <td className="py-3 px-4 text-right">{formatBytes(device.totalSize)}</td>
+                <td className="py-3 px-4">
+                  <button
+                    onClick={() => handleDelete(device.dongle_id)}
+                    disabled={deleting === device.dongle_id}
+                    className="text-white/40 hover:text-red-400 transition-colors disabled:opacity-50"
+                    title="Delete device"
+                  >
+                    <Icon name={deleting === device.dongle_id ? 'sync' : 'delete'} className="text-sm" />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -240,6 +269,8 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
   const [filesData] = useAdminFiles({ limit: 100, status: filter.status, dongle_id: filter.dongle_id, route_id: filter.route_id, sort: filter.sort, order: filter.order })
   const [devices] = useAdminDevices({})
   const [routesData] = useAdminRoutes({ dongle_id: filter.dongle_id, limit: 1000 })
+  const queryClient = useQueryClient()
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const device = filter.dongle_id ? devices?.find((d) => d.dongle_id === filter.dongle_id) : null
   const route = filter.route_id && filter.dongle_id ? routesData?.routes.find((r) => r.route_id === filter.route_id && r.dongle_id === filter.dongle_id) : null
@@ -252,6 +283,19 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
   }
 
   const getFileUrl = (key: string) => `${env.API_URL}/connectdata/${key}`
+
+  const handleDelete = async (key: string) => {
+    if (!confirm(`Delete file ${key}? This cannot be undone.`)) return
+    setDeleting(key)
+    try {
+      await api.admin.deleteFile.mutate({ params: { key: encodeURIComponent(key) } })
+      queryClient.invalidateQueries({ queryKey: ['admin-files'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-devices'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-routes'] })
+    } finally {
+      setDeleting(null)
+    }
+  }
 
   return (
     <div>
@@ -390,6 +434,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                       onSort={(sort, order) => onFilterChange({ ...filter, sort, order })}
                     />
                   </th>
+                  <th className="py-3 px-4"></th>
                 </tr>
               </thead>
               <tbody>
@@ -435,6 +480,16 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                       <span className={clsx('px-2 py-1 rounded text-xs', statusColors[file.processingStatus])}>{file.processingStatus}</span>
                     </td>
                     <td className="py-3 px-4 text-white/60">{formatDate(file.create_time)}</td>
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => handleDelete(file.key)}
+                        disabled={deleting === file.key}
+                        className="text-white/40 hover:text-red-400 transition-colors disabled:opacity-50"
+                        title="Delete file"
+                      >
+                        <Icon name={deleting === file.key ? 'sync' : 'delete'} className="text-sm" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
