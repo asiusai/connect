@@ -45,8 +45,8 @@ for (const mode of Mode.options.filter((x) => x !== 'dev')) {
 
         await page.goto(`${BASE_URL}/demo`, { waitUntil: 'networkidle' })
 
-        for (const [i, route] of Object.entries(PAGES)) {
-          const path = `${FOLDER}/${mode}/${device}-${i + 1}-${route}.png`
+        for (const [name, route] of Object.entries(PAGES)) {
+          const path = `${FOLDER}/${mode}/${device}/${name}.png`
           await page.goto(`${BASE_URL}/${route}`, { waitUntil: 'networkidle', timeout: 120_000 })
 
           await page.screenshot({ path, fullPage: true })

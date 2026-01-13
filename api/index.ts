@@ -62,7 +62,7 @@ const server = Bun.serve<WebSocketData>({
     console[res.status >= 400 ? 'error' : 'log'](
       req.method.padEnd(5),
       res.status,
-      (identity ? `${identity.type}(${identity.id})` : '-').padEnd(24),
+      (identity ? `${identity.type === 'user' ? (identity.user.superuser ? 'super' : 'user') : 'device'}(${identity.id})` : '-').padEnd(24),
       url.pathname,
     )
 
