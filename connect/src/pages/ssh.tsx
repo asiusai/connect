@@ -30,6 +30,8 @@ export const Component = () => {
 
   const quickCommand = `ssh -J ${hostname}@ssh.asius.ai:2222 comma@localhost`
   const quickCommandHidden = `ssh -J ${hostnameHidden}@ssh.asius.ai:2222 comma@localhost`
+  const shortCommand = `ssh ${hostname}`
+  const shortCommandHidden = `ssh ${hostnameHidden}`
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
@@ -54,79 +56,79 @@ export const Component = () => {
           </p>
         </div>
 
-        <div className="bg-background-alt rounded-xl p-5 flex flex-col gap-4">
+        <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
-              <Icon name="bolt" className="text-xl text-green-400" />
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
+              <Icon name="bolt" className="text-lg md:text-xl text-green-400" />
             </div>
             <div>
-              <h2 className="font-semibold">Quick Connect</h2>
-              <p className="text-xs text-white/50">One-line command to connect instantly</p>
+              <h2 className="font-semibold text-sm md:text-base">Quick Connect</h2>
+              <p className="text-xs md:text-sm text-white/50">One-line command to connect instantly</p>
             </div>
           </div>
 
-          <div className="relative">
-            <pre className="bg-black/40 p-4 rounded-lg text-sm font-mono overflow-x-auto border border-white/5">
+          <div className="group relative">
+            <pre className="bg-black/40 px-3 py-2 md:px-4 md:py-3 rounded-lg text-xs md:text-sm font-mono overflow-x-auto border border-white/5">
               {showToken || !needsToken ? quickCommand : quickCommandHidden}
             </pre>
-            <div className="absolute top-2.5 right-2.5 flex gap-1.5">
+            <div className="absolute top-1 right-1 md:top-2 md:right-2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
               {needsToken && token && (
                 <button
                   onClick={() => setShowToken(!showToken)}
-                  className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                  className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"
                   title={showToken ? 'Hide token' : 'Show token'}
                 >
-                  <Icon name={showToken ? 'visibility_off' : 'visibility'} className="text-base" />
+                  <Icon name={showToken ? 'visibility_off' : 'visibility'} className="text-xs md:text-sm" />
                 </button>
               )}
               <button
-                onClick={() => copyToClipboard(quickCommand, 'SSH command')}
-                className="p-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
-                title="Copy to clipboard"
+                onClick={() => copyToClipboard(quickCommand, 'Command')}
+                className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"
+                title="Copy"
               >
-                <Icon name="file_copy" className="text-base" />
+                <Icon name="file_copy" className="text-xs md:text-sm" />
               </button>
             </div>
           </div>
         </div>
 
-        <div className="bg-background-alt rounded-xl p-5 flex flex-col gap-4">
+        <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
-              <Icon name="settings" className="text-xl text-blue-400" />
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+              <Icon name="settings" className="text-lg md:text-xl text-blue-400" />
             </div>
             <div>
-              <h2 className="font-semibold">SSH Config</h2>
-              <p className="text-xs text-white/50">
-                Add to <code className="bg-white/10 px-1.5 py-0.5 rounded text-white/70">~/.ssh/config</code> for easier access
+              <h2 className="font-semibold text-sm md:text-base">SSH Config</h2>
+              <p className="text-xs md:text-sm text-white/50">
+                Add to <code className="bg-white/10 px-1 rounded text-white/70">~/.ssh/config</code>
               </p>
             </div>
           </div>
 
-          <div className="relative">
-            <pre className="bg-black/40 p-4 rounded-lg text-sm font-mono overflow-x-auto whitespace-pre border border-white/5">
+          <div className="group relative">
+            <pre className="bg-black/40 px-3 py-2 md:px-4 md:py-3 rounded-lg text-xs md:text-sm font-mono overflow-x-auto whitespace-pre border border-white/5">
               {sshConfig}
             </pre>
             <button
-              onClick={() => copyToClipboard(sshConfig, 'SSH config')}
-              className="absolute top-2.5 right-2.5 p-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors"
-              title="Copy to clipboard"
+              onClick={() => copyToClipboard(sshConfig, 'Config')}
+              className="absolute top-1 right-1 md:top-2 md:right-2 w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+              title="Copy"
             >
-              <Icon name="file_copy" className="text-base" />
+              <Icon name="file_copy" className="text-xs md:text-sm" />
             </button>
           </div>
 
-          <div className="relative">
-            <div className="bg-black/20 rounded-lg p-3 pr-12 flex items-center gap-2">
-              <span className="text-sm text-white/60">Then connect with:</span>
-              <code className="text-sm font-mono text-white/80">ssh {showToken || !needsToken ? hostname : hostnameHidden}</code>
-            </div>
+          <p className="text-xs md:text-sm text-white/50">Then connect with:</p>
+          <div className="group relative">
+            <code className="block bg-black/40 px-3 py-2 md:px-4 md:py-3 rounded-lg text-xs md:text-sm font-mono border border-white/5">
+              {showToken || !needsToken ? shortCommand : shortCommandHidden}
+            </code>
             <button
-              onClick={() => copyToClipboard(`ssh ${hostname}`, 'SSH command')}
-              className="absolute top-1/2 -translate-y-1/2 right-2 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-              title="Copy to clipboard"
+              onClick={() => copyToClipboard(shortCommand, 'Command')}
+              className="absolute top-1 right-1 md:top-2 md:right-2 w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+              title="Copy"
             >
-              <Icon name="file_copy" className="text-sm" />
+              <Icon name="file_copy" className="text-xs md:text-sm" />
             </button>
           </div>
         </div>
@@ -136,7 +138,9 @@ export const Component = () => {
             <Icon name="warning" className="text-yellow-400 text-xl shrink-0" />
             <div className="text-sm">
               <p className="font-medium text-yellow-400">Authentication Required</p>
-              <p className="text-yellow-400/70 mt-1">Your auth token must be included in the hostname when connecting. The token is automatically included in the commands above.</p>
+              <p className="text-yellow-400/70 mt-1">
+                Your auth token must be included in the hostname when connecting. The token is automatically included in the commands above.
+              </p>
             </div>
           </div>
         )}
