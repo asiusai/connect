@@ -28,7 +28,15 @@ const generateService = (service: ServiceArgs): pulumi.Output<string> => {
         ? [`${key}=${value}`]
         : Array.isArray(value)
           ? value.map((v) => `${key}=${v}`)
-          : Object.entries(value).map(([k, v]) => pulumi.interpolate`${key}=${k}=${v}`),
+          : Object.entries(value).map(([k, v]) =>
+              // For multiline values (like SSH keys), escape newlines for systemd
+              pulumi
+                .output(v)
+                .apply((val) => {
+                  const escaped = val.includes('\n') ? `"${val.replace(/\n/g, '\\n')}"` : val
+                  return `${key}=${k}=${escaped}`
+                }),
+            ),
     ),
     '',
   ])

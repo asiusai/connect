@@ -22,8 +22,6 @@ export const Environment = z.object({
 
   SUPERUSERS: zArray().default(['nagelkarel@gmail.com']),
 
-  SSH_API_KEY: z.string().optional(),
-
   GITHUB_TOKEN: z.string().optional(),
 
   // R2 backup (optional)

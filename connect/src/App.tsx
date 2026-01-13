@@ -134,6 +134,10 @@ const router = createBrowserRouter([
             lazy: () => import('./pages/ssh'),
           },
           {
+            path: 'terminal',
+            lazy: () => import('./pages/terminal'),
+          },
+          {
             path: 'prime',
             lazy: () => import('./pages/settings/index'),
           },

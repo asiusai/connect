@@ -203,7 +203,6 @@ const apiServer = new Server('api', {
             GITHUB_CLIENT_ID: config.requireSecret('githubClientId'),
             GITHUB_CLIENT_SECRET: config.requireSecret('githubClientSecret'),
             API_ORIGIN: 'wss://api.asius.ai',
-            SSH_API_KEY: config.requireSecret('sshApiKey'),
             GITHUB_TOKEN: config.requireSecret('ghToken'),
             R2_BUCKET: dbBackupBucket.name,
             R2_ACCOUNT_ID: accountId,
@@ -291,8 +290,8 @@ const sshServer = new Server('ssh', {
           Environment: {
             SSH_PORT: '2222',
             WS_PORT: '8080',
-            API_KEY: config.requireSecret('sshApiKey'),
             WS_ORIGIN: 'wss://ssh.asius.ai',
+            BROWSER_SSH_KEY: config.requireSecret('browserSshPrivateKey'),
           },
         },
         Install: {

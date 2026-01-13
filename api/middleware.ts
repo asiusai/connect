@@ -66,14 +66,6 @@ export const deviceMiddleware = createMiddleware(async (req: { params: { dongleI
 })
 
 export const athenaMiddleware = createMiddleware(async (req: { params: { dongleId: string } }, { identity, request, ...ctx }) => {
-  // SSH API key auth (for ssh.asius.ai proxy server)
-  const sshApiKey = request.headers.get('X-SSH-API-Key')
-  if (sshApiKey && env.SSH_API_KEY && sshApiKey === env.SSH_API_KEY) {
-    const device = await db.query.devicesTable.findFirst({ where: eq(devicesTable.dongle_id, req.params.dongleId) })
-    if (!device) throw new NotFoundError('Device not found')
-    return { ...ctx, request, identity: undefined, device, permission: 'owner' as const }
-  }
-
   if (!identity) throw new UnauthorizedError('Authentication required')
   if (identity.type === 'device') throw new ForbiddenError('Cant use athena with device key')
 

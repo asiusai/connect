@@ -1,10 +1,12 @@
-import { Server, utils } from 'ssh2'
+import { Server, Client, utils } from 'ssh2'
+import { Duplex } from 'stream'
 
 const SSH_PORT = Number(process.env.SSH_PORT) || 2222
 const WS_PORT = Number(process.env.WS_PORT) || 8080
 const HOST_KEY = process.env.SSH_HOST_KEY || utils.generateKeyPairSync('ed25519').private
-const API_KEY = process.env.API_KEY
 const WS_ORIGIN = process.env.WS_ORIGIN || 'wss://ssh.asius.ai'
+// Private key for browser SSH client auth - handle escaped newlines from env var
+const BROWSER_SSH_KEY = process.env.BROWSER_SSH_KEY?.replace(/\\n/g, '\n')
 
 // Athena URLs for each provider (must match connect/src/utils/providers.ts)
 const ATHENA_URLS: Record<string, string> = {
@@ -18,8 +20,11 @@ type Provider = 'asius' | 'comma' | 'konik'
 type Session = {
   dongleId: string
   provider: Provider
-  sshChannel: any
+  sshChannel?: any
   device?: any
+  browser?: any
+  sshClient?: Client
+  shellStream?: any
   buffer: Buffer[]
 }
 
@@ -44,13 +49,11 @@ const callAthena = async (provider: Provider, dongleId: string, token: string | 
   const athenaUrl = ATHENA_URLS[provider]
   if (!athenaUrl) return { error: `Unknown provider: ${provider}` }
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (provider === 'asius') {
-    if (!API_KEY) return { error: 'SSH proxy not configured' }
-    headers['X-SSH-API-Key'] = API_KEY
-  } else {
-    if (!token) return { error: `Token required. Use: ssh ${provider}-${dongleId}-YOUR_TOKEN` }
-    headers.Authorization = `JWT ${token}`
+  if (!token) return { error: `Token required. Use: ssh ${provider}-${dongleId}-YOUR_TOKEN` }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `JWT ${token}`,
   }
 
   try {
@@ -59,7 +62,7 @@ const callAthena = async (provider: Provider, dongleId: string, token: string | 
       headers,
       body: JSON.stringify({
         method: 'startLocalProxy',
-        params: { remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`, local_port: 8022 },
+        params: { remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`, local_port: 22 },
         id: 0,
         jsonrpc: '2.0',
       }),
@@ -79,7 +82,7 @@ const callAthena = async (provider: Provider, dongleId: string, token: string | 
 // Clean stale sessions
 setInterval(() => {
   for (const [id, session] of sessions) {
-    if (!session.device && !session.sshChannel) sessions.delete(id)
+    if (!session.device && !session.sshChannel && !session.browser) sessions.delete(id)
   }
 }, 30000)
 
@@ -184,8 +187,16 @@ sshServer.listen(SSH_PORT, '0.0.0.0', () => {
   console.log(`SSH server on port ${SSH_PORT}`)
 })
 
-// WebSocket server for device connections
-Bun.serve({
+type WsData = {
+  sessionId: string
+  type: 'device' | 'browser'
+  provider?: Provider
+  dongleId?: string
+  token?: string
+}
+
+// WebSocket server for device and browser connections
+Bun.serve<WsData>({
   port: WS_PORT,
   fetch: (req, server) => {
     const url = new URL(req.url)
@@ -205,40 +216,202 @@ Bun.serve({
         return new Response('Session not found', { status: 404 })
       }
 
-      if (server.upgrade(req, { data: { sessionId } })) {
+      if (server.upgrade(req, { data: { sessionId, type: 'device' } })) {
         return undefined
       }
+      return new Response('Upgrade failed', { status: 400 })
+    }
+
+    // Browser WebSocket: /browser/{provider}-{dongleId}-{token} or /browser/{provider}-{dongleId}
+    if (url.pathname.startsWith('/browser/')) {
+      const username = url.pathname.slice(9)
+      const parsed = parseUsername(username)
+
+      if (!parsed) {
+        return new Response('Invalid format. Use: /browser/provider-dongleId[-token]', { status: 400 })
+      }
+
+      const sessionId = randomId()
+      const session: Session = {
+        dongleId: parsed.dongleId,
+        provider: parsed.provider,
+        buffer: [],
+      }
+      sessions.set(sessionId, session)
+
+      if (server.upgrade(req, { data: { sessionId, type: 'browser', ...parsed } })) {
+        return undefined
+      }
+
+      sessions.delete(sessionId)
       return new Response('Upgrade failed', { status: 400 })
     }
 
     return new Response('Not found', { status: 404 })
   },
   websocket: {
-    data: {} as { sessionId: string },
     open(ws: any) {
-      const session = sessions.get(ws.data.sessionId)
+      const { sessionId, type, provider, dongleId, token } = ws.data
+      const session = sessions.get(sessionId)
       if (!session) return ws.close()
 
-      session.device = ws
-      console.log(`[${session.provider}/${session.dongleId}] device connected`)
+      if (type === 'browser') {
+        session.browser = ws
+        console.log(`[${provider}/${dongleId}] browser connected`)
 
-      // Flush buffer
-      for (const data of session.buffer) ws.send(data)
-      session.buffer = []
+        // Call athena to start local proxy on device
+        callAthena(provider, dongleId, token, sessionId)
+          .then((res) => {
+            if (res.error) {
+              console.error(`[${provider}/${dongleId}] ${res.error}`)
+              ws.send(`\r\n\x1b[31mError: ${res.error}\x1b[0m\r\n`)
+              ws.close()
+              sessions.delete(sessionId)
+            } else {
+              console.log(`[${provider}/${dongleId}] waiting for device...`)
+              ws.send(`\r\n\x1b[33mConnecting to device...\x1b[0m\r\n`)
+            }
+          })
+          .catch((err) => {
+            console.error(`[${provider}/${dongleId}] athena error:`, err)
+            ws.send(`\r\n\x1b[31mError: ${err.message}\x1b[0m\r\n`)
+            ws.close()
+            sessions.delete(sessionId)
+          })
+      } else {
+        // Device connection
+        session.device = ws
+        console.log(`[${session.provider}/${session.dongleId}] device connected`)
+
+        // If browser is connected, set up SSH client to handle protocol
+        if (session.browser) {
+          session.browser.send(`\x1b[33mDevice connected, authenticating...\x1b[0m\r\n`)
+
+          // Create a duplex stream that bridges WebSocket and SSH client
+          // Buffer writes and send as complete packets using setImmediate
+          let writeBuffer: Buffer[] = []
+          let flushScheduled = false
+          const flushBuffer = () => {
+            if (writeBuffer.length > 0) {
+              ws.send(Buffer.concat(writeBuffer))
+              writeBuffer = []
+            }
+            flushScheduled = false
+          }
+          const wsStream = new Duplex({
+            read() {},
+            write(chunk, _encoding, callback) {
+              writeBuffer.push(chunk)
+              if (!flushScheduled) {
+                flushScheduled = true
+                setImmediate(flushBuffer)
+              }
+              callback()
+            },
+          })
+
+          // Forward device data to the stream
+          session.device._wsStream = wsStream
+
+          const sshClient = new Client()
+          session.sshClient = sshClient
+
+          sshClient.on('ready', () => {
+            console.log(`[${session.provider}/${session.dongleId}] SSH authenticated`)
+            session.browser?.send(`\x1b[32mAuthenticated!\x1b[0m\r\n\r\n`)
+
+            sshClient.shell({ term: 'xterm-256color' }, (err, stream) => {
+              if (err) {
+                session.browser?.send(`\x1b[31mShell error: ${err.message}\x1b[0m\r\n`)
+                session.browser?.close()
+                return
+              }
+
+              session.shellStream = stream
+
+              // Send buffered input from browser
+              for (const data of session.buffer) stream.write(data)
+              session.buffer = []
+
+              // Shell -> Browser
+              stream.on('data', (data: Buffer) => {
+                session.browser?.send(data)
+              })
+
+              stream.on('close', () => {
+                console.log(`[${session.provider}/${session.dongleId}] shell closed`)
+                session.browser?.close()
+              })
+            })
+          })
+
+          sshClient.on('error', (err) => {
+            console.error(`[${session.provider}/${session.dongleId}] SSH error:`, err.message)
+            session.browser?.send(`\x1b[31mSSH error: ${err.message}\x1b[0m\r\n`)
+            session.browser?.close()
+          })
+
+          sshClient.on('keyboard-interactive', (_name, _instructions, _lang, _prompts, finish) => finish([]))
+
+          if (!BROWSER_SSH_KEY) {
+            session.browser?.send(`\x1b[31mBrowser SSH not configured\x1b[0m\r\n`)
+            session.browser?.close()
+            return
+          }
+
+          sshClient.connect({
+            sock: wsStream,
+            username: 'comma',
+            privateKey: BROWSER_SSH_KEY,
+            hostVerifier: () => true,
+            readyTimeout: 60000,
+          })
+        } else {
+          // No browser, just relay to SSH channel (original behavior)
+          for (const data of session.buffer) ws.send(data)
+          session.buffer = []
+        }
+      }
     },
     message(ws: any, msg: Buffer | string) {
-      const session = sessions.get(ws.data.sessionId)
+      const { sessionId, type } = ws.data
+      const session = sessions.get(sessionId)
       if (!session) return
 
-      session.sshChannel.write(typeof msg === 'string' ? Buffer.from(msg) : msg)
+      const data = typeof msg === 'string' ? Buffer.from(msg) : msg
+
+      if (type === 'browser') {
+        if (session.shellStream) {
+          session.shellStream.write(data)
+        } else {
+          session.buffer.push(data)
+        }
+      } else {
+        if (session.device?._wsStream) {
+          session.device._wsStream.push(data)
+        } else if (session.sshChannel) {
+          session.sshChannel.write(data)
+        }
+      }
     },
     close(ws: any) {
-      const session = sessions.get(ws.data.sessionId)
+      const { sessionId, type } = ws.data
+      const session = sessions.get(sessionId)
       if (!session) return
 
-      console.log(`[${session.provider}/${session.dongleId}] device disconnected`)
-      session.sshChannel?.close()
-      sessions.delete(ws.data.sessionId)
+      if (type === 'browser') {
+        console.log(`[${session.provider}/${session.dongleId}] browser disconnected`)
+        session.shellStream?.close()
+        session.sshClient?.end()
+        session.device?.close()
+      } else {
+        console.log(`[${session.provider}/${session.dongleId}] device disconnected`)
+        session.shellStream?.close()
+        session.sshClient?.end()
+        session.browser?.close()
+        session.sshChannel?.close()
+      }
+      sessions.delete(sessionId)
     },
   },
 })
