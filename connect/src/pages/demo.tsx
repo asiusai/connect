@@ -5,7 +5,5 @@ import { useStorage } from '../utils/storage'
 
 export const Component = () => {
   setAccessToken(env.DEMO_ACCESS_TOKEN)
-  const [_, set] =useStorage("lastDongleId")
-  set(env.DEMO_DONGLE_ID)
   return <Navigate to="/" />
 }
