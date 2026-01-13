@@ -1,4 +1,5 @@
 import { restoreFromR2, startBackupSchedule } from './db/backup'
+import { dataHandler } from './router/data'
 await restoreFromR2()
 
 const { fetchRequestHandler } = await import('@ts-rest/serverless/fetch')
@@ -43,6 +44,9 @@ const server = Bun.serve<WebSocketData>({
       }
       return server.upgrade(req, { data: { dongleId, device: identity.device } }) ? undefined : new Response('WS upgrade failed', { status: 400 })
     }
+
+    // MKV
+    if (url.pathname.startsWith('/connectdata/')) return await dataHandler(req, identity)
 
     // API routes
     const res = await fetchRequestHandler({

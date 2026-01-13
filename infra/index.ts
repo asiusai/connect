@@ -94,6 +94,10 @@ const sshKey = new hcloud.SshKey('hetzner-ssh-key', { publicKey: sshPublicKey })
 const R2_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID!
 const R2_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY!
 
+const STORAGE_BOXES = [
+  { i: 1, user: 'u526268' },
+  { i: 2, user: 'u526270' },
+]
 const apiServer = new Server('api', {
   allowedPorts: ['22', '80'],
   sshKeyId: sshKey.id,
@@ -103,10 +107,7 @@ const apiServer = new Server('api', {
   sshPrivateKey,
   proxied: true,
   services: [
-    ...[
-      { i: 1, user: 'u526268' },
-      { i: 2, user: 'u526270' },
-    ].map(({ i, user }) => ({
+    ...STORAGE_BOXES.map(({ i, user }) => ({
       name: `asius-mkv${i}`,
       check: `until nc -z localhost 300${i}; do sleep 0.5; done`,
       service: {
@@ -150,7 +151,7 @@ const apiServer = new Server('api', {
           Type: 'simple',
           WorkingDirectory: '/app',
           ExecStartPre: "/bin/bash -c 'until curl -sf http://localhost:3001/ && curl -sf http://localhost:3002/; do sleep 0.5; done'",
-          ExecStart: '/app/minikeyvalue/src/mkv -volumes localhost:3001,localhost:3002 -db /data/mkv1/mkvdb -replicas 1 --port 3000 server',
+          ExecStart: '/app/minikeyvalue/src/mkv -volumes localhost:3001,localhost:3002 -db /data/mkvdb -replicas 1 --port 3000 server',
           Restart: 'always',
         },
         Install: {
@@ -176,7 +177,7 @@ const apiServer = new Server('api', {
           Environment: {
             PORT: '80',
             MKV_URL: 'http://localhost:3000',
-            DB_PATH: '/data/db/data.db',
+            DB_PATH: '/data/asius.db',
             JWT_SECRET: config.requireSecret('jwtSecret'),
             GOOGLE_CLIENT_ID: config.requireSecret('googleClientId'),
             GOOGLE_CLIENT_SECRET: config.requireSecret('googleClientSecret'),
@@ -206,7 +207,7 @@ curl -fsSL https://bun.sh/install | bash
 ln -sf /root/.bun/bin/bun /usr/local/bin/bun
 
 # Create data directories
-mkdir -p /data/mkv1 /data/mkv2 /data/db /app
+mkdir -p /data/mkv1 /data/mkv2 /app
 
 # Setup SSH key for storage boxes
 mkdir -p /root/.ssh

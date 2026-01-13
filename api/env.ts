@@ -9,7 +9,7 @@ const zArray = () =>
 export const Environment = z.object({
   MKV_URL: z.string().default('http://localhost:3000'),
 
-  DB_PATH: z.string().default('/tmp/data.db'),
+  DB_PATH: z.string().default('/tmp/asius.db'),
 
   JWT_SECRET: z.string(),
   GOOGLE_CLIENT_ID: z.string(),

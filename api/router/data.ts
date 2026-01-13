@@ -1,49 +1,106 @@
-import { contract } from '../../connect/src/api/contract'
-import { InternalServerError, NotFoundError, tsr, UnauthorizedError } from '../common'
-import { dataMiddleware } from '../middleware'
-import { mkv } from '../mkv'
-import { queueFile, deleteFile } from '../processing/queue'
+import { and, eq } from 'drizzle-orm'
+import { Identity } from '../auth'
+import { verify } from '../common'
+import { db } from '../db/client'
+import { deviceUsersTable } from '../db/schema'
+import { env } from '../env'
+import { DataSignature } from '../helpers'
+import { queueFile } from '../processing/queue'
 
-export const data = tsr.router(contract.data, {
-  get: dataMiddleware(async ({ query, headers }, { key, responseHeaders }) => {
-    if (query.list !== undefined) {
-      const files = await mkv.list(key, query.start, query.limit)
-      return { status: 200, body: new Blob([JSON.stringify(files)]) }
-    }
+export const mkvUrl = (key: string) => `${env.MKV_URL}/${key}`
 
-    const res = await mkv.get(key, headers)
-    if (res.status === 404) throw new NotFoundError('File not found')
-    if (!res.ok) throw new InternalServerError('Failed to read file')
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, HEAD, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': '*',
+}
 
-    for (const h of ['Content-Type', 'Content-Length', 'Content-Range', 'Accept-Ranges', 'Content-Md5']) {
-      const v = res.headers.get(h)
-      if (v) responseHeaders.set(h, v)
-    }
+const addCors = (headers: Headers) => {
+  for (const [k, v] of Object.entries(corsHeaders)) headers.set(k, v)
+  return headers
+}
 
-    return { status: res.status as 200 | 206, body: await res.blob() }
-  }),
-  put: dataMiddleware(async ({ headers }, { key, request, permission }) => {
-    if (permission !== 'owner') throw new UnauthorizedError('User only has read access')
+const checkAccess = async (key: string, sig: string | null, identity?: Identity): Promise<'owner' | 'read_access' | null> => {
+  const dongleId = key.split('/')[0]
+  if (!dongleId) return null
 
-    const res = await mkv.put(key, request.body, headers)
-    // 403 means file already exists in MKV - treat as success
-    if (!res.ok && res.status !== 403) throw new InternalServerError('Failed to write file')
+  // Check signature
+  if (sig) {
+    const signature = verify<DataSignature>(sig, env.JWT_SECRET)
+    if (signature && signature.key === key) return signature.permission
+  }
 
-    // Track file in database and queue for processing
-    const headRes = await mkv.head(key)
-    const size = parseInt(headRes.headers.get('content-length') || '0', 10)
-    queueFile(key, size).catch(console.error)
+  if (!identity) return null
 
-    return { status: 201, body: undefined }
-  }),
-  delete: dataMiddleware(async (_, { key, permission }) => {
-    if (permission !== 'owner') throw new UnauthorizedError('User only has read access')
+  // Device auth
+  if (identity.type === 'device') {
+    return identity.device.dongle_id === dongleId ? 'owner' : null
+  }
 
-    const res = await mkv.delete(key)
-    if (!res.ok) throw new InternalServerError('Failed to delete file')
+  // Superuser
+  if (identity.user.superuser) return 'owner'
 
-    deleteFile(key).catch(console.error)
+  // User with device access
+  const deviceUser = await db.query.deviceUsersTable.findFirst({
+    where: and(eq(deviceUsersTable.dongle_id, dongleId), eq(deviceUsersTable.user_id, identity.user.id)),
+  })
+  return deviceUser?.permission ?? null
+}
 
-    return { status: 204, body: undefined }
-  }),
-})
+export const dataHandler = async (req: Request, identity?: Identity): Promise<Response> => {
+  const url = new URL(req.url)
+  const rawKeys = url.pathname.replace('/connectdata/', '').replaceAll('%2F', '/').replaceAll('*', '').trim().split('/').filter(Boolean)
+  const key = rawKeys.join('/')
+  const sig = url.searchParams.get('sig')
+
+  // Check access (signature, device, or user)
+  const permission = await checkAccess(key, sig, identity)
+  if (!permission) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+
+  // Only owners can PUT or DELETE
+  if ((req.method === 'PUT' || req.method === 'DELETE') && permission !== 'owner') {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+
+  // LIST: ?list query param
+  if (url.search.includes('list')) {
+    const res = await fetch(`${mkvUrl(key)}${url.search}`)
+    return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
+  }
+
+  // GET/HEAD: fetch with range support
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    const headers: HeadersInit = {}
+    const range = req.headers.get('Range')
+    if (range) headers.Range = range
+
+    const res = await fetch(mkvUrl(key), { method: req.method, headers, redirect: 'follow' })
+    return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
+  }
+
+  // PUT: upload file
+  if (req.method === 'PUT') {
+    const res = await fetch(mkvUrl(key), {
+      method: 'PUT',
+      body: req.body,
+      headers: { 'Content-Type': req.headers.get('Content-Type') || 'application/octet-stream' },
+      redirect: 'follow',
+      // @ts-expect-error bun supports duplex
+      duplex: 'half',
+    })
+
+    if (res.status === 201) await queueFile(key)
+
+    return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
+  }
+
+  // DELETE: remove file
+  if (req.method === 'DELETE') {
+    const res = await fetch(mkvUrl(key), { method: 'DELETE' })
+    return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
+  }
+
+  return new Response('Method not allowed', { status: 405, headers: corsHeaders })
+}

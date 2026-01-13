@@ -37,6 +37,7 @@ const generateService = (service: ServiceArgs): pulumi.Output<string> => {
 
 export class Server extends pulumi.ComponentResource {
   public readonly ipAddress: pulumi.Output<string>
+  public readonly domain: string
 
   constructor(name: string, args: ServerArgs, opts?: pulumi.ComponentResourceOptions) {
     super('asius:hetzner:Server', name, {}, opts)
@@ -62,6 +63,7 @@ export class Server extends pulumi.ComponentResource {
     )
 
     this.ipAddress = server.ipv4Address
+    this.domain = args.domain
 
     new cloudflare.DnsRecord(
       `${name}-dns`,

@@ -1,5 +1,5 @@
 import { contract } from '../../connect/src/api/contract'
-import { ForbiddenError, NotFoundError, tsr } from '../common'
+import { ForbiddenError, tsr } from '../common'
 import { db } from '../db/client'
 import { routesTable } from '../db/schema'
 import { routeMiddleware } from '../middleware'
@@ -11,13 +11,12 @@ export const route = tsr.router(contract.route, {
   get: routeMiddleware(async (_, { route }) => {
     return { status: 200, body: route }
   }),
-  derived: routeMiddleware(async ({ params }, { route }) => {
+  derived: routeMiddleware(async ({ params }, { route, origin, responseHeaders }) => {
     const routeId = route.fullname.split('|')[1]
     const key = `${route.dongle_id}/${routeId}/${params.segment}/${params.file}`
-    const res = await mkv.get(key)
-    if (!res.ok) throw new NotFoundError('Segment file not found')
-
-    return { status: 200, body: await res.blob() }
+    const segSig = createDataSignature(key, 'read_access', 60)
+    responseHeaders.set('Location', `${origin}/connectdata/${key}?sig=${segSig}`)
+    return { status: 302, body: undefined }
   }),
   setPublic: routeMiddleware(async ({ body }, { route, permission }) => {
     if (permission !== 'owner') throw new ForbiddenError('Owner access required')

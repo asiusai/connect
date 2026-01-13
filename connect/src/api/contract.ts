@@ -256,7 +256,7 @@ const route = c.router({
     path: '/v1/route/:routeName/derived/:sig/:segment/:file',
     pathParams: z.object({ routeName: z.string(), sig: z.string(), segment: z.string(), file: DerivedFile }),
     responses: {
-      200: c.otherResponse({ contentType: '*', body: c.type<Blob>() }),
+      302: c.noBody(),
     },
   },
   shareSignature: {
