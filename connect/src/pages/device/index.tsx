@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Loading } from '../../components/Loading'
-import { useDevice } from '../../api/queries'
+import { api } from '../../api'
 import { Location, useSearch } from './Location'
 import { Routes } from './Routes'
 import { Stats } from './Stats'
@@ -59,7 +59,7 @@ const NavButton = () => {
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const [device, { isLoading, error }] = useDevice(dongleId)
+  const [device, { loading, error }] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const [usingCorrectFork] = useStorage('usingCorrectFork')
   const load = useDeviceParams((s) => s.load)
 
@@ -69,7 +69,7 @@ export const Component = () => {
 
   const scroll = useScroll()
 
-  if (isLoading) return <Loading className="h-screen w-screen" />
+  if (loading) return <Loading className="h-screen w-screen" />
 
   if (!device || error) {
     return (

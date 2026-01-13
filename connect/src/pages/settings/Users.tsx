@@ -3,13 +3,12 @@ import { Icon } from '../../components/Icon'
 import { useState } from 'react'
 import { api } from '../../api'
 import { useRouteParams } from '../../utils/hooks'
-import { useUsers } from '../../api/queries'
 
 export const Users = () => {
   const { dongleId } = useRouteParams()
 
-  let [users, { refetch }] = useUsers(dongleId)
-
+  let [users, { refetch }] = api.users.get.useQuery({ params: { dongleId } })
+  console.log(users)
   // needed for Konik API
   if (users && typeof users === 'object' && 'users' in users) users = users.users as any
 

@@ -8,7 +8,8 @@ import { formatVideoTime, getRouteDurationMs, formatTime, getDateTime } from '..
 import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useAsyncMemo, useFullscreen, useRouteParams } from '../utils/hooks'
 import { useNavigate } from 'react-router-dom'
-import { useFiles, useRoute } from '../api/queries'
+import { useFiles } from '../api/queries'
+import { api } from '../api'
 import { IconButton } from './IconButton'
 import { getRouteUrl, saveFile } from '../utils/helpers'
 import { Icon } from './Icon'
@@ -119,7 +120,7 @@ const OptionItem = ({ label, selected, onClick, disabled }: { label: string; sel
 const TITLES = { large: 'Large Camera', small: 'Small Camera', log: 'Openpilot UI', rate: 'Playback Speed' }
 const SettingsMenu = () => {
   const { routeName } = useRouteParams()
-  const [route] = useRoute(routeName)
+  const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [files] = useFiles(routeName, route)
   const [view, setView] = useState<'large' | 'small' | 'log' | 'rate'>()
   const allCameras = CameraType.options.map((x) => ({ value: x, label: FILE_LABELS[x], disabled: !files || !files[x].some(Boolean) }))
@@ -475,7 +476,7 @@ export const VideoControls = ({ playerRef, className, props }: { className?: str
   const [muted, setMuted] = useState(player?.isMuted() ?? false)
   const [frame, setFrame] = useState(player?.getCurrentFrame() ?? 0)
   const settingsRef = useRef<HTMLDivElement>(null)
-  const [route] = useRoute(routeName)
+  const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [showSettings, setShowSettings] = useState(false)
   const navigate = useNavigate()
   const duration = getRouteDurationMs(route)! / 1000
@@ -556,7 +557,7 @@ export const VideoControls = ({ playerRef, className, props }: { className?: str
 
 export const RouteVideoPlayer = ({ playerRef, className, props }: { playerRef: RefObject<PlayerRef | null>; className?: string; props: PreviewProps }) => {
   const { start } = useRouteParams()
-  const [route] = useRoute(props.routeName)
+  const [route] = api.route.get.useQuery({ params: { routeName: props.routeName.replace('/', '|') }, query: {} })
 
   const duration = getRouteDurationMs(route)! / 1000
 

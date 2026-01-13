@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useDevices } from '../../api/queries'
+import { api } from '../../api'
 import { Device, getDeviceName, getCommaName } from '../../types'
 import { timeAgo } from '../../utils/format'
 import { Icon } from '../../components/Icon'
@@ -15,7 +15,7 @@ export const Active = ({ device, className }: { device: Device; className?: stri
 }
 
 export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?: boolean }) => {
-  const [devices] = useDevices()
+  const [devices] = api.devices.devices.useQuery({})
   const navigate = useNavigate()
   const { dongleId } = useParams()
 

@@ -1,10 +1,11 @@
-import { useProfile } from '../api/queries'
+import { api } from '../api'
+import { isSignedIn } from '../utils/helpers'
 import { ButtonBase } from '../components/ButtonBase'
 import { Icon } from '../components/Icon'
 import { TopAppBar } from '../components/TopAppBar'
 
 export const Component = () => {
-  const [profile] = useProfile()
+  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <TopAppBar>Welcome</TopAppBar>

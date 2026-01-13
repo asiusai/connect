@@ -2,12 +2,9 @@ import { useEffect, useState } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { OfflinePage } from './pages/offline'
 import { ErrorPage } from './pages/error'
-import { QueryClientProvider } from '@tanstack/react-query'
 
 import 'leaflet/dist/leaflet.css'
 import { Toaster } from 'sonner'
-import { api } from './api'
-import { queryClient } from './utils/helpers'
 import { env } from './utils/env'
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
@@ -160,12 +157,10 @@ const router = createBrowserRouter([
 ])
 
 export const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <api.ReactQueryProvider>
-      <Toaster theme="dark" toastOptions={{ className: '!bg-background !text-background-x' }} />
-      <AppLayout>
-        <RouterProvider router={router} />
-      </AppLayout>
-    </api.ReactQueryProvider>
-  </QueryClientProvider>
+  <>
+    <Toaster theme="dark" toastOptions={{ className: '!bg-background !text-background-x' }} />
+    <AppLayout>
+      <RouterProvider router={router} />
+    </AppLayout>
+  </>
 )

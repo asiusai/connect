@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 import { useDeviceParams } from './useDeviceParams'
 import { create } from 'zustand'
 import { truncate } from '../../utils/helpers'
-import { useLocation } from '../../api/queries'
+import { api } from '../../api'
 
 type MarkerType = {
   id: string
@@ -163,10 +163,10 @@ export const Location = ({ className, device }: { className?: string; device?: D
   const { isSearchOpen, setIsSearchOpen, query, setQuery } = useSearch()
 
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const [location] = useLocation(dongleId)
+  const [location] = api.device.location.useQuery({ params: { dongleId } })
 
   const deviceMarker =
-    device && location
+    device && location?.lat && location?.lng
       ? ({
           id: device.dongle_id,
           lat: location.lat,
@@ -187,7 +187,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
       } satisfies MarkerType)
     : undefined
 
-  const directions = useDirections(location ? { lat: location.lat, lng: location.lng } : undefined, route)
+  const directions = useDirections(location?.lat && location?.lng ? { lat: location.lat, lng: location.lng } : undefined, route)
   const destinationMarker = directions
     ? ({
         id: 'destination',

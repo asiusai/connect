@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { Route } from '../../types'
 import { Icon } from '../../components/Icon'
 import clsx from 'clsx'
-import { usePreservedRoutes, useProfile } from '../../api/queries'
+import { isSignedIn } from '../../utils/helpers'
 import { api } from '../../api'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
-  const [preserved] = usePreservedRoutes(route.dongle_id, isOwner)
+  const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })
   const [isPreserved, setIsPreserved] = useState<boolean>()
   useEffect(() => setIsPreserved(preserved ? preserved.some((p) => p.fullname === route.fullname) : undefined), [preserved, route.fullname])
   return [
@@ -14,8 +14,8 @@ const useIsPreserved = (route: Route, isOwner: boolean) => {
     async (isPreserved: boolean) => {
       setIsPreserved(isPreserved)
       isPreserved
-        ? await api.route.preserve.mutate({ params: { routeName: route.fullname } })
-        : await api.route.unPreserve.mutate({ params: { routeName: route.fullname } })
+        ? await api.route.preserve.mutate({ params: { routeName: route.fullname }, query: {} })
+        : await api.route.unPreserve.mutate({ params: { routeName: route.fullname }, query: {} })
     },
   ] as const
 }
@@ -25,7 +25,7 @@ const useIsPublic = (route: Route) => {
   return [
     isPublic,
     async (isPublic: boolean) => {
-      await api.route.setPublic.mutate({ body: { is_public: isPublic }, params: { routeName: route.fullname } })
+      await api.route.setPublic.mutate({ body: { is_public: isPublic }, params: { routeName: route.fullname }, query: {} })
       setIsPublic(isPublic)
     },
   ] as const
@@ -59,7 +59,7 @@ const ActionButton = ({
 )
 
 export const Actions = ({ route, className }: { route: Route; className?: string }) => {
-  const [profile] = useProfile()
+  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const isOwner = !!profile && route.user_id === profile?.id
   const [isPreserved, setIsPreserved] = useIsPreserved(route, isOwner)
   const [isPublic, setIsPublic] = useIsPublic(route)

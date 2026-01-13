@@ -7,7 +7,6 @@ import { BackButton } from '../components/BackButton'
 
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useDevices } from '../api/queries'
 import { api } from '../api'
 
 const Scanning = () => {
@@ -64,7 +63,7 @@ const getErrorMessage = (code: number) =>
 
 const Pairing = ({ token }: { token: string }) => {
   const navigate = useNavigate()
-  const [_, devices] = useDevices()
+  const [_, devices] = api.devices.devices.useQuery({})
 
   useEffect(() => {
     const effect = async () => {

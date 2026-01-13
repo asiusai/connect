@@ -5,7 +5,6 @@ import { useEffect, useState, useMemo, useRef, useLayoutEffect } from 'react'
 import { Slider } from '../../components/Slider'
 import { Fragment } from 'react'
 import { api } from '../../api'
-import { usePreservedRoutes } from '../../api/queries'
 import { Route, RouteSegment } from '../../types'
 import { Link } from 'react-router-dom'
 import { getStartEndPlaceName } from '../../utils/map'
@@ -208,25 +207,41 @@ const EmptyState = ({ preserved }: { preserved?: boolean }) => (
 
 const All = () => {
   const { dongleId } = useRouteParams()
-  const query = api.routes.routesSegments.useInfiniteQuery({
-    queryKey: ['allRoutes', dongleId],
-    queryData: ({ pageParam }: any) => ({ query: pageParam, params: { dongleId } }),
-    initialPageParam: { start: 0, end: Date.now(), limit: PAGE_SIZE },
-    getNextPageParam: (lastPage: any) => {
-      if (lastPage.body.length !== PAGE_SIZE) return
-      return { start: 0, end: lastPage.body[lastPage.body.length - 1].start_time_utc_millis - 1, limit: PAGE_SIZE }
+  const [allRoutes, setAllRoutes] = useState<RouteSegment[]>([])
+  const [endTime, setEndTime] = useState(Date.now())
+  const [hasMore, setHasMore] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+
+  const [routes] = api.routes.routesSegments.useQuery({
+    params: { dongleId },
+    query: { start: 0, end: endTime, limit: PAGE_SIZE },
+    onSuccess: (data) => {
+      if (endTime === Date.now()) {
+        setAllRoutes(data)
+      } else {
+        setAllRoutes((prev) => [...prev, ...data])
+      }
+      setHasMore(data.length === PAGE_SIZE)
+      setIsLoadingMore(false)
     },
   })
 
-  let prevDayHeader: string | undefined
-  const routes = query.data?.pages.flatMap((x) => x.body)
+  const loadMore = () => {
+    if (!allRoutes.length || isLoadingMore) return
+    setIsLoadingMore(true)
+    const lastRoute = allRoutes[allRoutes.length - 1]
+    setEndTime(lastRoute.start_time_utc_millis - 1)
+  }
 
-  if (query.isSuccess && (!routes || routes.length === 0)) return <EmptyState />
+  let prevDayHeader: string | undefined
+  const displayRoutes = allRoutes.length > 0 ? allRoutes : routes
+
+  if (routes && routes.length === 0 && allRoutes.length === 0) return <EmptyState />
 
   return (
     <>
       <div className="flex flex-col gap-4">
-        {routes?.map((route) => {
+        {displayRoutes?.map((route) => {
           let dayHeader = route.start_time ? formatDate(route.start_time) : undefined
           if (dayHeader === prevDayHeader) dayHeader = undefined
           else prevDayHeader = dayHeader
@@ -242,13 +257,14 @@ const All = () => {
           )
         })}
       </div>
-      {query.hasNextPage && (
+      {hasMore && displayRoutes && displayRoutes.length > 0 && (
         <div className="col-span-full flex justify-center py-6 px-2">
           <ButtonBase
             className="w-full rounded-xl bg-white/5 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-white/10"
-            onClick={() => query.fetchNextPage()}
+            onClick={loadMore}
+            disabled={isLoadingMore}
           >
-            Load more
+            {isLoadingMore ? 'Loading...' : 'Load more'}
           </ButtonBase>
         </div>
       )}
@@ -258,7 +274,7 @@ const All = () => {
 
 const Preserved = () => {
   const { dongleId } = useRouteParams()
-  const [preserved] = usePreservedRoutes(dongleId)
+  const [preserved] = api.routes.preserved.useQuery({ params: { dongleId } })
   let prevDayHeader: string | undefined
 
   if (!preserved || preserved.length === 0) return <EmptyState preserved />

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useRoutesSegments } from '../../api/queries'
+import { api } from '../../api'
 import { DetailRow } from '../../components/DetailRow'
 import { useRouteParams } from '../../utils/hooks'
 import { useStorage } from '../../utils/storage'
@@ -7,7 +7,7 @@ import { env } from '../../utils/env'
 
 export const Info = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
-  const [routes] = useRoutesSegments(dongleId, { limit: 1 })
+  const [routes] = api.routes.routesSegments.useQuery({ params: { dongleId }, query: { limit: 1 } })
   const route = routes?.[0]
 
   // Automatically toggle if using correct fork

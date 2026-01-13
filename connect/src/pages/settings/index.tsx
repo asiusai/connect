@@ -6,13 +6,14 @@ import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
 import { env } from '../../utils/env'
-import { useProfile } from '../../api/queries'
+import { api } from '../../api'
+import { isSignedIn } from '../../utils/helpers'
 import { Button } from '../../components/Button'
 import { Icon } from '../../components/Icon'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const [profile] = useProfile()
+  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">

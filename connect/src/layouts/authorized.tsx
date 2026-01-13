@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
-import { useDevices, useProfile } from '../api/queries'
+import { api } from '../api'
 import { useRouteParams } from '../utils/hooks'
 import { isSignedIn, signOut } from '../utils/helpers'
 import { Sidebar } from '../components/Sidebar'
@@ -8,7 +8,7 @@ import { useStorage } from '../utils/storage'
 import { useEffect } from 'react'
 
 const RedirectFromHome = () => {
-  const [devices] = useDevices()
+  const [devices] = api.devices.devices.useQuery({})
   const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
 
   // Wait for the devices to load
@@ -28,7 +28,7 @@ const RedirectFromHome = () => {
 export const Component = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const [_, { error }] = useProfile()
+  const [_, { error }] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const { dongleId } = useRouteParams()
   const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
 

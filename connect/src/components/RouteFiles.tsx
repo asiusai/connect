@@ -3,7 +3,7 @@ import { RefObject, useState } from 'react'
 import { concatBins, getQCameraUrl, FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../utils/helpers'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
-import { useFiles, useShareSignature } from '../api/queries'
+import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
 import { useRouteParams, useUploadProgress } from '../utils/hooks'
@@ -136,7 +136,7 @@ const Upload = ({
 
 const QCameraDownload = () => {
   const { routeName } = useRouteParams()
-  const [signature] = useShareSignature(routeName)
+  const [signature] = api.route.shareSignature.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   return (
     <FileAction
       label={FILE_INFO.qcameras.processed!}
@@ -315,7 +315,7 @@ const SegmentGrid = ({ files, selectedSegment, onSelect }: { files: SegmentFiles
 
 export const RouteFiles = ({ route, className, playerRef }: { playerRef: RefObject<PlayerRef | null>; route: Route; className?: string }) => {
   const { dongleId } = useRouteParams()
-  const [files, { refetch, isRefetching }] = useFiles(route.fullname, route)
+  const [files, { refetch, refetching }] = useFiles(route.fullname, route)
   const [segment, _setSegment] = useState<number>(-1) // ROUTE= -1
   const setSegment = (value: number) => {
     _setSegment(value)
@@ -337,7 +337,7 @@ export const RouteFiles = ({ route, className, playerRef }: { playerRef: RefObje
           title="Refresh"
           onClick={() => void refetch()}
           name="refresh"
-          className={clsx('text-xl text-white/40 hover:text-white transition-colors', isRefetching && 'animate-spin')}
+          className={clsx('text-xl text-white/40 hover:text-white transition-colors', refetching && 'animate-spin')}
         />
       </div>
       {files && (

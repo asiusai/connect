@@ -1,6 +1,8 @@
 import { RouteFiles } from '../../components/RouteFiles'
 import { RouteVideoPlayer, VideoControls } from '../../components/VideoPlayer'
-import { useFiles, useProfile, useRoute } from '../../api/queries'
+import { useFiles } from '../../api/queries'
+import { api } from '../../api'
+import { isSignedIn } from '../../utils/helpers'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { PlayerRef } from '@remotion/player'
 import { useRouteParams } from '../../utils/hooks'
@@ -25,7 +27,7 @@ const getLocationText = ({ start, end }: { start?: string; end?: string }) => {
 
 export const usePreviewProps = () => {
   const { routeName } = useRouteParams()
-  const [route] = useRoute(routeName)
+  const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [files] = useFiles(routeName, route)
   const [largeCameraType] = useStorage('largeCameraType')
   const [smallCameraType] = useStorage('smallCameraType')
@@ -52,8 +54,8 @@ export const Component = () => {
   const playerRef = useRef<PlayerRef>(null)
   const { routeName, dongleId, date } = useRouteParams()
 
-  const [route] = useRoute(routeName)
-  const [profile] = useProfile()
+  const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
+  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const [location, setLocation] = useState<{ start?: string; end?: string }>()
   const previewProps = usePreviewProps()
 

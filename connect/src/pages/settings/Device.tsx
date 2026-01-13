@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../api'
-import { useDevice, useDevices } from '../../api/queries'
 import { ButtonBase } from '../../components/ButtonBase'
 import { getDeviceName } from '../../types'
 import { useRouteParams } from '../../utils/hooks'
@@ -10,14 +9,14 @@ import { Icon } from '../../components/Icon'
 export const Device = () => {
   const { dongleId } = useRouteParams()
   const navigate = useNavigate()
-  const [device, { refetch }] = useDevice(dongleId)
-  const [_, devices] = useDevices()
+  const [device, { refetch }] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
+  const [_, devices] = api.devices.devices.useQuery({})
   const [alias, setAlias] = useState('')
   useEffect(() => setAlias(device?.alias || ''), [device?.alias])
 
   const unpair = api.device.unpair.useMutation({
-    onSuccess: (res) => {
-      if (res.body.success) navigate(window.location.origin)
+    onSuccess: (data) => {
+      if (data.success) navigate(window.location.origin)
     },
   })
   const changeName = api.device.set.useMutation({

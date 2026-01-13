@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useState, useEffect } from 'react'
 import { callAthena } from '../../api/athena'
-import { useDevice } from '../../api/queries'
+import { api } from '../../api'
 import { getDeviceName } from '../../types'
 import { useRouteParams } from '../../utils/hooks'
 import { Active, Devices } from './Devices'
@@ -34,7 +34,7 @@ export const Voltage = () => {
 
 export const DevicesMobile = () => {
   const { dongleId } = useRouteParams()
-  const [device] = useDevice(dongleId)
+  const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const [open, setOpen] = useState(false)
 
   if (!device) return

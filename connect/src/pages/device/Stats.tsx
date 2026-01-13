@@ -1,4 +1,4 @@
-import { useStats } from '../../api/queries'
+import { api } from '../../api'
 import { Slider } from '../../components/Slider'
 import { DetailRow } from '../../components/DetailRow'
 import { formatDistance, formatDuration } from '../../utils/format'
@@ -8,12 +8,11 @@ import { useStorage } from '../../utils/storage'
 
 export const Stats = ({ className }: { className: string }) => {
   const { dongleId } = useRouteParams()
-  const [stats] = useStats(dongleId)
+  const [stats] = api.device.stats.useQuery({ params: { dongleId } })
   const [timeRange, setTimeRange] = useStorage('statsTime')
 
-  if (!stats) return null
-
-  const currentStats = stats[timeRange]
+  const currentStats = stats?.[timeRange ?? 'all']
+  if (!currentStats) return null
   return (
     <div className={clsx('flex flex-col gap-4', className)}>
       <div className="flex items-center justify-between px-2">

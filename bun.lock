@@ -51,10 +51,8 @@
         "@remotion/player": "4.0.398",
         "@remotion/tailwind": "4.0.398",
         "@remotion/web-renderer": "4.0.398",
-        "@tanstack/react-query": "^5.90.7",
         "@ts-rest/core": "3.52.1",
         "@ts-rest/open-api": "^3.52.1",
-        "@ts-rest/react-query": "3.52.1",
         "@ts-rest/serverless": "3.52.1",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/luxon": "^3.7.1",
@@ -1158,10 +1156,6 @@
 
     "@tailwindcss/vite": ["@tailwindcss/vite@4.1.18", "", { "dependencies": { "@tailwindcss/node": "4.1.18", "@tailwindcss/oxide": "4.1.18", "tailwindcss": "4.1.18" }, "peerDependencies": { "vite": "^5.2.0 || ^6 || ^7" } }, "sha512-jVA+/UpKL1vRLg6Hkao5jldawNmRo7mQYrZtNHMIVpLfLhDml5nMRUo/8MwoX2vNXvnaXNNMedrMfMugAVX1nA=="],
 
-    "@tanstack/query-core": ["@tanstack/query-core@5.90.16", "", {}, "sha512-MvtWckSVufs/ja463/K4PyJeqT+HMlJWtw6PrCpywznd2NSgO3m4KwO9RqbFqGg6iDE8vVMFWMeQI4Io3eEYww=="],
-
-    "@tanstack/react-query": ["@tanstack/react-query@5.90.16", "", { "dependencies": { "@tanstack/query-core": "5.90.16" }, "peerDependencies": { "react": "^18 || ^19" } }, "sha512-bpMGOmV4OPmif7TNMteU/Ehf/hoC0Kf98PDc0F4BZkFrEapRMEqI/V6YS0lyzwSV6PQpY1y4xxArUIfBW5LVxQ=="],
-
     "@testing-library/dom": ["@testing-library/dom@10.4.1", "", { "dependencies": { "@babel/code-frame": "^7.10.4", "@babel/runtime": "^7.12.5", "@types/aria-query": "^5.0.1", "aria-query": "5.3.0", "dom-accessibility-api": "^0.5.9", "lz-string": "^1.5.0", "picocolors": "1.1.1", "pretty-format": "^27.0.2" } }, "sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg=="],
 
     "@testing-library/user-event": ["@testing-library/user-event@14.6.1", "", { "peerDependencies": { "@testing-library/dom": ">=7.21.4" } }, "sha512-vq7fv0rnt+QTXgPxr5Hjc210p6YKq2kmdziLgnsZGgLJ9e6VAShx1pACLuRjd/AS/sr7phAR58OIIpf0LlmQNw=="],
@@ -1171,8 +1165,6 @@
     "@ts-rest/core": ["@ts-rest/core@3.52.1", "", { "peerDependencies": { "@types/node": "^18.18.7 || >=20.8.4", "zod": "^3.22.3" }, "optionalPeers": ["@types/node", "zod"] }, "sha512-tAjz7Kxq/grJodcTA1Anop4AVRDlD40fkksEV5Mmal88VoZeRKAG8oMHsDwdwPZz+B/zgnz0q2sF+cm5M7Bc7g=="],
 
     "@ts-rest/open-api": ["@ts-rest/open-api@3.52.1", "", { "dependencies": { "@anatine/zod-openapi": "^1.12.0", "openapi3-ts": "^2.0.2" }, "peerDependencies": { "@ts-rest/core": "~3.52.0", "zod": "^3.22.3" } }, "sha512-VY91g6HFzCe1/fNgX4Y3HzaJbIdztCGHTg34drkh7bKgtNOizLJLXV0wwIkMwLGvjhRHojJxnwYxHjGMIkScwg=="],
-
-    "@ts-rest/react-query": ["@ts-rest/react-query@3.52.1", "", { "peerDependencies": { "@tanstack/react-query": "^4.0.0 || ^5.0.0", "@ts-rest/core": "~3.52.0", "react": "^16.8.0 || ^17.0.0 || ^18.0.0", "zod": "^3.22.3" }, "optionalPeers": ["zod"] }, "sha512-Y4wx3oQwyEj7h3hVz2Wsrd8u7xWRqXc0K6YpKruZJg5G1pioKdlqqjKvv+JJbtgk+vImzha9z+NgeFnO4oYAkA=="],
 
     "@ts-rest/serverless": ["@ts-rest/serverless@3.52.1", "", { "dependencies": { "itty-router": "^5.0.9" }, "peerDependencies": { "@azure/functions": "^4.0.0", "@ts-rest/core": "~3.52.0", "@types/aws-lambda": "^8.10.115", "next": "^12.0.0 || ^13.0.0 || ^14.0.0", "zod": "^3.22.3" }, "optionalPeers": ["@azure/functions", "@types/aws-lambda", "next", "zod"] }, "sha512-9lz6SVC/zOjR7Q70Uige1i4fgSLS5cPpei/ocBgdwhc/TJhKWTMQog2IQX3pT2nIA4B4QvZ54YyrBkSiwbrGPw=="],
 

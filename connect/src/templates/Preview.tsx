@@ -16,7 +16,7 @@ export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> 
   if (segments.status !== 200) throw new Error('Failed getting segments!')
   const route = segments.body[0]
 
-  const res = await api.route.files.query({ params: { routeName: props.routeName.replace('/', '|') } })
+  const res = await api.route.files.query({ params: { routeName: props.routeName.replace('/', '|') }, query: {} })
   if (res.status !== 200) throw new Error()
   let files = toSegmentFiles(res.body, route.maxqlog + 1)
   return { route, files }

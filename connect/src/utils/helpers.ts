@@ -1,11 +1,8 @@
 import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from '../types'
-import { QueryClient } from '@tanstack/react-query'
 import { env } from './env'
 import { storage } from './storage'
 
 export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${route.url?.replace('https://api.konik.ai', env.API_URL)}/${segment}/${fn}`
-
-export const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnMount: false } } })
 
 export const parseRouteName = (routeName: string): RouteInfo => {
   const [dongleId, routeId] = routeName.split(/[|/]/)
@@ -23,9 +20,10 @@ export const accessToken = () => storage.get('accessToken')
 export const setAccessToken = (token: string | undefined) => storage.set('accessToken', token)
 export const isSignedIn = () => !!accessToken()
 
-export const signOut = () => {
+export const signOut = async () => {
   setAccessToken(undefined)
-  queryClient.clear()
+  const { invalidate } = await import('../api')
+  invalidate()
 }
 
 export const saveFile = (blobOrUrl: Blob | string, fileName: string) => {

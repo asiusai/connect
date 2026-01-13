@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { LogReader } from '../log-reader'
-import { useFiles, useRoute } from '../api/queries'
+import { useFiles } from '../api/queries'
+import { api } from '../api'
 import { useAsyncEffect, useRouteParams } from '../utils/hooks'
 import { Icon } from '../components/Icon'
 import { TopAppBar } from '../components/TopAppBar'
@@ -24,7 +25,7 @@ export const Component = () => {
   const prettify = params.get('prettify') !== 'false'
 
   const [data, setData] = useState<any[]>()
-  const [route] = useRoute(routeName)
+  const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [files] = useFiles(routeName, route)
   const url = files?.[type][segment]
 

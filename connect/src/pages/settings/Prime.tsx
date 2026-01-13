@@ -6,7 +6,6 @@ import { Icon } from '../../components/Icon'
 import { ReactNode, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { api } from '../../api'
-import { useDevice, usePortal, useStripeSession, useSubscribeInfo, useSubscription } from '../../api/queries'
 import { useRouteParams } from '../../utils/hooks'
 
 type PlanProps = { name: PrimePlan; amount: number; description: string; disabled?: boolean }
@@ -51,15 +50,15 @@ const PrimeCheckout = () => {
   const { dongleId } = useRouteParams()
 
   const [selectedPlan, setSelectedPlan] = useState<PrimePlan | undefined>()
-  const [device] = useDevice(dongleId)
+  const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
 
-  const [subscribeInfo] = useSubscribeInfo(dongleId)
+  const [subscribeInfo] = api.prime.info.useQuery({ query: { dongle_id: dongleId } })
 
   const search = useLocation().search
   const stripeCancelled = new URLSearchParams(search).has('stripe_cancelled')
   const checkout = api.prime.getCheckout.useMutation({
-    onSuccess: (res) => {
-      if (res.body.url) window.location.href = res.body.url
+    onSuccess: (data) => {
+      if (data.url) window.location.href = data.url
     },
   })
 
@@ -189,8 +188,12 @@ const PrimeCheckout = () => {
 
 const StripeSession = ({ id }: { id: string }) => {
   const { dongleId } = useRouteParams()
-  const [stripeSession] = useStripeSession(dongleId, id)
-  const [subscription] = useSubscription(dongleId)
+  const [stripeSession] = api.prime.getSession.useQuery({
+    query: { dongle_id: dongleId, session_id: id },
+    enabled: !!id,
+    refetchInterval: 10_000,
+  })
+  const [subscription] = api.prime.status.useQuery({ query: { dongle_id: dongleId }, refetchInterval: 10_000 })
   const paymentStatus = stripeSession?.payment_status
 
   if (!stripeSession || !subscription)
@@ -227,11 +230,11 @@ const PrimeManage = () => {
 
   const stripeSessionId = new URLSearchParams(useLocation().search).get('stripe_success')!
 
-  const [subscription, { refetch }] = useSubscription(dongleId)
+  const [subscription, { refetch }] = api.prime.status.useQuery({ query: { dongle_id: dongleId } })
   const [cancelDialog, setCancelDialog] = useState(false)
 
   const cancel = api.prime.cancel.useMutation({ onSuccess: () => refetch() })
-  const [portal] = usePortal(dongleId)
+  const [portal] = api.prime.getPortal.useQuery({ query: { dongle_id: dongleId } })
 
   const loading = !subscription || cancel.isPending || !portal
   return (
@@ -323,7 +326,7 @@ const PrimeManage = () => {
 
 export const Prime = () => {
   const { dongleId } = useRouteParams()
-  const [device] = useDevice(dongleId)
+  const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
 
   if (!device) return null
   return (

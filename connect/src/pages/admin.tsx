@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
-import { useAdminUsers, useAdminDevices, useAdminFiles, useAdminRoutes, useProfile } from '../api/queries'
+import { isSignedIn } from '../utils/helpers'
 import { Loading } from '../components/Loading'
 import { Icon } from '../components/Icon'
-import { api } from '../api'
+import { api, invalidate } from '../api'
 import clsx from 'clsx'
 import { env } from '../utils/env'
 
@@ -57,7 +56,7 @@ const TabButton = ({ tab, activeTab, onClick, children }: { tab: Tab; activeTab:
 )
 
 const UsersTable = ({ onViewDevices }: { onViewDevices: (userId: string, email: string) => void }) => {
-  const [users] = useAdminUsers()
+  const [users] = api.admin.users.useQuery({})
 
   if (!users) return <Loading />
 
@@ -111,9 +110,8 @@ const DevicesTable = ({
   onFilterChange: (f: DevicesFilter) => void
   onViewFiles: (dongleId: string) => void
 }) => {
-  const [devices] = useAdminDevices({ user_id: filter.user_id })
-  const [users] = useAdminUsers()
-  const queryClient = useQueryClient()
+  const [devices] = api.admin.devices.useQuery({ query: { user_id: filter.user_id } })
+  const [users] = api.admin.users.useQuery({})
   const [deleting, setDeleting] = useState<string | null>(null)
 
   const user = filter.user_id ? users?.find((u) => u.id === filter.user_id) : null
@@ -123,10 +121,7 @@ const DevicesTable = ({
     setDeleting(dongleId)
     try {
       await api.admin.deleteDevice.mutate({ params: { dongleId } })
-      queryClient.invalidateQueries({ queryKey: ['admin-devices'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-files'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-routes'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+      invalidate('admin')
     } finally {
       setDeleting(null)
     }
@@ -264,17 +259,18 @@ const SortHeader = ({
 }
 
 const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterChange: (f: FilesFilter) => void }) => {
-  const [filesData] = useAdminFiles({
-    limit: 100,
-    status: filter.status,
-    dongle_id: filter.dongle_id,
-    route_id: filter.route_id,
-    sort: filter.sort,
-    order: filter.order,
+  const [filesData] = api.admin.files.useQuery({
+    query: {
+      limit: 100,
+      status: filter.status,
+      dongle_id: filter.dongle_id,
+      route_id: filter.route_id,
+      sort: filter.sort,
+      order: filter.order,
+    },
   })
-  const [devices] = useAdminDevices({})
-  const [routesData] = useAdminRoutes({ dongle_id: filter.dongle_id, limit: 1000 })
-  const queryClient = useQueryClient()
+  const [devices] = api.admin.devices.useQuery({ query: {} })
+  const [routesData] = api.admin.routes.useQuery({ query: { dongle_id: filter.dongle_id, limit: 1000 } })
   const [deleting, setDeleting] = useState<string | null>(null)
 
   const device = filter.dongle_id ? devices?.find((d) => d.dongle_id === filter.dongle_id) : null
@@ -294,9 +290,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
     setDeleting(key)
     try {
       await api.admin.deleteFile.mutate({ params: { key: encodeURIComponent(key) } })
-      queryClient.invalidateQueries({ queryKey: ['admin-files'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-devices'] })
-      queryClient.invalidateQueries({ queryKey: ['admin-routes'] })
+      invalidate('admin')
     } finally {
       setDeleting(null)
     }
@@ -516,8 +510,8 @@ const RoutesTable = ({
   onFilterChange: (f: RoutesFilter) => void
   onViewFiles: (dongleId: string, routeId: string) => void
 }) => {
-  const [routesData] = useAdminRoutes({ limit: 100, dongle_id: filter.dongle_id, sort: filter.sort, order: filter.order })
-  const [devices] = useAdminDevices({})
+  const [routesData] = api.admin.routes.useQuery({ query: { limit: 100, dongle_id: filter.dongle_id, sort: filter.sort, order: filter.order } })
+  const [devices] = api.admin.devices.useQuery({ query: {} })
 
   const device = filter.dongle_id ? devices?.find((d) => d.dongle_id === filter.dongle_id) : null
 
@@ -646,7 +640,7 @@ const RoutesTable = ({
 }
 
 export const Component = () => {
-  const [profile] = useProfile()
+  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const [activeTab, setActiveTab] = useState<Tab>('users')
   const [devicesFilter, setDevicesFilter] = useState<DevicesFilter>({})
   const [routesFilter, setRoutesFilter] = useState<RoutesFilter>({ sort: 'create_time', order: 'desc' })

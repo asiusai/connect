@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { useRoute } from '../api/queries'
+import { api } from '../api'
 import { useRouteParams } from '../utils/hooks'
 import { Loading } from '../components/Loading'
 import { Button } from '../components/Button'
@@ -32,7 +32,7 @@ const RouteNotFound = () => {
 
 export const Component = () => {
   const { routeName, dongleId } = useRouteParams()
-  const [route, { isLoading }] = useRoute(routeName)
+  const [route, { loading }] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export const Component = () => {
     }
   }, [dongleId, lastDongleId, setLastDongleId])
 
-  if (isLoading) return <Loading className="h-screen w-screen" />
+  if (loading) return <Loading className="h-screen w-screen" />
 
   if (!route) return <RouteNotFound />
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useDevice, useProfile } from '../api/queries'
+import { api } from '../api'
+import { isSignedIn } from '../utils/helpers'
 import { Icon } from './Icon'
 import clsx from 'clsx'
 import { getDeviceName } from '../types'
@@ -14,8 +15,8 @@ import { Logo } from './Logo'
 
 export const Sidebar = () => {
   const { dongleId } = useRouteParams()
-  const [device] = useDevice(dongleId)
-  const [profile] = useProfile()
+  const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
+  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const [showDeviceList, setShowDeviceList] = useState(false)
 
   return (

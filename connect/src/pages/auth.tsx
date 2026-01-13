@@ -11,8 +11,8 @@ export const Component = () => {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { mutate, error } = api.auth.auth.useMutation({
-    onSuccess: ({ body }) => {
-      setAccessToken(body.access_token)
+    onSuccess: (data) => {
+      setAccessToken(data.access_token)
       navigate('/')
     },
   })
