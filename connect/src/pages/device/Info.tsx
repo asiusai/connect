@@ -12,7 +12,7 @@ export const Info = ({ className }: { className?: string }) => {
 
   // Automatically toggle if using correct fork
   const [usingCorrectFork, setUsingCorrectFork] = useStorage('usingCorrectFork')
-  if (usingCorrectFork === undefined && env.FORK.some(x=>route?.git_remote?.includes(x))) setUsingCorrectFork(true)
+  if (usingCorrectFork === undefined && env.FORK.some((x) => route?.git_remote?.includes(x))) setUsingCorrectFork(true)
   if (!route) return null
   return (
     <div className={clsx('flex flex-col gap-4 pb-10', className)}>

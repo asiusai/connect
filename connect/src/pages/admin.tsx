@@ -161,9 +161,7 @@ const DevicesTable = ({
             <span>
               <span className="text-white/40">Registered:</span> {formatDate(user.regdate)}
             </span>
-            {user.superuser && (
-              <span className="text-green-400">Superuser</span>
-            )}
+            {user.superuser && <span className="text-green-400">Superuser</span>}
           </div>
           <button onClick={() => onFilterChange({})} className="ml-auto text-white/40 hover:text-white">
             <Icon name="close" className="text-base" />
@@ -266,7 +264,14 @@ const SortHeader = ({
 }
 
 const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterChange: (f: FilesFilter) => void }) => {
-  const [filesData] = useAdminFiles({ limit: 100, status: filter.status, dongle_id: filter.dongle_id, route_id: filter.route_id, sort: filter.sort, order: filter.order })
+  const [filesData] = useAdminFiles({
+    limit: 100,
+    status: filter.status,
+    dongle_id: filter.dongle_id,
+    route_id: filter.route_id,
+    sort: filter.sort,
+    order: filter.order,
+  })
   const [devices] = useAdminDevices({})
   const [routesData] = useAdminRoutes({ dongle_id: filter.dongle_id, limit: 1000 })
   const queryClient = useQueryClient()
@@ -682,18 +687,10 @@ export const Component = () => {
         <div className="bg-background-alt rounded-xl p-4">
           {activeTab === 'users' && <UsersTable onViewDevices={handleViewDevices} />}
           {activeTab === 'devices' && (
-            <DevicesTable
-              filter={devicesFilter}
-              onFilterChange={setDevicesFilter}
-              onViewFiles={(dongleId) => handleViewFiles(dongleId)}
-            />
+            <DevicesTable filter={devicesFilter} onFilterChange={setDevicesFilter} onViewFiles={(dongleId) => handleViewFiles(dongleId)} />
           )}
           {activeTab === 'routes' && (
-            <RoutesTable
-              filter={routesFilter}
-              onFilterChange={setRoutesFilter}
-              onViewFiles={(dongleId, routeId) => handleViewFiles(dongleId, routeId)}
-            />
+            <RoutesTable filter={routesFilter} onFilterChange={setRoutesFilter} onViewFiles={(dongleId, routeId) => handleViewFiles(dongleId, routeId)} />
           )}
           {activeTab === 'files' && <FilesTable filter={filesFilter} onFilterChange={setFilesFilter} />}
         </div>

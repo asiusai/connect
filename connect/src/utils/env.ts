@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const Mode = z.enum(["asius",'comma', 'konik', 'dev'])
+export const Mode = z.enum(['asius', 'comma', 'konik', 'dev'])
 export type Mode = z.infer<typeof Mode>
 
 const zArray = () =>
@@ -11,7 +11,7 @@ const zArray = () =>
 
 export const Provider = z.object({
   MODE: Mode,
-  IS_OURS:z.coerce.boolean(),
+  IS_OURS: z.coerce.boolean(),
 
   NAME: z.string(),
   FAVICON: z.string(),
@@ -48,14 +48,14 @@ const defaults = {
   MAPBOX_LIGHT_STYLE_ID: 'clcl7mnu2000214s2zgcdly6e',
   MAPBOX_DARK_STYLE_ID: 'clcgvbi4f000q15t6o2s8gys3',
   MAPBOX_TOKEN: 'pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDluMWR4amUydGl5In0.6Vb11S6tdX6Arpj6trRE_g',
-  FORK: ['asiusai/openpilot',"asiusai/sunnypilot"],
+  FORK: ['asiusai/openpilot', 'asiusai/sunnypilot'],
 }
 
 const comma: Provider = {
   ...defaults,
 
   MODE: 'comma',
-  IS_OURS:false,
+  IS_OURS: false,
   NAME: 'comma connect',
   FAVICON: '/comma-favicon.svg',
 
@@ -66,9 +66,9 @@ const comma: Provider = {
   CONNECT_URL: 'https://comma.asius.ai',
 
   DEMO_DONGLE_ID: '9748a98e983e0b39',
-  DEMO_ROUTE_ID:"0000002c--d68dde99ca",
+  DEMO_ROUTE_ID: '0000002c--d68dde99ca',
   DEMO_ACCESS_TOKEN:
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzYwMDgwODcsIm5iZiI6MTc2ODIzMjA4NywiaWF0IjoxNzY4MjMyMDg3LCJpZGVudGl0eSI6IjE4ZWQ3ZWM1MGZmZmU5YTYifQ.FD77OD9sX8Gq8fiOJrNaccz4ovNvd2dgIVIfX69_Nsg",
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzYwMDgwODcsIm5iZiI6MTc2ODIzMjA4NywiaWF0IjoxNzY4MjMyMDg3LCJpZGVudGl0eSI6IjE4ZWQ3ZWM1MGZmZmU5YTYifQ.FD77OD9sX8Gq8fiOJrNaccz4ovNvd2dgIVIfX69_Nsg',
 
   HACK_LOGIN_CALLBACK_HOST: '612.connect-d5y.pages.dev',
   HACK_DEFAULT_REDICT_HOST: 'comma.asius.ai',
@@ -83,7 +83,7 @@ const konik: Provider = {
   ...defaults,
 
   MODE: 'konik',
-  IS_OURS:false,
+  IS_OURS: false,
   NAME: 'konik connect',
   FAVICON: '/konik-favicon.svg',
 
@@ -93,10 +93,11 @@ const konik: Provider = {
   CONNECT_URL: 'https://konik.asius.ai',
 
   GITHUB_CLIENT_ID: 'Ov23liy0AI1YCd15pypf',
-  
-  DEMO_ACCESS_TOKEN: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZGVudGl0eSI6IjI1ZmM2ODY1LTkzNTYtNDQzMS1hYWE1LTUxNmFjYTlhNWI1YyIsIm5iZiI6MTc2ODIyNzE3NiwiaWF0IjoxNzY4MjI3MTc2LCJleHAiOjE3NzYwMDMxNzZ9.OVIIzXn5CdxfuV1WJdZHeoLl8sFNNbIWaf694XWlkFq6BQ8isYu0WpSjWiA4eU7RtZt0P5qWHPbVjVs6iMJPLw",
-  DEMO_DONGLE_ID: "385ea74960625fa7",
-  DEMO_ROUTE_ID:"0000002c--d68dde99ca",
+
+  DEMO_ACCESS_TOKEN:
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZGVudGl0eSI6IjI1ZmM2ODY1LTkzNTYtNDQzMS1hYWE1LTUxNmFjYTlhNWI1YyIsIm5iZiI6MTc2ODIyNzE3NiwiaWF0IjoxNzY4MjI3MTc2LCJleHAiOjE3NzYwMDMxNzZ9.OVIIzXn5CdxfuV1WJdZHeoLl8sFNNbIWaf694XWlkFq6BQ8isYu0WpSjWiA4eU7RtZt0P5qWHPbVjVs6iMJPLw',
+  DEMO_DONGLE_ID: '385ea74960625fa7',
+  DEMO_ROUTE_ID: '0000002c--d68dde99ca',
 }
 const asius: Provider = {
   ...defaults,
@@ -113,11 +114,12 @@ const asius: Provider = {
   CONNECT_URL: 'https://connect.asius.ai',
 
   GOOGLE_CLIENT_ID: '888462999677-0kqf5j0rkfvd47j7d34pnjsf29gqr39p.apps.googleusercontent.com',
-  GITHUB_CLIENT_ID:"Ov23li0TAhCMsk5poUJw",
+  GITHUB_CLIENT_ID: 'Ov23li0TAhCMsk5poUJw',
 
-  DEMO_ACCESS_TOKEN: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6IjYxMDA4MDY1NjcxMjU3YmIiLCJpYXQiOjE3NjgyMjY5MzEsImV4cCI6MTc5OTc2MjkzMX0.9fnF0nu2f7ZJidtyQGCxL60ZcQ1yrdQeiCjQzWaQyyg",
-  DEMO_DONGLE_ID: "4f6a9c72d5ab73a3",
-  DEMO_ROUTE_ID:"0000002c--d68dde99ca",
+  DEMO_ACCESS_TOKEN:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6IjYxMDA4MDY1NjcxMjU3YmIiLCJpYXQiOjE3NjgyMjY5MzEsImV4cCI6MTc5OTc2MjkzMX0.9fnF0nu2f7ZJidtyQGCxL60ZcQ1yrdQeiCjQzWaQyyg',
+  DEMO_DONGLE_ID: '4f6a9c72d5ab73a3',
+  DEMO_ROUTE_ID: '0000002c--d68dde99ca',
 }
 const dev: Provider = {
   ...asius,

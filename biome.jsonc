@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!openpilot", "!sunnypilot", "!connect", "!example-data", "!connect/src/log-reader/capnp/*", "!api/db/migrations"]
+    "includes": ["**", "!openpilot", "!sunnypilot", "!example-data", "!connect/src/log-reader/capnp/*", "!api/db/migrations"]
   },
   "formatter": {
     "enabled": true,
@@ -45,6 +45,11 @@
     "formatter": {
       "quoteStyle": "single",
       "semicolons": "asNeeded"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "overrides": [

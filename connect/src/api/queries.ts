@@ -102,8 +102,7 @@ export const useLocation = (dongleId: string) => w(api.device.location.useQuery(
 
 export const useAdminUsers = () => w(api.admin.users.useQuery({ queryKey: ['admin-users'] }))
 
-export const useAdminDevices = (query: { user_id?: string }) =>
-  w(api.admin.devices.useQuery({ queryKey: ['admin-devices', query], queryData: { query } }))
+export const useAdminDevices = (query: { user_id?: string }) => w(api.admin.devices.useQuery({ queryKey: ['admin-devices', query], queryData: { query } }))
 
 export const useAdminFiles = (query: {
   limit?: number
@@ -115,10 +114,5 @@ export const useAdminFiles = (query: {
   order?: 'asc' | 'desc'
 }) => w(api.admin.files.useQuery({ queryKey: ['admin-files', query], queryData: { query } }))
 
-export const useAdminRoutes = (query: {
-  limit?: number
-  offset?: number
-  dongle_id?: string
-  sort?: 'create_time' | 'size'
-  order?: 'asc' | 'desc'
-}) => w(api.admin.routes.useQuery({ queryKey: ['admin-routes', query], queryData: { query } }))
+export const useAdminRoutes = (query: { limit?: number; offset?: number; dongle_id?: string; sort?: 'create_time' | 'size'; order?: 'asc' | 'desc' }) =>
+  w(api.admin.routes.useQuery({ queryKey: ['admin-routes', query], queryData: { query } }))

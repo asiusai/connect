@@ -68,7 +68,9 @@ export const Component = () => {
 
         <div className={`bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4 ${hasOuasius ? 'ring-1 ring-green-500/30' : ''}`}>
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shrink-0 ${hasOuasius ? 'bg-green-500/20' : 'bg-cyan-500/20'}`}>
+            <div
+              className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shrink-0 ${hasOuasius ? 'bg-green-500/20' : 'bg-cyan-500/20'}`}
+            >
               <Icon name="terminal" className={`text-lg md:text-xl ${hasOuasius ? 'text-green-400' : 'text-cyan-400'}`} />
             </div>
             <div className="flex-1">
@@ -82,11 +84,7 @@ export const Component = () => {
           {sshKeys !== undefined && (
             <div className="flex items-center gap-2 text-xs">
               <span className="text-white/40">Device SSH Keys:</span>
-              {sshKeys ? (
-                <span className="text-white/60 font-mono">{sshKeys}</span>
-              ) : (
-                <span className="text-white/40 italic">not set</span>
-              )}
+              {sshKeys ? <span className="text-white/60 font-mono">{sshKeys}</span> : <span className="text-white/40 italic">not set</span>}
               {hasOuasius ? (
                 <span className="text-green-400 flex items-center gap-1">
                   <Icon name="check" className="text-sm" /> Ready
@@ -187,9 +185,7 @@ export const Component = () => {
           <Icon name="warning" className="text-yellow-400 text-xl shrink-0" />
           <div className="text-sm">
             <p className="font-medium text-yellow-400">Authentication Required</p>
-            <p className="text-yellow-400/70 mt-1">
-              Your auth token is included in the commands above. Keep it private.
-            </p>
+            <p className="text-yellow-400/70 mt-1">Your auth token is included in the commands above. Keep it private.</p>
           </div>
         </div>
       </div>
