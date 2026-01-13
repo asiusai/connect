@@ -1,10 +1,11 @@
 import { contract } from '../../connect/src/api/contract'
 import { tsr } from '../common'
 import { db } from '../db/client'
-import { devicesTable, usersTable, segmentsTable, filesTable, uptimeTable } from '../db/schema'
-import { sql, count, countDistinct, desc } from 'drizzle-orm'
+import { devicesTable, usersTable, segmentsTable, filesTable, uptimeTable, deviceUsersTable } from '../db/schema'
+import { sql, count, countDistinct, desc, eq, asc, and } from 'drizzle-orm'
 import { env } from '../env'
 import { getLastBackupTime } from '../db/backup'
+import { superuserMiddleware } from '../middleware'
 
 const startTime = Date.now()
 try {
@@ -159,4 +160,200 @@ export const admin = tsr.router(contract.admin, {
       },
     }
   },
+  users: superuserMiddleware(async () => {
+    const users = await db.select().from(usersTable).all()
+    const deviceCounts = await db
+      .select({ user_id: deviceUsersTable.user_id, count: count() })
+      .from(deviceUsersTable)
+      .where(eq(deviceUsersTable.permission, 'owner'))
+      .groupBy(deviceUsersTable.user_id)
+      .all()
+    const deviceCountMap = Object.fromEntries(deviceCounts.map((x) => [x.user_id, x.count]))
+
+    const fileSizes = await db
+      .select({
+        user_id: deviceUsersTable.user_id,
+        totalSize: sql<number>`coalesce(sum(${filesTable.size}), 0)`,
+      })
+      .from(deviceUsersTable)
+      .leftJoin(filesTable, eq(deviceUsersTable.dongle_id, filesTable.dongle_id))
+      .where(eq(deviceUsersTable.permission, 'owner'))
+      .groupBy(deviceUsersTable.user_id)
+      .all()
+    const fileSizeMap = Object.fromEntries(fileSizes.map((x) => [x.user_id, x.totalSize]))
+
+    return {
+      status: 200,
+      body: users.map((u) => ({
+        id: u.id,
+        email: u.email,
+        regdate: u.regdate,
+        superuser: u.superuser,
+        user_id: u.user_id,
+        username: u.username,
+        deviceCount: deviceCountMap[u.id] ?? 0,
+        totalSize: fileSizeMap[u.id] ?? 0,
+      })),
+    }
+  }),
+  devices: superuserMiddleware(async ({ query }) => {
+    let devices: (typeof devicesTable.$inferSelect)[]
+    if (query.user_id) {
+      const userDevices = await db
+        .select({ dongle_id: deviceUsersTable.dongle_id })
+        .from(deviceUsersTable)
+        .where(and(eq(deviceUsersTable.user_id, query.user_id), eq(deviceUsersTable.permission, 'owner')))
+        .all()
+      const dongleIds = userDevices.map((x) => x.dongle_id)
+      if (dongleIds.length === 0) return { status: 200, body: [] }
+      devices = await db
+        .select()
+        .from(devicesTable)
+        .where(
+          sql`${devicesTable.dongle_id} IN (${sql.join(
+            dongleIds.map((id) => sql`${id}`),
+            sql`, `,
+          )})`,
+        )
+        .all()
+    } else {
+      devices = await db.select().from(devicesTable).all()
+    }
+
+    const owners = await db
+      .select({ dongle_id: deviceUsersTable.dongle_id, email: usersTable.email })
+      .from(deviceUsersTable)
+      .leftJoin(usersTable, eq(deviceUsersTable.user_id, usersTable.id))
+      .where(eq(deviceUsersTable.permission, 'owner'))
+      .all()
+    const ownerMap = Object.fromEntries(owners.map((x) => [x.dongle_id, x.email]))
+
+    const fileCounts = await db
+      .select({
+        dongle_id: filesTable.dongle_id,
+        count: count(),
+        totalSize: sql<number>`coalesce(sum(${filesTable.size}), 0)`,
+      })
+      .from(filesTable)
+      .groupBy(filesTable.dongle_id)
+      .all()
+    const fileCountMap = Object.fromEntries(fileCounts.map((x) => [x.dongle_id, { count: x.count, totalSize: x.totalSize }]))
+
+    return {
+      status: 200,
+      body: devices.map((d) => ({
+        dongle_id: d.dongle_id,
+        alias: d.alias,
+        device_type: d.device_type,
+        serial: d.serial,
+        create_time: d.create_time,
+        ownerEmail: ownerMap[d.dongle_id] ?? null,
+        fileCount: fileCountMap[d.dongle_id]?.count ?? 0,
+        totalSize: fileCountMap[d.dongle_id]?.totalSize ?? 0,
+      })),
+    }
+  }),
+  files: superuserMiddleware(async ({ query }) => {
+    const limit = query.limit ?? 100
+    const offset = query.offset ?? 0
+    const sort = query.sort ?? 'create_time'
+    const order = query.order ?? 'desc'
+
+    const conditions = []
+    if (query.status) conditions.push(eq(filesTable.processingStatus, query.status))
+    if (query.dongle_id) conditions.push(eq(filesTable.dongle_id, query.dongle_id))
+    if (query.route_id) conditions.push(eq(filesTable.route_id, query.route_id))
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const sortColumn = sort === 'size' ? filesTable.size : filesTable.create_time
+    const orderFn = order === 'asc' ? asc : desc
+
+    const [files, totalResult] = await Promise.all([
+      db.select().from(filesTable).where(whereClause).orderBy(orderFn(sortColumn)).limit(limit).offset(offset).all(),
+      db
+        .select({ count: count() })
+        .from(filesTable)
+        .where(whereClause)
+        .then((r) => r[0].count),
+    ])
+
+    return {
+      status: 200,
+      body: {
+        files: files.map((f) => ({
+          key: f.key,
+          dongle_id: f.dongle_id,
+          route_id: f.route_id,
+          segment: f.segment,
+          file: f.file,
+          size: f.size,
+          processingStatus: f.processingStatus,
+          processingError: f.processingError,
+          create_time: f.create_time,
+        })),
+        total: totalResult,
+      },
+    }
+  }),
+  routes: superuserMiddleware(async ({ query }) => {
+    const limit = query.limit ?? 100
+    const offset = query.offset ?? 0
+    const sort = query.sort ?? 'create_time'
+    const order = query.order ?? 'desc'
+
+    const conditions = []
+    if (query.dongle_id) conditions.push(eq(segmentsTable.dongle_id, query.dongle_id))
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const sortColumn = sort === 'size' ? sql<number>`coalesce(sum(${filesTable.size}), 0)` : sql<number>`min(${segmentsTable.create_time})`
+    const orderFn = order === 'asc' ? asc : desc
+
+    const [routesData, totalResult] = await Promise.all([
+      db
+        .select({
+          dongle_id: segmentsTable.dongle_id,
+          route_id: segmentsTable.route_id,
+          start_time: sql<number | null>`min(${segmentsTable.start_time})`,
+          end_time: sql<number | null>`max(${segmentsTable.end_time})`,
+          platform: sql<string | null>`max(${segmentsTable.platform})`,
+          version: sql<string | null>`max(${segmentsTable.version})`,
+          create_time: sql<number>`min(${segmentsTable.create_time})`,
+          segmentCount: sql<number>`count(distinct ${segmentsTable.segment})`,
+          fileCount: sql<number>`count(distinct ${filesTable.key})`,
+          totalSize: sql<number>`coalesce(sum(${filesTable.size}), 0)`,
+        })
+        .from(segmentsTable)
+        .leftJoin(filesTable, and(eq(segmentsTable.dongle_id, filesTable.dongle_id), eq(segmentsTable.route_id, filesTable.route_id)))
+        .where(whereClause)
+        .groupBy(segmentsTable.dongle_id, segmentsTable.route_id)
+        .orderBy(orderFn(sortColumn))
+        .limit(limit)
+        .offset(offset)
+        .all(),
+      db
+        .select({ count: countDistinct(sql`${segmentsTable.dongle_id} || '/' || ${segmentsTable.route_id}`) })
+        .from(segmentsTable)
+        .where(whereClause)
+        .then((r) => r[0].count),
+    ])
+
+    return {
+      status: 200,
+      body: {
+        routes: routesData.map((r) => ({
+          dongle_id: r.dongle_id,
+          route_id: r.route_id,
+          segmentCount: r.segmentCount,
+          fileCount: r.fileCount,
+          totalSize: r.totalSize,
+          start_time: r.start_time,
+          end_time: r.end_time,
+          platform: r.platform,
+          version: r.version,
+          create_time: r.create_time,
+        })),
+        total: totalResult,
+      },
+    }
+  }),
 })

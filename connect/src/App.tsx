@@ -103,6 +103,10 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
+        path: 'admin',
+        lazy: () => import('./pages/admin'),
+      },
+      {
         path: 'pair',
         lazy: () => import('./pages/pair'),
       },

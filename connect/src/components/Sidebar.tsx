@@ -72,6 +72,16 @@ export const Sidebar = () => {
         <div className="p-4 flex flex-col gap-4 bg-background mt-auto">
           {device && <ActionBar />}
 
+          {profile?.superuser && (
+            <Link
+              to="/admin"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background-alt hover:bg-white/10 transition-colors text-white/80 hover:text-white"
+            >
+              <Icon name="security" className="text-xl" />
+              <span className="text-sm font-medium">Admin</span>
+            </Link>
+          )}
+
           {profile && (
             <div className="flex items-center justify-between px-2 pt-6 border-t border-white/5">
               <div className="flex flex-col min-w-0">

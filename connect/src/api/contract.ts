@@ -446,6 +446,53 @@ const ServiceStatus = z.object({
   error: z.string().optional(),
 })
 
+const AdminUser = z.object({
+  id: z.string(),
+  email: z.string(),
+  regdate: z.number(),
+  superuser: z.boolean(),
+  user_id: z.string(),
+  username: z.string().nullable(),
+  deviceCount: z.number(),
+  totalSize: z.number(),
+})
+
+const AdminDevice = z.object({
+  dongle_id: z.string(),
+  alias: z.string().nullable(),
+  device_type: z.string().nullable(),
+  serial: z.string(),
+  create_time: z.number(),
+  ownerEmail: z.string().nullable(),
+  fileCount: z.number(),
+  totalSize: z.number(),
+})
+
+const AdminFile = z.object({
+  key: z.string(),
+  dongle_id: z.string(),
+  route_id: z.string().nullable(),
+  segment: z.number().nullable(),
+  file: z.string(),
+  size: z.number(),
+  processingStatus: z.enum(['queued', 'processing', 'done', 'error']),
+  processingError: z.string().nullable(),
+  create_time: z.number(),
+})
+
+const AdminRoute = z.object({
+  dongle_id: z.string(),
+  route_id: z.string(),
+  segmentCount: z.number(),
+  fileCount: z.number(),
+  totalSize: z.number(),
+  start_time: z.number().nullable(),
+  end_time: z.number().nullable(),
+  platform: z.string().nullable(),
+  version: z.string().nullable(),
+  create_time: z.number(),
+})
+
 const admin = c.router({
   health: {
     method: 'GET',
@@ -477,6 +524,59 @@ const admin = c.router({
         frontends: z.array(ServiceStatus.extend({ name: z.string() })),
         ci: z.array(ServiceStatus.extend({ name: z.string() })),
         lastBackup: z.number().nullable(),
+      }),
+    },
+  },
+  users: {
+    method: 'GET',
+    path: '/admin/users',
+    responses: {
+      200: AdminUser.array(),
+    },
+  },
+  devices: {
+    method: 'GET',
+    path: '/admin/devices',
+    query: z.object({
+      user_id: z.string().optional(),
+    }),
+    responses: {
+      200: AdminDevice.array(),
+    },
+  },
+  files: {
+    method: 'GET',
+    path: '/admin/files',
+    query: z.object({
+      limit: z.coerce.number().optional(),
+      offset: z.coerce.number().optional(),
+      status: z.enum(['queued', 'processing', 'done', 'error']).optional(),
+      dongle_id: z.string().optional(),
+      route_id: z.string().optional(),
+      sort: z.enum(['create_time', 'size']).optional(),
+      order: z.enum(['asc', 'desc']).optional(),
+    }),
+    responses: {
+      200: z.object({
+        files: AdminFile.array(),
+        total: z.number(),
+      }),
+    },
+  },
+  routes: {
+    method: 'GET',
+    path: '/admin/routes',
+    query: z.object({
+      limit: z.coerce.number().optional(),
+      offset: z.coerce.number().optional(),
+      dongle_id: z.string().optional(),
+      sort: z.enum(['create_time', 'size']).optional(),
+      order: z.enum(['asc', 'desc']).optional(),
+    }),
+    responses: {
+      200: z.object({
+        routes: AdminRoute.array(),
+        total: z.number(),
       }),
     },
   },
