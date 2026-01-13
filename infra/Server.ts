@@ -17,7 +17,7 @@ type ServerArgs = {
   createScript: pulumi.Input<string>
   deployScript: pulumi.Input<string>
   proxied: boolean
-  services: { name: string; service: ServiceArgs; check?: string }[]
+  services: { name: string; service: ServiceArgs; check?: string; trigger: any }[]
 }
 
 const generateService = (service: ServiceArgs): pulumi.Output<string> => {
@@ -94,7 +94,6 @@ export class Server extends pulumi.ComponentResource {
     )
 
     const excludes = RSYNC_EXCLUDES.map((e) => `--exclude='${e}'`).join(' ')
-    const deployTimestamp = Date.now()
 
     // Rsync repo to server and run deploy script
     const deploy = new command.local.Command(
@@ -106,16 +105,17 @@ rsync -avz --delete ${excludes} -e "ssh -i $KEY -o StrictHostKeyChecking=no" ../
 ssh -i $KEY -o StrictHostKeyChecking=no root@${server.ipv4Address} '${args.deployScript}'
 rm -f $KEY
 `,
-        triggers: [deployTimestamp],
+        triggers: [Date.now()],
       },
       { parent: this, dependsOn: [setup] },
     )
 
     // Write systemd service files and restart services after deploy (in order)
-    args.services.reduce<command.remote.Command | typeof deploy>((prev, service) => {
+    let prev: pulumi.Resource = deploy
+    for (const service of args.services) {
       const content = generateService(service.service)
       const check = service.check ? `\ntimeout 30 bash -c '${service.check}' || (journalctl -u ${service.name} -n 20 --no-pager && exit 1)` : ''
-      return new command.remote.Command(
+      prev = new command.remote.Command(
         `${name}-${service.name}`,
         {
           connection,
@@ -127,10 +127,10 @@ systemctl daemon-reload
 systemctl enable ${service.name}
 systemctl restart ${service.name}${check}
 `,
-          triggers: [content, deployTimestamp],
+          triggers: [content, service.trigger],
         },
         { parent: this, dependsOn: [prev] },
       )
-    }, deploy)
+    }
   }
 }

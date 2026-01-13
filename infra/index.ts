@@ -1,9 +1,12 @@
 import * as cloudflare from '@pulumi/cloudflare'
 import * as hcloud from '@pulumi/hcloud'
 import * as pulumi from '@pulumi/pulumi'
+import { execSync } from 'child_process'
 import { Site } from './Site'
 import { Worker } from './Worker'
 import { Server } from './Server'
+
+const folderHash = (path: string) => execSync(`find ${path} -type f -exec md5 -q {} \\; | sort | md5 -q`).toString().trim()
 
 const config = new pulumi.Config()
 
@@ -110,6 +113,7 @@ const apiServer = new Server('api', {
     ...STORAGE_BOXES.map(({ i, user }) => ({
       name: `asius-mkv${i}`,
       check: `until nc -z localhost 300${i}; do sleep 0.5; done`,
+      trigger: undefined,
       service: {
         Unit: {
           Description: `MiniKeyValue Volume ${i}`,
@@ -141,6 +145,7 @@ const apiServer = new Server('api', {
     {
       name: 'asius-mkv',
       check: 'until nc -z localhost 3000; do sleep 0.5; done',
+      trigger: undefined,
       service: {
         Unit: {
           Description: 'MiniKeyValue Master',
@@ -162,6 +167,7 @@ const apiServer = new Server('api', {
     {
       name: 'asius-api',
       check: 'until curl -sf http://localhost:80/health; do sleep 0.5; done',
+      trigger: folderHash('../api'),
       service: {
         Unit: {
           Description: 'Asius API',
@@ -234,6 +240,7 @@ const sshServer = new Server('ssh', {
     {
       name: 'asius-caddy',
       check: 'until curl -sf http://localhost:80/health; do sleep 0.5; done',
+      trigger: undefined,
       service: {
         Unit: {
           Description: 'Caddy web server for SSH proxy',
@@ -257,6 +264,7 @@ const sshServer = new Server('ssh', {
     {
       name: 'asius-ssh',
       check: 'until nc -z localhost 2222; do sleep 0.5; done',
+      trigger: folderHash('../ssh'),
       service: {
         Unit: {
           Description: 'Asius SSH Proxy',
