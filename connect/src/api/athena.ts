@@ -180,7 +180,6 @@ export const callAthena = async <T extends AthenaRequest>({
   expiry?: number
 }): Promise<AthenaResponse<T> | undefined> => {
   if (!env.ATHENA_URL) return
-  if (dongleId === env.DEMO_DONGLE_ID) return
   const req = REQUESTS[type]
 
   const parse = req.params.safeParse(params)
