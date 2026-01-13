@@ -3,6 +3,7 @@ import { Video } from '@remotion/media'
 import { hevcToMp4 } from '../utils/ffmpeg'
 import { createChunker } from '../utils/hevc'
 import { useDelayRender } from 'remotion'
+import { env } from '../utils/env'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 
@@ -38,6 +39,12 @@ export const HevcVideo = ({ src, ...props }: VideoProps) => {
   const { continueRender, delayRender } = useDelayRender()
 
   useEffect(() => {
+    // For our API, HEVC files are already remuxed to MP4 on upload
+    if (env.IS_OURS) {
+      setData(src)
+      return
+    }
+
     const handle = delayRender(`Video ${src}`)
     triggerVideo(src)
 
@@ -50,7 +57,8 @@ export const HevcVideo = ({ src, ...props }: VideoProps) => {
     }
 
     getData()
-    setInterval(getData, 200)
+    const interval = setInterval(getData, 200)
+    return () => clearInterval(interval)
   }, [src])
 
   if (!data) return null

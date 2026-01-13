@@ -85,13 +85,13 @@ describe(`Device Integration (${env.MODE})`, () => {
     routeNameEncoded = encodeURIComponent(`${dongleId}|${ROUTE_ID}`)
     console.log(`Registered: ${dongleId}`)
 
-    // Upload qlog/qcamera files from folder structure: routeId/segment/files
+    // Upload qlog/qcamera/hevc files from folder structure: routeId/segment/files
     const routeDir = join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}`)
     for (let segment = 0; segment < SEGMENTS_COUNT; segment++) {
       const segmentDir = join(routeDir, String(segment))
       const files = await readdir(segmentDir)
       for (const filename of files) {
-        if (!filename.endsWith('qlog.zst') && !filename.endsWith('qcamera.ts')) continue
+        if (!filename.endsWith('qlog.zst') && !filename.endsWith('qcamera.ts') && !filename.endsWith('.hevc')) continue
         const path = `${ROUTE_ID}--${segment}/${filename}`
         const uploadUrl = await getUploadInfo(path, dongleId, deviceToken)
         const fileContent = await readFile(join(segmentDir, filename))
@@ -271,6 +271,20 @@ describe(`Device Integration (${env.MODE})`, () => {
           expect(actual[0]).toBe(0xff)
           expect(actual[1]).toBe(0xd8)
           expect(Math.abs(actual.length - expected.length) / expected.length).toBeLessThan(0.1)
+        })
+
+        test.skipIf(isKonik)('hevc remuxed to mp4', async () => {
+          const routeRes = await apiGet(`/v1/route/${routeNameEncoded}/`, deviceToken)
+          const baseUrl = routeRes.data.url.replace(/\/$/, '')
+          const data = await fetchUrl(`${baseUrl}/${segment}/fcamera.hevc`)
+          if (!data) return // HEVC file may not exist in all segments
+
+          const actual = new Uint8Array(data)
+          // Check for MP4 ftyp box signature
+          expect(actual[4]).toBe(0x66) // 'f'
+          expect(actual[5]).toBe(0x74) // 't'
+          expect(actual[6]).toBe(0x79) // 'y'
+          expect(actual[7]).toBe(0x70) // 'p'
         })
       })
     }

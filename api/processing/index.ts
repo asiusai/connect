@@ -4,6 +4,7 @@ import { segmentsTable, routesTable } from '../db/schema'
 import { mkv } from '../mkv'
 import { processQlogStreaming, type StreamingQlogResult } from './qlogs'
 import { extractSprite } from './qcamera'
+import { remuxHevcToMp4 } from './hevc'
 
 // Creates a passthrough stream that can be written to and read from
 const createPassthroughStream = () => {
@@ -124,5 +125,16 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
   // Process qcamera to extract sprite
   if (filename === 'qcamera.ts') {
     await processSegmentQcamera(dongleId, routeId, segment)
+  }
+
+  // Process HEVC files - remux to MP4 for instant browser playback
+  // Keep .hevc extension to avoid breaking other things
+  if (filename.endsWith('.hevc')) {
+    const key = `${dongleId}/${routeId}/${segment}/${filename}`
+    const res = await mkv.get(key)
+    if (!res.ok || !res.body) return
+
+    const mp4Stream = await remuxHevcToMp4(res.body)
+    await mkv.put(key, mp4Stream, { 'Content-Type': 'video/mp4' }, true)
   }
 }
