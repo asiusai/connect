@@ -119,11 +119,9 @@ const STORAGE_BOXES = [
 const apiServer = new Server('api', {
   allowedPorts: ['22', '80', '443'],
   sshKeyId: sshKey.id,
-  zoneId,
   serverType: 'cpx32',
-  domain: 'api.asius.ai',
+  domain: { name: 'api.asius.ai', zoneId },
   sshPrivateKey,
-  proxied: false,
   services: [
     ...STORAGE_BOXES.map(({ i, user }) => ({
       name: `asius-mkv${i}`,
@@ -280,9 +278,7 @@ const sshServer = new Server('ssh', {
   serverType: 'cpx22',
   sshPrivateKey,
   sshKeyId: sshKey.id,
-  zoneId,
-  domain: 'ssh.asius.ai',
-  proxied: false,
+  domain: { name: 'ssh.asius.ai', zoneId },
   services: [
     {
       name: 'asius-caddy',
@@ -359,6 +355,84 @@ systemctl disable caddy || true
   deployScript: `cd /app/ssh && bun install`,
 })
 
+// ------------------------- ARM BUILD SERVER -------------------------
+const ghRunnerToken = config.requireSecret('ghRunnerToken')
+
+const buildServer = new Server('build', {
+  allowedPorts: ['22'],
+  serverType: 'cax21', // ARM64: 4 cores, 8GB RAM, 80GB disk
+  sshPrivateKey,
+  sshKeyId: sshKey.id,
+  services: [
+    {
+      name: 'github-runner',
+      check: 'pgrep -f Runner.Listener',
+      trigger: undefined,
+      service: {
+        Unit: {
+          Description: 'GitHub Actions Runner',
+          After: 'network.target',
+        },
+        Service: {
+          Type: 'simple',
+          User: 'runner',
+          WorkingDirectory: '/home/runner/actions-runner',
+          ExecStart: '/home/runner/actions-runner/run.sh',
+          Restart: 'always',
+          RestartSec: '5',
+        },
+        Install: {
+          WantedBy: 'multi-user.target',
+        },
+      },
+    },
+  ],
+  createScript: pulumi.interpolate`set -e
+# Install build dependencies for openpilot
+apt-get update && apt-get install -y \
+  curl git git-lfs unzip build-essential \
+  python3 python3-pip python3-venv \
+  clang cmake scons libffi-dev libssl-dev \
+  liblzma-dev libsqlite3-dev libncurses5-dev \
+  libncursesw5-dev libreadline-dev libbz2-dev \
+  libopenblas-dev liblapack-dev libatlas-base-dev \
+  opencl-headers ocl-icd-opencl-dev \
+  libcapnp-dev capnproto \
+  libzmq3-dev libsystemd-dev \
+  libyaml-dev jq \
+  portaudio19-dev libsndfile1-dev \
+  libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libavresample-dev libavfilter-dev \
+  libegl1-mesa-dev libgles2-mesa-dev \
+  libusb-1.0-0-dev libspidev-dev
+
+# Create runner user
+useradd -m -s /bin/bash runner || true
+mkdir -p /home/runner/actions-runner
+chown -R runner:runner /home/runner
+
+# Install uv (fast Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+cp /root/.local/bin/uv /usr/local/bin/
+
+# Download and extract GitHub Actions runner
+cd /home/runner/actions-runner
+RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | jq -r '.tag_name' | sed 's/v//')
+curl -o actions-runner-linux-arm64.tar.gz -L "https://github.com/actions/runner/releases/download/v\${RUNNER_VERSION}/actions-runner-linux-arm64-\${RUNNER_VERSION}.tar.gz"
+tar xzf actions-runner-linux-arm64.tar.gz
+rm actions-runner-linux-arm64.tar.gz
+chown -R runner:runner /home/runner/actions-runner
+
+# Configure runner for asiusai org (works for both openpilot and sunnypilot repos)
+su - runner -c "cd /home/runner/actions-runner && ./config.sh --url https://github.com/asiusai --token ${ghRunnerToken} --name asius-arm-builder --labels self-hosted,linux,arm64,tici --unattended --replace" || true
+
+# Create build directories
+mkdir -p /data/openpilot /data/scons_cache
+chown -R runner:runner /data
+`,
+  deployScript: 'echo "Build server ready"',
+})
+
 // ------------------------- EXPORTS -------------------------
 export const apiIp = apiServer.ipAddress
 export const sshIp = sshServer.ipAddress
+export const buildIp = buildServer.ipAddress

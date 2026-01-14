@@ -11,12 +11,14 @@ type ServerArgs = {
   allowedPorts: string[]
   sshKeyId: pulumi.Input<string>
   sshPrivateKey: pulumi.Input<string>
-  zoneId: string
   serverType: string
-  domain: string
+  domain?: {
+    name: string
+    zoneId: string
+    proxied?: boolean
+  }
   createScript: pulumi.Input<string>
   deployScript: pulumi.Input<string>
-  proxied: boolean
   services: { name: string; service: ServiceArgs; check?: string; trigger: any }[]
 }
 
@@ -45,7 +47,7 @@ const generateService = (service: ServiceArgs): pulumi.Output<string> => {
 
 export class Server extends pulumi.ComponentResource {
   public readonly ipAddress: pulumi.Output<string>
-  public readonly domain: string
+  public readonly domain?: string
 
   constructor(name: string, args: ServerArgs, opts?: pulumi.ComponentResourceOptions) {
     super('asius:hetzner:Server', name, {}, opts)
@@ -71,20 +73,22 @@ export class Server extends pulumi.ComponentResource {
     )
 
     this.ipAddress = server.ipv4Address
-    this.domain = args.domain
+    this.domain = args.domain?.name
 
-    new cloudflare.DnsRecord(
-      `${name}-dns`,
-      {
-        zoneId: args.zoneId,
-        name: getSubdomain(args.domain),
-        type: 'A',
-        content: server.ipv4Address,
-        proxied: args.proxied,
-        ttl: 1,
-      },
-      { parent: this },
-    )
+    if (args.domain) {
+      new cloudflare.DnsRecord(
+        `${name}-dns`,
+        {
+          zoneId: args.domain.zoneId,
+          name: getSubdomain(args.domain.name),
+          type: 'A',
+          content: server.ipv4Address,
+          proxied: args.domain.proxied,
+          ttl: 1,
+        },
+        { parent: this },
+      )
+    }
 
     const connection = {
       host: server.ipv4Address,
