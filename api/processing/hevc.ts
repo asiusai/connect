@@ -14,14 +14,16 @@ export const remuxHevcToMp4 = async (hevcStream: ReadableStream<Uint8Array>): Pr
   try {
     // Write HEVC stream to temp file
     const hevcData = await new Response(hevcStream).arrayBuffer()
+    if (hevcData.byteLength === 0) throw new Error('Empty HEVC input')
     await Bun.write(hevcPath, hevcData)
 
     // Remux to MP4 with faststart for streaming
-    await $`ffmpeg -y -i ${hevcPath} -c:v copy -movflags faststart ${mp4Path}`.quiet()
+    await $`ffmpeg -y -i ${hevcPath} -c:v copy -movflags faststart ${mp4Path}`
 
     // Read MP4 and return as stream
     const mp4File = Bun.file(mp4Path)
     const mp4Data = await mp4File.arrayBuffer()
+    if (mp4Data.byteLength === 0) throw new Error('ffmpeg produced empty output')
 
     // Clean up temp files
     rmSync(hevcPath, { force: true })
