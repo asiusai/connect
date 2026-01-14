@@ -53,7 +53,7 @@ type FilesFilter = {
   offset: number
 }
 
-const PAGE_SIZE = 4
+const PAGE_SIZE = 50
 
 const PaginationControls = ({
   total,
