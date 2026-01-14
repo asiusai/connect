@@ -110,6 +110,8 @@ const sshKey = new hcloud.SshKey('hetzner-ssh-key', { publicKey: sshPublicKey })
 const R2_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID!
 const R2_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY!
 
+const storageBoxPassword = config.requireSecret('storageBoxPassword')
+
 const STORAGE_BOXES = [
   { i: 1, user: 'u526268' },
   { i: 2, user: 'u526270' },
@@ -141,14 +143,14 @@ const apiServer = new Server('api', {
             MKV_BODY: `/tmp/mkv${i}_body`,
           },
           ExecStartPre: [
-            `/bin/bash -c 'fusermount -u /data/mkv${i} 2>/dev/null || true'`,
-            `/bin/bash -c 'ssh-keyscan -p 23 ${user}.your-storagebox.de >> /root/.ssh/known_hosts 2>/dev/null || true'`,
-            `/usr/bin/sshfs -o IdentityFile=/root/.ssh/storagebox_key,port=23,allow_other,reconnect,ServerAliveInterval=15,ServerAliveCountMax=3 ${user}@${user}.your-storagebox.de: /data/mkv${i}`,
+            `/bin/bash -c 'umount /data/mkv${i} 2>/dev/null || true'`,
+            `/bin/mount -t cifs //${user}.your-storagebox.de/backup /data/mkv${i} -o username=${user},password=\${STORAGE_BOX_PASSWORD},uid=0,gid=0,file_mode=0660,dir_mode=0770`,
             `/bin/mkdir -p /tmp/mkv${i}_tmp /tmp/mkv${i}_body`,
           ],
           ExecStart: `/app/minikeyvalue/volume /data/mkv${i}/`,
-          ExecStopPost: `/bin/fusermount -u /data/mkv${i}`,
+          ExecStopPost: `/bin/umount /data/mkv${i}`,
           Restart: 'always',
+          EnvironmentFile: '/etc/storagebox.env',
         },
         Install: {
           WantedBy: 'multi-user.target',
@@ -168,7 +170,10 @@ const apiServer = new Server('api', {
         Service: {
           Type: 'simple',
           WorkingDirectory: '/app',
-          ExecStartPre: "/bin/bash -c 'until curl -sf http://localhost:3001/ && curl -sf http://localhost:3002/; do sleep 0.5; done'",
+          ExecStartPre: [
+            "/bin/bash -c 'until curl -sf http://localhost:3001/ && curl -sf http://localhost:3002/; do sleep 0.5; done'",
+            "/bin/bash -c 'if [ ! -s /data/mkvdb ]; then /app/minikeyvalue/src/mkv -volumes localhost:3001,localhost:3002 -db /data/mkvdb -replicas 1 rebuild; fi'",
+          ],
           ExecStart: '/app/minikeyvalue/src/mkv -volumes localhost:3001,localhost:3002 -db /data/mkvdb -replicas 1 --port 3000 server',
           Restart: 'always',
         },
@@ -242,28 +247,29 @@ const apiServer = new Server('api', {
   ],
   createScript: pulumi.interpolate`
 set -e
-apt-get update && apt-get install -y sshfs golang-go curl git unzip ffmpeg debian-keyring debian-archive-keyring apt-transport-https
+apt-get update && apt-get install -y cifs-utils golang-go curl git unzip ffmpeg nginx debian-keyring debian-archive-keyring apt-transport-https
 
 # Install bun
 curl -fsSL https://bun.sh/install | bash
 ln -sf /root/.bun/bin/bun /usr/local/bin/bun
 
 # Install Caddy
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --batch --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --batch --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg 2>/dev/null || true
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
 apt-get update && apt-get install -y caddy
 
-# Stop default Caddy service (we use our own)
+# Stop default Caddy and nginx services (we use our own)
 systemctl stop caddy || true
 systemctl disable caddy || true
+systemctl stop nginx || true
+systemctl disable nginx || true
 
 # Create data directories
 mkdir -p /data/mkv1 /data/mkv2 /data/caddy /app
 
-# Setup SSH key for storage boxes
-mkdir -p /root/.ssh
-echo '${sshPrivateKey}' > /root/.ssh/storagebox_key
-chmod 600 /root/.ssh/storagebox_key
+# Setup storage box password
+echo 'STORAGE_BOX_PASSWORD=${storageBoxPassword}' > /etc/storagebox.env
+chmod 600 /etc/storagebox.env
 `,
   deployScript: `cd /app/minikeyvalue/src && go build -o mkv && cd /app/api && bun install`,
 })
