@@ -212,6 +212,14 @@ const All = () => {
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
+  // Reset state when device changes
+  useEffect(() => {
+    setAllRoutes([])
+    setEndTime(Date.now())
+    setHasMore(true)
+    setIsLoadingMore(false)
+  }, [dongleId])
+
   const [routes] = api.routes.routesSegments.useQuery({
     params: { dongleId },
     query: { start: 0, end: endTime, limit: PAGE_SIZE },
