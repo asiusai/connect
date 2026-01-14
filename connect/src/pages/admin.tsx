@@ -611,7 +611,10 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                     <td className="py-3 px-4 text-right text-white/60">{file.segment ?? '-'}</td>
                     <td className="py-3 px-4 text-right">{formatBytes(file.size)}</td>
                     <td className="py-3 px-4 text-center">
-                      <span className={clsx('px-2 py-1 rounded text-xs', statusColors[file.processingStatus])}>{file.processingStatus}</span>
+                      <span className={clsx('px-2 py-1 rounded text-xs', statusColors[file.processingStatus])} title={file.processingError || undefined}>
+                        {file.processingStatus}
+                      </span>
+                      {file.processingError && <div className="text-xs text-red-400/70 mt-1 max-w-xs truncate">{file.processingError}</div>}
                     </td>
                     <td className="py-3 px-4 text-white/60">{formatDate(file.create_time)}</td>
                     <td className="py-3 px-4">
