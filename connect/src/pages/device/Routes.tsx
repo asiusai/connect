@@ -207,49 +207,46 @@ const EmptyState = ({ preserved }: { preserved?: boolean }) => (
 
 const All = () => {
   const { dongleId } = useRouteParams()
-  const [allRoutes, setAllRoutes] = useState<RouteSegment[]>([])
+  const [allRoutes, setAllRoutes] = useState<RouteSegment[]>()
   const [endTime, setEndTime] = useState(Date.now())
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   // Reset state when device changes
   useEffect(() => {
-    setAllRoutes([])
+    if (!allRoutes) return
+    setAllRoutes(undefined)
     setEndTime(Date.now())
     setHasMore(true)
     setIsLoadingMore(false)
   }, [dongleId])
 
-  const [routes] = api.routes.routesSegments.useQuery({
+  api.routes.routesSegments.useQuery({
     params: { dongleId },
     query: { start: 0, end: endTime, limit: PAGE_SIZE },
     onSuccess: (data) => {
-      if (endTime === Date.now()) {
-        setAllRoutes(data)
-      } else {
-        setAllRoutes((prev) => [...prev, ...data])
-      }
+      if (!allRoutes) setAllRoutes(data)
+      else setAllRoutes((prev) => [...prev!, ...data])
       setHasMore(data.length === PAGE_SIZE)
       setIsLoadingMore(false)
     },
   })
 
   const loadMore = () => {
-    if (!allRoutes.length || isLoadingMore) return
+    if (!allRoutes?.length || isLoadingMore) return
     setIsLoadingMore(true)
     const lastRoute = allRoutes[allRoutes.length - 1]
     setEndTime(lastRoute.start_time_utc_millis - 1)
   }
 
   let prevDayHeader: string | undefined
-  const displayRoutes = allRoutes.length > 0 ? allRoutes : routes
 
-  if (routes && routes.length === 0 && allRoutes.length === 0) return <EmptyState />
+  if (allRoutes && allRoutes.length === 0) return <EmptyState />
 
   return (
     <>
       <div className="flex flex-col gap-4">
-        {displayRoutes?.map((route) => {
+        {allRoutes?.map((route) => {
           let dayHeader = route.start_time ? formatDate(route.start_time) : undefined
           if (dayHeader === prevDayHeader) dayHeader = undefined
           else prevDayHeader = dayHeader
@@ -265,7 +262,7 @@ const All = () => {
           )
         })}
       </div>
-      {hasMore && displayRoutes && displayRoutes.length > 0 && (
+      {hasMore && allRoutes && allRoutes.length > 0 && (
         <div className="col-span-full flex justify-center py-6 px-2">
           <ButtonBase
             className="w-full rounded-xl bg-white/5 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-white/10"
