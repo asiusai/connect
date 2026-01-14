@@ -115,13 +115,13 @@ const STORAGE_BOXES = [
   { i: 2, user: 'u526270' },
 ]
 const apiServer = new Server('api', {
-  allowedPorts: ['22', '80'],
+  allowedPorts: ['22', '80', '443'],
   sshKeyId: sshKey.id,
   zoneId,
   serverType: 'cpx32',
   domain: 'api.asius.ai',
   sshPrivateKey,
-  proxied: true,
+  proxied: false,
   services: [
     ...STORAGE_BOXES.map(({ i, user }) => ({
       name: `asius-mkv${i}`,
@@ -178,13 +178,37 @@ const apiServer = new Server('api', {
       },
     },
     {
-      name: 'asius-api',
+      name: 'asius-caddy',
       check: 'until curl -sf http://localhost:80/health; do sleep 0.5; done',
+      trigger: undefined,
+      service: {
+        Unit: {
+          Description: 'Caddy web server for API',
+          After: 'network.target',
+        },
+        Service: {
+          Type: 'simple',
+          ExecStart: '/usr/bin/caddy run --config /app/api/Caddyfile',
+          ExecReload: '/usr/bin/caddy reload --config /app/api/Caddyfile',
+          Restart: 'always',
+          Environment: {
+            XDG_DATA_HOME: '/data/caddy',
+            XDG_CONFIG_HOME: '/data/caddy',
+          },
+        },
+        Install: {
+          WantedBy: 'multi-user.target',
+        },
+      },
+    },
+    {
+      name: 'asius-api',
+      check: 'until curl -sf http://localhost:8080/health; do sleep 0.5; done',
       trigger: folderHash('../api'),
       service: {
         Unit: {
           Description: 'Asius API',
-          After: 'network.target asius-mkv.service',
+          After: 'network.target asius-mkv.service asius-caddy.service',
           Requires: 'asius-mkv.service',
         },
         Service: {
@@ -194,7 +218,7 @@ const apiServer = new Server('api', {
           ExecStart: 'bun run index.ts',
           Restart: 'always',
           Environment: {
-            PORT: '80',
+            PORT: '8080',
             MKV_URL: 'http://localhost:3000',
             DB_PATH: '/data/asius.db',
             JWT_SECRET: config.requireSecret('jwtSecret'),
@@ -218,23 +242,28 @@ const apiServer = new Server('api', {
   ],
   createScript: pulumi.interpolate`
 set -e
-apt-get update && apt-get install -y sshfs golang-go curl git unzip nginx ffmpeg
+apt-get update && apt-get install -y sshfs golang-go curl git unzip ffmpeg debian-keyring debian-archive-keyring apt-transport-https
 
 # Install bun
 curl -fsSL https://bun.sh/install | bash
 ln -sf /root/.bun/bin/bun /usr/local/bin/bun
 
+# Install Caddy
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --batch --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+apt-get update && apt-get install -y caddy
+
+# Stop default Caddy service (we use our own)
+systemctl stop caddy || true
+systemctl disable caddy || true
+
 # Create data directories
-mkdir -p /data/mkv1 /data/mkv2 /app
+mkdir -p /data/mkv1 /data/mkv2 /data/caddy /app
 
 # Setup SSH key for storage boxes
 mkdir -p /root/.ssh
 echo '${sshPrivateKey}' > /root/.ssh/storagebox_key
 chmod 600 /root/.ssh/storagebox_key
-
-# Disable nginx (only used by MKV volume)
-systemctl stop nginx
-systemctl disable nginx
 `,
   deployScript: `cd /app/minikeyvalue/src && go build -o mkv && cd /app/api && bun install`,
 })

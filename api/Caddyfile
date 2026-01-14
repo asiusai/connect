@@ -1,0 +1,8 @@
+{
+    acme_ca https://acme.zerossl.com/v2/DV90
+    email admin@asius.ai
+}
+
+api.asius.ai {
+    reverse_proxy localhost:8080
+}
