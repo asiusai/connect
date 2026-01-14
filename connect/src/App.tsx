@@ -115,8 +115,8 @@ const router = createBrowserRouter([
         path: ':dongleId',
         children: [
           {
-            path: 'live',
-            lazy: () => import('./pages/live/index'),
+            path: 'sentry',
+            lazy: () => import('./pages/sentry'),
           },
           {
             path: 'params',
@@ -137,10 +137,6 @@ const router = createBrowserRouter([
           {
             path: 'prime',
             lazy: () => import('./pages/settings/index'),
-          },
-          {
-            path: 'sentry',
-            lazy: () => import('./pages/sentry'),
           },
           {
             path: 'analyze',

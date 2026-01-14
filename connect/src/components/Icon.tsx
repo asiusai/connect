@@ -173,6 +173,7 @@ export const IconName = z.enum([
   'token',
   'cloud_sync',
   'help',
+  'grid_view',
 ])
 
 export type IconName = z.infer<typeof IconName>

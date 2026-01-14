@@ -1,0 +1,89 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useRouteParams } from '../../utils/hooks'
+import { AthenaResponse, callAthena } from '../../api/athena'
+import { toast } from 'sonner'
+import { HEIGHT, WIDTH } from '../../templates/shared'
+import { Icon } from '../../components/Icon'
+import { IconButton } from '../../components/IconButton'
+import { saveFile } from '../../utils/helpers'
+import { ControlButton } from './live'
+import { useStorage } from '../../utils/storage'
+import clsx from 'clsx'
+
+const toB64 = (x?: string | null) => (x ? `data:image/jpeg;base64,${x}` : undefined)
+
+export const SnapshotView = () => {
+  const [cameraView, setCameraView] = useStorage('cameraView')
+  const { dongleId } = useRouteParams()
+  const [images, setImages] = useState<AthenaResponse<'takeSnapshot'>['result']>()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const shot = useCallback(async () => {
+    setIsLoading(true)
+    setImages(undefined)
+    const res = await callAthena({ type: 'takeSnapshot', dongleId, params: undefined })
+    if (res?.result) setImages(res.result)
+    else toast.error('Failed taking a picture')
+    setIsLoading(false)
+  }, [dongleId])
+
+  useEffect(() => {
+    if (!images && !isLoading) shot()
+  }, [])
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden">
+      {/* Image Grid - matches live view layout */}
+      <div className={clsx('flex-1 flex flex-col gap-4 p-4 relative overflow-hidden items-start justify-start md:flex-row w-full h-full')}>
+        {[
+          { src: toB64(images?.jpegFront), hidden: cameraView === 'road' },
+          { src: toB64(images?.jpegBack), hidden: cameraView === 'driver' },
+        ].map(({ src, hidden }, i) => (
+          <div
+            id="shit"
+            key={i}
+            className={clsx('relative rounded-xl overflow-hidden border border-white/5 group w-full', hidden && 'hidden')}
+            style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }}
+          >
+            {!isLoading ? (
+              <>
+                {src ? (
+                  <img src={src} className="object-contain h-full w-full" />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-red-500">Failed taking an image</div>
+                )}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {src && (
+                    <IconButton
+                      className="p-2 rounded-full text-xl bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors"
+                      name="download"
+                      title="Download"
+                      onClick={() => saveFile(src, `snapshot${i + 1}.jpg`)}
+                    />
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center bg-background-alt/80 backdrop-blur-sm h-full w-fulll">
+                <div className="flex items-center gap-3">
+                  <Icon name="progress_activity" className="animate-spin text-2xl text-white/40" />
+                  <span className="text-sm text-white/60">Taking snapshot...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom Bar */}
+      <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
+        <ControlButton
+          onClick={() => setCameraView(cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both')}
+          icon={cameraView === 'both' ? 'grid_view' : cameraView === 'driver' ? 'person' : 'directions_car'}
+          label={cameraView === 'both' ? 'Both' : cameraView === 'driver' ? 'Driver' : 'Road'}
+        />
+        <ControlButton onClick={shot} disabled={isLoading} icon="camera" label="Retake" spin={isLoading} />
+      </div>
+    </div>
+  )
+}

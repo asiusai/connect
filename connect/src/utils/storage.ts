@@ -9,7 +9,7 @@ const STORAGES = {
     // { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: DeviceParamType.Boolean },
     { type: 'navigation', icon: 'home', title: 'Navigate to home', location: 'home' },
     { type: 'navigation', icon: 'work', title: 'Navigate to work', location: 'work' },
-    { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/{dongleId}/sentry?instant=1` },
+    { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/{dongleId}/sentry` },
   ],
   usingCorrectFork: (): boolean | undefined => undefined,
   playbackRate: (): number | undefined => 1,
@@ -23,6 +23,8 @@ const STORAGES = {
   routesType: (): 'all' | 'preserved' => 'all',
   analyzeService: (): Service => 'peripheralState',
   togglesOpenTab: (): string | null => 'models',
+  cameraView: (): 'both' | 'driver' | 'road' => 'both',
+  joystickEnabled: (): boolean => false,
 
   unitFormat: (): UnitFormat => {
     if (typeof navigator === 'undefined') return 'metric'

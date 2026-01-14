@@ -17,16 +17,9 @@ export const Navigation = ({ className }: { className?: string }) => {
     },
     {
       title: 'Sentry',
-      icon: 'photo_camera',
+      icon: 'videocam',
       href: `/${dongleId}/sentry`,
       color: 'text-red-400',
-    },
-    {
-      title: 'Live',
-      icon: 'play_arrow',
-      href: `/${dongleId}/live`,
-      color: 'text-orange-400',
-      hide: !usingCorrectFork,
     },
     {
       title: 'Params',
