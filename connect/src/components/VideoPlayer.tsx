@@ -16,19 +16,35 @@ import { Icon } from './Icon'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useStorage } from '../utils/storage'
 import { Route } from '../types'
+import { create } from 'zustand'
 
 type RenderState = { status: 'idle' } | { status: 'rendering'; progress: number } | { status: 'done' } | { status: 'error'; message: string }
 
+type RenderStore = {
+  state: RenderState
+  abortController: AbortController | null
+  setState: (state: RenderState) => void
+  setAbortController: (controller: AbortController | null) => void
+}
+
+const useRenderStore = create<RenderStore>((set) => ({
+  state: { status: 'idle' },
+  abortController: null,
+  setState: (state) => set({ state }),
+  setAbortController: (abortController) => set({ abortController }),
+}))
+
 const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { start: number; end: number } }) => {
-  const [state, setState] = useState<RenderState>({ status: 'idle' })
-  const abortRef = useRef<AbortController | null>(null)
+  const { state, abortController, setState, setAbortController } = useRenderStore()
 
   const startRender = async () => {
-    abortRef.current = new AbortController()
+    const controller = new AbortController()
+    setAbortController(controller)
     setState({ status: 'rendering', progress: 0 })
 
     const startFrame = toFrames(selection.start)
     const endFrame = toFrames(selection.end)
+    const selectionFrames = endFrame - startFrame
     const duration = getRouteDurationMs(props.data?.route)
     const durationInFrames = duration ? toFrames(duration) : 0
 
@@ -45,8 +61,8 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
         },
         inputProps: props,
         frameRange: [startFrame, endFrame - 1],
-        onProgress: ({ renderedFrames }) => setState({ status: 'rendering', progress: Math.round((renderedFrames / durationInFrames) * 100) }),
-        signal: abortRef.current.signal,
+        onProgress: ({ renderedFrames }) => setState({ status: 'rendering', progress: Math.round((renderedFrames / selectionFrames) * 100) }),
+        signal: controller.signal,
         videoBitrate: 'high',
         delayRenderTimeoutInMilliseconds: 120000,
         licenseKey: 'free-license',
@@ -56,13 +72,13 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
       setState({ status: 'done' })
       saveFile(blob, `${props.routeName.replace('/', '_')}_${selection.start.toFixed(0)}-${selection.end.toFixed(0)}.mp4`)
     } catch (err) {
-      if (abortRef.current?.signal.aborted) setState({ status: 'idle' })
+      if (controller.signal.aborted) setState({ status: 'idle' })
       else setState({ status: 'error', message: err instanceof Error ? err.message : 'Render failed' })
     }
   }
 
   const cancel = () => {
-    abortRef.current?.abort()
+    abortController?.abort()
     setState({ status: 'idle' })
   }
 
@@ -468,7 +484,17 @@ const Timeline = ({
   )
 }
 
-export const VideoControls = ({ playerRef, className, props }: { className?: string; playerRef: RefObject<PlayerRef | null>; props: PreviewProps }) => {
+export const VideoControls = ({
+  playerRef,
+  className,
+  props,
+  inFullscreen,
+}: {
+  className?: string
+  playerRef: RefObject<PlayerRef | null>
+  props: PreviewProps
+  inFullscreen?: boolean
+}) => {
   const fullscreen = useFullscreen()
   const { routeName, start, end, date, dongleId } = useRouteParams()
   const player = playerRef.current
@@ -492,6 +518,7 @@ export const VideoControls = ({ playerRef, className, props }: { className?: str
     if (Math.abs(sel.start) < 1 && Math.abs(sel.end - duration) < 1) navigate(`/${dongleId}/${date}`, { replace: true })
     else navigate(`/${dongleId}/${date}/${sel.start.toFixed(0)}/${sel.end.toFixed(0)}`, { replace: true })
   }
+
   useEffect(() => {
     if (!player) return
     const onMuteChange = () => setMuted(player.isMuted())
@@ -519,6 +546,9 @@ export const VideoControls = ({ playerRef, className, props }: { className?: str
     if (showSettings) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showSettings])
+
+  // Hide external controls when in fullscreen (they're shown inside the player)
+  if (fullscreen && !inFullscreen) return null
 
   const seconds = toSeconds(frame)
 
@@ -558,6 +588,7 @@ export const VideoControls = ({ playerRef, className, props }: { className?: str
 export const RouteVideoPlayer = ({ playerRef, className, props }: { playerRef: RefObject<PlayerRef | null>; className?: string; props: PreviewProps }) => {
   const { start } = useRouteParams()
   const [route] = api.route.get.useQuery({ params: { routeName: props.routeName.replace('/', '|') }, query: {} })
+  const fullscreen = useFullscreen()
 
   const duration = getRouteDurationMs(route)! / 1000
 
@@ -576,29 +607,56 @@ export const RouteVideoPlayer = ({ playerRef, className, props }: { playerRef: R
     return () => clearInterval(interval)
   }, [route])
 
-  return (
-    <div id="fullscreen" className={clsx('relative rounded-xl  overflow-hidden bg-black', className)} style={{ aspectRatio: WIDTH / HEIGHT }}>
-      <Player
-        ref={playerRef}
-        component={Preview}
-        compositionHeight={HEIGHT}
-        compositionWidth={WIDTH}
-        durationInFrames={toFrames(duration)}
-        fps={FPS}
-        inFrame={3}
-        style={{ width: '100%', height: '100%' }}
-        inputProps={props}
-        initiallyMuted
-        acknowledgeRemotionLicense
-        autoPlay
-        initialFrame={toFrames(start ?? 0)}
-        playbackRate={playbackRate}
-      />
-      <div className="absolute inset-0 cursor-pointer" onClick={() => playerRef.current?.toggle()} />
+  // Space bar play/pause
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && e.target === document.body) {
+        e.preventDefault()
+        playerRef.current?.toggle()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [playerRef])
 
-      {currentTime && (
-        <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">{currentTime}</div>
-      )}
+  return (
+    <div
+      id="fullscreen"
+      className={clsx('relative rounded-xl overflow-hidden bg-black', fullscreen && 'flex flex-col h-full', className)}
+      style={fullscreen ? undefined : { aspectRatio: WIDTH / HEIGHT }}
+    >
+      <div className={clsx('relative', fullscreen ? 'flex-1 min-h-0' : 'w-full h-full')}>
+        <Player
+          ref={playerRef}
+          component={Preview}
+          compositionHeight={HEIGHT}
+          compositionWidth={WIDTH}
+          durationInFrames={toFrames(duration)}
+          fps={FPS}
+          inFrame={3}
+          style={{ width: '100%', height: '100%' }}
+          inputProps={props}
+          initiallyMuted
+          acknowledgeRemotionLicense
+          autoPlay
+          initialFrame={toFrames(start ?? 0)}
+          playbackRate={playbackRate}
+        />
+        <div
+          className="absolute inset-0 cursor-pointer"
+          onClick={() => playerRef.current?.toggle()}
+          onDoubleClick={() => {
+            if (fullscreen) document.exitFullscreen()
+            else document.querySelector('#fullscreen')?.requestFullscreen()
+          }}
+        />
+
+        {currentTime && (
+          <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">{currentTime}</div>
+        )}
+      </div>
+
+      {fullscreen && <VideoControls playerRef={playerRef} className="rounded-none border-0 bg-black shrink-0 z-10" props={props} inFullscreen />}
     </div>
   )
 }

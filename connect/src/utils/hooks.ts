@@ -62,7 +62,7 @@ export const useScroll = () => {
 }
 
 export const useFullscreen = () => {
-  const [fullscreen, setFullscreen] = useState(false)
+  const [fullscreen, setFullscreen] = useState(!!document.fullscreenElement)
   useEffect(() => {
     const onFullscreenChange = () => setFullscreen(!!document.fullscreenElement)
     document.addEventListener('fullscreenchange', onFullscreenChange)
