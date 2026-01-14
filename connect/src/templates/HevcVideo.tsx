@@ -4,8 +4,14 @@ import { hevcToMp4 } from '../utils/ffmpeg'
 import { createChunker } from '../utils/hevc'
 import { useDelayRender } from 'remotion'
 import { env } from '../utils/env'
+import clsx from 'clsx'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
+
+export const HevcVideo = (props: VideoProps) => {
+  if (env.IS_OURS) return <Video {...props} showInTimeline={false} className={clsx('relative', props.className)} />
+  else return <RawHevcVideo {...props} />
+}
 
 type Cache = { data?: string; done?: boolean }
 const cache = new Map<string, Cache>()
@@ -34,33 +40,27 @@ const triggerVideo = async (src: string) => {
   entry.done = true
 }
 
-export const HevcVideo = ({ src, ...props }: VideoProps) => {
-  const [data, setData] = useState<string>()
+export const RawHevcVideo = (props: VideoProps) => {
+  const [src, setSrc] = useState<string>()
   const { continueRender, delayRender } = useDelayRender()
 
   useEffect(() => {
-    // For our API, HEVC files are already remuxed to MP4 on upload
-    if (env.IS_OURS) {
-      setData(src)
-      return
-    }
-
-    const handle = delayRender(`Video ${src}`)
-    triggerVideo(src)
+    const handle = delayRender(`Video ${props.src}`)
+    triggerVideo(props.src)
 
     const getData = () => {
-      const entry = cache.get(src)
+      const entry = cache.get(props.src)
       if (!entry?.data) return
 
-      setData(entry.data)
+      setSrc(entry.data)
       if (entry.done) continueRender(handle)
     }
 
     getData()
     const interval = setInterval(getData, 200)
     return () => clearInterval(interval)
-  }, [src])
+  }, [props.src])
 
-  if (!data) return null
-  return <Video src={data} {...props} showInTimeline={false} className="relative" />
+  if (!src) return null
+  return <Video {...props} src={src} showInTimeline={false} className="relative" />
 }

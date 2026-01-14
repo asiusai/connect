@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-type ServiceStatus = { status: 'ok' | 'error'; name?: string; latency?: number; error?: string }
+type ServiceStatus = { status: 'ok' | 'error' | 'pending'; name?: string; latency?: number; error?: string }
 type UptimeEvent = { event: 'start' | 'stop'; timestamp: number }
 
 type StatusData = {
@@ -32,9 +32,15 @@ const formatBytes = (bytes: number) => {
   return `${(bytes / Math.pow(k, i)).toFixed(i > 0 ? 1 : 0)} ${sizes[i]}`
 }
 
-const Dot = ({ status }: { status: 'ok' | 'error' }) => (
-  <span className={`w-3 h-3 rounded-full inline-block ${status === 'ok' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500 shadow-[0_0_8px_#ef4444]'}`} />
-)
+const Dot = ({ status }: { status: 'ok' | 'error' | 'pending' }) => {
+  const color =
+    status === 'ok'
+      ? 'bg-green-500 shadow-[0_0_8px_#22c55e]'
+      : status === 'pending'
+        ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]'
+        : 'bg-red-500 shadow-[0_0_8px_#ef4444]'
+  return <span className={`w-3 h-3 rounded-full inline-block ${color}`} />
+}
 
 const ServiceRow = ({ name, service }: { name: string; service: ServiceStatus }) => (
   <div className="flex justify-between items-center py-2">
