@@ -23,7 +23,7 @@ export const sendToDevice = async (
   dongleId: string,
   method: string,
   params: any,
-  timeout = 30_000,
+  timeout = 60_000,
 ): Promise<{ result?: any; error?: any; queued?: boolean }> => {
   const ws = connections.get(dongleId)
 
