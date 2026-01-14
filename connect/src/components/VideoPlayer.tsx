@@ -6,7 +6,7 @@ import { Preview } from '../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../types'
 import { formatVideoTime, getRouteDurationMs, formatTime, getDateTime } from '../utils/format'
 import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useAsyncMemo, useFullscreen, useRouteParams } from '../utils/hooks'
+import { useAsyncMemo, useRouteParams } from '../utils/hooks'
 import { useNavigate } from 'react-router-dom'
 import { useFiles } from '../api/queries'
 import { api } from '../api'
@@ -20,33 +20,37 @@ import { create } from 'zustand'
 
 type RenderState = { status: 'idle' } | { status: 'rendering'; progress: number } | { status: 'done' } | { status: 'error'; message: string }
 
-type RenderStore = {
-  state: RenderState
-  abortController: AbortController | null
-  setState: (state: RenderState) => void
-  setAbortController: (controller: AbortController | null) => void
+const initial = {
+  playerRef: null as RefObject<PlayerRef | null> | null,
+  props: null as PreviewProps | null,
+  frame: 0,
+  playing: true,
+  muted: true,
+  fullscreen: false,
+  duration: 0,
+  selection: { start: 0, end: 0 },
+  renderState: { status: 'idle' } as RenderState,
+  renderAbortController: null as AbortController | null,
+}
+type PlayerState = typeof initial
+type PlayerStore = PlayerState & {
+  set: (partial: Partial<PlayerState> | ((state: PlayerState) => Partial<PlayerState>)) => void
 }
 
-const useRenderStore = create<RenderStore>((set) => ({
-  state: { status: 'idle' },
-  abortController: null,
-  setState: (state) => set({ state }),
-  setAbortController: (abortController) => set({ abortController }),
-}))
+export const usePlayerStore = create<PlayerStore>((set) => ({ ...initial, set }))
 
-const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { start: number; end: number } }) => {
-  const { state, abortController, setState, setAbortController } = useRenderStore()
+const RenderButton = () => {
+  const { props, selection, duration, renderState, renderAbortController, set } = usePlayerStore()
 
   const startRender = async () => {
+    if (!props) return
     const controller = new AbortController()
-    setAbortController(controller)
-    setState({ status: 'rendering', progress: 0 })
+    set({ renderAbortController: controller, renderState: { status: 'rendering', progress: 0 } })
 
     const startFrame = toFrames(selection.start)
     const endFrame = toFrames(selection.end)
     const selectionFrames = endFrame - startFrame
-    const duration = getRouteDurationMs(props.data?.route)
-    const durationInFrames = duration ? toFrames(duration) : 0
+    const durationInFrames = toFrames(duration)
 
     try {
       const { getBlob } = await renderMediaOnWeb({
@@ -61,7 +65,7 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
         },
         inputProps: props,
         frameRange: [startFrame, endFrame - 1],
-        onProgress: ({ renderedFrames }) => setState({ status: 'rendering', progress: Math.round((renderedFrames / selectionFrames) * 100) }),
+        onProgress: ({ renderedFrames }) => set({ renderState: { status: 'rendering', progress: Math.round((renderedFrames / selectionFrames) * 100) } }),
         signal: controller.signal,
         videoBitrate: 'high',
         delayRenderTimeoutInMilliseconds: 120000,
@@ -69,24 +73,24 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
       })
 
       const blob = await getBlob()
-      setState({ status: 'done' })
+      set({ renderState: { status: 'done' } })
       saveFile(blob, `${props.routeName.replace('/', '_')}_${selection.start.toFixed(0)}-${selection.end.toFixed(0)}.mp4`)
     } catch (err) {
-      if (controller.signal.aborted) setState({ status: 'idle' })
-      else setState({ status: 'error', message: err instanceof Error ? err.message : 'Render failed' })
+      if (controller.signal.aborted) set({ renderState: { status: 'idle' } })
+      else set({ renderState: { status: 'error', message: err instanceof Error ? err.message : 'Render failed' } })
     }
   }
 
   const cancel = () => {
-    abortController?.abort()
-    setState({ status: 'idle' })
+    renderAbortController?.abort()
+    set({ renderState: { status: 'idle' } })
   }
 
-  if (state.status === 'rendering') {
+  if (renderState.status === 'rendering') {
     return (
       <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
         <Icon name="movie" className="text-base opacity-70" />
-        <span className="text-xs opacity-70 min-w-[32px]">{state.progress === 0 ? 'Loading...' : `${state.progress}%`}</span>
+        <span className="text-xs opacity-70 min-w-[32px]">{renderState.progress === 0 ? 'Loading...' : `${renderState.progress}%`}</span>
         <button onClick={cancel} className="text-white/50 hover:text-white/80 transition-colors" title="Cancel render">
           <Icon name="close" className="text-base" />
         </button>
@@ -94,12 +98,12 @@ const RenderButton = ({ props, selection }: { props: PreviewProps; selection: { 
     )
   }
 
-  if (state.status === 'error') {
+  if (renderState.status === 'error') {
     return (
       <div className="flex items-center gap-1 bg-red-500/20 rounded-lg px-2 py-1">
         <Icon name="error" className="text-base text-red-400" />
-        <span className="text-xs text-red-400 max-w-[150px] truncate" title={state.message}>
-          {state.message}
+        <span className="text-xs text-red-400 max-w-[150px] truncate" title={renderState.message}>
+          {renderState.message}
         </span>
         <button onClick={startRender} className="text-red-400 hover:text-red-300 transition-colors" title="Retry">
           <Icon name="refresh" className="text-base" />
@@ -310,35 +314,30 @@ const Filmstrip = ({ route }: { route: Route }) => {
   )
 }
 
-const Timeline = ({
-  playerRef,
-  frame,
-  selection,
-  onSelectionChange,
-  duration,
-  route,
-}: {
-  frame: number
-  playerRef: React.RefObject<PlayerRef | null>
-  selection: { start: number; end: number }
-  onSelectionChange: (sel: { start: number; end: number }) => void
-  duration: number
-  route?: Route
-}) => {
+const Timeline = ({ route }: { route?: Route }) => {
+  const { playerRef, frame, selection, duration, set } = usePlayerStore()
+  const { dongleId, date } = useRouteParams()
+  const navigate = useNavigate()
   const events = useAsyncMemo(async () => (route ? await getTimelineEvents(route) : undefined), [route])
   const ref = useRef<HTMLDivElement>(null)
+
+  // Sync selection to URL
+  const syncSelectionToUrl = (sel: { start: number; end: number }) => {
+    if (Math.abs(sel.start) < 1 && Math.abs(sel.end - duration) < 1) navigate(`/${dongleId}/${date}`, { replace: true })
+    else navigate(`/${dongleId}/${date}/${sel.start.toFixed(0)}/${sel.end.toFixed(0)}`, { replace: true })
+  }
 
   const updateMarker = (clientX: number) => {
     if (!ref.current) return
     const rect = ref.current.getBoundingClientRect()
     const x = Math.min(Math.max(clientX - rect.left, 0), rect.width)
-    playerRef.current?.seekTo(Math.floor((x / rect.width) * toFrames(duration)))
+    playerRef?.current?.seekTo(Math.floor((x / rect.width) * toFrames(duration)))
   }
 
   const [draggingHandle, setDraggingHandle] = useState<'start' | 'end' | null>(null)
 
   const updateHandle = (clientX: number, handleType?: 'start' | 'end') => {
-    if (!onSelectionChange || !ref.current) return
+    if (!ref.current) return
     const rect = ref.current.getBoundingClientRect()
     const x = Math.min(Math.max(clientX - rect.left, 0), rect.width)
     const time = (x / rect.width) * duration
@@ -346,11 +345,15 @@ const Timeline = ({
     const activeHandle = handleType || draggingHandle
 
     if (activeHandle === 'start') {
-      onSelectionChange({ ...selection, start: Math.min(time, selection.end - 1) })
-      playerRef.current?.seekTo(toFrames(time))
+      const newSelection = { ...selection, start: Math.min(time, selection.end - 1) }
+      set({ selection: newSelection })
+      syncSelectionToUrl(newSelection)
+      playerRef?.current?.seekTo(toFrames(time))
     } else if (activeHandle === 'end') {
-      onSelectionChange({ ...selection, end: Math.max(time, selection.start + 1) })
-      playerRef.current?.seekTo(toFrames(time))
+      const newSelection = { ...selection, end: Math.max(time, selection.start + 1) }
+      set({ selection: newSelection })
+      syncSelectionToUrl(newSelection)
+      playerRef?.current?.seekTo(toFrames(time))
     }
   }
 
@@ -484,58 +487,13 @@ const Timeline = ({
   )
 }
 
-export const VideoControls = ({
-  playerRef,
-  className,
-  props,
-  inFullscreen,
-}: {
-  className?: string
-  playerRef: RefObject<PlayerRef | null>
-  props: PreviewProps
-  inFullscreen?: boolean
-}) => {
-  const fullscreen = useFullscreen()
-  const { routeName, start, end, date, dongleId } = useRouteParams()
-  const player = playerRef.current
-  const [playing, setPlaying] = useState(player?.isPlaying() ?? true)
-  const [muted, setMuted] = useState(player?.isMuted() ?? false)
-  const [frame, setFrame] = useState(player?.getCurrentFrame() ?? 0)
+export const VideoControls = ({ className, inFullscreen }: { className?: string; inFullscreen?: boolean }) => {
+  const { playerRef, frame, playing, muted, fullscreen, duration } = usePlayerStore()
+  const { routeName } = useRouteParams()
+  const player = playerRef?.current
   const settingsRef = useRef<HTMLDivElement>(null)
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [showSettings, setShowSettings] = useState(false)
-  const navigate = useNavigate()
-  const duration = getRouteDurationMs(route)! / 1000
-  const selection = useMemo(
-    () => ({
-      start: start ?? 0,
-      end: end ?? duration,
-    }),
-    [start, end, duration],
-  )
-
-  const onSelectionChange = (sel: { start: number; end: number }) => {
-    if (Math.abs(sel.start) < 1 && Math.abs(sel.end - duration) < 1) navigate(`/${dongleId}/${date}`, { replace: true })
-    else navigate(`/${dongleId}/${date}/${sel.start.toFixed(0)}/${sel.end.toFixed(0)}`, { replace: true })
-  }
-
-  useEffect(() => {
-    if (!player) return
-    const onMuteChange = () => setMuted(player.isMuted())
-    const onPlayPause = () => setPlaying(player.isPlaying())
-    const onFrame = () => setFrame(player.getCurrentFrame())
-
-    player.addEventListener('mutechange', onMuteChange)
-    player.addEventListener('play', onPlayPause)
-    player.addEventListener('pause', onPlayPause)
-    player.addEventListener('frameupdate', onFrame)
-    return () => {
-      player.removeEventListener('mutechange', onMuteChange)
-      player.removeEventListener('play', onPlayPause)
-      player.removeEventListener('pause', onPlayPause)
-      player.removeEventListener('frameupdate', onFrame)
-    }
-  }, [player])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -554,7 +512,7 @@ export const VideoControls = ({
 
   return (
     <div className={clsx('flex flex-col gap-2 p-2 bg-black/20 rounded-xl backdrop-blur-md border border-white/5', className)}>
-      <Timeline playerRef={playerRef} frame={frame} selection={selection} onSelectionChange={onSelectionChange} duration={duration} route={route} />
+      <Timeline route={route} />
 
       <div className="flex items-center gap-2 pt-2">
         <IconButton title={playing ? 'Pause' : 'Play'} name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
@@ -566,7 +524,7 @@ export const VideoControls = ({
 
         <div className="flex-1" />
 
-        <RenderButton props={props} selection={selection} />
+        <RenderButton />
 
         <div className="relative flex items-center justify-center" ref={settingsRef}>
           {showSettings && <SettingsMenu />}
@@ -585,27 +543,72 @@ export const VideoControls = ({
   )
 }
 
-export const RouteVideoPlayer = ({ playerRef, className, props }: { playerRef: RefObject<PlayerRef | null>; className?: string; props: PreviewProps }) => {
-  const { start } = useRouteParams()
-  const [route] = api.route.get.useQuery({ params: { routeName: props.routeName.replace('/', '|') }, query: {} })
-  const fullscreen = useFullscreen()
-
+const PlayerState = ({ playerRef, props, route }: { route?: Route; props: PreviewProps; playerRef: RefObject<PlayerRef | null> }) => {
+  const { start, end } = useRouteParams()
+  const set = usePlayerStore((x) => x.set)
+  const selection = usePlayerStore((x) => x.selection)
   const duration = getRouteDurationMs(route)! / 1000
 
-  const [playbackRate] = useStorage('playbackRate')
-
-  // Current real time display
-  const [currentTime, setCurrentTime] = useState<string>()
+  // Initialize store
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!playerRef.current || !route) return
-      const frame = playerRef.current.getCurrentFrame()
-      const seconds = toSeconds(frame)
-      const time = getDateTime(route.start_time)?.plus({ seconds })
-      if (time) setCurrentTime(formatTime(time, true))
-    }, 500)
-    return () => clearInterval(interval)
-  }, [route])
+    set({ playerRef, props, duration, selection: { start: start ?? 0, end: end ?? duration } })
+  }, [playerRef, props, duration, start, end, set])
+
+  // Sync player and document events to store
+  useEffect(() => {
+    const player = playerRef.current
+    if (!player) return
+
+    const onMuteChange = () => set({ muted: player.isMuted() })
+    const onPlayPause = () => set({ playing: player.isPlaying() })
+    const onFrameUpdate = () => set({ frame: player.getCurrentFrame() })
+    const onFullscreenChange = () => set({ fullscreen: !!document.fullscreenElement })
+
+    player.addEventListener('mutechange', onMuteChange)
+    player.addEventListener('play', onPlayPause)
+    player.addEventListener('pause', onPlayPause)
+    player.addEventListener('frameupdate', onFrameUpdate)
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () => {
+      player.removeEventListener('mutechange', onMuteChange)
+      player.removeEventListener('play', onPlayPause)
+      player.removeEventListener('pause', onPlayPause)
+      player.removeEventListener('frameupdate', onFrameUpdate)
+      document.removeEventListener('fullscreenchange', onFullscreenChange)
+    }
+  }, [playerRef, set])
+
+  const startFrame = toFrames(selection.start)
+  const endFrame = toFrames(selection.end)
+  useEffect(() => {
+    const player = playerRef.current
+    if (!player) return
+
+    const onFrame = () => {
+      const frame = player.getCurrentFrame()
+      // Stop at end of selection
+      if (frame >= endFrame && player.isPlaying()) {
+        player.pause()
+        player.seekTo(endFrame - 1)
+      }
+    }
+
+    const onPlay = () => {
+      const frame = player.getCurrentFrame()
+      // If outside selection, jump to start and keep playing
+      if (frame < startFrame || frame >= endFrame) {
+        player.seekTo(startFrame)
+        requestAnimationFrame(() => player.play())
+      }
+    }
+
+    player.addEventListener('frameupdate', onFrame)
+    player.addEventListener('play', onPlay)
+    return () => {
+      player.removeEventListener('frameupdate', onFrame)
+      player.removeEventListener('play', onPlay)
+    }
+  }, [playerRef, startFrame, endFrame])
 
   // Space bar play/pause
   useEffect(() => {
@@ -619,12 +622,40 @@ export const RouteVideoPlayer = ({ playerRef, className, props }: { playerRef: R
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [playerRef])
 
+  return null
+}
+
+const CurrentTime = ({ route }: { route?: Route }) => {
+  const [currentTime, setCurrentTime] = useState<string>()
+  const playerRef = usePlayerStore((x) => x.playerRef)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!playerRef?.current || !route) return
+      const frame = playerRef.current.getCurrentFrame()
+      const seconds = toSeconds(frame)
+      const time = getDateTime(route.start_time)?.plus({ seconds })
+      if (time) setCurrentTime(formatTime(time, true))
+    }, 500)
+    return () => clearInterval(interval)
+  }, [route, playerRef])
+  return <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">{currentTime}</div>
+}
+
+export const RouteVideoPlayer = ({ className, props }: { className?: string; props: PreviewProps }) => {
+  const playerRef = useRef<PlayerRef>(null)
+  const [route] = api.route.get.useQuery({ params: { routeName: props.routeName.replace('/', '|') }, query: {} })
+  const fullscreen = usePlayerStore((x) => x.fullscreen)
+  const { start } = useRouteParams()
+  const duration = getRouteDurationMs(route)! / 1000
+  const [playbackRate] = useStorage('playbackRate')
+
   return (
     <div
       id="fullscreen"
       className={clsx('relative rounded-xl overflow-hidden bg-black', fullscreen && 'flex flex-col h-full', className)}
       style={fullscreen ? undefined : { aspectRatio: WIDTH / HEIGHT }}
     >
+      <PlayerState props={props} playerRef={playerRef} route={route} />
       <div className={clsx('relative', fullscreen ? 'flex-1 min-h-0' : 'w-full h-full')}>
         <Player
           ref={playerRef}
@@ -650,13 +681,10 @@ export const RouteVideoPlayer = ({ playerRef, className, props }: { playerRef: R
             else document.querySelector('#fullscreen')?.requestFullscreen()
           }}
         />
-
-        {currentTime && (
-          <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm font-mono pointer-events-none">{currentTime}</div>
-        )}
+        <CurrentTime route={route} />
       </div>
 
-      {fullscreen && <VideoControls playerRef={playerRef} className="rounded-none border-0 bg-black shrink-0 z-10" props={props} inFullscreen />}
+      {fullscreen && <VideoControls className="rounded-none border-0 bg-black shrink-0 z-10" inFullscreen />}
     </div>
   )
 }

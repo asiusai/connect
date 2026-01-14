@@ -1,5 +1,5 @@
 import { FileType, Route, SegmentFiles } from '../types'
-import { RefObject, useState } from 'react'
+import { useState } from 'react'
 import { concatBins, getQCameraUrl, FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../utils/helpers'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
@@ -9,9 +9,9 @@ import clsx from 'clsx'
 import { useRouteParams, useUploadProgress } from '../utils/hooks'
 import { Icon } from './Icon'
 import { ButtonBase } from './ButtonBase'
-import { PlayerRef } from '@remotion/player'
 import { FPS } from '../templates/shared'
 import { IconButton } from './IconButton'
+import { usePlayerStore } from './VideoPlayer'
 
 type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 
@@ -313,13 +313,14 @@ const SegmentGrid = ({ files, selectedSegment, onSelect }: { files: SegmentFiles
   )
 }
 
-export const RouteFiles = ({ route, className, playerRef }: { playerRef: RefObject<PlayerRef | null>; route: Route; className?: string }) => {
+export const RouteFiles = ({ route, className }: { route: Route; className?: string }) => {
   const { dongleId } = useRouteParams()
+  const playerRef = usePlayerStore((x) => x.playerRef)
   const [files, { refetch, refetching }] = useFiles(route.fullname, route)
   const [segment, _setSegment] = useState<number>(-1) // ROUTE= -1
   const setSegment = (value: number) => {
     _setSegment(value)
-    if (value !== -1) playerRef.current?.seekTo(value * 60 * FPS)
+    if (value !== -1) playerRef?.current?.seekTo(value * 60 * FPS)
   }
 
   // Extract routeId from route.fullname (format: "dongleId|routeId")

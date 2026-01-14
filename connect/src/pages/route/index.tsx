@@ -3,8 +3,7 @@ import { RouteVideoPlayer, VideoControls } from '../../components/VideoPlayer'
 import { useFiles } from '../../api/queries'
 import { api } from '../../api'
 import { isSignedIn } from '../../utils/helpers'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { PlayerRef } from '@remotion/player'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouteParams } from '../../utils/hooks'
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
@@ -51,7 +50,6 @@ export const usePreviewProps = () => {
 }
 
 export const Component = () => {
-  const playerRef = useRef<PlayerRef>(null)
   const { routeName, dongleId, date } = useRouteParams()
 
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
@@ -82,12 +80,12 @@ export const Component = () => {
       </TopAppBar>
 
       <div className="grid md:grid-cols-3 gap-3 md:gap-4 p-4 max-w-screen-xl mx-auto">
-        <RouteVideoPlayer playerRef={playerRef} className="md:col-span-2 md:order-1" props={previewProps} />
-        <VideoControls playerRef={playerRef} className="md:col-span-2 md:order-3" props={previewProps} />
+        <RouteVideoPlayer className="md:col-span-2 md:order-1" props={previewProps} />
+        <VideoControls className="md:col-span-2 md:order-3" />
         <Stats route={route} className="md:order-6" />
         <Actions route={route} className="md:order-4" />
-        <RouteFiles playerRef={playerRef} route={route} className="md:col-span-2 md:row-span-3 md:order-5" />
-        <DynamicMap route={route} className="md:order-2" playerRef={playerRef} />
+        <RouteFiles route={route} className="md:col-span-2 md:row-span-3 md:order-5" />
+        <DynamicMap route={route} className="md:order-2" />
         <Info route={route} className="md:order-7" />
       </div>
     </div>

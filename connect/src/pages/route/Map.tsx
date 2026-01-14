@@ -6,9 +6,9 @@ import { MapContainer, TileLayer, Polyline, CircleMarker, useMap } from 'react-l
 import { getTileUrl } from '../../utils/map'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import L, { LatLngBounds } from 'leaflet'
-import { PlayerRef } from '@remotion/player'
 import { toSeconds } from '../../templates/shared'
 import { DateTime } from 'luxon'
+import { usePlayerStore } from '../../components/VideoPlayer'
 
 const FitBounds = ({ coords }: { coords: GPSPathPoint[] }) => {
   const map = useMap()
@@ -20,16 +20,16 @@ const FitBounds = ({ coords }: { coords: GPSPathPoint[] }) => {
   return null
 }
 
-const CurrentPositionMarker = ({ playerRef, route, coords }: { playerRef: React.RefObject<PlayerRef | null>; route: Route; coords: GPSPathPoint[] }) => {
+const CurrentPositionMarker = ({ route, coords }: { route: Route; coords: GPSPathPoint[] }) => {
   const markerRef = useRef<L.CircleMarker>(null)
   const startTime = useMemo(() => (route.start_time ? DateTime.fromISO(route.start_time).toMillis() : 0), [route])
-
+  const playerRef = usePlayerStore((x) => x.playerRef)
   const [isPlayerReady, setIsPlayerReady] = useState(false)
 
   useEffect(() => {
-    if (!playerRef.current) {
+    if (!playerRef?.current) {
       const interval = setInterval(() => {
-        if (playerRef.current) {
+        if (playerRef?.current) {
           clearInterval(interval)
           setIsPlayerReady(true)
         }
@@ -41,7 +41,7 @@ const CurrentPositionMarker = ({ playerRef, route, coords }: { playerRef: React.
   }, [])
 
   useEffect(() => {
-    const player = playerRef.current
+    const player = playerRef?.current
     if (!player || !startTime || !coords.length) return
 
     const updatePosition = () => {
@@ -90,7 +90,7 @@ const CurrentPositionMarker = ({ playerRef, route, coords }: { playerRef: React.
   )
 }
 
-export const DynamicMap = ({ route, className, playerRef }: { className?: string; route: Route; playerRef: React.RefObject<PlayerRef | null> }) => {
+export const DynamicMap = ({ route, className }: { className?: string; route: Route }) => {
   const coords = useAsyncMemo(async () => await getCoords(route), [route])
 
   return (
@@ -100,7 +100,7 @@ export const DynamicMap = ({ route, className, playerRef }: { className?: string
         <MapContainer center={[coords[0].lat, coords[0].lng]} zoom={13} zoomControl={false} attributionControl={false} className="size-full z-0">
           <TileLayer url={getTileUrl()} />
           <Polyline positions={coords.map((p) => [p.lat, p.lng])} pathOptions={{ color: '#3b82f6', weight: 4, opacity: 0.7 }} />
-          <CurrentPositionMarker playerRef={playerRef} route={route} coords={coords} />
+          <CurrentPositionMarker route={route} coords={coords} />
           <FitBounds coords={coords} />
         </MapContainer>
       )}

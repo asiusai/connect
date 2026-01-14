@@ -61,16 +61,6 @@ export const useScroll = () => {
   return scroll
 }
 
-export const useFullscreen = () => {
-  const [fullscreen, setFullscreen] = useState(!!document.fullscreenElement)
-  useEffect(() => {
-    const onFullscreenChange = () => setFullscreen(!!document.fullscreenElement)
-    document.addEventListener('fullscreenchange', onFullscreenChange)
-    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
-  }, [])
-  return fullscreen
-}
-
 export type UploadProgress = z.infer<typeof UploadQueueItem>
 
 export const useUploadProgress = (dongleId: string, routeId: string, onComplete?: () => void, enabled = true) => {
