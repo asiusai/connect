@@ -530,8 +530,15 @@ const admin = c.router({
   users: {
     method: 'GET',
     path: '/admin/users',
+    query: z.object({
+      limit: z.coerce.number().optional(),
+      offset: z.coerce.number().optional(),
+    }),
     responses: {
-      200: AdminUser.array(),
+      200: z.object({
+        users: AdminUser.array(),
+        total: z.number(),
+      }),
     },
   },
   devices: {
@@ -539,9 +546,14 @@ const admin = c.router({
     path: '/admin/devices',
     query: z.object({
       user_id: z.string().optional(),
+      limit: z.coerce.number().optional(),
+      offset: z.coerce.number().optional(),
     }),
     responses: {
-      200: AdminDevice.array(),
+      200: z.object({
+        devices: AdminDevice.array(),
+        total: z.number(),
+      }),
     },
   },
   files: {

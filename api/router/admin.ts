@@ -173,8 +173,18 @@ export const admin = tsr.router(contract.admin, {
       },
     }
   },
-  users: superuserMiddleware(async () => {
-    const users = await db.select().from(usersTable).all()
+  users: superuserMiddleware(async ({ query }) => {
+    const limit = query.limit ?? 100
+    const offset = query.offset ?? 0
+
+    const [users, totalResult] = await Promise.all([
+      db.select().from(usersTable).limit(limit).offset(offset).all(),
+      db
+        .select({ count: count() })
+        .from(usersTable)
+        .then((r) => r[0].count),
+    ])
+
     const deviceCounts = await db
       .select({ user_id: deviceUsersTable.user_id, count: count() })
       .from(deviceUsersTable)
@@ -197,20 +207,28 @@ export const admin = tsr.router(contract.admin, {
 
     return {
       status: 200,
-      body: users.map((u) => ({
-        id: u.id,
-        email: u.email,
-        regdate: u.regdate,
-        superuser: u.superuser,
-        user_id: u.user_id,
-        username: u.username,
-        deviceCount: deviceCountMap[u.id] ?? 0,
-        totalSize: fileSizeMap[u.id] ?? 0,
-      })),
+      body: {
+        users: users.map((u) => ({
+          id: u.id,
+          email: u.email,
+          regdate: u.regdate,
+          superuser: u.superuser,
+          user_id: u.user_id,
+          username: u.username,
+          deviceCount: deviceCountMap[u.id] ?? 0,
+          totalSize: fileSizeMap[u.id] ?? 0,
+        })),
+        total: totalResult,
+      },
     }
   }),
   devices: superuserMiddleware(async ({ query }) => {
+    const limit = query.limit ?? 100
+    const offset = query.offset ?? 0
+
     let devices: (typeof devicesTable.$inferSelect)[]
+    let totalCount: number
+
     if (query.user_id) {
       const userDevices = await db
         .select({ dongle_id: deviceUsersTable.dongle_id })
@@ -218,19 +236,33 @@ export const admin = tsr.router(contract.admin, {
         .where(and(eq(deviceUsersTable.user_id, query.user_id), eq(deviceUsersTable.permission, 'owner')))
         .all()
       const dongleIds = userDevices.map((x) => x.dongle_id)
-      if (dongleIds.length === 0) return { status: 200, body: [] }
-      devices = await db
-        .select()
-        .from(devicesTable)
-        .where(
-          sql`${devicesTable.dongle_id} IN (${sql.join(
-            dongleIds.map((id) => sql`${id}`),
-            sql`, `,
-          )})`,
-        )
-        .all()
+      if (dongleIds.length === 0) return { status: 200, body: { devices: [], total: 0 } }
+
+      const whereClause = sql`${devicesTable.dongle_id} IN (${sql.join(
+        dongleIds.map((id) => sql`${id}`),
+        sql`, `,
+      )})`
+
+      const [devicesResult, countResult] = await Promise.all([
+        db.select().from(devicesTable).where(whereClause).limit(limit).offset(offset).all(),
+        db
+          .select({ count: count() })
+          .from(devicesTable)
+          .where(whereClause)
+          .then((r) => r[0].count),
+      ])
+      devices = devicesResult
+      totalCount = countResult
     } else {
-      devices = await db.select().from(devicesTable).all()
+      const [devicesResult, countResult] = await Promise.all([
+        db.select().from(devicesTable).limit(limit).offset(offset).all(),
+        db
+          .select({ count: count() })
+          .from(devicesTable)
+          .then((r) => r[0].count),
+      ])
+      devices = devicesResult
+      totalCount = countResult
     }
 
     const owners = await db
@@ -254,16 +286,19 @@ export const admin = tsr.router(contract.admin, {
 
     return {
       status: 200,
-      body: devices.map((d) => ({
-        dongle_id: d.dongle_id,
-        alias: d.alias,
-        device_type: d.device_type,
-        serial: d.serial,
-        create_time: d.create_time,
-        ownerEmail: ownerMap[d.dongle_id] ?? null,
-        fileCount: fileCountMap[d.dongle_id]?.count ?? 0,
-        totalSize: fileCountMap[d.dongle_id]?.totalSize ?? 0,
-      })),
+      body: {
+        devices: devices.map((d) => ({
+          dongle_id: d.dongle_id,
+          alias: d.alias,
+          device_type: d.device_type,
+          serial: d.serial,
+          create_time: d.create_time,
+          ownerEmail: ownerMap[d.dongle_id] ?? null,
+          fileCount: fileCountMap[d.dongle_id]?.count ?? 0,
+          totalSize: fileCountMap[d.dongle_id]?.totalSize ?? 0,
+        })),
+        total: totalCount,
+      },
     }
   }),
   files: superuserMiddleware(async ({ query }) => {
