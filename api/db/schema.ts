@@ -225,9 +225,8 @@ export const filesRelations = relations(filesTable, ({ one }) => ({
   }),
 }))
 
-// Uptime tracking - records server start/stop events
+// Uptime tracking - records periodic heartbeats
 export const uptimeTable = sqliteTable('uptime', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  event: text('event').$type<'start' | 'stop'>().notNull(),
   timestamp: integer('timestamp').notNull(), // unix ms
 })

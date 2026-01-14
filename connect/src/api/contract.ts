@@ -508,7 +508,7 @@ const admin = c.router({
       200: z.object({
         status: z.enum(['ok', 'degraded']),
         uptime: z.number(),
-        uptimeHistory: z.array(z.object({ event: z.enum(['start', 'stop']), timestamp: z.number() })),
+        uptimeHistory: z.array(z.object({ timestamp: z.number() })),
         services: z.object({
           mkv: ServiceStatus,
           database: ServiceStatus,

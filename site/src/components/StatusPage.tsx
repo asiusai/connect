@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 
 type ServiceStatus = { status: 'ok' | 'error' | 'pending'; name?: string; latency?: number; error?: string }
-type UptimeEvent = { event: 'start' | 'stop'; timestamp: number }
+type Heartbeat = { timestamp: number }
 
 type StatusData = {
   status: 'ok' | 'degraded'
   uptime: number
-  uptimeHistory?: UptimeEvent[]
+  uptimeHistory?: Heartbeat[]
   services: { mkv: ServiceStatus; database: ServiceStatus }
   stats: { users: number; devices: number; routes: number; segments: number; queue: Record<string, number>; totalSize: number }
   frontends: ServiceStatus[]
@@ -80,17 +80,19 @@ const formatDate = (ms: number) => {
 
 type DowntimePeriod = { start: number; end: number; duration: number }
 
-const calculateDowntimes = (events: UptimeEvent[]): DowntimePeriod[] => {
-  if (events.length < 2) return []
-  const sorted = [...events].sort((a, b) => a.timestamp - b.timestamp)
+const DOWNTIME_THRESHOLD = 2 * 60 * 1000 // 2 minutes - gap larger than this = downtime
+
+const calculateDowntimes = (heartbeats: Heartbeat[]): DowntimePeriod[] => {
+  if (heartbeats.length < 2) return []
+  const sorted = [...heartbeats].sort((a, b) => a.timestamp - b.timestamp)
   const downtimes: DowntimePeriod[] = []
   for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i].event === 'start' && sorted[i - 1].event === 'start') {
-      // Two consecutive starts = server crashed between them
+    const gap = sorted[i].timestamp - sorted[i - 1].timestamp
+    if (gap > DOWNTIME_THRESHOLD) {
       downtimes.push({
         start: sorted[i - 1].timestamp,
         end: sorted[i].timestamp,
-        duration: sorted[i].timestamp - sorted[i - 1].timestamp,
+        duration: gap,
       })
     }
   }

@@ -21,9 +21,18 @@ import { superuserMiddleware } from '../middleware'
 import { mkv } from '../mkv'
 
 const startTime = Date.now()
-try {
-  db.insert(uptimeTable).values({ event: 'start', timestamp: startTime }).run()
-} catch {}
+const HEARTBEAT_INTERVAL = 60 * 1000 // 1 minute
+
+const recordHeartbeat = () => {
+  try {
+    db.insert(uptimeTable).values({ timestamp: Date.now() }).run()
+    // Keep only last 1000 heartbeats
+    db.run(sql`DELETE FROM uptime WHERE id NOT IN (SELECT id FROM uptime ORDER BY timestamp DESC LIMIT 1000)`)
+  } catch {}
+}
+
+recordHeartbeat()
+setInterval(recordHeartbeat, HEARTBEAT_INTERVAL)
 
 type ServiceStatus = { status: 'ok' | 'error'; latency?: number; error?: string }
 
@@ -140,9 +149,9 @@ const getUptimeHistory = () => {
       .select()
       .from(uptimeTable)
       .orderBy(desc(uptimeTable.timestamp))
-      .limit(100)
+      .limit(200)
       .all()
-      .map((e) => ({ event: e.event, timestamp: e.timestamp }))
+      .map((e) => ({ timestamp: e.timestamp }))
   } catch {
     return []
   }
