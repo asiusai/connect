@@ -61,7 +61,7 @@ export const route = tsr.router(contract.route, {
   files: routeMiddleware(async (_, { route, origin }) => {
     const routeId = route.fullname.split('|')[1]
     const prefix = `${route.dongle_id}/${routeId}`
-    const existingFiles = await mkv.list(prefix)
+    const existingFiles = await mkv.listKeys(prefix)
 
     const files: Files = {
       cameras: [],

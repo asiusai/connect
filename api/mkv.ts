@@ -3,22 +3,23 @@ import { env } from './env'
 const mkvUrl = (key: string) => `${env.MKV_URL}/${key}`
 
 export const mkv = {
-  list: async (key: string, start?: string, limit?: string): Promise<string[]> => {
+  list: async (key: string, start?: string | null, limit?: string | null) => {
     let qs = 'list'
     if (start) qs += `&start=${start}`
     if (limit) qs += `&limit=${limit}`
-    const res = await fetch(`${mkvUrl(key)}?${qs}`)
-    if (!res.ok) return []
-    const data = await res.json()
-    return data.keys ?? []
+    return await fetch(`${mkvUrl(key)}?${qs}`)
+  },
+  listKeys: async (key: string, start?: string | null, limit?: string | null): Promise<string[]> => {
+    const res = await mkv.list(key, start, limit)
+    return res.ok ? res.json().then((x) => x.keys) : []
   },
 
   get: async (key: string, headers?: HeadersInit): Promise<Response> => {
     return fetch(mkvUrl(key), { headers, redirect: 'follow' })
   },
 
-  head: async (key: string): Promise<Response> => {
-    return fetch(mkvUrl(key), { method: 'HEAD' })
+  head: async (key: string, headers?: HeadersInit): Promise<Response> => {
+    return fetch(mkvUrl(key), { method: 'HEAD', headers })
   },
 
   put: async (key: string, body: ReadableStream<Uint8Array> | null, headers?: HeadersInit, overwrite = false): Promise<Response> => {
@@ -28,6 +29,7 @@ export const mkv = {
       method: 'PUT',
       body,
       headers,
+      redirect: 'follow',
       // @ts-expect-error bun supports duplex
       duplex: 'half',
     })

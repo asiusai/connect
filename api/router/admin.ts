@@ -433,7 +433,7 @@ export const admin = tsr.router(contract.admin, {
     await Promise.all(files.map((f) => mkv.delete(f.key).catch(() => {})))
 
     // Also delete the device folder in MKV (for any other files like boot logs)
-    const mkvKeys = await mkv.list(params.dongleId)
+    const mkvKeys = await mkv.listKeys(params.dongleId)
     await Promise.all(mkvKeys.map((k) => mkv.delete(k).catch(() => {})))
 
     // Delete all database records

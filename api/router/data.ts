@@ -6,8 +6,7 @@ import { deviceUsersTable } from '../db/schema'
 import { env } from '../env'
 import { DataSignature } from '../helpers'
 import { queueFile } from '../processing/queue'
-
-export const mkvUrl = (key: string) => `${env.MKV_URL}/${key}`
+import { mkv } from '../mkv'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -65,8 +64,8 @@ export const dataHandler = async (req: Request, identity?: Identity): Promise<Re
   }
 
   // LIST: ?list query param
-  if (url.search.includes('list')) {
-    const res = await fetch(`${mkvUrl(key)}${url.search}`)
+  if (url.searchParams.get('list')) {
+    const res = await mkv.list(key, url.searchParams.get('start'), url.searchParams.get('limit'))
     return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
   }
 
@@ -75,21 +74,13 @@ export const dataHandler = async (req: Request, identity?: Identity): Promise<Re
     const headers: HeadersInit = {}
     const range = req.headers.get('Range')
     if (range) headers.Range = range
-
-    const res = await fetch(mkvUrl(key), { method: req.method, headers, redirect: 'follow' })
+    const res = req.method === 'GET' ? await mkv.get(key, headers) : await mkv.head(key, headers)
     return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
   }
 
   // PUT: upload file
   if (req.method === 'PUT') {
-    const res = await fetch(mkvUrl(key), {
-      method: 'PUT',
-      body: req.body,
-      headers: { 'Content-Type': req.headers.get('Content-Type') || 'application/octet-stream' },
-      redirect: 'follow',
-      // @ts-expect-error bun supports duplex
-      duplex: 'half',
-    })
+    const res = await mkv.put(key, req.body, { 'Content-Type': req.headers.get('Content-Type') || 'application/octet-stream' }, true)
 
     if (res.status === 201) await queueFile(key)
 
@@ -98,7 +89,7 @@ export const dataHandler = async (req: Request, identity?: Identity): Promise<Re
 
   // DELETE: remove file
   if (req.method === 'DELETE') {
-    const res = await fetch(mkvUrl(key), { method: 'DELETE' })
+    const res = await mkv.delete(key)
     return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
   }
 

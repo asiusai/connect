@@ -2,12 +2,12 @@ import { eq } from 'drizzle-orm'
 import { db } from '../db/client'
 import { filesTable } from '../db/schema'
 import { env } from '../env'
-import { mkvUrl } from '../router/data'
+import { mkv } from '../mkv'
 
 const workers: Worker[] = []
 
 export const queueFile = async (key: string): Promise<void> => {
-  const res = await fetch(mkvUrl(key), { method: 'HEAD' })
+  const res = await mkv.head(key)
   const size = parseInt(res.headers.get('Content-Length') || '0', 10)
 
   const parts = key.split('/')

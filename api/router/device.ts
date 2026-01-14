@@ -12,7 +12,7 @@ import { mkv } from '../mkv'
 import { createDataSignature } from '../helpers'
 
 const getLogUrls = async (dongleId: string, type: 'boot' | 'crash', origin: string) => {
-  const files = await mkv.list(`${dongleId}/${type}`)
+  const files = await mkv.listKeys(`${dongleId}/${type}`)
   return files.map((f) => {
     const key = `${dongleId}/${type}/${f.split('/').pop()}`
     const sig = createDataSignature(key, 'read_access', 24 * 60 * 60)
