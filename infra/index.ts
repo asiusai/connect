@@ -116,7 +116,7 @@ const STORAGE_BOXES = [
   { i: 1, user: 'u526268' },
   { i: 2, user: 'u526270' },
 ]
-const apiServer = new Server('api', {
+export const api = new Server('api', {
   allowedPorts: ['22', '80', '443'],
   sshKeyId: sshKey.id,
   serverType: 'cpx32',
@@ -273,7 +273,7 @@ chmod 600 /etc/storagebox.env
 })
 
 // ------------------------- SSH SERVER -------------------------
-const sshServer = new Server('ssh', {
+export const ssh = new Server('ssh', {
   allowedPorts: ['22', '2222', '80', '443'],
   serverType: 'cpx22',
   sshPrivateKey,
@@ -358,7 +358,7 @@ systemctl disable caddy || true
 // ------------------------- ARM BUILD SERVER -------------------------
 const ghRunnerToken = config.requireSecret('ghRunnerToken')
 
-const buildServer = new Server('build', {
+export const build = new Server('build', {
   allowedPorts: ['22'],
   serverType: 'cax21', // ARM64: 4 cores, 8GB RAM, 80GB disk
   sshPrivateKey,
@@ -431,8 +431,3 @@ chown -R runner:runner /data
 `,
   deployScript: 'echo "Build server ready"',
 })
-
-// ------------------------- EXPORTS -------------------------
-export const apiIp = apiServer.ipAddress
-export const sshIp = sshServer.ipAddress
-export const buildIp = buildServer.ipAddress

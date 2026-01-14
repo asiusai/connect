@@ -46,7 +46,8 @@ const generateService = (service: ServiceArgs): pulumi.Output<string> => {
 }
 
 export class Server extends pulumi.ComponentResource {
-  public readonly ipAddress: pulumi.Output<string>
+  public readonly ipv4: pulumi.Output<string>
+  public readonly ipv6: pulumi.Output<string>
   public readonly domain?: string
 
   constructor(name: string, args: ServerArgs, opts?: pulumi.ComponentResourceOptions) {
@@ -72,8 +73,8 @@ export class Server extends pulumi.ComponentResource {
       { parent: this },
     )
 
-    this.ipAddress = server.ipv4Address
-    this.domain = args.domain?.name
+    this.ipv4 = server.ipv4Address
+    this.ipv6 = server.ipv6Address
 
     if (args.domain) {
       new cloudflare.DnsRecord(

@@ -46,8 +46,7 @@ trigger: always_on
 
 ## Infrastructure
 - Server is deployed via Pulumi in `infra/index.ts`, run `dotenv pulumi up --yes` to deploy
-- SSH into API server: `./infra/api-ssh.sh`
-- SSH into SSH server: `./infra/ssh-ssh.sh`
+- SSH into servers: `./infra/ssh.sh <server>` (e.g. `./infra/ssh.sh api`, `./infra/ssh.sh ssh`, `./infra/ssh.sh build`)
 
 ## Testing
 - Unit tests: `bun run test`
