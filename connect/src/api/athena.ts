@@ -3,6 +3,7 @@ import { api } from '.'
 import { env } from '../utils/env'
 import { AthenaError, Service } from '../types'
 import { toast } from 'sonner'
+import { getIsDeviceOwner } from '../utils/hooks'
 
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
@@ -180,6 +181,7 @@ export const callAthena = async <T extends AthenaRequest>({
   expiry?: number
 }): Promise<AthenaResponse<T> | undefined> => {
   if (!env.ATHENA_URL) return
+  if (!getIsDeviceOwner()) return
   const req = REQUESTS[type]
 
   const parse = req.params.safeParse(params)

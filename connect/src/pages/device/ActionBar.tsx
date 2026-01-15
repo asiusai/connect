@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { IconName } from '../../components/Icon'
 import { z } from 'zod'
 import { useDeviceParams } from './useDeviceParams'
-import { useRouteParams } from '../../utils/hooks'
+import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { IconButton } from '../../components/IconButton'
 import { DeviceParamType } from '../../utils/params'
 import { useStorage } from '../../utils/storage'
@@ -111,9 +111,9 @@ export const AddToActionBar = ({ action }: { action: Action }) => {
 export const ActionBar = ({ className }: { className?: string }) => {
   const [actions, setActions] = useStorage('actions')
   const [editing, setEditing] = useState(false)
+  const isOwner = useIsDeviceOwner()
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-
   const startHold = () => {
     holdTimer.current = setTimeout(() => setEditing(true), 500)
   }
@@ -139,7 +139,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
       document.removeEventListener('touchstart', handleClickOutside)
     }
   }, [editing])
-
+  if (!isOwner) return null
   return (
     <div
       ref={containerRef}

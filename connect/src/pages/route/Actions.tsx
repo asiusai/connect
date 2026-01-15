@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Route } from '../../types'
 import { Icon } from '../../components/Icon'
 import clsx from 'clsx'
-import { isSignedIn } from '../../utils/helpers'
 import { api } from '../../api'
+import { useIsDeviceOwner } from '../../utils/hooks'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
   const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })
@@ -59,8 +59,7 @@ const ActionButton = ({
 )
 
 export const Actions = ({ route, className }: { route: Route; className?: string }) => {
-  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
-  const isOwner = !!profile && route.user_id === profile?.id
+  const isOwner = useIsDeviceOwner()
   const [isPreserved, setIsPreserved] = useIsPreserved(route, isOwner)
   const [isPublic, setIsPublic] = useIsPublic(route)
   const [copied, setCopied] = useState(false)

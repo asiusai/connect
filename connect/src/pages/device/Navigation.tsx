@@ -1,11 +1,12 @@
 import clsx from 'clsx'
 import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'
-import { useRouteParams } from '../../utils/hooks'
+import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { useStorage } from '../../utils/storage'
 
 export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
+  const isOwner = useIsDeviceOwner()
   const [usingCorrectFork] = useStorage('usingCorrectFork')
 
   const items = [
@@ -20,6 +21,7 @@ export const Navigation = ({ className }: { className?: string }) => {
       icon: 'videocam',
       href: `/${dongleId}/sentry`,
       color: 'text-red-400',
+      disabled: !isOwner,
     },
     {
       title: 'Params',
@@ -27,18 +29,21 @@ export const Navigation = ({ className }: { className?: string }) => {
       href: `/${dongleId}/params`,
       color: 'text-purple-400',
       hide: !usingCorrectFork,
+      disabled: !isOwner,
     },
     {
       title: 'Analyze',
       icon: 'bar_chart',
       href: `/${dongleId}/analyze`,
       color: 'text-green-500',
+      disabled: !isOwner,
     },
     {
       title: 'SSH',
       icon: 'terminal',
       href: `/${dongleId}/ssh`,
       color: 'text-cyan-400',
+      disabled: !isOwner,
     },
     {
       title: 'Settings',
@@ -51,14 +56,15 @@ export const Navigation = ({ className }: { className?: string }) => {
     <div className={clsx('grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-0', className)}>
       {items
         .filter((x) => !x.hide)
-        .map(({ title, href, icon, color }, i, arr) => (
+        .map(({ title, href, icon, color, disabled }, i, arr) => (
           <ButtonBase
             key={title}
-            href={href}
-            disabled={!href}
+            href={disabled ? undefined : href}
+            disabled={disabled || !href}
+            title={'You must be the owner to access this'}
             className={clsx(
               'flex md:flex-row bg-background-alt md:bg-transparent items-center p-4 gap-4 md:gap-3 md:px-3 md:py-2  rounded-lg transition-colors font-medium',
-              href && 'hover:bg-white/10 text-white',
+              disabled ? 'opacity-50 cursor-not-allowed' : href && 'hover:bg-white/10 text-white',
               title === 'Home' && 'hidden md:flex',
               i === arr.length - 1 && i % 2 !== 0 && 'justify-center col-span-2 md:col-span-1 md:justify-start',
             )}

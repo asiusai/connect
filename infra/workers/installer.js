@@ -11,7 +11,7 @@ export default {
 
     // Format: /userName/branch
     const userName = parts[0] || 'asiusai'
-    const branch = parts[1] || 'master-ci'
+    const branch = parts[1] || 'master'
 
     // For openpilot, forward directly to comma
     if (repoName === 'openpilot') {

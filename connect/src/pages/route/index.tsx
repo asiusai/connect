@@ -2,7 +2,6 @@ import { RouteFiles } from '../../components/RouteFiles'
 import { RouteVideoPlayer, VideoControls } from '../../components/VideoPlayer'
 import { useFiles } from '../../api/queries'
 import { api } from '../../api'
-import { isSignedIn } from '../../utils/helpers'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouteParams } from '../../utils/hooks'
 import { TopAppBar } from '../../components/TopAppBar'
@@ -51,9 +50,7 @@ export const usePreviewProps = () => {
 
 export const Component = () => {
   const { routeName, dongleId, date } = useRouteParams()
-
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
-  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const [location, setLocation] = useState<{ start?: string; end?: string }>()
   const previewProps = usePreviewProps()
 
@@ -61,10 +58,9 @@ export const Component = () => {
     if (route) getStartEndPlaceName(route).then(setLocation)
   }, [route])
 
-  const isOwner = route && profile && route.user_id === profile.id
   useEffect(() => {
-    if (isOwner) callAthena({ type: 'setRouteViewed', dongleId, params: { route: date } })
-  }, [isOwner, date, dongleId])
+    callAthena({ type: 'setRouteViewed', dongleId, params: { route: date } })
+  }, [date, dongleId])
 
   if (!route) return null
 

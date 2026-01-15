@@ -6,7 +6,7 @@ import { callAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
-import { useRouteParams, useUploadProgress } from '../utils/hooks'
+import { useIsDeviceOwner, useRouteParams, useUploadProgress } from '../utils/hooks'
 import { Icon } from './Icon'
 import { ButtonBase } from './ButtonBase'
 import { FPS } from '../templates/shared'
@@ -18,38 +18,6 @@ type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
-const uploadSegments = async (routeName: string, segments: number[], types: FileType[], files: SegmentFiles) => {
-  const { dongleId, routeId } = parseRouteName(routeName)
-
-  // Generating all the missing ones
-  const paths: string[] = []
-  for (const i of segments) {
-    for (const type of types) {
-      const name = FILE_INFO[type].name
-      if (!files[type][i]) paths.push(`${routeId}--${i}/${name}`)
-    }
-  }
-
-  // Generating presigned urls for every one
-  const presignedUrls = await api.device.uploadFiles.mutate({ params: { dongleId }, body: { expiry_days: 7, paths } })
-  if (presignedUrls.status !== 200) throw new Error()
-
-  if (paths.length === 0) return []
-  return await callAthena({
-    type: 'uploadFilesToUrls',
-    dongleId,
-    params: {
-      files_data: paths.map((fn, i) => ({
-        allow_cellular: false,
-        fn,
-        priority: PRIORITY,
-        ...presignedUrls.body[i],
-      })),
-    },
-    expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
-  })
-}
-
 const FileAction = ({
   icon,
   label,
@@ -58,6 +26,7 @@ const FileAction = ({
   download,
   loading,
   uploadButton,
+  disabled,
 }: {
   icon: string
   label: string
@@ -66,13 +35,14 @@ const FileAction = ({
   download?: string
   loading?: number | boolean
   uploadButton?: boolean
+  disabled?: boolean
 }) => {
   return (
     <ButtonBase
       onClick={onClick}
       href={href}
       download={download}
-      disabled={!!loading}
+      disabled={disabled || !!loading}
       className={clsx(
         'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium disabled:opacity-50',
         uploadButton ? 'bg-white text-black hover:bg-white/90' : 'bg-white/5 hover:bg-white/10 text-white',
@@ -104,7 +74,7 @@ const Upload = ({
   uploadProgress: UploadProgressInfo
 }) => {
   const [isLoading, setIsLoading] = useState(false)
-
+  const isOwner = useIsDeviceOwner()
   const disabled = segment === -1 ? files[type].every(Boolean) : !!files[type][segment]
   if (disabled) return null
 
@@ -116,16 +86,42 @@ const Upload = ({
   // Get the progress of the currently uploading segment
   const uploadingProgress = segments.map((s) => uploadProgress.getProgress(s, fileName)).filter((p): p is number => p !== undefined)
   const avgProgress = uploadingProgress.length > 0 ? uploadingProgress.reduce((a, b) => a + b, 0) / uploadingProgress.length : undefined
-
   return (
     <FileAction
       label={isCurrentlyUploading && avgProgress !== undefined ? `${Math.round(avgProgress * 100)}%` : 'Upload'}
       icon={isCurrentlyUploading ? 'cloud_upload' : 'upload'}
       uploadButton
       loading={isLoading || isCurrentlyUploading}
+      disabled={!isOwner}
       onClick={async () => {
         setIsLoading(true)
-        await uploadSegments(route.fullname, segments, [type], files)
+        const { dongleId, routeId } = parseRouteName(route.fullname)
+
+        // Generating all the missing ones
+        const paths: string[] = []
+        for (const i of segments) {
+          const name = FILE_INFO[type].name
+          if (!files[type][i]) paths.push(`${routeId}--${i}/${name}`)
+        }
+
+        // Generating presigned urls for every one
+        const presignedUrls = await api.device.uploadFiles.mutate({ params: { dongleId }, body: { expiry_days: 7, paths } })
+        if (presignedUrls.status !== 200) throw new Error()
+
+        if (paths.length === 0) return []
+        await callAthena({
+          type: 'uploadFilesToUrls',
+          dongleId,
+          params: {
+            files_data: paths.map((fn, i) => ({
+              allow_cellular: false,
+              fn,
+              priority: PRIORITY,
+              ...presignedUrls.body[i],
+            })),
+          },
+          expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
+        })
         setIsLoading(false)
         // Trigger a refetch of the upload queue
         uploadProgress.refetch()

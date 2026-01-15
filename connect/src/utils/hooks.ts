@@ -2,6 +2,23 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams as useParamsRouter } from 'react-router-dom'
 import { callAthena, UploadQueueItem } from '../api/athena'
 import { z } from 'zod'
+import { api } from '../api'
+import { isSignedIn } from './helpers'
+import { env } from './env'
+
+let isOwner = false
+
+export const getIsDeviceOwner = () => isOwner
+
+export const useIsDeviceOwner = () => {
+  const { dongleId } = useRouteParams()
+  const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: isSignedIn() })
+  const [user] = api.auth.me.useQuery({})
+
+  // Konik for some reason always returns is_owner=false
+  isOwner = env.MODE === 'konik' || !!device?.is_owner || !!user?.superuser
+  return isOwner
+}
 
 type Dimensions = { width: number; height: number }
 const getDimensions = (): Dimensions => (typeof window === 'undefined' ? { width: 0, height: 0 } : { width: window.innerWidth, height: window.innerHeight })

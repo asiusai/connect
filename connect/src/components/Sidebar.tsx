@@ -74,10 +74,7 @@ export const Sidebar = () => {
           {device && <ActionBar />}
 
           {profile?.superuser && (
-            <Link
-              to="/admin"
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background-alt hover:bg-white/10 transition-colors text-white/80 hover:text-white"
-            >
+            <Link to="/admin" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary transition-colors text-primary-x">
               <Icon name="security" className="text-xl" />
               <span className="text-sm font-medium">Admin</span>
             </Link>
@@ -93,7 +90,7 @@ export const Sidebar = () => {
               </div>
               <IconButton
                 href="/logout"
-                className="p-2 -mr-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors text-xl"
+                className="p-2 -mr-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors text-xl aspect-square shrink-0"
                 title="Log out"
                 name="logout"
               />

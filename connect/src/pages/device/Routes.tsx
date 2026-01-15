@@ -226,7 +226,7 @@ const All = () => {
     query: { start: 0, end: endTime, limit: PAGE_SIZE },
     onSuccess: (data) => {
       if (!allRoutes) setAllRoutes(data)
-      else setAllRoutes((prev) => [...prev!, ...data])
+      else setAllRoutes((prev) => [...(prev ?? []), ...data])
       setHasMore(data.length === PAGE_SIZE)
       setIsLoadingMore(false)
     },

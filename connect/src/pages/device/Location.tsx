@@ -7,7 +7,7 @@ import { getTileUrl } from '../../utils/map'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap, Polyline } from 'react-leaflet'
 import { IconButton } from '../../components/IconButton'
-import { useRouteParams } from '../../utils/hooks'
+import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { useNavigate } from 'react-router-dom'
 import { useStorage } from '../../utils/storage'
 import { env } from '../../utils/env'
@@ -163,7 +163,9 @@ export const Location = ({ className, device }: { className?: string; device?: D
   const { isSearchOpen, setIsSearchOpen, query, setQuery } = useSearch()
 
   const searchInputRef = useRef<HTMLInputElement>(null)
-  const [location] = api.device.location.useQuery({ params: { dongleId } })
+  const isOwner = useIsDeviceOwner()
+  let [location] = api.device.location.useQuery({ params: { dongleId }, enabled: isOwner })
+  if (!isOwner) location = { time: 0, dongle_id: dongleId, lat: SAN_DIEGO[0], lng: SAN_DIEGO[1] }
 
   const deviceMarker =
     device && location?.lat && location?.lng
