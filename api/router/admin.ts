@@ -19,6 +19,7 @@ import { env } from '../env'
 import { getLastBackupTime } from '../db/backup'
 import { superuserMiddleware } from '../middleware'
 import { mkv } from '../mkv'
+import { createDataSignature } from '../helpers'
 
 const startTime = Date.now()
 const HEARTBEAT_INTERVAL = 60 * 1000 // 1 minute
@@ -347,6 +348,7 @@ export const admin = tsr.router(contract.admin, {
           processingStatus: f.processingStatus,
           processingError: f.processingError,
           create_time: f.create_time,
+          sig: createDataSignature(f.key, 'read_access', 24 * 60 * 60),
         })),
         total: totalResult,
       },

@@ -478,6 +478,7 @@ const AdminFile = z.object({
   processingStatus: z.enum(['queued', 'processing', 'done', 'error']),
   processingError: z.string().nullable(),
   create_time: z.number(),
+  sig: z.string(),
 })
 
 const AdminRoute = z.object({

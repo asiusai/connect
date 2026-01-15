@@ -412,7 +412,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
     error: 'bg-red-500/20 text-red-400',
   }
 
-  const getFileUrl = (key: string) => `${env.API_URL}/connectdata/${key}`
+  const getFileUrl = (key: string, sig: string) => `${env.API_URL}/connectdata/${key}?sig=${sig}`
 
   const handleDelete = async (key: string) => {
     if (!confirm(`Delete file ${key}? This cannot be undone.`)) return
@@ -589,7 +589,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs">{file.file}</span>
                         <a
-                          href={getFileUrl(file.key)}
+                          href={getFileUrl(file.key, file.sig)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-white/40 hover:text-primary transition-colors"
