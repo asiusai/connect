@@ -1,10 +1,35 @@
 import { describe, expect, test, setDefaultTimeout } from 'bun:test'
-import { readdir } from 'fs/promises'
 import { processQlogStreaming, type RouteEvent, type Coord, type StreamingQlogResult } from './qlogs'
 
-setDefaultTimeout(60000) // 60 seconds for parsing all test data
+setDefaultTimeout(60000)
 
 const TEST_DATA_DIR = import.meta.dir + '/../../example-data'
+
+// The two routes to test - all tests run against these
+const TEST_ROUTES = ['0000002c--d68dde99ca', '0000006b--d72540bad7']
+
+// Type for comma's route.json structure
+type RouteJson = {
+  version: string
+  git_commit: string
+  git_branch: string
+  git_remote: string
+  git_commit_date: string
+  git_dirty: boolean
+  platform: string
+  vin: string
+  start_lat: number
+  start_lng: number
+  end_lat: number
+  end_lng: number
+  distance: number
+  maxqlog: number
+  segment_numbers: number[]
+  segment_start_times: number[]
+  segment_end_times: number[]
+  start_time_utc_millis: number
+  end_time_utc_millis: number
+}
 
 // Helper to capture streamed JSON arrays into memory for testing
 const createCaptureStream = () => {
@@ -45,266 +70,187 @@ const processQlogForTest = async (
   }
 }
 
-// Discover all routes from test data (new folder structure: routeId/segment/files)
-const discoverRoutes = async () => {
-  const routeDirs = await readdir(TEST_DATA_DIR)
-  const routes = new Map<string, number[]>()
-
-  for (const routeDir of routeDirs) {
-    const segments: number[] = []
-    try {
-      const contents = await readdir(`${TEST_DATA_DIR}/${routeDir}`)
-      for (const item of contents) {
-        const segNum = parseInt(item, 10)
-        if (!Number.isNaN(segNum)) segments.push(segNum)
-      }
-    } catch {
-      continue
-    }
-    if (segments.length > 0) {
-      routes.set(
-        routeDir,
-        segments.sort((a, b) => a - b),
-      )
-    }
-  }
-
-  return routes
+// Type for our segment result - what we derive from qlog processing
+type SegmentResult = {
+  result: StreamingQlogResult
+  events: RouteEvent[]
+  coords: Coord[]
 }
 
-// Routes with full segments downloaded (for route metadata testing)
-const ROUTES_WITH_ALL_SEGMENTS = ['9748a98e983e0b39_0000002c--d68dde99ca', '9748a98e983e0b39_00000030--c299dc644f', '9748a98e983e0b39_00000032--f036598e01']
+describe('qlogs - strict 1:1 comparison with comma API', () => {
+  for (const routeName of TEST_ROUTES) {
+    describe(`route ${routeName}`, () => {
+      let routeJson: RouteJson
+      let segmentResults: Map<number, SegmentResult>
 
-describe('qlogs', () => {
-  test('discovers test data', async () => {
-    const routes = await discoverRoutes()
-    expect(routes.size).toBeGreaterThan(0)
-  })
-
-  describe('metadata parsing', () => {
-    for (const routeName of ROUTES_WITH_ALL_SEGMENTS) {
-      test(`${routeName} metadata matches comma API`, async () => {
-        const expectedFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/route.json`)
-        if (!(await expectedFile.exists())) return
-
-        const expected = (await expectedFile.json()) as {
-          version: string
-          git_commit: string
-          git_branch: string
-          git_remote: string
-          git_commit_date: string
-          git_dirty: boolean
-          platform: string
-          vin: string
-          make: string
-          start_lat: number
-          start_lng: number
-          end_lat: number
-          end_lng: number
-          distance: number
-        }
-
-        const qlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/0/qlog.zst`)
-        const parsed = await processQlogForTest(qlogFile.stream(), 0)
-        expect(parsed).not.toBeNull()
-
-        const metadata = parsed!.result.metadata
-        expect(metadata?.version).toBe(expected.version)
-        expect(metadata?.gitCommit).toBe(expected.git_commit)
-        expect(metadata?.gitBranch).toBe(expected.git_branch)
-        expect(metadata?.gitRemote?.replace('https://', '').replace('.git', '')).toBe(expected.git_remote)
-        expect(metadata?.gitCommitDate).toBe(expected.git_commit_date)
-        expect(metadata?.gitDirty).toBe(expected.git_dirty)
-        expect(metadata?.carFingerprint).toBe(expected.platform)
-        expect(metadata?.vin).toBe(expected.vin)
-
-        // GPS coordinates from first segment
-        expect(parsed!.result.firstGps?.Latitude).toBeCloseTo(expected.start_lat, 2)
-        expect(parsed!.result.firstGps?.Longitude).toBeCloseTo(expected.start_lng, 2)
-      })
-    }
-  })
-
-  describe('route aggregation', () => {
-    for (const routeName of ROUTES_WITH_ALL_SEGMENTS) {
-      test(`${routeName} aggregated GPS matches comma API`, async () => {
-        const expectedFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/route.json`)
-        if (!(await expectedFile.exists())) return
-
-        const expected = (await expectedFile.json()) as {
-          start_lat: number
-          start_lng: number
-          end_lat: number
-          end_lng: number
-          maxqlog: number
-        }
-
-        // Parse first segment for start GPS
-        const firstQlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/0/qlog.zst`)
-        const firstParsed = await processQlogForTest(firstQlogFile.stream(), 0)
-        expect(firstParsed).not.toBeNull()
-
-        // Parse last segment for end GPS
-        const lastQlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/${expected.maxqlog}/qlog.zst`)
-        const lastParsed = await processQlogForTest(lastQlogFile.stream(), expected.maxqlog)
-        expect(lastParsed).not.toBeNull()
-
-        // Start GPS from first segment
-        expect(firstParsed!.result.firstGps?.Latitude).toBeCloseTo(expected.start_lat, 2)
-        expect(firstParsed!.result.firstGps?.Longitude).toBeCloseTo(expected.start_lng, 2)
-
-        // End GPS from last segment
-        expect(lastParsed!.result.lastGps?.Latitude).toBeCloseTo(expected.end_lat, 2)
-        expect(lastParsed!.result.lastGps?.Longitude).toBeCloseTo(expected.end_lng, 2)
-      })
-    }
-  })
-
-  describe('events parsing', () => {
-    test('segment 0 events match comma API exactly', async () => {
-      const routes = await discoverRoutes()
-
-      for (const [routeName, segments] of routes) {
-        if (!segments.includes(0)) continue
-        const segmentDir = `${TEST_DATA_DIR}/${routeName}/0`
-        const eventsFile = Bun.file(`${segmentDir}/events.json`)
-        if (!(await eventsFile.exists())) continue
-
-        const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-        const parsed = await processQlogForTest(qlogFile.stream(), 0)
-        expect(parsed, `${routeName}/0 failed to parse`).not.toBeNull()
-
-        const expected = (await eventsFile.json()) as RouteEvent[]
-        const events = parsed!.events
-
-        // Event count should match
-        expect(events.length, `${routeName}/0 event count`).toBe(expected.length)
-
-        // Event types and data should match in order
-        for (let i = 0; i < expected.length; i++) {
-          expect(events[i].type, `${routeName}/0 event ${i} type`).toBe(expected[i].type)
-          expect(events[i].data, `${routeName}/0 event ${i} data`).toEqual(expected[i].data)
-        }
-      }
-    }, 180000)
-
-    test('non-segment-0 events have correct types, data, and route_offset_millis', async () => {
-      const routes = await discoverRoutes()
-
-      for (const [routeName, segments] of routes) {
-        // First parse segment 0 to get monoStartTime
-        const seg0QlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/0/qlog.zst`)
-        if (!(await seg0QlogFile.exists())) continue
-        const seg0Parsed = await processQlogForTest(seg0QlogFile.stream(), 0)
-        const routeStartMonoTime = seg0Parsed?.result.monoStartTime ?? undefined
-
-        for (const segment of segments) {
-          if (segment === 0) continue // Tested above
-          const segmentDir = `${TEST_DATA_DIR}/${routeName}/${segment}`
-          const eventsFile = Bun.file(`${segmentDir}/events.json`)
-          if (!(await eventsFile.exists())) continue
-
-          const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-          const parsed = await processQlogForTest(qlogFile.stream(), segment, routeStartMonoTime)
-          expect(parsed, `${routeName}/${segment} failed to parse`).not.toBeNull()
-
-          const expected = (await eventsFile.json()) as RouteEvent[]
-          const events = parsed!.events
-
-          // Event count should match
-          expect(events.length, `${routeName}/${segment} event count`).toBe(expected.length)
-
-          // All expected events should exist with matching data and close route_offset_millis
-          // (Order may differ slightly due to small timing differences in event detection)
-          for (const exp of expected) {
-            const found = events.find(
-              (e: RouteEvent) =>
-                e.type === exp.type && JSON.stringify(e.data) === JSON.stringify(exp.data) && Math.abs(e.route_offset_millis - exp.route_offset_millis) <= 20,
-            )
-            expect(
-              found,
-              `${routeName}/${segment} missing ${exp.type} event with data ${JSON.stringify(exp.data)} and route_offset_millis ~${exp.route_offset_millis}`,
-            ).toBeDefined()
-          }
-        }
-      }
-    })
-
-    test('segment 0 event ordering: record_front_toggle vs first_road_camera_frame', async () => {
-      const routes = await discoverRoutes()
-
-      for (const [routeName, segments] of routes) {
-        if (!segments.includes(0)) continue
-        const segmentDir = `${TEST_DATA_DIR}/${routeName}/0`
-        const eventsFile = Bun.file(`${segmentDir}/events.json`)
-        if (!(await eventsFile.exists())) continue
-
-        const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-        const parsed = await processQlogForTest(qlogFile.stream(), 0)
-        if (!parsed) continue
-
-        const expected = (await eventsFile.json()) as RouteEvent[]
-
-        // Find the first two derived events in both
-        const expFirst = expected.find((e: RouteEvent) => e.type === 'event')
-        const expSecond = expected.filter((e: RouteEvent) => e.type === 'event')[1]
-        const ourFirst = parsed.events.find((e: RouteEvent) => e.type === 'event')
-        const ourSecond = parsed.events.filter((e: RouteEvent) => e.type === 'event')[1]
-
-        if (expFirst && expSecond && ourFirst && ourSecond) {
-          const expFirstType = (expFirst.data as { event_type: string }).event_type
-          const expSecondType = (expSecond.data as { event_type: string }).event_type
-          const ourFirstType = (ourFirst.data as { event_type: string }).event_type
-          const ourSecondType = (ourSecond.data as { event_type: string }).event_type
-
-          expect(ourFirstType, `${routeName}/0 first event`).toBe(expFirstType)
-          expect(ourSecondType, `${routeName}/0 second event`).toBe(expSecondType)
-        }
-      }
-    })
-  })
-
-  describe('coords parsing', () => {
-    for (const routeName of ROUTES_WITH_ALL_SEGMENTS) {
-      test(`${routeName} coords match comma API`, async () => {
+      test('parse all segments', async () => {
         const routeFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/route.json`)
-        if (!(await routeFile.exists())) return
+        expect(await routeFile.exists()).toBe(true)
+        routeJson = (await routeFile.json()) as RouteJson
 
-        const routeData = (await routeFile.json()) as { maxqlog: number }
-        const segments = Array.from({ length: routeData.maxqlog + 1 }, (_, i) => i)
+        segmentResults = new Map()
 
         // First parse segment 0 to get routeStartMonoTime
         const seg0QlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/0/qlog.zst`)
-        const seg0Parsed = await processQlogForTest(seg0QlogFile.stream(), 0)
-        const routeStartMonoTime = seg0Parsed?.result.monoStartTime ?? undefined
+        const seg0Result = await processQlogForTest(seg0QlogFile.stream(), 0)
+        expect(seg0Result, 'segment 0 should parse').not.toBeNull()
+        segmentResults.set(0, seg0Result!)
 
-        for (const segment of segments) {
-          const segmentDir = `${TEST_DATA_DIR}/${routeName}/${segment}`
-          const coordsFile = Bun.file(`${segmentDir}/coords.json`)
-          if (!(await coordsFile.exists())) continue
+        const routeStartMonoTime = seg0Result!.result.monoStartTime ?? undefined
 
-          const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-          const parsed = await processQlogForTest(qlogFile.stream(), segment, routeStartMonoTime)
-          expect(parsed, `${routeName}/${segment} failed to parse`).not.toBeNull()
+        // Parse remaining segments
+        for (const segment of routeJson.segment_numbers) {
+          if (segment === 0) continue
+          const qlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/${segment}/qlog.zst`)
+          if (!(await qlogFile.exists())) continue
 
-          const expected = (await coordsFile.json()) as Coord[]
-          const coords = parsed!.coords
-
-          // Count should be close (we may have 1-2 extra at segment boundary)
-          expect(Math.abs(coords.length - expected.length), `${routeName}/${segment} coord count diff`).toBeLessThan(5)
-
-          // First and last positions and timestamps should match
-          if (coords.length > 0 && expected.length > 0) {
-            // Allow small differences in lat/lng due to potential GPS source differences
-            expect(coords[0].lat, `${routeName}/${segment} first lat`).toBeCloseTo(expected[0].lat, 2)
-            expect(coords[0].lng, `${routeName}/${segment} first lng`).toBeCloseTo(expected[0].lng, 2)
-            // Allow 1 second tolerance for t due to rounding differences
-            expect(Math.abs(coords[0].t - expected[0].t), `${routeName}/${segment} first t`).toBeLessThanOrEqual(1)
-            // Speed should be in reasonable range (within 2 m/s due to GPS source differences)
-            expect(Math.abs(coords[0].speed - expected[0].speed), `${routeName}/${segment} first speed`).toBeLessThan(2)
-          }
+          const result = await processQlogForTest(qlogFile.stream(), segment, routeStartMonoTime)
+          if (result) segmentResults.set(segment, result)
         }
+
+        expect(segmentResults.size).toBeGreaterThan(0)
       })
-    }
-  })
+
+      describe('events - exact match', () => {
+        test('each segment events match comma 1:1', async () => {
+          for (const [segment, result] of segmentResults) {
+            const eventsFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/${segment}/events.json`)
+            if (!(await eventsFile.exists())) continue
+
+            const expected = (await eventsFile.json()) as RouteEvent[]
+            const actual = result.events
+
+            // Same count
+            expect(actual.length, `segment ${segment} event count`).toBe(expected.length)
+
+            // Each event must match exactly
+            for (let i = 0; i < expected.length; i++) {
+              const exp = expected[i]
+              const act = actual[i]
+
+              expect(act.type, `segment ${segment} event ${i} type`).toBe(exp.type)
+              expect(act.time, `segment ${segment} event ${i} time`).toBe(exp.time)
+              expect(act.offset_millis, `segment ${segment} event ${i} offset_millis`).toBe(exp.offset_millis)
+              expect(act.route_offset_millis, `segment ${segment} event ${i} route_offset_millis`).toBe(exp.route_offset_millis)
+              expect(JSON.stringify(act.data), `segment ${segment} event ${i} data`).toBe(JSON.stringify(exp.data))
+            }
+          }
+        })
+      })
+
+      describe('coords - exact match', () => {
+        test('each segment coords match comma 1:1', async () => {
+          for (const [segment, result] of segmentResults) {
+            const coordsFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/${segment}/coords.json`)
+            if (!(await coordsFile.exists())) continue
+
+            const expected = (await coordsFile.json()) as Coord[]
+            const actual = result.coords
+
+            // Same count
+            expect(actual.length, `segment ${segment} coord count`).toBe(expected.length)
+
+            // Each coord must match exactly
+            for (let i = 0; i < expected.length; i++) {
+              const exp = expected[i]
+              const act = actual[i]
+
+              expect(act.t, `segment ${segment} coord ${i} t`).toBe(exp.t)
+              expect(act.lat, `segment ${segment} coord ${i} lat`).toBe(exp.lat)
+              expect(act.lng, `segment ${segment} coord ${i} lng`).toBe(exp.lng)
+              expect(act.speed, `segment ${segment} coord ${i} speed`).toBe(exp.speed)
+              expect(act.dist, `segment ${segment} coord ${i} dist`).toBe(exp.dist)
+            }
+          }
+        })
+      })
+
+      describe('segment times - exact match', () => {
+        test('each segment start/end times match comma 1:1', async () => {
+          for (const [segment, result] of segmentResults) {
+            const segIdx = routeJson.segment_numbers.indexOf(segment)
+            if (segIdx === -1) continue
+
+            const expectedStart = routeJson.segment_start_times[segIdx]
+            const expectedEnd = routeJson.segment_end_times[segIdx]
+
+            // Calculate our start/end times the same way processFile does
+            const startTime = result.result.firstGps?.UnixTimestampMillis ? Number(result.result.firstGps.UnixTimestampMillis) : null
+            const segmentDurationMs =
+              result.result.segmentMonoStart && result.result.segmentMonoEnd
+                ? (Number(result.result.segmentMonoEnd) - Number(result.result.segmentMonoStart)) / 1e6
+                : null
+            const endTime = startTime && segmentDurationMs ? startTime + segmentDurationMs : null
+
+            expect(startTime, `segment ${segment} start_time`).toBe(expectedStart)
+            expect(endTime, `segment ${segment} end_time`).toBe(expectedEnd)
+          }
+        })
+      })
+
+      describe('route metadata - exact match', () => {
+        test('metadata from segment 0 matches comma 1:1', async () => {
+          const seg0 = segmentResults.get(0)
+          expect(seg0).toBeDefined()
+
+          const metadata = seg0!.result.metadata
+          expect(metadata?.version, 'version').toBe(routeJson.version)
+          expect(metadata?.gitCommit, 'git_commit').toBe(routeJson.git_commit)
+          expect(metadata?.gitBranch, 'git_branch').toBe(routeJson.git_branch)
+          expect(metadata?.gitRemote?.replace('https://', '').replace('.git', ''), 'git_remote').toBe(routeJson.git_remote)
+          expect(metadata?.gitCommitDate, 'git_commit_date').toBe(routeJson.git_commit_date)
+          expect(metadata?.gitDirty, 'git_dirty').toBe(routeJson.git_dirty)
+          expect(metadata?.carFingerprint, 'platform').toBe(routeJson.platform)
+          expect(metadata?.vin, 'vin').toBe(routeJson.vin)
+        })
+
+        test('start GPS matches comma 1:1', async () => {
+          const seg0 = segmentResults.get(0)
+          expect(seg0).toBeDefined()
+
+          expect(seg0!.result.firstGps?.Latitude, 'start_lat').toBe(routeJson.start_lat)
+          expect(seg0!.result.firstGps?.Longitude, 'start_lng').toBe(routeJson.start_lng)
+        })
+
+        test('end GPS matches comma 1:1', async () => {
+          const lastSegment = Math.max(...segmentResults.keys())
+          const lastSeg = segmentResults.get(lastSegment)
+          expect(lastSeg).toBeDefined()
+
+          expect(lastSeg!.result.lastGps?.Latitude, 'end_lat').toBe(routeJson.end_lat)
+          expect(lastSeg!.result.lastGps?.Longitude, 'end_lng').toBe(routeJson.end_lng)
+        })
+      })
+
+      describe('route aggregation - exact match', () => {
+        test('route start/end times match comma 1:1', async () => {
+          // Route start time = first segment start time
+          const seg0 = segmentResults.get(0)
+          expect(seg0).toBeDefined()
+          const startTime = seg0!.result.firstGps?.UnixTimestampMillis ? Number(seg0!.result.firstGps.UnixTimestampMillis) : null
+          expect(startTime, 'route start_time_utc_millis').toBe(routeJson.start_time_utc_millis)
+
+          // Route end time = last segment end time
+          const lastSegment = Math.max(...segmentResults.keys())
+          const lastSeg = segmentResults.get(lastSegment)
+          expect(lastSeg).toBeDefined()
+          const lastStartTime = lastSeg!.result.firstGps?.UnixTimestampMillis ? Number(lastSeg!.result.firstGps.UnixTimestampMillis) : null
+          const lastDurationMs =
+            lastSeg!.result.segmentMonoStart && lastSeg!.result.segmentMonoEnd
+              ? (Number(lastSeg!.result.segmentMonoEnd) - Number(lastSeg!.result.segmentMonoStart)) / 1e6
+              : null
+          const endTime = lastStartTime && lastDurationMs ? lastStartTime + lastDurationMs : null
+          expect(endTime, 'route end_time_utc_millis').toBe(routeJson.end_time_utc_millis)
+        })
+
+        test('total distance matches comma 1:1', async () => {
+          let totalDistance = 0
+          for (const [, result] of segmentResults) {
+            totalDistance += result.result.totalDistance
+          }
+          expect(totalDistance, 'total distance').toBe(routeJson.distance)
+        })
+      })
+    })
+  }
 })
