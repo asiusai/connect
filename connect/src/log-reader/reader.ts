@@ -81,76 +81,82 @@ export const readLogs = async ({ url }: ReadLogsInput): Promise<ReadLogsResult> 
   // Track video start time from first RoadCameraState
   let videoStartTimeNs: bigint | undefined
 
-  for await (const event of reader) {
-    // Track video start time from first RoadCameraState.TimestampEof
-    if ('RoadCameraState' in event && videoStartTimeNs === undefined) {
-      videoStartTimeNs = BigInt(event.RoadCameraState.TimestampEof)
-    }
-
-    if ('LiveCalibration' in event) {
-      const rpyCalib = event.LiveCalibration.RpyCalib
-      if (rpyCalib && rpyCalib.length >= 3) {
-        LiveCalibration = { RpyCalib: [rpyCalib[0], rpyCalib[1], rpyCalib[2]] }
+  // Wrap in try-catch to handle truncated zstd files gracefully
+  // This allows partial data to be processed even if the file is incomplete
+  try {
+    for await (const event of reader) {
+      // Track video start time from first RoadCameraState.TimestampEof
+      if ('RoadCameraState' in event && videoStartTimeNs === undefined) {
+        videoStartTimeNs = BigInt(event.RoadCameraState.TimestampEof)
       }
-    }
 
-    if ('CarState' in event) {
-      const { VEgo, CruiseState, GearShifter, LeftBlinker, RightBlinker } = event.CarState
-      CarState = {
-        VEgo,
-        GearShifter,
-        LeftBlinker,
-        RightBlinker,
-        CruiseEnabled: CruiseState.Enabled,
-        CruiseSpeed: CruiseState.Speed,
+      if ('LiveCalibration' in event) {
+        const rpyCalib = event.LiveCalibration.RpyCalib
+        if (rpyCalib && rpyCalib.length >= 3) {
+          LiveCalibration = { RpyCalib: [rpyCalib[0], rpyCalib[1], rpyCalib[2]] }
+        }
       }
-    }
 
-    if ('SelfdriveState' in event) {
-      SelfdriveState = { ExperimentalMode: event.SelfdriveState.ExperimentalMode }
-    }
+      if ('CarState' in event) {
+        const { VEgo, CruiseState, GearShifter, LeftBlinker, RightBlinker } = event.CarState
+        CarState = {
+          VEgo,
+          GearShifter,
+          LeftBlinker,
+          RightBlinker,
+          CruiseEnabled: CruiseState.Enabled,
+          CruiseSpeed: CruiseState.Speed,
+        }
+      }
 
-    if ('DriverStateV2' in event) {
-      const { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb } = event.DriverStateV2.LeftDriverData
-      DriverStateV2 = { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb }
-    }
+      if ('SelfdriveState' in event) {
+        SelfdriveState = { ExperimentalMode: event.SelfdriveState.ExperimentalMode }
+      }
 
-    if ('DrivingModelData' in event && videoStartTimeNs !== undefined) {
-      const logTimeNs = BigInt(event.LogMonoTime)
-      const offsetMs = Number((logTimeNs - videoStartTimeNs) / 1_000_000n)
+      if ('DriverStateV2' in event) {
+        const { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb } = event.DriverStateV2.LeftDriverData
+        DriverStateV2 = { FaceOrientation, FacePosition, FaceProb, LeftEyeProb, RightEyeProb, LeftBlinkProb, RightBlinkProb }
+      }
 
-      // Only include frames after video start (offset >= 0)
-      if (offsetMs >= 0) {
-        DrivingModelData[offsetMs] = {
-          event: 'DrivingModelData',
-          CarState,
-          DriverStateV2,
-          SelfdriveState,
+      if ('DrivingModelData' in event && videoStartTimeNs !== undefined) {
+        const logTimeNs = BigInt(event.LogMonoTime)
+        const offsetMs = Number((logTimeNs - videoStartTimeNs) / 1_000_000n)
+
+        // Only include frames after video start (offset >= 0)
+        if (offsetMs >= 0) {
+          DrivingModelData[offsetMs] = {
+            event: 'DrivingModelData',
+            CarState,
+            DriverStateV2,
+            SelfdriveState,
+          }
+        }
+      }
+
+      if ('ModelV2' in event && videoStartTimeNs !== undefined) {
+        const { Position, LaneLines, RoadEdges, LaneLineProbs } = event.ModelV2
+        const logTimeNs = BigInt(event.LogMonoTime)
+        const offsetMs = Number((logTimeNs - videoStartTimeNs) / 1_000_000n)
+
+        // Only include frames after video start (offset >= 0)
+        if (offsetMs >= 0) {
+          ModelV2[offsetMs] = {
+            event: 'ModelV2',
+            ModelV2: {
+              Position: { X: Position.X, Y: Position.Y, Z: Position.Z },
+              LaneLines: LaneLines?.map(({ X, Y, Z }: any, i: number) => ({ X, Y, Z, prob: LaneLineProbs?.[i] })),
+              RoadEdges: RoadEdges?.map(({ X, Y, Z }: any) => ({ X, Y, Z })),
+            },
+            CarState,
+            DriverStateV2,
+            SelfdriveState,
+            LiveCalibration,
+          }
         }
       }
     }
-
-    if ('ModelV2' in event && videoStartTimeNs !== undefined) {
-      const { Position, LaneLines, RoadEdges, LaneLineProbs } = event.ModelV2
-      const logTimeNs = BigInt(event.LogMonoTime)
-      const offsetMs = Number((logTimeNs - videoStartTimeNs) / 1_000_000n)
-
-      // Only include frames after video start (offset >= 0)
-      if (offsetMs >= 0) {
-        ModelV2[offsetMs] = {
-          event: 'ModelV2',
-          ModelV2: {
-            Position: { X: Position.X, Y: Position.Y, Z: Position.Z },
-            LaneLines: LaneLines?.map(({ X, Y, Z }: any, i: number) => ({ X, Y, Z, prob: LaneLineProbs?.[i] })),
-            RoadEdges: RoadEdges?.map(({ X, Y, Z }: any) => ({ X, Y, Z })),
-          },
-          CarState,
-          DriverStateV2,
-          SelfdriveState,
-          LiveCalibration,
-        }
-      }
-    }
+  } catch {
+    // Truncated zstd file - continue with partial data
   }
 
   const frames = Object.keys(ModelV2).length ? ModelV2 : DrivingModelData

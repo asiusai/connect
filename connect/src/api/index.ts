@@ -121,9 +121,8 @@ const createUseQuery = <T extends AppRoute>(routePath: string, fetcher: (args: R
 
     useEffect(() => {
       if (!enabled) return
-      const currentEntry = getCache(key)
-      if (!currentEntry.data && !currentEntry.loading && !currentEntry.error) fetchData()
-    }, [key, enabled, fetchData])
+      if (!entry.data && !entry.loading && !entry.error) fetchData()
+    }, [key, enabled, fetchData, entry])
 
     useEffect(() => {
       if (!refetchInterval || !enabled) return

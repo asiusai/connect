@@ -13,7 +13,12 @@ export type DataSignature = { key: string; permission: Permission }
 export const createDataSignature = (key: string, permission: Permission, expiresIn?: number) =>
   sign<DataSignature>({ key, permission }, env.JWT_SECRET, expiresIn)
 
-export type AggregatedRoute = Route & { route_id: string; is_preserved: boolean }
+export type AggregatedRoute = Route & {
+  route_id: string
+  is_preserved: boolean
+  segment_start_times: number[]
+  segment_end_times: number[]
+}
 
 export const aggregateRoute = async (dongleId: string, routeId: string, origin: string): Promise<AggregatedRoute | null> => {
   const route = await db.query.routesTable.findFirst({
@@ -24,16 +29,21 @@ export const aggregateRoute = async (dongleId: string, routeId: string, origin: 
   const segments = route?.segments ?? []
   if (segments.length === 0) return null
 
-  const firstSeg = segments[0]
-  const lastSeg = segments[segments.length - 1]
+  // Only consider segments with time data for route duration calculation
+  const segmentsWithTime = segments.filter((s) => s.start_time && s.end_time)
+  if (segmentsWithTime.length === 0) return null
 
-  // Skip routes without GPS data (incomplete/boot-only routes)
-  if (!firstSeg.start_time || !lastSeg.end_time) return null
+  const firstSeg = segmentsWithTime[0]
+  const lastSeg = segmentsWithTime[segmentsWithTime.length - 1]
   const maxSegment = Math.max(...segments.map((s) => s.segment))
   const make = firstSeg.platform?.split('_')[0]?.toLowerCase() ?? null
 
   const sig = createDataSignature(`${dongleId}/${routeId}`, 'read_access', 24 * 60 * 60)
   const routeName = encodeURIComponent(`${dongleId}|${routeId}`)
+
+  // Build actual segment times from database
+  const segmentStartTimes = segments.map((s) => (s.start_time ? new Date(s.start_time).getTime() : 0))
+  const segmentEndTimes = segments.map((s) => (s.end_time ? new Date(s.end_time).getTime() : 0))
 
   return {
     route_id: routeId,
@@ -65,18 +75,17 @@ export const aggregateRoute = async (dongleId: string, routeId: string, origin: 
     id: null,
     car_id: null,
     version_id: null,
+    segment_start_times: segmentStartTimes,
+    segment_end_times: segmentEndTimes,
   }
 }
 
-export const routeToSegment = (route: Route & { route_id: string; is_preserved: boolean }): RouteSegment => {
+export const routeToSegment = (route: AggregatedRoute): RouteSegment => {
   const startTime = route.start_time ? new Date(route.start_time).getTime() : route.create_time
   const endTime = route.end_time ? new Date(route.end_time).getTime() : startTime
   const segmentCount = Math.max(1, route.maxqlog + 1)
 
   const segmentNumbers = Array.from({ length: segmentCount }, (_, i) => i)
-  const segmentDuration = segmentCount > 1 ? (endTime - startTime) / segmentCount : 0
-  const segmentStartTimes = segmentNumbers.map((i) => startTime + i * segmentDuration)
-  const segmentEndTimes = segmentNumbers.map((i) => startTime + (i + 1) * segmentDuration)
 
   const exp = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
   const sig = createDataSignature(`${route.dongle_id}/${route.route_id}`, 'read_access', 24 * 60 * 60)
@@ -111,9 +120,9 @@ export const routeToSegment = (route: Route & { route_id: string; is_preserved: 
     version_id: route.version_id,
     end_time_utc_millis: endTime,
     is_preserved: route.is_preserved,
-    segment_end_times: segmentEndTimes,
+    segment_end_times: route.segment_end_times,
     segment_numbers: segmentNumbers,
-    segment_start_times: segmentStartTimes,
+    segment_start_times: route.segment_start_times,
     share_exp: exp,
     share_sig: sig,
     start_time_utc_millis: startTime,

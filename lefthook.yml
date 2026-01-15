@@ -5,8 +5,7 @@ pre-commit:
       run: bunx biome check --write {staged_files}
       stage_fixed: true
     tsc:
-      glob: "**/*.{ts,tsx}"
-      run: bunx tsc --noEmit {staged_files}
+      run: bunx tsc --noEmit
 
 skip_output:
   - execution_out

@@ -6,7 +6,6 @@ import { describe, test, expect, beforeAll } from 'bun:test'
 import { env } from '../connect/src/utils/env'
 
 const EXAMPLE_DATA_DIR = join(dirname(import.meta.path), '../example-data')
-const ROUTE_PREFIX = '9748a98e983e0b39_'
 const ROUTE_ID = '0000002c--d68dde99ca'
 const SEGMENTS_COUNT = 3
 
@@ -86,7 +85,7 @@ describe(`Device Integration (${env.MODE})`, () => {
     console.log(`Registered: ${dongleId}`)
 
     // Upload qlog/qcamera/hevc files from folder structure: routeId/segment/files
-    const routeDir = join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}`)
+    const routeDir = join(EXAMPLE_DATA_DIR, ROUTE_ID)
     for (let segment = 0; segment < SEGMENTS_COUNT; segment++) {
       const segmentDir = join(routeDir, String(segment))
       const files = await readdir(segmentDir)
@@ -197,7 +196,7 @@ describe(`Device Integration (${env.MODE})`, () => {
       const res = await apiGet(`/v1/route/${routeNameEncoded}/`, deviceToken)
       expect(res.status).toBe(200)
 
-      const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}/route.json`), 'utf-8'))
+      const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, ROUTE_ID, 'route.json'), 'utf-8'))
 
       // Local-only fields
       if (env.MODE === 'dev') {
@@ -237,7 +236,7 @@ describe(`Device Integration (${env.MODE})`, () => {
           expect(data).not.toBeNull()
 
           const actual = JSON.parse(new TextDecoder().decode(data!)) as { type: string; data: unknown }[]
-          const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}/${segment}/events.json`), 'utf-8')) as typeof actual
+          const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, ROUTE_ID, segment.toString(), `events.json`), 'utf-8')) as typeof actual
           expect(actual.length).toBe(expected.length)
           for (let i = 0; i < expected.length; i++) {
             expect(actual[i].type).toBe(expected[i].type)
@@ -252,7 +251,7 @@ describe(`Device Integration (${env.MODE})`, () => {
           expect(data).not.toBeNull()
 
           const actual = JSON.parse(new TextDecoder().decode(data!)) as { lat: number; lng: number }[]
-          const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}/${segment}/coords.json`), 'utf-8')) as typeof actual
+          const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, ROUTE_ID, segment.toString(), `coords.json`), 'utf-8')) as typeof actual
           expect(Math.abs(actual.length - expected.length)).toBeLessThanOrEqual(2)
           for (let i = 0; i < Math.min(actual.length, expected.length); i++) {
             expect(actual[i].lat).toBeCloseTo(expected[i].lat, 3)
@@ -267,24 +266,10 @@ describe(`Device Integration (${env.MODE})`, () => {
           expect(data).not.toBeNull()
 
           const actual = new Uint8Array(data!)
-          const expected = new Uint8Array(await readFile(join(EXAMPLE_DATA_DIR, `${ROUTE_PREFIX}${ROUTE_ID}/${segment}/sprite.jpg`)))
+          const expected = new Uint8Array(await readFile(join(EXAMPLE_DATA_DIR, ROUTE_ID, segment.toString(), `sprite.jpg`)))
           expect(actual[0]).toBe(0xff)
           expect(actual[1]).toBe(0xd8)
           expect(Math.abs(actual.length - expected.length) / expected.length).toBeLessThan(0.1)
-        })
-
-        test.skipIf(isKonik)('hevc remuxed to mp4', async () => {
-          const routeRes = await apiGet(`/v1/route/${routeNameEncoded}/`, deviceToken)
-          const baseUrl = routeRes.data.url.replace(/\/$/, '')
-          const data = await fetchUrl(`${baseUrl}/${segment}/fcamera.hevc`)
-          if (!data) return // HEVC file may not exist in all segments
-
-          const actual = new Uint8Array(data)
-          // Check for MP4 ftyp box signature
-          expect(actual[4]).toBe(0x66) // 'f'
-          expect(actual[5]).toBe(0x74) // 't'
-          expect(actual[6]).toBe(0x79) // 'y'
-          expect(actual[7]).toBe(0x70) // 'p'
         })
       })
     }

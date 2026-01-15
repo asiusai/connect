@@ -67,9 +67,9 @@ export const segmentsTable = sqliteTable(
     segment: integer('segment').notNull(),
 
     // Processed from qlog
-    start_time: integer('start_time'), // unix ms
-    end_time: integer('end_time'), // unix ms
-    mono_start_time: text('mono_start_time'), // log monotonic time in ns (for route_offset_millis calculation)
+    start_time: integer('start_time'), // unix ms (from GPS)
+    end_time: integer('end_time'), // unix ms (start_time + mono duration)
+    mono_start_time: text('mono_start_time'), // log monotonic time in ns (for route_offset_millis)
     start_lat: real('start_lat'),
     start_lng: real('start_lng'),
     end_lat: real('end_lat'),

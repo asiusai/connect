@@ -201,6 +201,35 @@ describe('player log reader', () => {
     })
   })
 
+  describe('truncated qlog handling', () => {
+    test('handles truncated qlog files gracefully', async () => {
+      const routes = await discoverRoutes()
+
+      for (const [routeName, segments] of routes) {
+        // Find last segment which may be truncated
+        const lastSegment = Math.max(...segments)
+        const qlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/${lastSegment}/qlog.zst`)
+        if (!(await qlogFile.exists())) continue
+
+        const originalFetch = globalThis.fetch
+        globalThis.fetch = mockFetch(qlogFile.stream())
+
+        try {
+          // Should not throw even if file is truncated
+          const result = await readLogs({ url: 'mock://qlog' })
+
+          // Should still have some frames from partial data
+          const timeOffsets = Object.keys(result.frames).map(Number)
+          expect(timeOffsets.length, `${routeName}/${lastSegment} should have frames from partial data`).toBeGreaterThan(0)
+        } finally {
+          globalThis.fetch = originalFetch
+        }
+
+        break
+      }
+    })
+  })
+
   describe('DrivingModelData vs ModelV2', () => {
     test('qlogs contain DrivingModelData but not ModelV2', async () => {
       const routes = await discoverRoutes()

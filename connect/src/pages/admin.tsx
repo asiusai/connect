@@ -25,7 +25,21 @@ const formatDate = (timestamp: number) => {
   })
 }
 
-type Tab = 'users' | 'devices' | 'routes' | 'files'
+const formatDuration = (ms: number) => {
+  const seconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  if (hours > 0) return `${hours}h ${minutes % 60}m`
+  if (minutes > 0) return `${minutes}m ${seconds % 60}s`
+  return `${seconds}s`
+}
+
+const formatDistance = (meters: number) => {
+  if (meters >= 1000) return `${(meters / 1000).toFixed(2)} km`
+  return `${Math.round(meters)} m`
+}
+
+type Tab = 'users' | 'devices' | 'routes' | 'segments' | 'files'
 
 type UsersFilter = {
   offset: number
@@ -40,6 +54,14 @@ type DevicesFilter = {
 type RoutesFilter = {
   dongle_id?: string
   sort: 'create_time' | 'size'
+  order: 'asc' | 'desc'
+  offset: number
+}
+
+type SegmentsFilter = {
+  dongle_id?: string
+  route_id?: string
+  sort: 'create_time' | 'start_time' | 'distance'
   order: 'asc' | 'desc'
   offset: number
 }
@@ -122,17 +144,24 @@ const PaginationHeader = ({
   offset,
   pageSize,
   onOffsetChange,
+  onRefresh,
   label,
 }: {
   total: number
   offset: number
   pageSize: number
   onOffsetChange: (offset: number) => void
+  onRefresh: () => void
   label: string
 }) => (
   <div className="flex items-center justify-between mb-2">
-    <div className="text-sm text-white/40">
-      Showing {Math.min(offset + 1, total)}-{Math.min(offset + pageSize, total)} of {total} {label}
+    <div className="flex items-center gap-2">
+      <div className="text-sm text-white/40">
+        Showing {Math.min(offset + 1, total)}-{Math.min(offset + pageSize, total)} of {total} {label}
+      </div>
+      <button onClick={onRefresh} className="p-1 rounded hover:bg-white/10 text-white/40 hover:text-white" title="Refresh">
+        <Icon name="refresh" className="text-base" />
+      </button>
     </div>
     <PaginationControls total={total} offset={offset} pageSize={pageSize} onOffsetChange={onOffsetChange} />
   </div>
@@ -156,7 +185,7 @@ const UsersTable = ({
   onFilterChange: (f: UsersFilter) => void
   onViewDevices: (userId: string, email: string) => void
 }) => {
-  const [usersData] = api.admin.users.useQuery({ query: { limit: PAGE_SIZE, offset: filter.offset } })
+  const [usersData, { refetch }] = api.admin.users.useQuery({ query: { limit: PAGE_SIZE, offset: filter.offset } })
 
   if (!usersData) return <Loading />
 
@@ -167,6 +196,7 @@ const UsersTable = ({
         offset={filter.offset}
         pageSize={PAGE_SIZE}
         onOffsetChange={(offset) => onFilterChange({ ...filter, offset })}
+        onRefresh={refetch}
         label="users"
       />
       <div className="overflow-x-auto">
@@ -220,7 +250,7 @@ const DevicesTable = ({
   onFilterChange: (f: DevicesFilter) => void
   onViewFiles: (dongleId: string) => void
 }) => {
-  const [devicesData] = api.admin.devices.useQuery({ query: { user_id: filter.user_id, limit: PAGE_SIZE, offset: filter.offset } })
+  const [devicesData, { refetch }] = api.admin.devices.useQuery({ query: { user_id: filter.user_id, limit: PAGE_SIZE, offset: filter.offset } })
   const [usersData] = api.admin.users.useQuery({ query: { limit: 1000 } })
   const [deleting, setDeleting] = useState<string | null>(null)
 
@@ -281,6 +311,7 @@ const DevicesTable = ({
             offset={filter.offset}
             pageSize={PAGE_SIZE}
             onOffsetChange={(offset) => onFilterChange({ ...filter, offset })}
+            onRefresh={refetch}
             label="devices"
           />
           <div className="overflow-x-auto">
@@ -386,7 +417,7 @@ const SortHeader = ({
 }
 
 const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterChange: (f: FilesFilter) => void }) => {
-  const [filesData] = api.admin.files.useQuery({
+  const [filesData, { refetch }] = api.admin.files.useQuery({
     query: {
       limit: PAGE_SIZE,
       offset: filter.offset,
@@ -429,7 +460,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
     setUpdatingStatus(key)
     try {
       await api.admin.updateFileStatus.mutate({ params: { key: encodeURIComponent(key) }, body: { status } })
-      invalidate('admin')
+      refetch()
     } finally {
       setUpdatingStatus(null)
     }
@@ -549,6 +580,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
             offset={filter.offset}
             pageSize={PAGE_SIZE}
             onOffsetChange={(offset) => onFilterChange({ ...filter, offset })}
+            onRefresh={refetch}
             label="files"
           />
           <div className="overflow-x-auto">
@@ -674,7 +706,7 @@ const RoutesTable = ({
   onFilterChange: (f: RoutesFilter) => void
   onViewFiles: (dongleId: string, routeId: string) => void
 }) => {
-  const [routesData] = api.admin.routes.useQuery({
+  const [routesData, { refetch }] = api.admin.routes.useQuery({
     query: { limit: PAGE_SIZE, offset: filter.offset, dongle_id: filter.dongle_id, sort: filter.sort, order: filter.order },
   })
   const [devicesData] = api.admin.devices.useQuery({ query: { limit: 1000 } })
@@ -731,6 +763,7 @@ const RoutesTable = ({
             offset={filter.offset}
             pageSize={PAGE_SIZE}
             onOffsetChange={(offset) => onFilterChange({ ...filter, offset })}
+            onRefresh={refetch}
             label="routes"
           />
           <div className="overflow-x-auto">
@@ -810,6 +843,185 @@ const RoutesTable = ({
   )
 }
 
+const SegmentsSortHeader = ({
+  label,
+  sortKey,
+  currentSort,
+  currentOrder,
+  onSort,
+  align,
+}: {
+  label: string
+  sortKey: 'create_time' | 'start_time' | 'distance'
+  currentSort: 'create_time' | 'start_time' | 'distance'
+  currentOrder: 'asc' | 'desc'
+  onSort: (sort: 'create_time' | 'start_time' | 'distance', order: 'asc' | 'desc') => void
+  align?: 'left' | 'right'
+}) => {
+  const isActive = currentSort === sortKey
+  const handleClick = () => {
+    if (isActive) {
+      onSort(sortKey, currentOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      onSort(sortKey, 'desc')
+    }
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className={clsx('flex items-center gap-1 font-medium text-white/60 hover:text-white transition-colors', align === 'right' && 'ml-auto')}
+    >
+      {label}
+      {isActive && <Icon name={currentOrder === 'asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} className="text-base" />}
+    </button>
+  )
+}
+
+const SegmentsTable = ({ filter, onFilterChange }: { filter: SegmentsFilter; onFilterChange: (f: SegmentsFilter) => void }) => {
+  const [segmentsData, { refetch }] = api.admin.segments.useQuery({
+    query: { limit: PAGE_SIZE, offset: filter.offset, dongle_id: filter.dongle_id, route_id: filter.route_id, sort: filter.sort, order: filter.order },
+  })
+  const [devicesData] = api.admin.devices.useQuery({ query: { limit: 1000 } })
+
+  const device = filter.dongle_id ? devicesData?.devices.find((d) => d.dongle_id === filter.dongle_id) : null
+
+  return (
+    <div>
+      {/* Device info card */}
+      {device && (
+        <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10 mb-4">
+          <div className="flex items-center gap-2">
+            <Icon name="smartphone" className="text-primary" />
+            <span className="font-medium">Device</span>
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            <span>
+              <span className="text-white/40">ID:</span> <span className="font-mono">{device.dongle_id}</span>
+            </span>
+            {device.alias && (
+              <span>
+                <span className="text-white/40">Alias:</span> {device.alias}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => onFilterChange({ ...filter, dongle_id: undefined, route_id: undefined, offset: 0 })}
+            className="ml-auto text-white/40 hover:text-white"
+          >
+            <Icon name="close" className="text-base" />
+          </button>
+        </div>
+      )}
+
+      {/* Route filter card */}
+      {filter.route_id && (
+        <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10 mb-4">
+          <div className="flex items-center gap-2">
+            <Icon name="route" className="text-primary" />
+            <span className="font-medium">Route</span>
+          </div>
+          <span className="font-mono text-sm">{filter.route_id}</span>
+          <button onClick={() => onFilterChange({ ...filter, route_id: undefined, offset: 0 })} className="ml-auto text-white/40 hover:text-white">
+            <Icon name="close" className="text-base" />
+          </button>
+        </div>
+      )}
+
+      {!segmentsData ? (
+        <Loading />
+      ) : (
+        <>
+          <PaginationHeader
+            total={segmentsData.total}
+            offset={filter.offset}
+            pageSize={PAGE_SIZE}
+            onOffsetChange={(offset) => onFilterChange({ ...filter, offset })}
+            onRefresh={refetch}
+            label="segments"
+          />
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left py-3 px-4 font-medium text-white/60">Dongle</th>
+                  <th className="text-left py-3 px-4 font-medium text-white/60">Route</th>
+                  <th className="text-right py-3 px-4 font-medium text-white/60">Seg</th>
+                  <th className="text-left py-3 px-4">
+                    <SegmentsSortHeader
+                      label="Start"
+                      sortKey="start_time"
+                      currentSort={filter.sort}
+                      currentOrder={filter.order}
+                      onSort={(sort, order) => onFilterChange({ ...filter, sort, order, offset: 0 })}
+                    />
+                  </th>
+                  <th className="text-right py-3 px-4 font-medium text-white/60">Duration</th>
+                  <th className="text-right py-3 px-4">
+                    <SegmentsSortHeader
+                      label="Distance"
+                      sortKey="distance"
+                      currentSort={filter.sort}
+                      currentOrder={filter.order}
+                      onSort={(sort, order) => onFilterChange({ ...filter, sort, order, offset: 0 })}
+                      align="right"
+                    />
+                  </th>
+                  <th className="text-left py-3 px-4">
+                    <SegmentsSortHeader
+                      label="Created"
+                      sortKey="create_time"
+                      currentSort={filter.sort}
+                      currentOrder={filter.order}
+                      onSort={(sort, order) => onFilterChange({ ...filter, sort, order, offset: 0 })}
+                    />
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {segmentsData.segments.map((seg) => (
+                  <tr key={`${seg.dongle_id}/${seg.route_id}/${seg.segment}`} className="border-b border-white/5 hover:bg-white/5">
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => onFilterChange({ ...filter, dongle_id: seg.dongle_id, offset: 0 })}
+                        className="font-mono text-xs text-primary hover:underline"
+                      >
+                        {seg.dongle_id}
+                      </button>
+                    </td>
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => onFilterChange({ ...filter, dongle_id: seg.dongle_id, route_id: seg.route_id, offset: 0 })}
+                        className="font-mono text-xs text-primary hover:underline"
+                      >
+                        {seg.route_id}
+                      </button>
+                    </td>
+                    <td className="py-3 px-4 text-right text-white/60">{seg.segment}</td>
+                    <td className="py-3 px-4 text-white/60">{seg.start_time ? new Date(seg.start_time).toLocaleString() : '-'}</td>
+                    <td className="py-3 px-4 text-right text-white/60">
+                      {seg.start_time && seg.end_time ? formatDuration(seg.end_time - seg.start_time) : '-'}
+                    </td>
+                    <td className="py-3 px-4 text-right text-white/60">{seg.distance ? formatDistance(seg.distance) : '-'}</td>
+                    <td className="py-3 px-4 text-white/60">{formatDate(seg.create_time)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {segmentsData.segments.length === 0 && <div className="text-center py-8 text-white/40">No segments found</div>}
+          </div>
+          <Pagination
+            total={segmentsData.total}
+            offset={filter.offset}
+            pageSize={PAGE_SIZE}
+            onOffsetChange={(offset) => onFilterChange({ ...filter, offset })}
+          />
+        </>
+      )}
+    </div>
+  )
+}
+
 const parseSearchParams = (searchParams: URLSearchParams) => {
   const tab = (searchParams.get('tab') as Tab) || 'users'
   const usersFilter: UsersFilter = {
@@ -826,6 +1038,13 @@ const parseSearchParams = (searchParams: URLSearchParams) => {
     order: (searchParams.get('r_order') as 'asc' | 'desc') || 'desc',
     offset: parseInt(searchParams.get('r_offset') || '0', 10),
   }
+  const segmentsFilter: SegmentsFilter = {
+    dongle_id: searchParams.get('s_dongle') || undefined,
+    route_id: searchParams.get('s_route') || undefined,
+    sort: (searchParams.get('s_sort') as 'create_time' | 'start_time' | 'distance') || 'create_time',
+    order: (searchParams.get('s_order') as 'asc' | 'desc') || 'desc',
+    offset: parseInt(searchParams.get('s_offset') || '0', 10),
+  }
   const filesFilter: FilesFilter = {
     dongle_id: searchParams.get('f_dongle') || undefined,
     route_id: searchParams.get('f_route') || undefined,
@@ -834,10 +1053,17 @@ const parseSearchParams = (searchParams: URLSearchParams) => {
     order: (searchParams.get('f_order') as 'asc' | 'desc') || 'desc',
     offset: parseInt(searchParams.get('f_offset') || '0', 10),
   }
-  return { tab, usersFilter, devicesFilter, routesFilter, filesFilter }
+  return { tab, usersFilter, devicesFilter, routesFilter, segmentsFilter, filesFilter }
 }
 
-const buildSearchParams = (tab: Tab, usersFilter: UsersFilter, devicesFilter: DevicesFilter, routesFilter: RoutesFilter, filesFilter: FilesFilter) => {
+const buildSearchParams = (
+  tab: Tab,
+  usersFilter: UsersFilter,
+  devicesFilter: DevicesFilter,
+  routesFilter: RoutesFilter,
+  segmentsFilter: SegmentsFilter,
+  filesFilter: FilesFilter,
+) => {
   const params = new URLSearchParams()
   if (tab !== 'users') params.set('tab', tab)
 
@@ -851,6 +1077,12 @@ const buildSearchParams = (tab: Tab, usersFilter: UsersFilter, devicesFilter: De
   if (routesFilter.sort !== 'create_time') params.set('r_sort', routesFilter.sort)
   if (routesFilter.order !== 'desc') params.set('r_order', routesFilter.order)
   if (routesFilter.offset) params.set('r_offset', String(routesFilter.offset))
+
+  if (segmentsFilter.dongle_id) params.set('s_dongle', segmentsFilter.dongle_id)
+  if (segmentsFilter.route_id) params.set('s_route', segmentsFilter.route_id)
+  if (segmentsFilter.sort !== 'create_time') params.set('s_sort', segmentsFilter.sort)
+  if (segmentsFilter.order !== 'desc') params.set('s_order', segmentsFilter.order)
+  if (segmentsFilter.offset) params.set('s_offset', String(segmentsFilter.offset))
 
   if (filesFilter.dongle_id) params.set('f_dongle', filesFilter.dongle_id)
   if (filesFilter.route_id) params.set('f_route', filesFilter.route_id)
@@ -866,30 +1098,32 @@ export const Component = () => {
   const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const { tab: activeTab, usersFilter, devicesFilter, routesFilter, filesFilter } = parseSearchParams(searchParams)
+  const { tab: activeTab, usersFilter, devicesFilter, routesFilter, segmentsFilter, filesFilter } = parseSearchParams(searchParams)
 
   const updateState = (
     newTab: Tab,
     newUsersFilter: UsersFilter,
     newDevicesFilter: DevicesFilter,
     newRoutesFilter: RoutesFilter,
+    newSegmentsFilter: SegmentsFilter,
     newFilesFilter: FilesFilter,
   ) => {
-    setSearchParams(buildSearchParams(newTab, newUsersFilter, newDevicesFilter, newRoutesFilter, newFilesFilter), { replace: true })
+    setSearchParams(buildSearchParams(newTab, newUsersFilter, newDevicesFilter, newRoutesFilter, newSegmentsFilter, newFilesFilter), { replace: true })
   }
 
-  const setActiveTab = (tab: Tab) => updateState(tab, usersFilter, devicesFilter, routesFilter, filesFilter)
-  const setUsersFilter = (f: UsersFilter) => updateState(activeTab, f, devicesFilter, routesFilter, filesFilter)
-  const setDevicesFilter = (f: DevicesFilter) => updateState(activeTab, usersFilter, f, routesFilter, filesFilter)
-  const setRoutesFilter = (f: RoutesFilter) => updateState(activeTab, usersFilter, devicesFilter, f, filesFilter)
-  const setFilesFilter = (f: FilesFilter) => updateState(activeTab, usersFilter, devicesFilter, routesFilter, f)
+  const setActiveTab = (tab: Tab) => updateState(tab, usersFilter, devicesFilter, routesFilter, segmentsFilter, filesFilter)
+  const setUsersFilter = (f: UsersFilter) => updateState(activeTab, f, devicesFilter, routesFilter, segmentsFilter, filesFilter)
+  const setDevicesFilter = (f: DevicesFilter) => updateState(activeTab, usersFilter, f, routesFilter, segmentsFilter, filesFilter)
+  const setRoutesFilter = (f: RoutesFilter) => updateState(activeTab, usersFilter, devicesFilter, f, segmentsFilter, filesFilter)
+  const setSegmentsFilter = (f: SegmentsFilter) => updateState(activeTab, usersFilter, devicesFilter, routesFilter, f, filesFilter)
+  const setFilesFilter = (f: FilesFilter) => updateState(activeTab, usersFilter, devicesFilter, routesFilter, segmentsFilter, f)
 
   const handleViewDevices = (userId: string, email: string) => {
-    updateState('devices', usersFilter, { user_id: userId, userEmail: email, offset: 0 }, routesFilter, filesFilter)
+    updateState('devices', usersFilter, { user_id: userId, userEmail: email, offset: 0 }, routesFilter, segmentsFilter, filesFilter)
   }
 
   const handleViewFiles = (dongleId: string, routeId?: string) => {
-    updateState('files', usersFilter, devicesFilter, routesFilter, { ...filesFilter, dongle_id: dongleId, route_id: routeId, offset: 0 })
+    updateState('files', usersFilter, devicesFilter, routesFilter, segmentsFilter, { ...filesFilter, dongle_id: dongleId, route_id: routeId, offset: 0 })
   }
 
   if (!profile) return <Loading />
@@ -909,6 +1143,9 @@ export const Component = () => {
           <TabButton tab="routes" activeTab={activeTab} onClick={() => setActiveTab('routes')}>
             Routes
           </TabButton>
+          <TabButton tab="segments" activeTab={activeTab} onClick={() => setActiveTab('segments')}>
+            Segments
+          </TabButton>
           <TabButton tab="files" activeTab={activeTab} onClick={() => setActiveTab('files')}>
             Files
           </TabButton>
@@ -922,6 +1159,7 @@ export const Component = () => {
           {activeTab === 'routes' && (
             <RoutesTable filter={routesFilter} onFilterChange={setRoutesFilter} onViewFiles={(dongleId, routeId) => handleViewFiles(dongleId, routeId)} />
           )}
+          {activeTab === 'segments' && <SegmentsTable filter={segmentsFilter} onFilterChange={setSegmentsFilter} />}
           {activeTab === 'files' && <FilesTable filter={filesFilter} onFilterChange={setFilesFilter} />}
         </div>
       </div>

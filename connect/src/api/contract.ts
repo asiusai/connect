@@ -494,6 +494,16 @@ const AdminRoute = z.object({
   create_time: z.number(),
 })
 
+const AdminSegment = z.object({
+  dongle_id: z.string(),
+  route_id: z.string(),
+  segment: z.number(),
+  start_time: z.number().nullable(),
+  end_time: z.number().nullable(),
+  distance: z.number().nullable(),
+  create_time: z.number(),
+})
+
 const admin = c.router({
   health: {
     method: 'GET',
@@ -589,6 +599,24 @@ const admin = c.router({
     responses: {
       200: z.object({
         routes: AdminRoute.array(),
+        total: z.number(),
+      }),
+    },
+  },
+  segments: {
+    method: 'GET',
+    path: '/admin/segments',
+    query: z.object({
+      limit: z.coerce.number().optional(),
+      offset: z.coerce.number().optional(),
+      dongle_id: z.string().optional(),
+      route_id: z.string().optional(),
+      sort: z.enum(['create_time', 'start_time', 'distance']).optional(),
+      order: z.enum(['asc', 'desc']).optional(),
+    }),
+    responses: {
+      200: z.object({
+        segments: AdminSegment.array(),
         total: z.number(),
       }),
     },

@@ -415,6 +415,60 @@ export const admin = tsr.router(contract.admin, {
       },
     }
   }),
+  segments: superuserMiddleware(async ({ query }) => {
+    const limit = query.limit ?? 100
+    const offset = query.offset ?? 0
+    const sort = query.sort ?? 'create_time'
+    const order = query.order ?? 'desc'
+
+    const conditions = []
+    if (query.dongle_id) conditions.push(eq(segmentsTable.dongle_id, query.dongle_id))
+    if (query.route_id) conditions.push(eq(segmentsTable.route_id, query.route_id))
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const sortColumn = sort === 'distance' ? segmentsTable.distance : sort === 'start_time' ? segmentsTable.start_time : segmentsTable.create_time
+    const orderFn = order === 'asc' ? asc : desc
+
+    const [segments, totalResult] = await Promise.all([
+      db
+        .select({
+          dongle_id: segmentsTable.dongle_id,
+          route_id: segmentsTable.route_id,
+          segment: segmentsTable.segment,
+          start_time: segmentsTable.start_time,
+          end_time: segmentsTable.end_time,
+          distance: segmentsTable.distance,
+          create_time: segmentsTable.create_time,
+        })
+        .from(segmentsTable)
+        .where(whereClause)
+        .orderBy(orderFn(sortColumn))
+        .limit(limit)
+        .offset(offset)
+        .all(),
+      db
+        .select({ count: count() })
+        .from(segmentsTable)
+        .where(whereClause)
+        .then((r) => r[0].count),
+    ])
+
+    return {
+      status: 200,
+      body: {
+        segments: segments.map((s) => ({
+          dongle_id: s.dongle_id,
+          route_id: s.route_id,
+          segment: s.segment,
+          start_time: s.start_time,
+          end_time: s.end_time,
+          distance: s.distance,
+          create_time: s.create_time,
+        })),
+        total: totalResult,
+      },
+    }
+  }),
   deleteFile: superuserMiddleware(async ({ params }) => {
     const key = decodeURIComponent(params.key)
     const file = db.select().from(filesTable).where(eq(filesTable.key, key)).get()

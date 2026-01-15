@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { extractSpriteFromFile } from './qcamera'
 
 const TEST_DATA_DIR = import.meta.dir + '/../../example-data'
-const ROUTES = [{ name: '9748a98e983e0b39_0000002c--d68dde99ca', segmentCount: 3 }]
+const ROUTES = [{ name: '0000002c--d68dde99ca', segmentCount: 3 }]
 
 describe('qcamera', () => {
   for (const route of ROUTES) {

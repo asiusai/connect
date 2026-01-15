@@ -6,64 +6,81 @@ import { processQlogStreaming, type StreamingQlogResult } from './qlogs'
 import { extractSprite } from './qcamera'
 import { remuxHevcToMp4 } from './hevc'
 
-// Creates a passthrough stream that can be written to and read from
-const createPassthroughStream = () => {
-  let controller: ReadableStreamDefaultController<Uint8Array>
-  const readable = new ReadableStream<Uint8Array>({
-    start(c) {
-      controller = c
-    },
-  })
-  const writable = new WritableStream<Uint8Array>({
-    write(chunk) {
-      controller.enqueue(chunk)
-    },
-    close() {
-      controller.close()
-    },
-  })
-  return { readable, writable }
+type QlogProcessingResult = {
+  result: StreamingQlogResult
+  routeStartTime: number | null // Segment 0's start_time (for calculating segment N start = routeStart + N*60s)
 }
 
-const processSegmentQlogStreaming = async (dongleId: string, routeId: string, segment: number): Promise<StreamingQlogResult | null> => {
+const processSegmentQlogStreaming = async (dongleId: string, routeId: string, segment: number): Promise<QlogProcessingResult | null> => {
   const key = `${dongleId}/${routeId}/${segment}/qlog.zst`
   const res = await mkv.get(key)
-  if (!res.ok || !res.body) return null
+  if (!res.ok || !res.body) throw new Error(`File not found: ${key}`)
+
+  const contentLength = res.headers.get('content-length')
+  if (contentLength === '0') throw new Error(`Empty file: ${key}`)
+
+  // Buffer to temp file - Blob.stream() doesn't work correctly with zstd decompression
+  const inputBuffer = await res.arrayBuffer()
+  const tmpPath = `/tmp/qlog-${Date.now()}-${Math.random().toString(36).slice(2)}.zst`
+  await Bun.write(tmpPath, inputBuffer)
+  const inputStream = Bun.file(tmpPath).stream()
 
   const baseKey = `${dongleId}/${routeId}/${segment}`
 
-  // For non-zero segments, get segment 0's mono_start_time for route_offset_millis calculation
+  // For non-zero segments, get segment 0's data for route_offset_millis and start_time calculation
   let routeStartMonoTime: string | undefined
+  let routeStartTime: number | null = null
   if (segment !== 0) {
     const seg0 = await db.query.segmentsTable.findFirst({
       where: and(eq(segmentsTable.dongle_id, dongleId), eq(segmentsTable.route_id, routeId), eq(segmentsTable.segment, 0)),
-      columns: { mono_start_time: true },
+      columns: { mono_start_time: true, start_time: true },
     })
     routeStartMonoTime = seg0?.mono_start_time ?? undefined
+    routeStartTime = seg0?.start_time ?? null
   }
 
-  // Create passthrough streams for events and coords
-  const eventsPassthrough = createPassthroughStream()
-  const coordsPassthrough = createPassthroughStream()
+  // Create in-memory buffers for events and coords
+  const eventsChunks: Uint8Array[] = []
+  const coordsChunks: Uint8Array[] = []
 
-  // Start uploading to MKV in parallel with processing
-  const eventsUpload = mkv.put(`${baseKey}/events.json`, eventsPassthrough.readable, { 'Content-Type': 'application/json' }, true)
-  const coordsUpload = mkv.put(`${baseKey}/coords.json`, coordsPassthrough.readable, { 'Content-Type': 'application/json' }, true)
+  const eventsWritable = new WritableStream<Uint8Array>({
+    write(chunk) {
+      eventsChunks.push(chunk)
+    },
+  })
+  const coordsWritable = new WritableStream<Uint8Array>({
+    write(chunk) {
+      coordsChunks.push(chunk)
+    },
+  })
 
-  // Process the qlog, streaming output to the passthrough streams
-  const result = await processQlogStreaming(res.body, segment, eventsPassthrough.writable, coordsPassthrough.writable, dongleId, routeId, routeStartMonoTime)
+  // Process the qlog fully first, then upload
+  const result = await processQlogStreaming(inputStream, segment, eventsWritable, coordsWritable, dongleId, routeId, routeStartMonoTime)
 
-  // Wait for uploads to complete
-  await Promise.all([eventsUpload, coordsUpload])
+  // Upload events and coords after processing is complete
+  const eventsBlob = new Blob(eventsChunks as BlobPart[], { type: 'application/json' })
+  const coordsBlob = new Blob(coordsChunks as BlobPart[], { type: 'application/json' })
+  await Promise.all([
+    mkv.put(`${baseKey}/events.json`, eventsBlob.stream(), { 'Content-Type': 'application/json' }, true),
+    mkv.put(`${baseKey}/coords.json`, coordsBlob.stream(), { 'Content-Type': 'application/json' }, true),
+  ])
 
-  return result
+  // Clean up temp file (fire and forget)
+  import('fs/promises').then((fs) => fs.unlink(tmpPath)).catch(() => {})
+
+  if (!result) throw new Error(`Failed to parse qlog: ${key}`)
+
+  return { result, routeStartTime }
 }
 
 const processSegmentQcamera = async (dongleId: string, routeId: string, segment: number): Promise<void> => {
   const baseKey = `${dongleId}/${routeId}/${segment}`
 
   const res = await mkv.get(`${baseKey}/qcamera.ts`)
-  if (!res.ok || !res.body) return
+  if (!res.ok || !res.body) throw new Error(`File not found: ${baseKey}/qcamera.ts`)
+
+  const contentLength = res.headers.get('content-length')
+  if (contentLength === '0') throw new Error(`Empty file: ${baseKey}/qcamera.ts`)
 
   const sprite = await extractSprite(res.body)
   if (!sprite) return
@@ -88,13 +105,27 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
 
   // Process qlog - this creates the segment record and streams events/coords to storage
   if (filename === 'qlog.zst' || filename === 'qlog') {
-    const data = await processSegmentQlogStreaming(dongleId, routeId, segment)
+    const processed = await processSegmentQlogStreaming(dongleId, routeId, segment)
+    const data = processed?.result
+    const routeStartTime = processed?.routeStartTime
 
     // Upsert segment with data from streaming result
+    // Comma uses fixed 60-second segments (1200 frames at 20fps):
+    // - Segment 0: GPS time for start
+    // - Segment N: routeStartTime + (N * 60000ms) for start (ensures continuous segments)
+    // - Duration: 60s for full segments (>=1180 frames), actual frame duration for partial segments
+    const gpsStartTime = data?.firstGps?.UnixTimestampMillis ? Number(data.firstGps.UnixTimestampMillis) : null
+    const startTime = segment === 0 ? gpsStartTime : routeStartTime ? routeStartTime + segment * 60000 : gpsStartTime
+    // Full segment = 1200 frames (60s * 20fps), allow some tolerance
+    // If frameCount is 0 (truncated file with no camera frames), default to 60s
+    const frameCount = data?.frameCount || 0
+    const isFullSegment = frameCount >= 1180
+    const durationMs = isFullSegment || frameCount === 0 ? 60000 : (frameCount / 20) * 1000
+    const endTime = startTime ? startTime + durationMs : null
+
     const segmentData = {
-      start_time: data?.firstGps?.UnixTimestampMillis ? Number(data.firstGps.UnixTimestampMillis) : null,
-      end_time: data?.lastGps?.UnixTimestampMillis ? Number(data.lastGps.UnixTimestampMillis) : null,
-      mono_start_time: data?.monoStartTime ?? null,
+      start_time: startTime,
+      end_time: endTime,
       start_lat: data?.firstGps?.Latitude ?? null,
       start_lng: data?.firstGps?.Longitude ?? null,
       end_lat: data?.lastGps?.Latitude ?? null,
@@ -124,6 +155,10 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
 
   // Process qcamera to extract sprite
   if (filename === 'qcamera.ts') {
+    // Create route and segment if they don't exist (in case qlog wasn't uploaded)
+    await db.insert(routesTable).values({ dongle_id: dongleId, route_id: routeId }).onConflictDoNothing()
+    await db.insert(segmentsTable).values({ dongle_id: dongleId, route_id: routeId, segment }).onConflictDoNothing()
+
     await processSegmentQcamera(dongleId, routeId, segment)
   }
 
@@ -132,7 +167,10 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
   if (filename.endsWith('.hevc')) {
     const key = `${dongleId}/${routeId}/${segment}/${filename}`
     const res = await mkv.get(key)
-    if (!res.ok || !res.body) return
+    if (!res.ok || !res.body) throw new Error(`File not found: ${key}`)
+
+    const contentLength = res.headers.get('content-length')
+    if (contentLength === '0') throw new Error(`Empty file: ${key}`)
 
     const mp4Stream = await remuxHevcToMp4(res.body)
     await mkv.put(key, mp4Stream, { 'Content-Type': 'video/mp4' }, true)
