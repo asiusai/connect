@@ -4,10 +4,9 @@ import { getCoords, GPSPathPoint } from '../../utils/derived'
 import { useAsyncMemo } from '../../utils/hooks'
 import { MapContainer, TileLayer, Polyline, CircleMarker, useMap } from 'react-leaflet'
 import { getTileUrl } from '../../utils/map'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import L, { LatLngBounds } from 'leaflet'
 import { toSeconds } from '../../templates/shared'
-import { DateTime } from 'luxon'
 import { usePlayerStore } from '../../components/VideoPlayer'
 
 const FitBounds = ({ coords }: { coords: GPSPathPoint[] }) => {
@@ -20,62 +19,27 @@ const FitBounds = ({ coords }: { coords: GPSPathPoint[] }) => {
   return null
 }
 
-const CurrentPositionMarker = ({ route, coords }: { route: Route; coords: GPSPathPoint[] }) => {
+const CurrentPositionMarker = ({ coords }: { route: Route; coords: GPSPathPoint[] }) => {
   const markerRef = useRef<L.CircleMarker>(null)
-  const startTime = useMemo(() => (route.start_time ? DateTime.fromISO(route.start_time).toMillis() : 0), [route])
-  const playerRef = usePlayerStore((x) => x.playerRef)
-  const [isPlayerReady, setIsPlayerReady] = useState(false)
+  const frame = usePlayerStore((x) => x.frame)
 
   useEffect(() => {
-    if (!playerRef?.current) {
-      const interval = setInterval(() => {
-        if (playerRef?.current) {
-          clearInterval(interval)
-          setIsPlayerReady(true)
-        }
-      }, 100)
-      return () => clearInterval(interval)
-    } else {
-      setIsPlayerReady(true)
-    }
-  }, [])
+    if (!coords.length || !markerRef.current) return
 
-  useEffect(() => {
-    const player = playerRef?.current
-    if (!player || !startTime || !coords.length) return
+    // coords.t is relative seconds from route start, matching video time
+    const time = toSeconds(frame)
+    const idx = coords.findIndex((p) => p.t >= time)
 
-    const updatePosition = () => {
-      const frame = player.getCurrentFrame()
-      const relativeVideoTime = toSeconds(frame)
-      const time = relativeVideoTime
-
-      const idx = coords.findIndex((p) => p.t >= time)
-
-      let point = coords[coords.length - 1]
-      if (idx === 0) point = coords[0]
-      else if (idx > 0) {
-        const p1 = coords[idx - 1]
-        const p2 = coords[idx]
-        point = Math.abs(p1.t - time) < Math.abs(p2.t - time) ? p1 : p2
-      }
-
-      if (markerRef.current) {
-        markerRef.current.setLatLng([point.lat, point.lng])
-      }
+    let point = coords[coords.length - 1]
+    if (idx === 0) point = coords[0]
+    else if (idx > 0) {
+      const p1 = coords[idx - 1]
+      const p2 = coords[idx]
+      point = Math.abs(p1.t - time) < Math.abs(p2.t - time) ? p1 : p2
     }
 
-    let animationFrameId: number
-    const loop = () => {
-      updatePosition()
-      animationFrameId = requestAnimationFrame(loop)
-    }
-
-    loop()
-
-    return () => {
-      cancelAnimationFrame(animationFrameId)
-    }
-  }, [playerRef, startTime, coords, isPlayerReady])
+    markerRef.current.setLatLng([point.lat, point.lng])
+  }, [frame, coords])
 
   if (!coords.length) return null
   const start = coords[0]

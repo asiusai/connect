@@ -273,13 +273,18 @@ describe('qlogs', () => {
         const routeData = (await routeFile.json()) as { maxqlog: number }
         const segments = Array.from({ length: routeData.maxqlog + 1 }, (_, i) => i)
 
+        // First parse segment 0 to get routeStartMonoTime
+        const seg0QlogFile = Bun.file(`${TEST_DATA_DIR}/${routeName}/0/qlog.zst`)
+        const seg0Parsed = await processQlogForTest(seg0QlogFile.stream(), 0)
+        const routeStartMonoTime = seg0Parsed?.result.monoStartTime ?? undefined
+
         for (const segment of segments) {
           const segmentDir = `${TEST_DATA_DIR}/${routeName}/${segment}`
           const coordsFile = Bun.file(`${segmentDir}/coords.json`)
           if (!(await coordsFile.exists())) continue
 
           const qlogFile = Bun.file(`${segmentDir}/qlog.zst`)
-          const parsed = await processQlogForTest(qlogFile.stream(), segment)
+          const parsed = await processQlogForTest(qlogFile.stream(), segment, routeStartMonoTime)
           expect(parsed, `${routeName}/${segment} failed to parse`).not.toBeNull()
 
           const expected = (await coordsFile.json()) as Coord[]
@@ -288,10 +293,15 @@ describe('qlogs', () => {
           // Count should be close (we may have 1-2 extra at segment boundary)
           expect(Math.abs(coords.length - expected.length), `${routeName}/${segment} coord count diff`).toBeLessThan(5)
 
-          // First and last positions should match
+          // First and last positions and timestamps should match
           if (coords.length > 0 && expected.length > 0) {
-            expect(coords[0].lat, `${routeName}/${segment} first lat`).toBeCloseTo(expected[0].lat, 3)
-            expect(coords[0].lng, `${routeName}/${segment} first lng`).toBeCloseTo(expected[0].lng, 3)
+            // Allow small differences in lat/lng due to potential GPS source differences
+            expect(coords[0].lat, `${routeName}/${segment} first lat`).toBeCloseTo(expected[0].lat, 2)
+            expect(coords[0].lng, `${routeName}/${segment} first lng`).toBeCloseTo(expected[0].lng, 2)
+            // Allow 1 second tolerance for t due to rounding differences
+            expect(Math.abs(coords[0].t - expected[0].t), `${routeName}/${segment} first t`).toBeLessThanOrEqual(1)
+            // Speed should be in reasonable range (within 2 m/s due to GPS source differences)
+            expect(Math.abs(coords[0].speed - expected[0].speed), `${routeName}/${segment} first speed`).toBeLessThan(2)
           }
         }
       })

@@ -75,7 +75,7 @@ export type StreamingQlogResult = {
   totalDistance: number
   eventCount: number
   coordCount: number
-  monoStartTime: string | null // first log monotonic time in ns (for route_offset_millis calculation)
+  monoStartTime: string | null // first log monotonic time in ns (for route_offset_millis and coords t calculation)
 }
 
 // JSON array streaming writer - writes items as they come, producing valid JSON array
@@ -106,7 +106,7 @@ class JsonArrayWriter {
 
 // Streaming version - writes events and coords to provided streams as they are parsed
 // This significantly reduces memory usage for large qlogs
-// routeStartMonoTime: The first monotonic time from segment 0 (used to calculate route_offset_millis for non-zero segments)
+// routeStartMonoTime: The first monotonic time from segment 0 (used to calculate route_offset_millis and coords t)
 export const processQlogStreaming = async (
   inputStream: ReadableStream<Uint8Array>,
   segment: number,
@@ -205,18 +205,20 @@ export const processQlogStreaming = async (
       // Stream coords directly - this is the main memory savings
       if ('GpsLocationExternal' in event || 'GpsLocation' in event) {
         const gps = (event.GpsLocationExternal || event.GpsLocation) as GpsLocation
-        if (gps.HasFix && gps.Latitude && gps.Longitude && gps.UnixTimestampMillis) {
+        if (gps.HasFix && gps.Latitude && gps.Longitude) {
           if (!firstGps) firstGps = gps
           lastGps = gps
 
-          const t = Math.floor(Number(gps.UnixTimestampMillis) / 1000)
+          // Calculate t as seconds from route start using monotonic time
+          const routeRefMono = routeStartMono ?? routeStartTimeFromQlog
+          const t = routeRefMono ? Math.round((logMonoTime - routeRefMono) / 1e9) : 0
           const lat = gps.Latitude
           const lng = gps.Longitude
           const speed = gps.Speed || 0
 
           if (lastCoord) {
             const dt = t - lastCoord.t
-            totalDist += (speed * dt) / 1000
+            if (dt > 0) totalDist += (speed * dt) / 1000
           }
 
           const coord: Coord = { t, lat, lng, speed, dist: Math.round(totalDist * 1e6) / 1e6 }
