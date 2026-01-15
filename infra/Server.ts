@@ -49,6 +49,7 @@ export class Server extends pulumi.ComponentResource {
   public readonly ipv4: pulumi.Output<string>
   public readonly ipv6: pulumi.Output<string>
   public readonly domain?: string
+  public readonly services?: string[]
 
   constructor(name: string, args: ServerArgs, opts?: pulumi.ComponentResourceOptions) {
     super('asius:hetzner:Server', name, {}, opts)
@@ -73,8 +74,10 @@ export class Server extends pulumi.ComponentResource {
       { parent: this },
     )
 
+    this.domain = args.domain?.name
     this.ipv4 = server.ipv4Address
     this.ipv6 = server.ipv6Address
+    this.services = args.services.map((x) => x.name)
 
     if (args.domain) {
       new cloudflare.DnsRecord(
