@@ -14,6 +14,10 @@ const CX = WIDTH / 2
 const CY = HEIGHT / 1.85
 const CAM_HEIGHT = 1.1
 
+type LogData = {
+  frames: Record<number, FrameData>
+}
+
 export const OpenpilotUI = ({
   url,
   routeName,
@@ -28,55 +32,89 @@ export const OpenpilotUI = ({
   unitFormat?: UnitFormat
 }) => {
   const _frame = useCurrentFrame()
-  const [frames, setFrames] = useState<Record<string, FrameData> | undefined>()
+  const [logData, setLogData] = useState<LogData>()
   const logType: LogType = url.includes('qlog') ? 'qlogs' : 'logs'
   const { continueRender, delayRender, cancelRender } = useDelayRender()
 
   useAsyncEffect(async () => {
     const handle = delayRender('Logs')
+    setLogData(undefined)
     const db = await DB.init('logs')
-    const workers: Worker[] = []
 
-    const cacheKey = `${routeName}--${i}--${logType}`
+    const cacheKey = `${routeName}--${i}--${logType}--v3`
     const cached = await db.get<string>(cacheKey)
 
     if (cached) {
       continueRender(handle)
-      return setFrames((prev) => ({ ...prev, ...JSON.parse(cached) }))
+      return setLogData(JSON.parse(cached))
     }
 
     const Worker = await import('../log-reader/worker?worker').then((x) => x.default)
     const worker = new Worker()
-    workers.push(worker)
 
     worker.onmessage = async ({ data }) => {
       if (data.error) {
         cancelRender(data.error)
         console.error('Worker error:', data.error)
+        worker.terminate()
+        return
       }
 
-      if (data.frames) {
-        setFrames((prev) => ({ ...prev, ...data.frames }))
-        await db.set(cacheKey, JSON.stringify(data.frames))
-        continueRender(handle)
-      }
-
+      const result: LogData = { frames: data.frames }
+      setLogData(result)
+      await db.set(cacheKey, JSON.stringify(result))
+      continueRender(handle)
       worker.terminate()
     }
 
     worker.postMessage({ url, logType })
   }, [url, routeName])
 
-  // Finding the latest frame data, max 2s old
-  const currentFrame = i * 60 * FPS + _frame
-  let frame: FrameData | undefined
-  for (let i = 0; i < FPS * 2; i++) {
-    const res = frames?.[currentFrame - i]
-    if (res) {
-      frame = res
-      break
+  // Pre-compute sorted time offsets for binary search
+  const sortedTimeOffsets = useMemo(() => {
+    if (!logData?.frames) return []
+    return Object.keys(logData.frames)
+      .map(Number)
+      .sort((a, b) => a - b)
+  }, [logData])
+
+  // Convert Remotion frame to milliseconds from video start
+  // _frame is 0-indexed within this segment, FPS is 20
+  const targetTimeMs = Math.floor((_frame * 1000) / FPS)
+
+  // Binary search for the largest time offset <= targetTimeMs
+  const frame = useMemo(() => {
+    if (sortedTimeOffsets.length === 0 || !logData?.frames) return undefined
+
+    // Binary search for the rightmost offset <= targetTimeMs
+    let left = 0
+    let right = sortedTimeOffsets.length - 1
+    let result = -1
+
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2)
+      if (sortedTimeOffsets[mid] <= targetTimeMs) {
+        result = mid
+        left = mid + 1
+      } else {
+        right = mid - 1
+      }
     }
-  }
+
+    // No frame before target time
+    if (result === -1) {
+      // For segments after the first, use first available frame to avoid flicker
+      // For segment 0, return undefined (model is still warming up)
+      return i > 0 ? logData.frames[sortedTimeOffsets[0]] : undefined
+    }
+
+    // Check if frame is within 2s of target
+    const frameTimeMs = sortedTimeOffsets[result]
+    if (targetTimeMs - frameTimeMs > 2000) return undefined
+
+    return logData.frames[frameTimeMs]
+  }, [sortedTimeOffsets, targetTimeMs, logData])
+
   if (!frame) return null
 
   const speedMultiplier = 2.23694 * (unitFormat === 'imperial' ? 1 : MI_TO_KM)
