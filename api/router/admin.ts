@@ -423,6 +423,15 @@ export const admin = tsr.router(contract.admin, {
 
     return { status: 200, body: { success: true } }
   }),
+  updateFileStatus: superuserMiddleware(async ({ params, body }) => {
+    const key = decodeURIComponent(params.key)
+    const file = db.select().from(filesTable).where(eq(filesTable.key, key)).get()
+    if (!file) return { status: 404, body: { error: 'File not found' } }
+
+    db.update(filesTable).set({ processingStatus: body.status, processingError: null, retries: 0 }).where(eq(filesTable.key, key)).run()
+
+    return { status: 200, body: { success: true } }
+  }),
   deleteDevice: superuserMiddleware(async ({ params }) => {
     const device = db.select().from(devicesTable).where(eq(devicesTable.dongle_id, params.dongleId)).get()
     if (!device) return { status: 404, body: { error: 'Device not found' } }

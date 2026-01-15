@@ -7,7 +7,7 @@ import { env } from '../env'
 declare const self: Worker
 
 const MAX_RETRIES = 3
-const PROCESSING_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
+const PROCESSING_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes
 
 const claimAndProcess = async (): Promise<boolean> => {
   // Find a queued file and atomically claim it

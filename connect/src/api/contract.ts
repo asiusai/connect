@@ -602,6 +602,19 @@ const admin = c.router({
       200: z.object({ success: z.boolean() }),
     },
   },
+  updateFileStatus: {
+    method: 'PATCH',
+    path: '/admin/files/:key',
+    pathParams: z.object({
+      key: z.string(),
+    }),
+    body: z.object({
+      status: z.enum(['queued', 'processing', 'done', 'error']),
+    }),
+    responses: {
+      200: z.object({ success: z.boolean() }),
+    },
+  },
   deleteDevice: {
     method: 'DELETE',
     path: '/admin/devices/:dongleId',
