@@ -401,9 +401,9 @@ apt-get update && apt-get install -y \
   libzmq3-dev libsystemd-dev \
   libyaml-dev jq \
   portaudio19-dev libsndfile1-dev \
-  libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libavresample-dev libavfilter-dev \
+  libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libswresample-dev libavfilter-dev \
   libegl1-mesa-dev libgles2-mesa-dev \
-  libusb-1.0-0-dev libspidev-dev
+  libusb-1.0-0-dev
 
 # Create runner user
 useradd -m -s /bin/bash runner || true
