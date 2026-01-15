@@ -1,0 +1,52 @@
+{
+    "car_id": 986,
+    "create_time": 1768472119,
+    "distance": 0.992974,
+    "dongle_id": "9748a98e983e0b39",
+    "end_lat": 58.3561,
+    "end_lng": 26.742,
+    "end_time": "2026-01-15T05:30:09",
+    "end_time_utc_millis": 1768455009000,
+    "fullname": "9748a98e983e0b39|0000006b--d72540bad7",
+    "git_branch": "tesla",
+    "git_commit": "133281bc54e1ec92ef11c8717af220e6117d928f",
+    "git_commit_date": "2026-01-07T17:54:09",
+    "git_dirty": false,
+    "git_remote": "github.com/asiusai/sunnypilot",
+    "id": 986,
+    "is_preserved": true,
+    "is_public": false,
+    "make": "tesla",
+    "maxqlog": 3,
+    "platform": "TESLA_MODEL_3",
+    "procqlog": 3,
+    "segment_end_times": [
+        1768454853000,
+        1768454913000,
+        1768454973000,
+        1768455009000
+    ],
+    "segment_numbers": [
+        0,
+        1,
+        2,
+        3
+    ],
+    "segment_start_times": [
+        1768454793000,
+        1768454853000,
+        1768454913000,
+        1768454973000
+    ],
+    "share_exp": "1768559771",
+    "share_sig": "GxgnadF1qTaQxE0Vm2PiJqoRbMX1s9vPOVnz9RwU5ZE=",
+    "start_lat": 58.3681,
+    "start_lng": 26.7419,
+    "start_time": "2026-01-15T05:26:33",
+    "start_time_utc_millis": 1768454793000,
+    "url": "https://chffrprivate.blob.core.windows.net/chffrprivate3/v2/9748a98e983e0b39/3be88c9e05de68f08979863eaa9ebea6_0000006b--d72540bad7",
+    "user_id": "83cf427d3508cbfd",
+    "version": "2025.003.000",
+    "version_id": 251602,
+    "vin": "00000000000000000"
+}
