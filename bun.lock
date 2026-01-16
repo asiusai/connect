@@ -10,15 +10,13 @@
         "jsonwebtoken": "^9.0.3",
         "playwright": "^1.57.0",
         "ssh2": "^1.17.0",
+        "typescript": "5.9.3",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.3.11",
         "@types/bun": "latest",
         "concurrently": "^9.2.1",
         "lefthook": "^2.0.14",
-      },
-      "peerDependencies": {
-        "typescript": "^5",
       },
     },
     "api": {
@@ -97,7 +95,6 @@
         "playwright": "^1.51.1",
         "postcss": "^8.5.3",
         "tailwindcss": "^3.4.17",
-        "typescript": "^5.8.3",
         "vite": "^6.2.6",
         "vite-plugin-pwa": "^0.21.2",
         "vitest": "^3.1.1",
