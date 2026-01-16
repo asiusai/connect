@@ -37,10 +37,7 @@ export const Component = () => {
   }, [dongleId, lastDongleId, setLastDongleId])
 
   useEffect(() => {
-    if (!error) {
-      errorCount.current = 0
-      return
-    }
+    if (!error) return
 
     errorCount.current++
     if (errorCount.current >= 2) signOut()
