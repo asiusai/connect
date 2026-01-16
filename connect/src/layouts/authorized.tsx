@@ -5,7 +5,7 @@ import { useRouteParams } from '../utils/hooks'
 import { isSignedIn, signOut } from '../utils/helpers'
 import { Sidebar } from '../components/Sidebar'
 import { useStorage } from '../utils/storage'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 const RedirectFromHome = () => {
   const [devices] = api.devices.devices.useQuery({})
@@ -27,15 +27,25 @@ const RedirectFromHome = () => {
 
 export const Component = () => {
   const location = useLocation()
-  const [_, { error }] = api.auth.me.useQuery({ enabled: isSignedIn() })
+  const [_, { error, refetch }] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const { dongleId } = useRouteParams()
   const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
+  const errorCount = useRef(0)
 
   useEffect(() => {
     if (dongleId && dongleId !== lastDongleId) setLastDongleId(dongleId)
   }, [dongleId, lastDongleId, setLastDongleId])
 
-  if (error) signOut()
+  useEffect(() => {
+    if (!error) {
+      errorCount.current = 0
+      return
+    }
+
+    errorCount.current++
+    if (errorCount.current >= 2) signOut()
+    else refetch()
+  }, [error, refetch])
 
   if (!isSignedIn()) return <Navigate to="/login" />
 

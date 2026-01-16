@@ -42,6 +42,7 @@ type MutationOutput<T extends AppRoute> = {
 // Cache
 type CacheEntry = { data: unknown; error?: string; loading: boolean; timestamp: number }
 const cache = new Map<string, CacheEntry>()
+const inflight = new Map<string, Promise<void>>()
 const listeners = new Set<() => void>()
 const notify = () => listeners.forEach((l) => l())
 const defaultEntry: CacheEntry = { data: undefined, error: undefined, loading: false, timestamp: 0 }
@@ -106,17 +107,24 @@ const createUseQuery = <T extends AppRoute>(routePath: string, fetcher: (args: R
 
     const fetchData = useCallback(async () => {
       if (!enabled) return
+      if (inflight.has(key)) return inflight.get(key)
       setCache(key, { loading: true, error: undefined })
-      try {
-        const res = await fetcher(args as Req<T>)
-        if (res.status >= 400) throw new Error(typeof res.body === 'string' ? res.body : `Request failed: ${res.status}`)
-        setCache(key, { data: res.body, loading: false, timestamp: Date.now() })
-        onSuccess?.(res.body)
-      } catch (e) {
-        const error = e instanceof Error ? e.message : 'Unknown error'
-        setCache(key, { error, loading: false })
-        onError?.(error)
-      }
+      const promise = (async () => {
+        try {
+          const res = await fetcher(args as Req<T>)
+          if (res.status >= 400) throw new Error(typeof res.body === 'string' ? res.body : `Request failed: ${res.status}`)
+          setCache(key, { data: res.body, loading: false, timestamp: Date.now() })
+          onSuccess?.(res.body)
+        } catch (e) {
+          const error = e instanceof Error ? e.message : 'Unknown error'
+          setCache(key, { error, loading: false })
+          onError?.(error)
+        } finally {
+          inflight.delete(key)
+        }
+      })()
+      inflight.set(key, promise)
+      return promise
     }, [key, enabled])
 
     useEffect(() => {
