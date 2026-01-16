@@ -54,7 +54,8 @@ export const device = tsr.routerWithMiddleware(contract.device)<{ userId?: strin
   crashlogs: deviceMiddleware(async (_, { device, origin }) => {
     return { status: 200, body: await getLogUrls(device.dongle_id, 'crash', origin) }
   }),
-  location: deviceMiddleware(async (_, { device }) => {
+  location: deviceMiddleware(async (_, { device, permission }) => {
+    if (permission !== 'owner') throw new ForbiddenError('You have to be owner!')
     // Get the most recent segment for location
     const lastSegment = await db.query.segmentsTable.findFirst({
       where: eq(segmentsTable.dongle_id, device.dongle_id),
