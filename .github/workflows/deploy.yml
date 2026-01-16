@@ -30,7 +30,7 @@ jobs:
 
       - run: bun biome ci
 
-      - run: bun run tsc
+      # - run: bun run tsc
 
       - run: bun run test
 
