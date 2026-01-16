@@ -40,7 +40,7 @@ export const Button = ({ color, leading, trailing, className, children, disabled
         <span className={clsx('text-sm', isLoading && 'invisible')}>{children}</span>
         {isLoading && (
           <span className="absolute inset-0 flex justify-center items-center">
-            <CircularProgress loading={loading} size="20" />
+            <CircularProgress loading={loading} className="h-5 w-5" />
           </span>
         )}
       </span>

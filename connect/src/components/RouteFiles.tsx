@@ -1,10 +1,10 @@
 import { FileType, Route, SegmentFiles } from '../types'
 import { useState } from 'react'
-import { concatBins, getQCameraUrl, FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../utils/helpers'
+import { FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../utils/helpers'
 import { api } from '../api'
 import { callAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
-import { downloadFile, hevcToMp4 } from '../utils/ffmpeg'
+import { downloadFile, hevcToMp4, hevcBinsToMp4, tsFilesToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
 import { useIsDeviceOwner, useRouteParams, useUploadProgress } from '../utils/hooks'
 import { Icon } from './Icon'
@@ -12,6 +12,8 @@ import { ButtonBase } from './ButtonBase'
 import { FPS } from '../templates/shared'
 import { IconButton } from './IconButton'
 import { usePlayerStore } from './VideoPlayer'
+import { CircularProgress } from './CircularProgress'
+import { env } from '../utils/env'
 
 type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 
@@ -25,7 +27,7 @@ const FileAction = ({
   href,
   download,
   loading,
-  uploadButton,
+  isUpload,
   disabled,
 }: {
   icon: string
@@ -34,7 +36,7 @@ const FileAction = ({
   href?: string
   download?: string
   loading?: number | boolean
-  uploadButton?: boolean
+  isUpload?: boolean
   disabled?: boolean
 }) => {
   return (
@@ -45,13 +47,11 @@ const FileAction = ({
       disabled={disabled || !!loading}
       className={clsx(
         'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium disabled:opacity-50',
-        uploadButton ? 'bg-white text-black hover:bg-white/90' : 'bg-white/5 hover:bg-white/10 text-white',
+        isUpload ? 'bg-white text-black hover:bg-white/90' : 'bg-white/5 hover:bg-white/10 text-white',
       )}
     >
-      {loading ? (
-        <div
-          className={clsx('w-4 h-4 border-2 rounded-full animate-spin', uploadButton ? 'border-black/20 border-t-black' : 'border-white/20 border-t-white')}
-        />
+      {loading !== undefined ? (
+        <CircularProgress loading={loading} className={clsx('w-[14px] h-[14px] rounded-full ', isUpload ? 'text-black' : 'text-white')} />
       ) : (
         <Icon name={icon as any} className="text-[16px]" />
       )}
@@ -90,7 +90,7 @@ const Upload = ({
     <FileAction
       label={isCurrentlyUploading && avgProgress !== undefined ? `${Math.round(avgProgress * 100)}%` : 'Upload'}
       icon={isCurrentlyUploading ? 'cloud_upload' : 'upload'}
-      uploadButton
+      isUpload
       loading={isLoading || isCurrentlyUploading}
       disabled={!isOwner}
       onClick={async () => {
@@ -130,18 +130,6 @@ const Upload = ({
   )
 }
 
-const QCameraDownload = () => {
-  const { routeName } = useRouteParams()
-  const [signature] = api.route.shareSignature.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
-  return (
-    <FileAction
-      label={FILE_INFO.qcameras.processed!}
-      icon="movie"
-      download={`${routeName}--${FILE_INFO.qcameras.name}`}
-      href={signature ? getQCameraUrl(routeName, signature) : undefined}
-    />
-  )
-}
 const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFiles }) => {
   const { dongleId, date, routeName } = useRouteParams()
   const [progress, setProgress] = useState<Record<number, number>>({})
@@ -153,7 +141,21 @@ const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFile
   if (type === 'logs' || type === 'qlogs')
     return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}`} />
 
-  if (type === 'qcameras') return <QCameraDownload />
+  if (type === 'qcameras')
+    return (
+      <FileAction
+        label={FILE_INFO.qcameras.processed || 'Download'}
+        icon="movie"
+        loading={loading}
+        onClick={async () => {
+          setProgress({})
+
+          const blob = await tsFilesToMp4(files[type], (loaded, total) => setProgress({ 0: loaded / total }))
+          saveFile(blob, `${routeName}--${FILE_INFO[type].name.replace('.ts', '.mp4')}`)
+          setProgress({ 0: 1 })
+        }}
+      />
+    )
 
   return (
     <FileAction
@@ -164,9 +166,9 @@ const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFile
         setProgress({})
 
         const bins = await Promise.all(files[type].map((file, i) => downloadFile(file!, ({ percent }) => setProgress((old) => ({ ...old, [i]: percent })))))
-        const bin = concatBins(bins)
-        const blob = await hevcToMp4(bin, () => {})
+        const blob = await hevcBinsToMp4(bins)
         saveFile(blob, `${routeName}--${FILE_INFO[type].name.replace('.hevc', '.mp4')}`)
+        setProgress(Object.fromEntries(bins.map((_, i) => [i, 1])))
       }}
     />
   )
@@ -176,7 +178,10 @@ const DownloadSegment = ({ type, files, segment }: { segment: number; type: File
   const { routeName } = useRouteParams()
   const file = files[type][segment]
   if (!file) return null
-  return <FileAction label={FILE_INFO[type].raw} icon="raw_on" href={file} download={`${routeName}--${segment}--${FILE_INFO[type].name}`} />
+  const name = `${routeName}--${segment}--${FILE_INFO[type].name}`
+  if (env.IS_OURS && ['cameras', 'ecameras', 'dcameras'].includes(type))
+    return <FileAction label={FILE_INFO[type].processed || 'Process'} icon="movie" download={name.replace('.hevc', '.mp4')} href={file} />
+  return <FileAction label={FILE_INFO[type].raw} icon="raw_on" href={file} download={name} />
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
@@ -186,10 +191,27 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
 
   if (!file) return null
 
-  if (type === 'qcameras') return null
-
   if (type === 'logs' || type === 'qlogs')
     return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}?segment=${segment}`} />
+
+  if (type === 'qcameras')
+    return (
+      <FileAction
+        label={FILE_INFO[type].processed || 'Process'}
+        icon="movie"
+        loading={progress}
+        onClick={async () => {
+          setProgress(0)
+
+          const blob = await tsFilesToMp4([file], (loaded, total) => setProgress(loaded / total))
+          saveFile(blob, `${routeName}--${segment}--${FILE_INFO[type].name.replace('.hevc', '.mp4')}`)
+          setProgress(1)
+        }}
+      />
+    )
+
+  // Asius API returns already mp4 for videos
+  if (env.IS_OURS) return null
 
   return (
     <FileAction
@@ -201,6 +223,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
 
         const blob = await hevcToMp4(file, ({ percent }) => setProgress(percent))
         saveFile(blob, `${routeName}--${segment}--${FILE_INFO[type].name.replace('.hevc', '.mp4')}`)
+        setProgress(1)
       }}
     />
   )

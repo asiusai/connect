@@ -74,8 +74,8 @@ export const dataHandler = async (req: Request, identity?: Identity): Promise<Re
     const headers: HeadersInit = {}
     const range = req.headers.get('Range')
     if (range) headers.Range = range
-    const res = req.method === 'GET' ? await mkv.get(key, headers) : await mkv.head(key, headers)
-    return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
+    const res = await mkv.get(key, headers)
+    return new Response(req.method === 'GET' ? res.body : null, { status: res.status, headers: addCors(new Headers(res.headers)) })
   }
 
   // PUT: upload file

@@ -19,7 +19,7 @@ export const mkv = {
   },
 
   head: async (key: string, headers?: HeadersInit): Promise<Response> => {
-    return fetch(mkvUrl(key), { method: 'HEAD', headers })
+    return fetch(mkvUrl(key), { method: 'HEAD', headers, redirect: 'follow' })
   },
 
   put: async (key: string, body: ReadableStream<Uint8Array> | null, headers?: HeadersInit, overwrite = false): Promise<Response> => {

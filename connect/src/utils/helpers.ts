@@ -77,7 +77,7 @@ export const FILE_INFO: Record<FileType, { name: FileName; raw: string; processe
     short: 'Quantized',
     name: 'qcamera.ts',
     raw: '.ts',
-    processed: '.m3u8',
+    processed: '.mp4',
   },
   logs: {
     label: 'Logs',
