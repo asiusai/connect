@@ -73,7 +73,6 @@ const Upload = ({
   segment: number
   uploadProgress: UploadProgressInfo
 }) => {
-  const [isLoading, setIsLoading] = useState(false)
   const isOwner = useIsDeviceOwner()
   const athena = useAthena()
   const disabled = segment === -1 ? files[type].every(Boolean) : !!files[type][segment]
@@ -92,10 +91,9 @@ const Upload = ({
       label={isCurrentlyUploading && avgProgress !== undefined ? `${Math.round(avgProgress * 100)}%` : 'Upload'}
       icon={isCurrentlyUploading ? 'cloud_upload' : 'upload'}
       isUpload
-      loading={isLoading || isCurrentlyUploading}
+      loading={avgProgress}
       disabled={!isOwner}
       onClick={async () => {
-        setIsLoading(true)
         const { dongleId, routeId } = parseRouteName(route.fullname)
 
         // Generating all the missing ones
@@ -122,7 +120,6 @@ const Upload = ({
           },
           Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
         )
-        setIsLoading(false)
         // Trigger a refetch of the upload queue
         uploadProgress.refetch()
       }}
