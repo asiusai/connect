@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouteParams } from '../../utils/hooks'
 import { Icon } from '../../components/Icon'
 import { TopAppBar } from '../../components/TopAppBar'
@@ -15,20 +15,11 @@ export const Component = () => {
   const [usingCorrectFork] = useStorage('usingCorrectFork')
 
   // Load device params to check if WebRTC is enabled
-  const { load, get, isError, isLoading } = useDeviceParams()
+  const { get, isError, isLoading } = useDeviceParams()
 
-  useEffect(() => {
-    if (usingCorrectFork && dongleId) load(dongleId)
-  }, [dongleId, usingCorrectFork, load])
-
-  // Determine live mode:
-  // - undefined (loading): usingCorrectFork && params still loading
-  // - true: usingCorrectFork && EnableWebRTC === '1'
-  // - false: !usingCorrectFork || params error || EnableWebRTC !== '1'
   const webrtcEnabled =
     usingCorrectFork === undefined ? null : usingCorrectFork && isLoading ? null : usingCorrectFork && !isError && get('EnableWebRTC') === '1'
 
-  // Live state - lifted up to prevent unmounting
   const [reconnecting, setReconnecting] = useState(false)
   const setupRTCConnectionRef = useRef<(() => Promise<void>) | null>(null)
 

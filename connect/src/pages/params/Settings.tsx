@@ -76,7 +76,7 @@ const SettingInput = ({
 }
 
 export const Settings = ({ settings }: { settings: Setting[] }) => {
-  const { changes, setChanges, get } = useDeviceParams()
+  const { changes, set, get } = useDeviceParams()
   const editable = settings.filter((x) => !x.readonly)
   const readonly = settings.filter((x) => x.readonly)
 
@@ -124,7 +124,7 @@ export const Settings = ({ settings }: { settings: Setting[] }) => {
                     disabled={readonly}
                     setting={x}
                     value={get(x.key as DeviceParamKey) ?? null}
-                    onChange={(v) => setChanges({ ...changes, [x.key]: v })}
+                    onChange={(v) => set({ changes: { ...changes, [x.key]: v } })}
                   />
                 </div>
               )

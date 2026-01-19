@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom'
 import { useFiles } from '../api/queries'
 import { api } from '../api'
 import { IconButton } from './IconButton'
-import { getRouteUrl, saveFile } from '../utils/helpers'
+import { getRouteUrl, saveFile, ZustandType } from '../utils/helpers'
 import { Icon } from './Icon'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useStorage } from '../utils/storage'
@@ -32,12 +32,8 @@ const initial = {
   renderState: { status: 'idle' } as RenderState,
   renderAbortController: null as AbortController | null,
 }
-type PlayerState = typeof initial
-type PlayerStore = PlayerState & {
-  set: (partial: Partial<PlayerState> | ((state: PlayerState) => Partial<PlayerState>)) => void
-}
 
-export const usePlayerStore = create<PlayerStore>((set) => ({ ...initial, set }))
+export const usePlayerStore = create<ZustandType<typeof initial>>((set) => ({ ...initial, set }))
 
 const RenderButton = () => {
   const { props, selection, duration, renderState, renderAbortController, set } = usePlayerStore()

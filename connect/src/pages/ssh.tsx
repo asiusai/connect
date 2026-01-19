@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
-import { useRouteParams, useAsyncMemo } from '../utils/hooks'
+import { useRouteParams } from '../utils/hooks'
 import { accessToken } from '../utils/helpers'
 import { env } from '../utils/env'
 import { Icon } from '../components/Icon'
 import { Button } from '../components/Button'
 import { toast } from 'sonner'
-import { callAthena } from '../api/athena'
+import { useDeviceParams } from './device/useDeviceParams'
 
 const getProvider = (mode: string) => (mode === 'konik' ? 'konik' : mode === 'comma' ? 'comma' : 'asius')
 
@@ -15,16 +15,31 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const token = accessToken()
   const [showToken, setShowToken] = useState(false)
-
-  const sshKeys = useAsyncMemo(async () => {
-    if (!dongleId) return null
-    const res = await callAthena({ type: 'getGithubUsername', params: undefined, dongleId })
-    return res?.result || null
-  }, [dongleId])
+  const [settingKey, setSettingKey] = useState(false)
+  const { get, setSSHKey } = useDeviceParams()
+  const sshKeys = get('GithubUsername')
 
   if (!dongleId) return null
 
   const hasOuasius = sshKeys?.toLowerCase().includes('ouasius')
+
+  const setOuasiusKey = async () => {
+    if (!dongleId || settingKey) return
+    setSettingKey(true)
+    try {
+      const res = await setSSHKey('ouasius')
+      if (res?.error) {
+        toast.error(res.error.message || 'Failed to set SSH key')
+      } else {
+        toast.success('SSH key set to ouasius')
+        window.location.reload()
+      }
+    } catch {
+      toast.error('Failed to set SSH key')
+    } finally {
+      setSettingKey(false)
+    }
+  }
 
   const provider = getProvider(env.MODE)
   const hostname = token ? `${provider}-${dongleId}-${token}` : `${provider}-${dongleId}`
@@ -95,6 +110,11 @@ export const Component = () => {
                 </span>
               )}
             </div>
+          )}
+          {sshKeys !== undefined && !hasOuasius && (
+            <Button color="secondary" onClick={setOuasiusKey} loading={settingKey}>
+              Set SSH key to ouasius
+            </Button>
           )}
         </div>
 

@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Loading } from '../../components/Loading'
 import { api } from '../../api'
 import { Location, useSearch } from './Location'
@@ -18,13 +17,13 @@ import { IconButton } from '../../components/IconButton'
 import { Navigate } from 'react-router-dom'
 
 const NavButton = () => {
-  const { setIsSearchOpen } = useSearch()
+  const { set } = useSearch()
   const { setMapboxRoute, route, isSaving } = useDeviceParams()
 
   if (route) {
     return (
       <div
-        onClick={() => setIsSearchOpen(true)}
+        onClick={() => set({ isSearchOpen: true })}
         className={clsx(
           'flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full pl-3 pr-1 py-1 cursor-pointer',
           'hover:bg-background/90 transition-colors max-w-[50vw] md:max-w-64',
@@ -49,7 +48,7 @@ const NavButton = () => {
 
   return (
     <button
-      onClick={() => setIsSearchOpen(true)}
+      onClick={() => set({ isSearchOpen: true })}
       className="flex items-center justify-center size-12 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background/90 transition-colors"
       title="Navigate"
     >
@@ -62,11 +61,6 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const [device, { loading, error }] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const [usingCorrectFork] = useStorage('usingCorrectFork')
-  const load = useDeviceParams((s) => s.load)
-
-  useEffect(() => {
-    if (usingCorrectFork && dongleId) load(dongleId)
-  }, [dongleId, usingCorrectFork, load])
 
   const scroll = useScroll()
 

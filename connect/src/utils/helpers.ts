@@ -2,6 +2,8 @@ import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSig
 import { env } from './env'
 import { storage } from './storage'
 
+export type ZustandType<T> = T & { set: (partial: Partial<T> | ((state: T) => Partial<T>)) => void }
+
 export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${route.url?.replace('https://api.konik.ai', env.API_URL)}/${segment}/${fn}`
 
 export const parseRouteName = (routeName: string): RouteInfo => {

@@ -67,11 +67,11 @@ const AddressAutocomplete = ({
 }
 
 export const Navigation = ({ settings }: { settings: Setting[] }) => {
-  const { changes, setChanges, setMapboxRoute, get, favorites, route } = useDeviceParams()
+  const { changes, set, setMapboxRoute, get, favorites, route } = useDeviceParams()
   const [newFavName, setNewFavName] = useState('')
   const [newFavAddress, setNewFavAddress] = useState('')
 
-  const updateFavorites = (updated: Record<string, string>) => setChanges({ ...changes, MapboxFavorites: JSON.stringify(updated) })
+  const updateFavorites = (updated: Record<string, string>) => set({ changes: { ...changes, MapboxFavorites: JSON.stringify(updated) } })
 
   const handleNavigate = async (address: string) => (address ? await setMapboxRoute(address) : undefined)
 
@@ -99,7 +99,7 @@ export const Navigation = ({ settings }: { settings: Setting[] }) => {
             <input
               type="text"
               value={get('MapboxToken') ?? ''}
-              onChange={(e) => setChanges({ ...changes, MapboxToken: e.target.value })}
+              onChange={(e) => set({ changes: { ...changes, MapboxToken: e.target.value } })}
               placeholder="pk.eyJ1..."
               className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 font-mono"
             />
@@ -110,7 +110,7 @@ export const Navigation = ({ settings }: { settings: Setting[] }) => {
             <label className="text-xs uppercase tracking-wider opacity-60">Current Route</label>
             <AddressAutocomplete
               value={get('MapboxRoute') ?? ''}
-              onChange={(v) => setChanges({ ...changes, MapboxRoute: v })}
+              onChange={(v) => set({ changes: { ...changes, MapboxRoute: v } })}
               placeholder="Enter destination..."
             />
           </div>

@@ -4,6 +4,7 @@ import { Select } from '../../components/Select'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { parse } from '../../utils/helpers'
+import { useRouteParams } from '../../utils/hooks'
 
 type ModelBundle = { index: number; display_name: string; environment: string; runner?: string; generation: number }
 
@@ -18,7 +19,8 @@ const parsePythonDict = <T,>(v: string | null | undefined): T | undefined => {
 }
 
 export const Models = () => {
-  const { dongleId, save, get, isSaving } = useDeviceParams()
+  const { dongleId } = useRouteParams()
+  const { save, get, isSaving } = useDeviceParams()
   const [selectedIndex, setSelectedIndex] = useState('')
 
   const modelsCache = parsePythonDict<{ bundles: ModelBundle[] }>(get('ModelManager_ModelsCache'))

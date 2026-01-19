@@ -5,7 +5,7 @@ import { useDeviceParams } from '../device/useDeviceParams'
 import { Setting, Settings } from './Settings'
 import { SettingCategory, DeviceParam, DEVICE_PARAMS, DeviceParamKey } from '../../utils/params'
 import { Button } from '../../components/Button'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { toast } from 'sonner'
 import clsx from 'clsx'
 import { Icon } from '../../components/Icon'
@@ -35,13 +35,8 @@ const SectionHeader = ({ label, isOpen, onClick, count }: { label: string; isOpe
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const { isError, load, save, isSaving, get, types, setChanges, changes } = useDeviceParams()
-  const [usingCorrectFork] = useStorage('usingCorrectFork')
+  const { isError, save, isSaving, get, types, set, changes } = useDeviceParams()
   const [openSection, setOpenSection] = useStorage('togglesOpenTab')
-
-  useEffect(() => {
-    if (usingCorrectFork && dongleId) load(dongleId)
-  }, [dongleId, usingCorrectFork, load])
 
   const settingsByCategory = useMemo(() => {
     if (!Object.keys(types).length) return null
@@ -111,7 +106,7 @@ export const Component = () => {
           <span>Toggles</span>
           {changeCount > 0 && (
             <div className="flex items-center gap-2 ml-auto">
-              <button onClick={() => setChanges({})} className="text-xs opacity-50 hover:opacity-100" title="Discard changes">
+              <button onClick={() => set({ changes: {} })} className="text-xs opacity-50 hover:opacity-100" title="Discard changes">
                 {changeCount} unsaved
               </button>
               <Button onClick={handleSave} disabled={isSaving} className="text-sm px-3 py-1.5">

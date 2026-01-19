@@ -14,7 +14,7 @@ import { env } from '../../utils/env'
 import { toast } from 'sonner'
 import { useDeviceParams } from './useDeviceParams'
 import { create } from 'zustand'
-import { truncate } from '../../utils/helpers'
+import { truncate, ZustandType } from '../../utils/helpers'
 import { api } from '../../api'
 
 type MarkerType = {
@@ -139,19 +139,8 @@ export const useSuggestions = () => {
   return { suggestions, isLoading, updateSuggestions }
 }
 
-type Navigation = {
-  query: string
-  setQuery: (x: string) => void
-  isSearchOpen: boolean
-  setIsSearchOpen: (x: boolean) => void
-}
-
-export const useSearch = create<Navigation>((set) => ({
-  query: '',
-  setQuery: (query: string) => set({ query }),
-  isSearchOpen: false,
-  setIsSearchOpen: (x) => set({ isSearchOpen: x }),
-}))
+const init = { query: '', isSearchOpen: false }
+export const useSearch = create<ZustandType<typeof init>>((set) => ({ ...init, set }))
 
 export const Location = ({ className, device }: { className?: string; device?: Device }) => {
   const { dongleId } = useRouteParams()
@@ -160,7 +149,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
   const navigate = useNavigate()
   const [usingCorrectFork] = useStorage('usingCorrectFork')
   const [isSendingNav, setIsSendingNav] = useState(false)
-  const { isSearchOpen, setIsSearchOpen, query, setQuery } = useSearch()
+  const { isSearchOpen, set, query } = useSearch()
 
   const searchInputRef = useRef<HTMLInputElement>(null)
   const isOwner = useIsDeviceOwner()
@@ -203,7 +192,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
 
   const { suggestions, isLoading, updateSuggestions } = useSuggestions()
   const search = (query: string) => {
-    setQuery(query)
+    set({ query })
     updateSuggestions(query, deviceMarker)
   }
   const favs = Object.entries(favorites ?? {}).map(([key, address]) => ({
@@ -215,7 +204,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
     if (!device || !address) return
     setIsSendingNav(true)
     const res = await setMapboxRoute(address)
-    setIsSearchOpen(false)
+    set({ isSearchOpen: false })
     search('')
     if (res?.error) toast.error(res.error.data?.message ?? res.error.message)
     setIsSendingNav(false)
@@ -266,7 +255,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
             <div
               className="fixed inset-0 z-[9998] bg-black/60"
               onClick={() => {
-                setIsSearchOpen(false)
+                set({ isSearchOpen: false })
                 search('')
               }}
             />
