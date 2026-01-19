@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams as useParamsRouter } from 'react-router-dom'
-import { callAthena, UploadQueueItem } from '../api/athena'
+import { UploadQueueItem, useAthena } from '../api/athena'
 import { z } from 'zod'
 import { api } from '../api'
 import { isSignedIn } from './helpers'
@@ -84,16 +84,12 @@ export const useUploadProgress = (dongleId: string, routeId: string, onComplete?
   const [queue, setQueue] = useState<UploadProgress[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const prevQueueIdsRef = useRef<Set<string>>(new Set())
-
+  const athena = useAthena()
   const fetchQueue = useCallback(async () => {
     if (!enabled || !dongleId) return
     setIsLoading(true)
     try {
-      const result = await callAthena({
-        type: 'listUploadQueue',
-        dongleId,
-        params: undefined,
-      })
+      const result = await athena('listUploadQueue', undefined)
       if (result?.result) {
         // Filter to only include items for this route
         const routeItems = result.result.filter((item) => item.path.includes(routeId))

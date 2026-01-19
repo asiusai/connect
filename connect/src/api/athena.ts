@@ -3,7 +3,8 @@ import { api } from '.'
 import { env } from '../utils/env'
 import { AthenaError, Service } from '../types'
 import { toast } from 'sonner'
-import { getIsDeviceOwner } from '../utils/hooks'
+import { useIsDeviceOwner, useRouteParams } from '../utils/hooks'
+import { useCallback } from 'react'
 
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
@@ -174,14 +175,16 @@ export const callAthena = async <T extends AthenaRequest>({
   params,
   dongleId,
   expiry,
+  isOwner,
 }: {
   type: T
   params: AthenaParams<T>
   dongleId: string
   expiry?: number
+  isOwner: boolean | undefined
 }): Promise<AthenaResponse<T> | undefined> => {
   if (!env.ATHENA_URL) return
-  if (!getIsDeviceOwner()) return
+  if (!isOwner) throw new Error('Athena called without being device owner')
   const req = REQUESTS[type]
 
   const parse = req.params.safeParse(params)
@@ -208,4 +211,14 @@ export const callAthena = async <T extends AthenaRequest>({
         result: req.result.optional(),
       })
       .parse(res.body)
+}
+export const useAthena = () => {
+  const { dongleId } = useRouteParams()
+  const isOwner = useIsDeviceOwner()
+  return useCallback(
+    async <T extends AthenaRequest>(type: T, params: AthenaParams<T>, expiry?: number) => {
+      return await callAthena({ type, params, dongleId, isOwner, expiry })
+    },
+    [dongleId, isOwner],
+  )
 }

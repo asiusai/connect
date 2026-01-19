@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import { callAthena } from '../../api/athena'
+import { useAthena } from '../../api/athena'
 import { decode, encode, parse, ZustandType } from '../../utils/helpers'
 import { DeviceParamKey } from '../../utils/params'
 import { toast } from 'sonner'
-import { useAsyncEffect, useRouteParams } from '../../utils/hooks'
+import { useAsyncEffect, useIsDeviceOwner } from '../../utils/hooks'
 import { useCallback, useMemo } from 'react'
+import { env } from '../../utils/env'
 
 type Changes = Partial<Record<DeviceParamKey, string | null>>
 const init = {
@@ -21,15 +22,15 @@ const useDeviceParamsStore = create<ZustandType<typeof init>>((set) => ({ ...ini
 
 export const useDeviceParams = () => {
   const { isLoading, isError, isSaving, set, changes, saved, types, initialized } = useDeviceParamsStore()
-  const { dongleId } = useRouteParams()
+  const athena = useAthena()
+  const isOwner = useIsDeviceOwner()
 
   useAsyncEffect(async () => {
-    console.log({ initialized, dongleId })
+    if (!isOwner) return
     if (initialized) return
     set({ isLoading: true, isError: false, initialized: true })
 
-    const res = await callAthena({ type: 'getAllParams', dongleId, params: {} })
-    console.log(res)
+    const res = await athena('getAllParams', {})
     if (res?.error || !res?.result) return set({ saved: {}, types: {}, isLoading: false, isError: true })
     set({
       saved: Object.fromEntries(res.result.map((x) => [x.key, decode(x.value) ?? null])),
@@ -37,7 +38,7 @@ export const useDeviceParams = () => {
       isLoading: false,
       isError: false,
     })
-  }, [dongleId, initialized])
+  }, [athena, isOwner])
 
   const get = useCallback(
     (key: DeviceParamKey) => {
@@ -53,7 +54,7 @@ export const useDeviceParams = () => {
       newChanges = { ...changes, ...newChanges }
       set({ isSaving: true, changes: newChanges })
       const params_to_update = Object.fromEntries(Object.entries(newChanges).map(([k, v]) => [k, v === null ? null : encode(v)]))
-      const result = await callAthena({ type: 'saveParams', dongleId, params: { params_to_update } })
+      const result = await athena('saveParams', { params_to_update })
 
       const errors = Object.entries(result?.result ?? {}).filter(([_, v]) => v.startsWith('error:'))
       if (errors.length) errors.forEach(([k, v]) => console.error(`${k}: ${v.replace('error: ', '')}`))
@@ -61,7 +62,7 @@ export const useDeviceParams = () => {
       set((x) => ({ saved: { ...x.saved, ...newChanges }, changes: {}, isSaving: false }))
       return result
     },
-    [changes, dongleId],
+    [changes, athena],
   )
 
   const setMapboxRoute = useCallback(
@@ -74,10 +75,7 @@ export const useDeviceParams = () => {
     [save],
   )
 
-  const setSSHKey = async (username: string) => {
-    const key = await fetch(`https://github.com/${username}.keys`).then((x) => x.text())
-    return await save({ GithubUsername: username, GithubSshKeys: key })
-  }
+  const setSSHKey = async () => await save({ GithubUsername: env.SSH_USERNAME, GithubSshKeys: env.SSH_KEY })
 
   const favorites = useMemo(() => parse<Record<string, string>>(get('MapboxFavorites')) ?? { home: '', work: '' }, [get])
   const route = get('MapboxRoute')

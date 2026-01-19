@@ -15,29 +15,22 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const token = accessToken()
   const [showToken, setShowToken] = useState(false)
-  const [settingKey, setSettingKey] = useState(false)
-  const { get, setSSHKey } = useDeviceParams()
+  const { get, setSSHKey, isSaving } = useDeviceParams()
   const sshKeys = get('GithubUsername')
 
   if (!dongleId) return null
 
-  const hasOuasius = sshKeys?.toLowerCase().includes('ouasius')
+  const hasCorrectKey = sshKeys?.toLowerCase().includes(env.SSH_USERNAME)
 
   const setOuasiusKey = async () => {
-    if (!dongleId || settingKey) return
-    setSettingKey(true)
-    try {
-      const res = await setSSHKey('ouasius')
-      if (res?.error) {
-        toast.error(res.error.message || 'Failed to set SSH key')
-      } else {
-        toast.success('SSH key set to ouasius')
-        window.location.reload()
-      }
-    } catch {
-      toast.error('Failed to set SSH key')
-    } finally {
-      setSettingKey(false)
+    if (isSaving) return
+    const res = await setSSHKey()
+    console.log(res)
+    if (res?.error) {
+      toast.error(res.error.message || 'Failed to set SSH key')
+    } else {
+      toast.success(`SSH key set to ${env.SSH_USERNAME}`)
+      window.location.reload()
     }
   }
 
@@ -81,12 +74,12 @@ export const Component = () => {
           </p>
         </div>
 
-        <div className={`bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4 ${hasOuasius ? 'ring-1 ring-green-500/30' : ''}`}>
+        <div className={`bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4 ${hasCorrectKey ? 'ring-1 ring-green-500/30' : ''}`}>
           <div className="flex items-center gap-3">
             <div
-              className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shrink-0 ${hasOuasius ? 'bg-green-500/20' : 'bg-cyan-500/20'}`}
+              className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shrink-0 ${hasCorrectKey ? 'bg-green-500/20' : 'bg-cyan-500/20'}`}
             >
-              <Icon name="terminal" className={`text-lg md:text-xl ${hasOuasius ? 'text-green-400' : 'text-cyan-400'}`} />
+              <Icon name="terminal" className={`text-lg md:text-xl ${hasCorrectKey ? 'text-green-400' : 'text-cyan-400'}`} />
             </div>
             <div className="flex-1">
               <h2 className="font-semibold text-sm md:text-base">Browser Terminal</h2>
@@ -100,20 +93,20 @@ export const Component = () => {
             <div className="flex items-center gap-2 text-xs">
               <span className="text-white/40">Device SSH Keys:</span>
               {sshKeys ? <span className="text-white/60 font-mono">{sshKeys}</span> : <span className="text-white/40 italic">not set</span>}
-              {hasOuasius ? (
+              {hasCorrectKey ? (
                 <span className="text-green-400 flex items-center gap-1">
                   <Icon name="check" className="text-sm" /> Ready
                 </span>
               ) : (
                 <span className="text-yellow-400 flex items-center gap-1">
-                  <Icon name="warning" className="text-sm" /> Add ouasius
+                  <Icon name="warning" className="text-sm" /> Add {env.SSH_USERNAME}
                 </span>
               )}
             </div>
           )}
-          {sshKeys !== undefined && !hasOuasius && (
-            <Button color="secondary" onClick={setOuasiusKey} loading={settingKey}>
-              Set SSH key to ouasius
+          {sshKeys !== undefined && !hasCorrectKey && (
+            <Button color="secondary" onClick={setOuasiusKey} loading={isSaving}>
+              Set SSH key to {env.SSH_USERNAME}
             </Button>
           )}
         </div>

@@ -2,7 +2,7 @@ import { FileType, Route, SegmentFiles } from '../types'
 import { useState } from 'react'
 import { FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../utils/helpers'
 import { api } from '../api'
-import { callAthena } from '../api/athena'
+import { useAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4, hevcBinsToMp4, tsFilesToMp4 } from '../utils/ffmpeg'
 import clsx from 'clsx'
@@ -75,6 +75,7 @@ const Upload = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false)
   const isOwner = useIsDeviceOwner()
+  const athena = useAthena()
   const disabled = segment === -1 ? files[type].every(Boolean) : !!files[type][segment]
   if (disabled) return null
 
@@ -109,10 +110,9 @@ const Upload = ({
         if (presignedUrls.status !== 200) throw new Error()
 
         if (paths.length === 0) return []
-        await callAthena({
-          type: 'uploadFilesToUrls',
-          dongleId,
-          params: {
+        await athena(
+          'uploadFilesToUrls',
+          {
             files_data: paths.map((fn, i) => ({
               allow_cellular: false,
               fn,
@@ -120,8 +120,8 @@ const Upload = ({
               ...presignedUrls.body[i],
             })),
           },
-          expiry: Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
-        })
+          Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
+        )
         setIsLoading(false)
         // Trigger a refetch of the upload queue
         uploadProgress.refetch()

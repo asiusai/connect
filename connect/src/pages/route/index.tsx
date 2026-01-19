@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouteParams } from '../../utils/hooks'
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
-import { callAthena } from '../../api/athena'
+import { useAthena } from '../../api/athena'
 import { getStartEndPlaceName } from '../../utils/map'
 import { DynamicMap } from './Map'
 import { Stats } from './Stats'
@@ -53,13 +53,13 @@ export const Component = () => {
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [location, setLocation] = useState<{ start?: string; end?: string }>()
   const previewProps = usePreviewProps()
-
+  const athena = useAthena()
   useEffect(() => {
     if (route) getStartEndPlaceName(route).then(setLocation)
   }, [route])
 
   useEffect(() => {
-    callAthena({ type: 'setRouteViewed', dongleId, params: { route: date } })
+    athena('setRouteViewed', { route: date })
   }, [date, dongleId])
 
   if (!route) return null

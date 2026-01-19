@@ -1,7 +1,7 @@
 import { BackButton } from '../components/BackButton'
 import { TopAppBar } from '../components/TopAppBar'
 import { useAsyncMemo, useRouteParams } from '../utils/hooks'
-import { callAthena } from '../api/athena'
+import { useAthena } from '../api/athena'
 import { Select } from '../components/Select'
 import { useState } from 'react'
 import { SyntaxHighlightedJson } from '../components/SyntaxHighlightedJson'
@@ -15,10 +15,10 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const [service, setService] = useStorage('analyzeService')
   const [state, setState] = useState<'loading' | 'error' | 'success'>()
-
+  const athena = useAthena()
   const json = useAsyncMemo(async () => {
     setState('loading')
-    const res = await callAthena({ type: 'getMessage', dongleId, params: { service, timeout: 5000 } })
+    const res = await athena('getMessage', { service, timeout: 5000 })
 
     if (res?.error) setState('error')
     else setState('success')

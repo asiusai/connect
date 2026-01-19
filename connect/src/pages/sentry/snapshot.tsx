@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouteParams } from '../../utils/hooks'
-import { AthenaResponse, callAthena } from '../../api/athena'
+import { AthenaResponse, useAthena } from '../../api/athena'
 import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../../templates/shared'
 import { Icon } from '../../components/Icon'
@@ -17,11 +17,11 @@ export const SnapshotView = () => {
   const { dongleId } = useRouteParams()
   const [images, setImages] = useState<AthenaResponse<'takeSnapshot'>['result']>()
   const [isLoading, setIsLoading] = useState(false)
-
+  const athena = useAthena()
   const shot = useCallback(async () => {
     setIsLoading(true)
     setImages(undefined)
-    const res = await callAthena({ type: 'takeSnapshot', dongleId, params: undefined })
+    const res = await athena('takeSnapshot', undefined)
     if (res?.result) setImages(res.result)
     else toast.error('Failed taking a picture')
     setIsLoading(false)

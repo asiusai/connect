@@ -40,6 +40,9 @@ export const Provider = z.object({
   APPLE_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
   FORK: zArray(),
+
+  SSH_USERNAME: z.string(),
+  SSH_KEY: z.string(),
 })
 export type Provider = z.infer<typeof Provider>
 
@@ -49,6 +52,9 @@ const defaults = {
   MAPBOX_DARK_STYLE_ID: 'clcgvbi4f000q15t6o2s8gys3',
   MAPBOX_TOKEN: 'pk.eyJ1IjoiY29tbWFhaSIsImEiOiJjangyYXV0c20wMGU2NDluMWR4amUydGl5In0.6Vb11S6tdX6Arpj6trRE_g',
   FORK: ['asiusai/openpilot', 'asiusai/sunnypilot'],
+
+  SSH_USERNAME: 'ouasius',
+  SSH_KEY: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDQH+lvGNtgUH+cdN150USzkUg/zIjuE5D1cX5nClov7',
 }
 
 const comma: Provider = {

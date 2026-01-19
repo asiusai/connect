@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { useState, useEffect } from 'react'
-import { callAthena } from '../../api/athena'
+import { useAthena } from '../../api/athena'
 import { api } from '../../api'
 import { getDeviceName } from '../../types'
 import { useRouteParams } from '../../utils/hooks'
@@ -11,15 +11,13 @@ import { createPortal } from 'react-dom'
 const getVoltageColor = (voltage: number) => (voltage < 12.1 ? 'text-red-400' : voltage < 12.4 ? 'text-yellow-400' : 'text-green-400')
 
 export const Voltage = () => {
-  const { dongleId } = useRouteParams()
   const [voltage, setVoltage] = useState<string>()
+  const athena = useAthena()
   useEffect(() => {
-    if (dongleId) {
-      callAthena({ type: 'getMessage', dongleId, params: { service: 'peripheralState', timeout: 5000 } }).then((x) =>
-        setVoltage(x?.result ? (x.result.peripheralState.voltage / 1000).toFixed(1) : undefined),
-      )
-    }
-  }, [dongleId])
+    athena('getMessage', { service: 'peripheralState', timeout: 5000 }).then((x) =>
+      setVoltage(x?.result ? (x.result.peripheralState.voltage / 1000).toFixed(1) : undefined),
+    )
+  }, [athena])
   if (!voltage) return null
   return (
     <>

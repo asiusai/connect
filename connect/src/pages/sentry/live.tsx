@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouteParams } from '../../utils/hooks'
-import { callAthena } from '../../api/athena'
+import { useAthena } from '../../api/athena'
 import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../../templates/shared'
 import { Icon } from '../../components/Icon'
@@ -69,6 +69,7 @@ export const LiveView = ({
   const [joystickPosition, setJoystickPosition] = useState({ x: 0, y: 0 })
   const [joystickSensitivity, setJoystickSensitivity] = useState(0.25)
   const [stats, setStats] = useState<{ fps: number; latency: number } | null>(null)
+  const athena = useAthena()
 
   const rtcConnection = useRef<RTCPeerConnection | null>(null)
   const localAudioTrack = useRef<MediaStreamTrack | null>(null)
@@ -195,15 +196,11 @@ export const LiveView = ({
       setStatus('Sending offer via Athena...')
       const sdp = pc.localDescription?.sdp
 
-      const resp = await callAthena({
-        type: 'webrtc',
-        params: {
-          sdp: sdp!,
-          cameras: ['driver', 'wideRoad'],
-          bridge_services_in: ['testJoystick'],
-          bridge_services_out: [],
-        },
-        dongleId,
+      const resp = await athena('webrtc', {
+        sdp: sdp!,
+        cameras: ['driver', 'wideRoad'],
+        bridge_services_in: ['testJoystick'],
+        bridge_services_out: [],
       })
 
       if (!resp || resp.error) throw new Error(resp?.error?.data?.message ?? resp?.error?.message ?? 'Unknown error from Athena')
