@@ -666,7 +666,7 @@ export const DEVICE_PARAMS = {
   PrimeRedirected: { label: 'Prime Redirected', description: 'Prime redirect status', category: 'developer', icon: 'link', readonly: true, hidden: true },
   PrimeType: { label: 'Prime Type', description: 'Prime subscription type', category: 'developer', icon: 'star', readonly: true, hidden: true },
   SnoozeUpdate: { label: 'Snooze Update', description: 'Update snooze timer', category: 'developer', icon: 'timer', readonly: true, hidden: true },
-  SshEnabled: { label: 'SSH Enabled', description: 'SSH access enabled', category: 'developer', icon: 'terminal', advanced: true },
+  SshEnabled: { label: 'Enable SSH', description: 'SSH access enabled', category: 'developer', icon: 'terminal', advanced: true },
   TermsVersion: { label: 'Terms Version', description: 'Accepted terms version', category: 'developer', icon: 'description', readonly: true, hidden: true },
   TrainingVersion: {
     label: 'Training Version',

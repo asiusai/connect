@@ -20,7 +20,7 @@ const init = {
 
 const useDeviceParamsStore = create<ZustandType<typeof init>>((set) => ({ ...init, set }))
 
-export const useDeviceParams = () => {
+export const useDevice = () => {
   const { isLoading, isError, isSaving, set, changes, saved, types, initialized } = useDeviceParamsStore()
   const athena = useAthena()
   const isOwner = useIsDeviceOwner()
@@ -75,7 +75,12 @@ export const useDeviceParams = () => {
     [save],
   )
 
-  const setSSHKey = async () => await save({ GithubUsername: env.SSH_USERNAME, GithubSshKeys: env.SSH_KEY })
+  const setSSHKey = async () =>
+    await save({
+      GithubUsername: env.SSH_USERNAME,
+      GithubSshKeys: env.SSH_KEY,
+      SshEnabled: '1',
+    })
 
   const favorites = useMemo(() => parse<Record<string, string>>(get('MapboxFavorites')) ?? { home: '', work: '' }, [get])
   const route = get('MapboxRoute')

@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { IconName } from '../../components/Icon'
 import { z } from 'zod'
-import { useDeviceParams } from './useDeviceParams'
+import { useDevice } from './useDevice'
 import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { IconButton } from '../../components/IconButton'
 import { DeviceParamType } from '../../utils/params'
@@ -50,7 +50,7 @@ const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectA
 }
 
 const ToggleActionComponent = ({ icon, toggleKey, toggleType, title, disabled }: z.infer<typeof ToggleAction>) => {
-  const { get, isLoading, isError, save } = useDeviceParams()
+  const { get, isLoading, isError, save } = useDevice()
   if (toggleType !== DeviceParamType.Boolean) return null
   const value = get(toggleKey as any)
   const isSelected = value === '1'
@@ -68,7 +68,7 @@ const ToggleActionComponent = ({ icon, toggleKey, toggleType, title, disabled }:
 }
 
 const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof NavigationAction>) => {
-  const { setMapboxRoute, route, favorites } = useDeviceParams()
+  const { setMapboxRoute, route, favorites } = useDevice()
   const address = favorites?.[location]
   const isSelected = route && route === address
   return (

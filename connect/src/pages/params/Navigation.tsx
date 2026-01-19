@@ -1,4 +1,4 @@
-import { useDeviceParams } from '../device/useDeviceParams'
+import { useDevice } from '../device/useDevice'
 import { useEffect, useRef, useState } from 'react'
 import { IconButton } from '../../components/IconButton'
 import clsx from 'clsx'
@@ -67,7 +67,7 @@ const AddressAutocomplete = ({
 }
 
 export const Navigation = ({ settings }: { settings: Setting[] }) => {
-  const { changes, set, setMapboxRoute, get, favorites, route } = useDeviceParams()
+  const { changes, set, setMapboxRoute, get, favorites, route } = useDevice()
   const [newFavName, setNewFavName] = useState('')
   const [newFavAddress, setNewFavAddress] = useState('')
 

@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStorage } from '../../utils/storage'
 import { env } from '../../utils/env'
 import { toast } from 'sonner'
-import { useDeviceParams } from './useDeviceParams'
+import { useDevice } from './useDevice'
 import { create } from 'zustand'
 import { truncate, ZustandType } from '../../utils/helpers'
 import { api } from '../../api'
@@ -144,7 +144,7 @@ export const useSearch = create<ZustandType<typeof init>>((set) => ({ ...init, s
 
 export const Location = ({ className, device }: { className?: string; device?: Device }) => {
   const { dongleId } = useRouteParams()
-  const { setMapboxRoute, favorites, route } = useDeviceParams()
+  const { setMapboxRoute, favorites, route } = useDevice()
   const { position, requestPosition } = usePosition()
   const navigate = useNavigate()
   const [usingCorrectFork] = useStorage('usingCorrectFork')

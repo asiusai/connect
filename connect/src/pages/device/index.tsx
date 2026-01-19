@@ -10,7 +10,7 @@ import { useRouteParams, useScroll } from '../../utils/hooks'
 import { DevicesMobile } from './DevicesMobile'
 import { Icon } from '../../components/Icon'
 import { useStorage } from '../../utils/storage'
-import { useDeviceParams } from './useDeviceParams'
+import { useDevice } from './useDevice'
 import clsx from 'clsx'
 import { toast } from 'sonner'
 import { IconButton } from '../../components/IconButton'
@@ -18,7 +18,7 @@ import { Navigate } from 'react-router-dom'
 
 const NavButton = () => {
   const { set } = useSearch()
-  const { setMapboxRoute, route, isSaving } = useDeviceParams()
+  const { setMapboxRoute, route, isSaving } = useDevice()
 
   if (route) {
     return (

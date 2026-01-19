@@ -1,4 +1,4 @@
-import { useDeviceParams } from '../device/useDeviceParams'
+import { useDevice } from '../device/useDevice'
 import { Button } from '../../components/Button'
 import { Select } from '../../components/Select'
 import { useState } from 'react'
@@ -20,7 +20,7 @@ const parsePythonDict = <T,>(v: string | null | undefined): T | undefined => {
 
 export const Models = () => {
   const { dongleId } = useRouteParams()
-  const { save, get, isSaving } = useDeviceParams()
+  const { save, get, isSaving } = useDevice()
   const [selectedIndex, setSelectedIndex] = useState('')
 
   const modelsCache = parsePythonDict<{ bundles: ModelBundle[] }>(get('ModelManager_ModelsCache'))

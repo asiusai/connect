@@ -1,4 +1,4 @@
-import { useDeviceParams } from '../device/useDeviceParams'
+import { useDevice } from '../device/useDevice'
 import { DeviceParam, DeviceParamKey, DeviceParamType } from '../../utils/params'
 import { Toggle } from '../../components/Toggle'
 import { Select } from '../../components/Select'
@@ -76,7 +76,7 @@ const SettingInput = ({
 }
 
 export const Settings = ({ settings }: { settings: Setting[] }) => {
-  const { changes, set, get } = useDeviceParams()
+  const { changes, set, get } = useDevice()
   const editable = settings.filter((x) => !x.readonly)
   const readonly = settings.filter((x) => x.readonly)
 

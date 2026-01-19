@@ -5,7 +5,7 @@ import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
 import { IconButton } from '../../components/IconButton'
 import { useStorage } from '../../utils/storage'
-import { useDeviceParams } from '../device/useDeviceParams'
+import { useDevice } from '../device/useDevice'
 import clsx from 'clsx'
 import { LiveView } from './live'
 import { SnapshotView } from './snapshot'
@@ -15,7 +15,7 @@ export const Component = () => {
   const [usingCorrectFork] = useStorage('usingCorrectFork')
 
   // Load device params to check if WebRTC is enabled
-  const { get, isError, isLoading } = useDeviceParams()
+  const { get, isError, isLoading } = useDevice()
 
   const webrtcEnabled =
     usingCorrectFork === undefined ? null : usingCorrectFork && isLoading ? null : usingCorrectFork && !isError && get('EnableWebRTC') === '1'

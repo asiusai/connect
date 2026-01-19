@@ -7,7 +7,7 @@ import { env } from '../utils/env'
 import { Icon } from '../components/Icon'
 import { Button } from '../components/Button'
 import { toast } from 'sonner'
-import { useDeviceParams } from './device/useDeviceParams'
+import { useDevice } from './device/useDevice'
 
 const getProvider = (mode: string) => (mode === 'konik' ? 'konik' : mode === 'comma' ? 'comma' : 'asius')
 
@@ -15,7 +15,7 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const token = accessToken()
   const [showToken, setShowToken] = useState(false)
-  const { get, setSSHKey, isSaving } = useDeviceParams()
+  const { get, setSSHKey, isSaving } = useDevice()
   const sshKeys = get('GithubUsername')
 
   if (!dongleId) return null
