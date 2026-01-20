@@ -2,6 +2,7 @@ import { Client, utils, ServerChannel, ClientChannel } from 'ssh2'
 import { Duplex } from 'stream'
 import { z } from 'zod'
 import { PROVIDERS } from '../connect/src/utils/env'
+import { decryptToken } from '../connect/src/utils/encryption'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222
 export const WS_PORT = Number(process.env.WS_PORT) || 8080
@@ -39,11 +40,15 @@ export type Session = {
 }
 
 export const parseUsername = (username: string): Auth | undefined => {
-  const [provider, dongleId, token] = username.split('-')
-  if (!dongleId || !token) return undefined
+  const [provider, dongleId, ...rest] = username.split('-')
+  const tokenPart = rest.join('-')
+  if (!dongleId || !tokenPart) return undefined
 
   const res = Provider.safeParse(provider)
   if (!res.success) return undefined
+
+  const token = tokenPart.startsWith('enc.') ? decryptToken(tokenPart, SSH_PRIVATE_KEY) : tokenPart
+  if (!token) return undefined
 
   return { provider: res.data, dongleId, token }
 }

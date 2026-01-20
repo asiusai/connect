@@ -1,8 +1,9 @@
-import { ReactNode } from 'react'
+import { ReactNode, useMemo } from 'react'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { useRouteParams } from '../utils/hooks'
 import { accessToken } from '../utils/helpers'
+import { encryptToken } from '../utils/encryption'
 import { env } from '../utils/env'
 import { Icon } from '../components/Icon'
 import { Button } from '../components/Button'
@@ -38,16 +39,18 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const { get } = useDevice()
 
-  if (!dongleId) return null
-
   const token = accessToken()!
+  const encToken = useMemo(() => encryptToken(token, env.SSH_KEY), [token])
+
+  if (!dongleId || !encToken) return null
+
   const githubUsername = get('GithubUsername')
   const isSharedKey = githubUsername === env.SSH_USERNAME
 
   const sshConfig = `Host ${env.MODE}-*
   HostName localhost
   User comma
-  ProxyCommand ssh -W %h:%p %n-${token}@ssh.asius.ai -p 2222`
+  ProxyCommand ssh -W %h:%p %n-${encToken}@ssh.asius.ai -p 2222`
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -119,7 +122,7 @@ export const Component = () => {
               <p className="text-xs md:text-sm text-white/50">One-line command to connect instantly</p>
             </div>
           </div>
-          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p  ${env.MODE}-${dongleId}-${token}@ssh.asius.ai -p 2222" comma@localhost`} />
+          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p ${env.MODE}-${dongleId}-${encToken}@ssh.asius.ai -p 2222" comma@localhost`} />
         </div>
 
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
