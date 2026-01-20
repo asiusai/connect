@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@types/ssh2": "^1.15.4",
-    "bun-types": "^1.0.0"
+    "bun-types": "^1.0.0",
+    "zod": "3.22.3"
   }
 }

@@ -7,7 +7,6 @@ import { env } from '../utils/env'
 import { Icon } from '../components/Icon'
 import { Button } from '../components/Button'
 import { toast } from 'sonner'
-import { useDevice } from './device/useDevice'
 
 const getProvider = (mode: string) => (mode === 'konik' ? 'konik' : mode === 'comma' ? 'comma' : 'asius')
 
@@ -15,24 +14,7 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const token = accessToken()
   const [showToken, setShowToken] = useState(false)
-  const { get, setSSHKey, isSaving } = useDevice()
-  const sshKeys = get('GithubUsername')
-
   if (!dongleId) return null
-
-  const hasCorrectKey = sshKeys?.toLowerCase().includes(env.SSH_USERNAME)
-
-  const setOuasiusKey = async () => {
-    if (isSaving) return
-    const res = await setSSHKey()
-    console.log(res)
-    if (res?.error) {
-      toast.error(res.error.message || 'Failed to set SSH key')
-    } else {
-      toast.success(`SSH key set to ${env.SSH_USERNAME}`)
-      window.location.reload()
-    }
-  }
 
   const provider = getProvider(env.MODE)
   const hostname = token ? `${provider}-${dongleId}-${token}` : `${provider}-${dongleId}`
@@ -74,12 +56,10 @@ export const Component = () => {
           </p>
         </div>
 
-        <div className={`bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4 ${hasCorrectKey ? 'ring-1 ring-green-500/30' : ''}`}>
+        <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
           <div className="flex items-center gap-3">
-            <div
-              className={`w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center shrink-0 ${hasCorrectKey ? 'bg-green-500/20' : 'bg-cyan-500/20'}`}
-            >
-              <Icon name="terminal" className={`text-lg md:text-xl ${hasCorrectKey ? 'text-green-400' : 'text-cyan-400'}`} />
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center shrink-0">
+              <Icon name="terminal" className="text-lg md:text-xl text-cyan-400" />
             </div>
             <div className="flex-1">
               <h2 className="font-semibold text-sm md:text-base">Browser Terminal</h2>
@@ -89,26 +69,13 @@ export const Component = () => {
               Open
             </Button>
           </div>
-          {sshKeys !== undefined && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-white/40">Device SSH Keys:</span>
-              {sshKeys ? <span className="text-white/60 font-mono">{sshKeys}</span> : <span className="text-white/40 italic">not set</span>}
-              {hasCorrectKey ? (
-                <span className="text-green-400 flex items-center gap-1">
-                  <Icon name="check" className="text-sm" /> Ready
-                </span>
-              ) : (
-                <span className="text-yellow-400 flex items-center gap-1">
-                  <Icon name="warning" className="text-sm" /> Add {env.SSH_USERNAME}
-                </span>
-              )}
-            </div>
-          )}
-          {sshKeys !== undefined && !hasCorrectKey && (
-            <Button color="secondary" onClick={setOuasiusKey} loading={isSaving}>
-              Set SSH key to {env.SSH_USERNAME}
-            </Button>
-          )}
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 flex items-start gap-2">
+            <Icon name="warning" className="text-yellow-400 text-lg shrink-0 mt-0.5" />
+            <p className="text-xs text-yellow-400/80">
+              Browser terminal requires setting your device's SSH key to <code className="bg-white/10 px-1 rounded">{env.SSH_USERNAME}</code>. This reduces
+              security as it relies only on JWT authentication. For maximum security, use CLI access with your own SSH keys.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">

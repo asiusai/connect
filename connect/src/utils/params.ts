@@ -46,8 +46,8 @@ export const DEVICE_PARAMS = {
   // Device
   DongleId: { label: 'Dongle ID', description: 'Unique device identifier', category: 'device', icon: 'fingerprint', readonly: true },
   GitCommit: { label: 'Git Commit', description: 'Current software version', category: 'device', icon: 'commit', readonly: true },
-  GithubSshKeys: { label: 'GitHub SSH Keys', description: 'SSH keys for GitHub access', category: 'device', icon: 'vpn_key' },
-  GithubUsername: { label: 'GitHub Username', description: 'Connected GitHub account', category: 'device', icon: 'person' },
+  GithubSshKeys: { label: 'GitHub SSH Keys', description: 'SSH keys for GitHub access', category: 'device', icon: 'vpn_key', readonly: true },
+  GithubUsername: { label: 'GitHub Username', description: 'Connected GitHub account', category: 'device', icon: 'person', readonly: true },
   GsmMetered: { label: 'GSM Metered', description: 'Cellular data metering', category: 'device', icon: 'data_usage' },
   IsLdwEnabled: { label: 'LDW Enabled', description: 'Lane departure warnings', category: 'device', icon: 'warning' },
   IsMetric: { label: 'Metric Units', description: 'Display metric measurements', category: 'device', icon: 'straighten' },

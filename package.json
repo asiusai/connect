@@ -23,7 +23,8 @@
     "connect",
     "infra",
     "api",
-    "site"
+    "site",
+    "ssh"
   ],
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
