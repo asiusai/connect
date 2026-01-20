@@ -5,11 +5,10 @@ import { PROVIDERS } from '../connect/src/utils/env'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222
 export const WS_PORT = Number(process.env.WS_PORT) || 8080
-export const HOST_KEY = process.env.SSH_HOST_KEY || utils.generateKeyPairSync('ed25519').private
 export const WS_ORIGIN = process.env.WS_ORIGIN || 'wss://ssh.asius.ai'
 export const MAX_BUFFER_SIZE = 1024 * 1024
 export const HIGH_WATER_MARK = 64 * 1024
-export const BROWSER_SSH_PRIVATE_KEY = process.env.BROWSER_SSH_PRIVATE_KEY?.replace(/\\n/g, '\n')
+export const SSH_PRIVATE_KEY = process.env.SSH_PRIVATE_KEY?.replace(/\\n/g, '\n') || utils.generateKeyPairSync('ed25519').private
 
 export const Provider = z.enum(['asius', 'comma', 'konik'])
 export type Provider = z.infer<typeof Provider>

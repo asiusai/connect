@@ -1,5 +1,5 @@
 import { Server } from 'ssh2'
-import { Auth, callAthena, HIGH_WATER_MARK, HOST_KEY, MAX_BUFFER_SIZE, parseUsername, randomId, Session, sessions } from './common'
+import { Auth, callAthena, HIGH_WATER_MARK, SSH_PRIVATE_KEY, MAX_BUFFER_SIZE, parseUsername, randomId, Session, sessions } from './common'
 import { onDeviceOpen } from './browser'
 
 export const open = (session: Session) => {
@@ -39,7 +39,7 @@ export const close = (session: Session) => {
   sessions.delete(session.id)
 }
 
-export const server = new Server({ hostKeys: [HOST_KEY] }, (client) => {
+export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
   let auth: Auth
 
   client.on('authentication', (ctx) => {

@@ -1,6 +1,6 @@
 import { Client } from 'ssh2'
 import { Duplex } from 'stream'
-import { BROWSER_SSH_PRIVATE_KEY, callAthena, HIGH_WATER_MARK, MAX_BUFFER_SIZE, Session, sessions } from './common'
+import { SSH_PRIVATE_KEY, callAthena, HIGH_WATER_MARK, MAX_BUFFER_SIZE, Session, sessions } from './common'
 
 export const open = async (session: Session) => {
   if (!session.browser) throw new Error('No browser')
@@ -134,16 +134,10 @@ export const onDeviceOpen = async (session: Session) => {
 
   client.on('keyboard-interactive', (_name, _instructions, _lang, _prompts, finish) => finish([]))
 
-  if (!BROWSER_SSH_PRIVATE_KEY) {
-    session.browser?.send(`\x1b[31mBrowser SSH not configured\x1b[0m\r\n`)
-    session.browser?.close()
-    return
-  }
-
   client.connect({
     sock: wsStream,
     username: 'comma',
-    privateKey: BROWSER_SSH_PRIVATE_KEY,
+    privateKey: SSH_PRIVATE_KEY,
     hostVerifier: () => true,
     readyTimeout: 60000,
   })

@@ -21,6 +21,7 @@ const { private: sshPrivateKey } = utils.generateKeyPairSync('ed25519')
 
 describe('SSH Proxy Integration', () => {
   let dongleId: string
+  let authToken: string
 
   beforeAll(async () => {
     console.log('\nRegistering test device...')
@@ -37,6 +38,9 @@ describe('SSH Proxy Integration', () => {
     if (!registerRes.ok) throw new Error(`Register failed: ${await registerRes.text()}`)
     dongleId = (await registerRes.json()).dongle_id
     console.log(`Registered device: ${dongleId}`)
+
+    // Get auth token for SSH
+    authToken = jwt.sign({ identity: dongleId }, privateKey, { algorithm: jwtAlgorithm, expiresIn: '1h' })
   }, 30000)
 
   test('health endpoint returns ok', async () => {
@@ -97,7 +101,7 @@ describe('SSH Proxy Integration', () => {
       client.connect({
         host: SSH_HOST,
         port: SSH_PORT,
-        username: `asius-${dongleId}`,
+        username: `asius-${dongleId}-${authToken}`,
         privateKey: sshPrivateKey,
       })
     })
@@ -138,7 +142,7 @@ describe('SSH Proxy Integration', () => {
       client.connect({
         host: SSH_HOST,
         port: SSH_PORT,
-        username: `asius-${dongleId}`,
+        username: `asius-${dongleId}-${authToken}`,
         privateKey: sshPrivateKey,
       })
     })
@@ -197,7 +201,7 @@ describe('SSH Proxy Integration', () => {
       client.connect({
         host: SSH_HOST,
         port: SSH_PORT,
-        username: `asius-${dongleId}`,
+        username: `asius-${dongleId}-${authToken}`,
         privateKey: sshPrivateKey,
       })
     })
@@ -235,7 +239,7 @@ describe('SSH Proxy Integration', () => {
       sshClient.connect({
         host: SSH_HOST,
         port: SSH_PORT,
-        username: `asius-${dongleId}`,
+        username: `asius-${dongleId}-${authToken}`,
         privateKey: sshPrivateKey,
       })
     })
@@ -267,7 +271,7 @@ describe('SSH Proxy Integration', () => {
   test('print test info', () => {
     console.log(`\n${'='.repeat(60)}`)
     console.log(`SSH Test Device: ${dongleId}`)
-    console.log(`SSH Command: ssh -J asius-${dongleId}@${SSH_HOST}:${SSH_PORT} comma@localhost`)
+    console.log(`SSH Command: ssh -J asius-${dongleId}-${authToken}@${SSH_HOST}:${SSH_PORT} comma@localhost`)
     console.log(`${'='.repeat(60)}\n`)
   })
 })

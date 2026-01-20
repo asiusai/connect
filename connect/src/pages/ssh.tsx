@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react'
+import { ReactNode } from 'react'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { useRouteParams } from '../utils/hooks'
@@ -36,7 +36,6 @@ const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const [showToken, setShowToken] = useState(false)
   const { get } = useDevice()
 
   if (!dongleId) return null
@@ -45,14 +44,10 @@ export const Component = () => {
   const githubUsername = get('GithubUsername')
   const isSharedKey = githubUsername === env.SSH_USERNAME
 
-  const hostname = `${env.MODE}-${dongleId}-${showToken ? token : '****'}`
-
   const sshConfig = `Host ${env.MODE}-*
   HostName localhost
   User comma
-  ProxyCommand ssh -W %h:%p %n@ssh.asius.ai -p 2222
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null`
+  ProxyCommand ssh -W %h:%p %n-${token}@ssh.asius.ai -p 2222`
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -124,15 +119,7 @@ export const Component = () => {
               <p className="text-xs md:text-sm text-white/50">One-line command to connect instantly</p>
             </div>
           </div>
-          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p ${hostname}@ssh.asius.ai -p 2222" comma@localhost`}>
-            <button
-              onClick={() => setShowToken(!showToken)}
-              className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"
-              title={showToken ? 'Hide token' : 'Show token'}
-            >
-              <Icon name={showToken ? 'visibility_off' : 'visibility'} className="text-xs md:text-sm" />
-            </button>
-          </Copy>
+          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p  ${env.MODE}-${dongleId}-${token}@ssh.asius.ai -p 2222" comma@localhost`} />
         </div>
 
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
@@ -149,9 +136,8 @@ export const Component = () => {
           </div>
 
           <Copy value={sshConfig} />
-
           <p className="text-xs md:text-sm text-white/50">Then connect with:</p>
-          <Copy value={`ssh ${env.MODE}-${dongleId}-YOUR_TOKEN`} />
+          <Copy value={`ssh ${env.MODE}-${dongleId}`} />
         </div>
       </div>
     </div>
