@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { ReactNode, useState } from 'react'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { useRouteParams } from '../utils/hooks'
@@ -7,41 +7,56 @@ import { env } from '../utils/env'
 import { Icon } from '../components/Icon'
 import { Button } from '../components/Button'
 import { toast } from 'sonner'
+import { useDevice } from './device/useDevice'
+import clsx from 'clsx'
 
-const getProvider = (mode: string) => (mode === 'konik' ? 'konik' : mode === 'comma' ? 'comma' : 'asius')
+const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success(`Copied to clipboard`)
+  }
+  return (
+    <div className="group relative">
+      <pre className="bg-black/40 px-3 py-2 md:px-4 md:py-3 rounded-lg text-xs md:text-sm font-mono overflow-x-auto whitespace-pre border border-white/5">
+        {value}
+      </pre>
+      <div className="absolute top-1 right-1 md:top-2 md:right-2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {children}
+        <button
+          onClick={() => copyToClipboard(value)}
+          className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"
+          title="Copy"
+        >
+          <Icon name="file_copy" className="text-xs md:text-sm" />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const token = accessToken()
   const [showToken, setShowToken] = useState(false)
+  const { get } = useDevice()
+
   if (!dongleId) return null
 
-  const provider = getProvider(env.MODE)
-  const hostname = token ? `${provider}-${dongleId}-${token}` : `${provider}-${dongleId}`
-  const hostnameHidden = token ? `${provider}-${dongleId}-****` : `${provider}-${dongleId}`
+  const token = accessToken()!
+  const githubUsername = get('GithubUsername')
+  const isSharedKey = githubUsername === env.SSH_USERNAME
 
-  const sshConfig = `Host ${provider}-*
+  const hostname = `${env.MODE}-${dongleId}-${showToken ? token : '****'}`
+
+  const sshConfig = `Host ${env.MODE}-*
   HostName localhost
   User comma
   ProxyCommand ssh -W %h:%p %n@ssh.asius.ai -p 2222
   StrictHostKeyChecking no
   UserKnownHostsFile /dev/null`
 
-  const sshOpts = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-  const quickCommand = `ssh ${sshOpts} -o ProxyCommand="ssh ${sshOpts} -W %h:%p ${hostname}@ssh.asius.ai -p 2222" comma@localhost`
-  const quickCommandHidden = `ssh ${sshOpts} -o ProxyCommand="ssh ${sshOpts} -W %h:%p ${hostnameHidden}@ssh.asius.ai -p 2222" comma@localhost`
-  const shortCommand = `ssh ${hostname}`
-  const shortCommandHidden = `ssh ${hostnameHidden}`
-
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success(`${label} copied to clipboard`)
-  }
-
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>SSH Access</TopAppBar>
-
       <div className="flex flex-col gap-6 px-4 py-6 pb-20 max-w-2xl mx-auto w-full">
         <div className="flex flex-col gap-2 text-center">
           <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto">
@@ -69,11 +84,26 @@ export const Component = () => {
               Open
             </Button>
           </div>
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 flex items-start gap-2">
+          <div
+            className={clsx(isSharedKey ? 'bg-green-500/5 border-green-500/15' : 'bg-white/5 border-white/10', 'border rounded-lg p-2 flex items-center gap-2')}
+          >
+            <Icon name={isSharedKey ? 'check' : 'info'} className={clsx(isSharedKey ? 'text-green-500' : 'text-white/50', 'text-lg shrink-0 mt-0.5')} />
+            {isSharedKey ? (
+              <p className="text-xs text-green-400/80">
+                Key set to <code className="bg-white/10 px-1 rounded">{env.SSH_USERNAME}</code>, good to go!
+              </p>
+            ) : (
+              <p className="text-xs text-white/50">
+                To use browser terminal, set the key to <code className="bg-white/10 px-1 rounded">{env.SSH_USERNAME}</code> on your device, current key:{' '}
+                <code className="bg-white/10 px-1 rounded">{githubUsername}</code>
+              </p>
+            )}
+          </div>
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 flex items-center gap-2">
             <Icon name="warning" className="text-yellow-400 text-lg shrink-0 mt-0.5" />
             <p className="text-xs text-yellow-400/80">
               Browser terminal requires setting your device's SSH key to <code className="bg-white/10 px-1 rounded">{env.SSH_USERNAME}</code>. This reduces
-              security as it relies only on JWT authentication. For maximum security, use CLI access with your own SSH keys.
+              security as it relies only on connect authentication, for maximum security, use CLI access with your own SSH keys.
             </p>
           </div>
         </div>
@@ -94,30 +124,15 @@ export const Component = () => {
               <p className="text-xs md:text-sm text-white/50">One-line command to connect instantly</p>
             </div>
           </div>
-
-          <div className="group relative">
-            <pre className="bg-black/40 px-3 py-2 md:px-4 md:py-3 rounded-lg text-xs md:text-sm font-mono overflow-x-auto border border-white/5">
-              {showToken ? quickCommand : quickCommandHidden}
-            </pre>
-            <div className="absolute top-1 right-1 md:top-2 md:right-2 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              {token && (
-                <button
-                  onClick={() => setShowToken(!showToken)}
-                  className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"
-                  title={showToken ? 'Hide token' : 'Show token'}
-                >
-                  <Icon name={showToken ? 'visibility_off' : 'visibility'} className="text-xs md:text-sm" />
-                </button>
-              )}
-              <button
-                onClick={() => copyToClipboard(quickCommand, 'Command')}
-                className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"
-                title="Copy"
-              >
-                <Icon name="file_copy" className="text-xs md:text-sm" />
-              </button>
-            </div>
-          </div>
+          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p ${hostname}@ssh.asius.ai -p 2222" comma@localhost`}>
+            <button
+              onClick={() => setShowToken(!showToken)}
+              className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"
+              title={showToken ? 'Hide token' : 'Show token'}
+            >
+              <Icon name={showToken ? 'visibility_off' : 'visibility'} className="text-xs md:text-sm" />
+            </button>
+          </Copy>
         </div>
 
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
@@ -133,40 +148,10 @@ export const Component = () => {
             </div>
           </div>
 
-          <div className="group relative">
-            <pre className="bg-black/40 px-3 py-2 md:px-4 md:py-3 rounded-lg text-xs md:text-sm font-mono overflow-x-auto whitespace-pre border border-white/5">
-              {sshConfig}
-            </pre>
-            <button
-              onClick={() => copyToClipboard(sshConfig, 'Config')}
-              className="absolute top-1 right-1 md:top-2 md:right-2 w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors opacity-0 group-hover:opacity-100"
-              title="Copy"
-            >
-              <Icon name="file_copy" className="text-xs md:text-sm" />
-            </button>
-          </div>
+          <Copy value={sshConfig} />
 
           <p className="text-xs md:text-sm text-white/50">Then connect with:</p>
-          <div className="group relative">
-            <code className="block bg-black/40 px-3 py-2 md:px-4 md:py-3 rounded-lg text-xs md:text-sm font-mono border border-white/5">
-              {showToken ? shortCommand : shortCommandHidden}
-            </code>
-            <button
-              onClick={() => copyToClipboard(shortCommand, 'Command')}
-              className="absolute top-1 right-1 md:top-2 md:right-2 w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors opacity-0 group-hover:opacity-100"
-              title="Copy"
-            >
-              <Icon name="file_copy" className="text-xs md:text-sm" />
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 flex items-start gap-3">
-          <Icon name="warning" className="text-yellow-400 text-xl shrink-0" />
-          <div className="text-sm">
-            <p className="font-medium text-yellow-400">Authentication Required</p>
-            <p className="text-yellow-400/70 mt-1">Your auth token is included in the commands above. Keep it private.</p>
-          </div>
+          <Copy value={`ssh ${env.MODE}-${dongleId}-YOUR_TOKEN`} />
         </div>
       </div>
     </div>
