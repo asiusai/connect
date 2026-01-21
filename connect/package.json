@@ -45,7 +45,6 @@
     "wrangler": "^4.9.1"
   },
   "dependencies": {
-    "@commaai/wasm-bz2": "^0.0.4",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@mapbox/polyline": "^1.2.1",

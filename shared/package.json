@@ -4,6 +4,7 @@
     "@ts-rest/core": "3.52.1",
     "fzstd": "^0.1.1",
     "capnp-ts": "^0.7.0",
+    "@commaai/wasm-bz2": "^0.0.4",
     "zod": "3.22.3"
   }
 }
