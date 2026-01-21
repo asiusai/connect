@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-
+import { env } from '../../../shared/env'
 type ServiceStatus = { status: 'ok' | 'error' | 'pending'; name?: string; latency?: number; error?: string }
 type Heartbeat = { timestamp: number }
 
@@ -111,11 +111,9 @@ export const StatusPage = () => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://api.asius.ai'
-
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`${apiUrl}/status`)
+        const res = await fetch(`${env.API_URL}/status`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         setData(await res.json())
         setError(null)

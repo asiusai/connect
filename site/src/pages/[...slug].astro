@@ -1,24 +1,19 @@
 ---
-import '../../global.css'
 import { getCollection, render } from 'astro:content'
-import type { CollectionEntry } from 'astro:content'
-import Layout from '../../layouts/Layout.astro'
+import Layout from '../layouts/Layout.astro'
 
 export const getStaticPaths = async () => {
-  const docs = await getCollection('docs')
-  return docs.map((doc) => ({
-    params: { slug: doc.id },
-    props: { doc },
+  const pages = await getCollection('pages')
+  return pages.map((page) => ({
+    params: { slug: page.id },
+    props: { page: page },
   }))
 }
-
-type Props = { doc: CollectionEntry<'docs'> }
-
-const { doc } = Astro.props
-const { Content } = await render(doc)
+const { page } = Astro.props
+const { Content } = await render(page)
 ---
 
-<Layout title={doc.data.title} description={doc.data.description} class="container mx-auto px-6 py-12 max-w-3xl">
+<Layout title={page.data.title} description={page.data.description} class="container mx-auto px-6 py-12 max-w-3xl">
   <a href="/docs" class="text-gray-400 hover:text-white transition text-sm mb-6 inline-flex items-center gap-2">
     <span>&larr;</span> Back to Docs
   </a>
@@ -26,8 +21,8 @@ const { Content } = await render(doc)
   <article
     class="prose prose-invert prose-lg max-w-none prose-headings:font-bold prose-h1:text-4xl prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-p:text-gray-300 prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline prose-code:bg-gray-800 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-800 prose-li:text-gray-300"
   >
-    <h1>{doc.data.title}</h1>
-    <p class="text-gray-400 text-xl mt-2 mb-8">{doc.data.description}</p>
+    <h1>{page.data.title}</h1>
+    <p class="text-gray-400 text-xl mt-2 mb-8">{page.data.description}</p>
     <Content />
   </article>
 </Layout>
