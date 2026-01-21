@@ -49,7 +49,7 @@ export const OpenpilotUI = ({
       return setLogData(JSON.parse(cached))
     }
 
-    const Worker = await import('../log-reader/worker?worker').then((x) => x.default)
+    const Worker = await import('../../../shared/log-reader/worker?worker').then((x) => x.default)
     const worker = new Worker()
 
     worker.onmessage = async ({ data }) => {
