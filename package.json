@@ -17,7 +17,8 @@
     "fix": "biome check --write",
     "test": "bun test api connect site --concurrent",
     "integration": "bun test integration --timeout 120000",
-    "infra": "bun --cwd infra up"
+    "infra": "bun --cwd infra up",
+    "postinstall": "find node_modules/.bun/capnp-ts@*/node_modules/capnp-ts -name '*.ts' ! -name '*.d.ts' -delete 2>/dev/null || true"
   },
   "workspaces": [
     "connect",
