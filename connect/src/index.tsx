@@ -1,5 +1,5 @@
 /* @refresh reload */
-import './index.css'
+import '../../shared/index.css'
 
 import { App } from './App'
 import './pwa.ts'
