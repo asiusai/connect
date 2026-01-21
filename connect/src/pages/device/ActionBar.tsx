@@ -143,7 +143,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
   return (
     <div
       ref={containerRef}
-      className={clsx('flex gap-2 flex-wrap items-center justify-center', className)}
+      className={clsx('flex gap-2 flex-wrap items-center justify-center cursor-pointer', className)}
       style={{
         gridTemplateColumns: `repeat(${actions.length}, minmax(2, 2fr))`,
       }}
@@ -166,8 +166,8 @@ export const ActionBar = ({ className }: { className?: string }) => {
               setActions(actions.filter((_, j) => i !== j))
             }}
             className={clsx(
-              'absolute translate-x-1/2 -translate-y-1/2 top-0 right-0 border border-white/20 z-10 text-white bg-background aspect-square hover:bg-background-alt',
-              editing ? 'flex' : 'hidden md:group-hover:flex',
+              'absolute translate-x-1/2 -translate-y-1/2 top-0 right-0 border border-white/20 z-10 text-white bg-background aspect-square hover:bg-background-alt cursor-pointer',
+              editing ? 'flex' : 'hidden! md:group-hover:flex!',
             )}
           />
         </div>

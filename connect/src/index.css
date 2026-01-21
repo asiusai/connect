@@ -1,54 +1,37 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  :root,
-  .dark,
-  [data-theme="dark"] {
-    --color-primary: 81 255 0;
-    --color-primary-x: 36 43 97;
-    --color-primary-alt: 59 66 121;
-    --color-primary-alt-x: 223 224 255;
+@theme {
+    --color-primary: oklch(0.8759 0.2822 140.04);
+    --color-primary-x: oklch(0.3155 0.0951 274.07);
+    --color-primary-alt: oklch(0.4011 0.0923 275.94);
+    --color-primary-alt-x: oklch(0.9155 0.0421 284.07);
 
-    --color-secondary: 196 197 221;
-    --color-secondary-x: 45 47 66;
-    --color-secondary-alt: 67 69 89;
-    --color-secondary-alt-x: 224 225 249;
+    --color-secondary: oklch(0.8302 0.0334 283.75);
+    --color-secondary-x: oklch(0.3118 0.0341 279.55);
+    --color-secondary-alt: oklch(0.3967 0.0338 280.27);
+    --color-secondary-alt-x: oklch(0.9162 0.0325 283.84);
 
-    --color-tertiary: 168 210 147;
-    --color-tertiary-x: 21 56 9;
-    --color-tertiary-alt: 43 79 30;
-    --color-tertiary-alt-x: 195 239 173;
+    --color-tertiary: oklch(0.8179 0.0964 135.49);
+    --color-tertiary-x: oklch(0.3034 0.0835 139.01);
+    --color-tertiary-alt: oklch(0.3878 0.0871 138.17);
+    --color-tertiary-alt-x: oklch(0.9048 0.0987 135.43);
 
-    --color-error: 255 180 171;
-    --color-error-x: 105 0 5;
-    --color-error-alt: 147 0 10;
-    --color-error-alt-x: 255 218 214;
+    --color-error: oklch(0.8383 0.0891 26.76);
+    --color-error-x: oklch(0.3275 0.1336 27.32);
+    --color-error-alt: oklch(0.4171 0.1702 27.38);
+    --color-error-alt-x: oklch(0.9183 0.0418 25.23);
 
-    --color-background: 19 19 24;
-    --color-background-x: 228 225 233;
-    --color-background-alt: 27 27 33;
-    --color-background-alt-x: 199 197 208;
-  }
-
-  button {
-    /* revert user-agent style */
-    text-align: unset;
-  }
+    --color-background: oklch(0.1891 0.0101 285.40);
+    --color-background-x: oklch(0.9144 0.0112 303.10);
+    --color-background-alt: oklch(0.2248 0.0116 285.43);
+    --color-background-alt-x: oklch(0.8283 0.0153 294.41);
 }
-@layer utilities {
-  @keyframes shimmer {
-    100% {
-      transform: translateX(100%);
-    }
-  }
-}
+
 .skeleton-loader {
   @apply relative isolate overflow-hidden;
 
   &::after {
-    @apply absolute inset-0 bg-gradient-to-r from-transparent via-rose-100/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite];
+    @apply absolute inset-0 bg-linear-to-r from-transparent via-rose-100/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite];
     content: "";
   }
 }
