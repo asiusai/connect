@@ -1,11 +1,11 @@
 ---
 import { getCollection, render } from 'astro:content'
-import Layout from '../layouts/Layout.astro'
+import Layout from '../components/Layout.astro'
 
 export const getStaticPaths = async () => {
   const pages = await getCollection('pages')
   return pages.map((page) => ({
-    params: { slug: page.id },
+    params: { slug: page.id.replaceAll('index', '') },
     props: { page: page },
   }))
 }
@@ -13,6 +13,6 @@ const { page } = Astro.props
 const { Content } = await render(page)
 ---
 
-<Layout title={page.data.title} description={page.data.description} className="container mx-auto px-6 py-12 max-w-3xl prose prose-lg">
+<Layout title={page.data.title} description={page.data.description} className="container mx-auto px-6 py-12 max-w-3xl prose prose-invert">
     <Content />
 </Layout>

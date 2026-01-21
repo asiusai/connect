@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { ButtonBase } from '../components/ButtonBase'
 import { Icon } from '../components/Icon'
 import { provider } from '../../../shared/provider'
-import { Logo } from '../components/Logo'
+import { Logo } from '../../../shared/components/Logo'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 

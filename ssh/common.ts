@@ -2,7 +2,7 @@ import { Client, ServerChannel, ClientChannel } from 'ssh2'
 import { Duplex } from 'stream'
 import { z } from 'zod'
 import { PROVIDERS } from '../shared/provider'
-import { decryptToken } from '../connect/src/utils/encryption'
+import { decryptToken } from '../shared/encryption'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222
 export const WS_PORT = Number(process.env.WS_PORT) || 8080

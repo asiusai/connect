@@ -10,7 +10,7 @@ import { ActionBar } from '../pages/device/ActionBar'
 import { useRouteParams } from '../utils/hooks'
 import { Voltage } from '../pages/device/DevicesMobile'
 import { IconButton } from './IconButton'
-import { Logo } from './Logo'
+import { Logo } from '../../../shared/components/Logo'
 import { isSignedIn } from '../utils/helpers'
 
 export const Sidebar = () => {

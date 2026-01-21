@@ -43,6 +43,13 @@
     "ssh2": "^1.17.0",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "@types/react": "19.2.3",
+    "@types/react-dom": "19.2.3",
+    "@tailwindcss/typography": "0.5.19",
+    "@tailwindcss/vite": "4.1.18",
+    "tailwindcss": "4.1.18",
     "typescript": "5.9.3"
   }
 }

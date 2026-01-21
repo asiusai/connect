@@ -4,7 +4,7 @@ import { Button } from '../components/Button'
 import { Icon } from '../components/Icon'
 import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
-import { Logo } from '../components/Logo'
+import { Logo } from '../../../shared/components/Logo'
 import { provider } from '../../../shared/provider'
 
 export const Component = () => {

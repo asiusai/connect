@@ -8,7 +8,7 @@ import { BackButton } from '../components/BackButton'
 import { IconButton } from '../components/IconButton'
 import { useRouteParams } from '../utils/hooks'
 import { accessToken } from '../utils/helpers'
-import { encryptToken } from '../utils/encryption'
+import { encryptToken } from '../../../shared/encryption'
 import { env } from '../../../shared/env'
 import { provider } from '../../../shared/provider'
 

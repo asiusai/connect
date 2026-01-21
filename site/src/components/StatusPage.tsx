@@ -130,10 +130,6 @@ export const StatusPage = () => {
   if (error) {
     return (
       <div className="text-center py-20">
-        <div className="inline-flex items-center gap-3 mb-4">
-          <span className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" />
-          <h1 className="text-2xl font-semibold">Asius Status</h1>
-        </div>
         <p className="text-[#737373]">Failed to fetch status: {error}</p>
       </div>
     )
@@ -142,10 +138,6 @@ export const StatusPage = () => {
   if (!data) {
     return (
       <div className="text-center py-20">
-        <div className="inline-flex items-center gap-3 mb-4">
-          <span className="w-3 h-3 rounded-full bg-gray-500 animate-pulse" />
-          <h1 className="text-2xl font-semibold">Asius Status</h1>
-        </div>
         <p className="text-[#737373]">Loading...</p>
       </div>
     )
@@ -155,12 +147,6 @@ export const StatusPage = () => {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold mb-8 flex items-center gap-3 flex-wrap">
-        <span className={`w-3 h-3 rounded-full ${data.status === 'ok' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-amber-500 shadow-[0_0_8px_#f59e0b]'}`} />
-        Asius Status
-        <span className="font-normal text-base text-[#737373]">{data.status === 'ok' ? 'All systems operational' : 'Service degraded'}</span>
-      </h1>
-
       <Card title="API Services">
         <div className="divide-y divide-[#262626]">
           <ServiceRow name="MKV Storage" service={data.services.mkv} />

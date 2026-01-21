@@ -1,0 +1,82 @@
+---
+import '../../../shared/index.css'
+import { Logo } from '../../../shared/components/Logo'
+import { PROVIDERS } from '../../../shared/provider'
+
+type Props = {
+  title: string
+  description: string
+  className?: string
+}
+
+const { title, description, className } = Astro.props
+const providers = Object.values(PROVIDERS).filter((x) => x.MODE !== 'dev')
+
+const GITHUB_URL = 'https://github.com/asiusai/asiusai'
+const X_URL = 'https://x.com/asius_ai'
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body class="min-h-screen bg-background text-background-x">
+    <header class="container mx-auto px-6 py-8">
+      <nav class="flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3 group">
+          <img src="/asius-logo.svg" alt="Asius" class="h-8 w-auto group-hover:scale-110 transition-transform" />
+          <span class="text-2xl font-bold">Asius</span>
+        </a>
+        <div class="flex items-center gap-6 text-sm text-gray-400">
+          <div class="flex gap-4">
+            <a href="/status" class="hover:text-white transition">Status</a>
+            <a href={GITHUB_URL} class="hover:text-white transition" aria-label="GitHub">GitHub</a>
+            <a href={X_URL} class="hover:text-white transition" aria-label="X">X</a>
+          </div>
+          <div class="flex gap-2">
+            {
+              providers.map(({ MODE, CONNECT_URL }) => (
+                <a href={CONNECT_URL} class="bg-white p-1 rounded-lg hover:bg-white/80 text-black">
+                  <Logo className="h-7 w-7" mode={MODE} />
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class={className}>
+      <slot />
+    </main>
+
+    <footer class="container mx-auto px-6 py-12 border-t border-gray-800">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-sm">
+        <div class="flex items-center gap-3">
+          <img src="/asius-logo.svg" alt="Asius" class="h-5 w-auto opacity-50" />
+          <span>Asius AI</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm text-gray-400">
+          <div class="flex gap-4">
+            <a href="/status" class="hover:text-white transition">Status</a>
+            <a href={GITHUB_URL} class="hover:text-white transition" aria-label="GitHub">GitHub</a>
+            <a href={X_URL} class="hover:text-white transition" aria-label="X">X</a>
+          </div>
+          <div class="flex gap-2">
+            {
+              providers.map(({ MODE, CONNECT_URL }) => (
+                <a href={CONNECT_URL} class="bg-white p-1 rounded-lg hover:bg-white/80 text-black">
+                  <Logo className="h-7 w-7" mode={MODE} />
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { IconButton } from './IconButton'
-import { Logo } from './Logo'
+import { Logo } from '../../../shared/components/Logo'
 import { isSignedIn } from '../utils/helpers'
 
 export const BackButton = ({ href }: { href: string }) => {
