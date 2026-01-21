@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useSyncExternalStore } from 'react'
 import { initClient, AppRoute, AppRouter, ClientInferRequest, ClientInferResponses } from '@ts-rest/core'
-import { contract } from './contract'
-import { env } from '../utils/env'
+import { contract } from '../../../shared/contract'
+import { env } from '../../../shared/env'
 import { accessToken } from '../utils/helpers'
 
 // Types

@@ -3,9 +3,9 @@ import { WIDTH, HEIGHT, FPS } from './shared'
 import { useMemo, useState } from 'react'
 import { DB } from '../utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
-import type { FrameData } from '../log-reader/reader'
+import type { FrameData } from '../../../shared/log-reader/reader'
 import { useAsyncEffect } from '../utils/hooks'
-import { LogType, UnitFormat } from '../types'
+import { LogType, UnitFormat } from '../../../shared/types'
 import { MI_TO_KM } from '../utils/format'
 
 const PATH_WIDTH = 0.8

@@ -2,10 +2,10 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import { api } from '../api'
 import { useRouteParams } from '../utils/hooks'
-import { isSignedIn, signOut } from '../utils/helpers'
 import { Sidebar } from '../components/Sidebar'
 import { useStorage } from '../utils/storage'
 import { useEffect, useRef } from 'react'
+import { isSignedIn, signOut } from '../utils/helpers'
 
 const RedirectFromHome = () => {
   const [devices] = api.devices.devices.useQuery({})

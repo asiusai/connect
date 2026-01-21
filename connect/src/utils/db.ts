@@ -1,4 +1,4 @@
-import type { DerivedFile } from '../types'
+import type { DerivedFile } from '../../../shared/types'
 
 type StoreName = DerivedFile | 'logs' | 'geocode'
 

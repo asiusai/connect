@@ -1,5 +1,5 @@
 import { and, eq, lt, gt, desc } from 'drizzle-orm'
-import { contract } from '../../connect/src/api/contract'
+import { contract } from '../../shared/contract'
 import { tsr } from '../common'
 import { db } from '../db/client'
 import { deviceMiddleware } from '../middleware'

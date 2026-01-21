@@ -1,9 +1,9 @@
-import { contract } from '../../connect/src/api/contract'
+import { contract } from '../../shared/contract'
 import { ForbiddenError, tsr } from '../common'
 import { db } from '../db/client'
 import { routesTable } from '../db/schema'
 import { routeMiddleware } from '../middleware'
-import { Files } from '../../connect/src/types'
+import { Files } from '../../shared/types'
 import { mkv } from '../mkv'
 import { createDataSignature, createRouteSignature } from '../helpers'
 

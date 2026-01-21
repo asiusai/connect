@@ -1,4 +1,4 @@
-import { parse } from '../connect/src/utils/helpers'
+import { parse } from '../shared/helpers'
 import { randomId } from './common'
 import { db } from './db/client'
 import { athenaPingsTable, DeviceData, logsTable, statsTable, athenaQueueTable } from './db/schema'

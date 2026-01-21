@@ -1,13 +1,13 @@
 import { AbsoluteFill, Sequence } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
-import { FileType, PreviewData, PreviewFiles, PreviewProps, SegmentFiles, UnitFormat } from '../types'
+import { FileType, PreviewData, PreviewFiles, PreviewProps, SegmentFiles, UnitFormat } from '../../../shared/types'
 import { api } from '../api'
 import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
 import { OpenpilotUI } from './OpenpilotUI'
 import { Loading } from '../components/Loading'
 import clsx from 'clsx'
-import { toSegmentFiles } from '../utils/helpers'
+import { toSegmentFiles } from '../../../shared/helpers'
 import { Icon } from '../components/Icon'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {

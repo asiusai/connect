@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm'
-import { contract } from '../../connect/src/api/contract'
+import { contract } from '../../shared/contract'
 import { BadRequestError, ForbiddenError, NotFoundError, tsr } from '../common'
 import { db } from '../db/client'
 import { deviceUsersTable, usersTable } from '../db/schema'

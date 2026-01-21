@@ -24,6 +24,7 @@
     "infra",
     "api",
     "site",
+    "shared",
     "ssh"
   ],
   "devDependencies": {

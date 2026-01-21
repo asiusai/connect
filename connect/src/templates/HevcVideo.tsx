@@ -3,7 +3,7 @@ import { Video } from '@remotion/media'
 import { hevcToMp4 } from '../utils/ffmpeg'
 import { createChunker } from '../utils/hevc'
 import { useDelayRender } from 'remotion'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 import clsx from 'clsx'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }

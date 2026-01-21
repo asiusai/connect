@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { contract } from '../../connect/src/api/contract'
+import { contract } from '../../shared/contract'
 import { generateAuthToken } from '../auth'
 import { BadRequestError, NotImplementedError, randomId, tsr } from '../common'
 import { db } from '../db/client'

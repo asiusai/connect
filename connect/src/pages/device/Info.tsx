@@ -3,7 +3,7 @@ import { api } from '../../api'
 import { DetailRow } from '../../components/DetailRow'
 import { useRouteParams } from '../../utils/hooks'
 import { useStorage } from '../../utils/storage'
-import { env } from '../../utils/env'
+import { env } from '../../../../shared/env'
 
 export const Info = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()

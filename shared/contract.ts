@@ -15,9 +15,9 @@ import {
   AthenaResponse,
   Permission,
   DerivedFile,
-} from '../types'
+} from './types'
 import { z } from 'zod'
-import { env } from '../utils/env'
+import { env } from './env'
 
 const c = initContract()
 

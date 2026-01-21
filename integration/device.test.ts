@@ -3,7 +3,7 @@ import { join, dirname } from 'path'
 import jwt from 'jsonwebtoken'
 import { generateKeyPairSync } from 'crypto'
 import { describe, test, expect, beforeAll } from 'bun:test'
-import { env } from '../connect/src/utils/env'
+import { env } from '../shared/env'
 
 const EXAMPLE_DATA_DIR = join(dirname(import.meta.path), '../example-data')
 const ROUTE_ID = '0000002c--d68dde99ca'

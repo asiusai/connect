@@ -1,5 +1,5 @@
 import { tsr as tsrest } from '@ts-rest/serverless/fetch'
-import { contract } from '../connect/src/api/contract'
+import { contract } from '../shared/contract'
 import { TsRestResponseError } from '@ts-rest/serverless/fetch'
 import jwt from 'jsonwebtoken'
 import { Identity } from './auth'

@@ -1,7 +1,7 @@
 import polyline from '@mapbox/polyline'
 import type { FeatureCollection, Point } from 'geojson'
-import { env } from './env'
-import { Route } from '../types'
+import { env } from '../../../shared/env'
+import { Route } from '../../../shared/types'
 import { DB } from './db'
 
 /**

@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { contract } from '../../connect/src/api/contract'
+import { contract } from '../../shared/contract'
 import { BadRequestError, decode, NotFoundError, randomId, tsr, verify } from '../common'
 import { db } from '../db/client'
 import { devicesTable, deviceUsersTable } from '../db/schema'

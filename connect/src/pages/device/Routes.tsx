@@ -5,14 +5,14 @@ import { useEffect, useState, useMemo, useRef, useLayoutEffect } from 'react'
 import { Slider } from '../../components/Slider'
 import { Fragment } from 'react'
 import { api } from '../../api'
-import { Route, RouteSegment } from '../../types'
+import { Route, RouteSegment } from '../../../../shared/types'
 import { Link } from 'react-router-dom'
 import { getStartEndPlaceName } from '../../utils/map'
 import { useRouteParams } from '../../utils/hooks'
 import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
 import { getRouteStats, getTimelineEvents, RouteStats, TimelineEvent } from '../../utils/derived'
-import { getRouteUrl } from '../../utils/helpers'
+import { getRouteUrl } from '../../../../shared/helpers'
 
 const PAGE_SIZE = 10
 

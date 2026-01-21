@@ -5,7 +5,7 @@ import { Icon } from '../components/Icon'
 import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
 import { Logo } from '../components/Logo'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 
 export const Component = () => {
   const navigate = useNavigate()

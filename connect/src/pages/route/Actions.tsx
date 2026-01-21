@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Route } from '../../types'
+import { Route } from '../../../../shared/types'
 import { Icon } from '../../components/Icon'
 import clsx from 'clsx'
 import { api } from '../../api'

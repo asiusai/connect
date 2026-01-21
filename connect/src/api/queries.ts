@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { api } from '.'
-import { toSegmentFiles } from '../utils/helpers'
-import { Route } from '../types'
+import { toSegmentFiles } from '../../../shared/helpers'
+import { Route } from '../../../shared/types'
 
 export const useFiles = (routeName: string, route: Route | undefined, refetchInterval?: number) => {
   const [files, res] = api.route.files.useQuery({

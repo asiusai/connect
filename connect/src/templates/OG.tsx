@@ -6,11 +6,11 @@ import { getCoords, getRouteStats, getTimelineEvents } from '../utils/derived'
 import { api } from '../api'
 import { getPathStaticMapUrl } from '../utils/map'
 import { formatDistance, formatDuration, getRouteDurationMs } from '../utils/format'
-import { Route } from '../types'
+import { Route } from '../../../shared/types'
 import { DateTime } from 'luxon'
 import clsx from 'clsx'
 import { Logo } from '../components/Logo'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 
 export const OGProps = z.object({
   routeName: z.string(),

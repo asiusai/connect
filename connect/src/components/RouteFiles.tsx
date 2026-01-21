@@ -1,6 +1,6 @@
-import { FileType, Route, SegmentFiles } from '../types'
+import { FileType, Route, SegmentFiles } from '../../../shared/types'
 import { useState } from 'react'
-import { FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../utils/helpers'
+import { FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../../../shared/helpers'
 import { api } from '../api'
 import { useAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
@@ -13,7 +13,7 @@ import { FPS } from '../templates/shared'
 import { IconButton } from './IconButton'
 import { usePlayerStore } from './VideoPlayer'
 import { CircularProgress } from './CircularProgress'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 
 type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 

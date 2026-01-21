@@ -1,6 +1,6 @@
 import { Button } from '../components/Button'
 import { Logo } from '../components/Logo'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 
 export const OfflinePage = () => {
   return (

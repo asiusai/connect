@@ -1,9 +1,9 @@
 import SwaggerUI from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
 import { generateOpenApi } from '@ts-rest/open-api'
-import { contract } from '../api/contract'
+import { contract } from '../../../shared/contract'
 import { accessToken } from '../utils/helpers'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 
 const openApiDoc = generateOpenApi(
   contract,

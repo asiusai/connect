@@ -1,4 +1,4 @@
-import { contract } from '../../connect/src/api/contract'
+import { contract } from '../../shared/contract'
 import { NotImplementedError, tsr } from '../common'
 import { userMiddleware } from '../middleware'
 

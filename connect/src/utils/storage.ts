@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../types'
+import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../../../shared/types'
 import { Action } from '../pages/device/ActionBar'
 import { DEVICE_PARAMS, DeviceParamType } from '../utils/params'
 

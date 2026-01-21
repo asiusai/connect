@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import { isSignedIn } from '../utils/helpers'
 import { Icon } from './Icon'
 import clsx from 'clsx'
-import { getDeviceName } from '../types'
+import { getDeviceName } from '../../../shared/types'
 import { useState } from 'react'
 import { Active, Devices } from '../pages/device/Devices'
 import { Navigation } from '../pages/device/Navigation'
@@ -12,6 +11,7 @@ import { useRouteParams } from '../utils/hooks'
 import { Voltage } from '../pages/device/DevicesMobile'
 import { IconButton } from './IconButton'
 import { Logo } from './Logo'
+import { isSignedIn } from '../utils/helpers'
 
 export const Sidebar = () => {
   const { dongleId } = useRouteParams()

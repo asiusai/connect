@@ -14,7 +14,7 @@ import { Actions } from './Actions'
 import { formatDate, formatTime } from '../../utils/format'
 import { Info } from './Info'
 import { useStorage } from '../../utils/storage'
-import { PreviewProps } from '../../types'
+import { PreviewProps } from '../../../../shared/types'
 
 const getLocationText = ({ start, end }: { start?: string; end?: string }) => {
   if (!start && !end) return 'Drive Details'

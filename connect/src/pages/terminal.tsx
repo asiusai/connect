@@ -9,7 +9,7 @@ import { IconButton } from '../components/IconButton'
 import { useRouteParams } from '../utils/hooks'
 import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../utils/encryption'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 
 const getProvider = (mode: string) => (mode === 'konik' ? 'konik' : mode === 'comma' ? 'comma' : 'asius')
 

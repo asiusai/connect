@@ -1,5 +1,5 @@
 import { fetchRequestHandler } from '@ts-rest/serverless/fetch'
-import { contract } from '../connect/src/api/contract'
+import { contract } from '../shared/contract'
 import { auth } from './auth'
 import { getClientIp, rateLimit } from './ratelimit'
 import { router } from './router'

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LogReader } from '../log-reader'
+import { LogReader } from '../../../shared/log-reader'
 import { useFiles } from '../api/queries'
 import { api } from '../api'
 import { useAsyncEffect, useRouteParams } from '../utils/hooks'
@@ -9,8 +9,8 @@ import { Select } from '../components/Select'
 import { BackButton } from '../components/BackButton'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { Toggle } from '../components/Toggle'
-import { capitalize, FILE_INFO } from '../utils/helpers'
-import { Service } from '../types'
+import { capitalize, FILE_INFO } from '../../../shared/helpers'
+import { Service } from '../../../shared/types'
 import { SyntaxHighlightedJson } from '../components/SyntaxHighlightedJson'
 
 export const Component = () => {

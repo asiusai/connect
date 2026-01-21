@@ -1,6 +1,6 @@
 import { relations, InferSelectModel } from 'drizzle-orm'
 import { integer, sqliteTable, text, real, primaryKey } from 'drizzle-orm/sqlite-core'
-import { Permission } from '../../connect/src/types'
+import { Permission } from '../../shared/types'
 
 const createdAt = (name: string) =>
   integer(name)

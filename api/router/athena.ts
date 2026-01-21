@@ -1,4 +1,4 @@
-import { contract } from '../../connect/src/api/contract'
+import { contract } from '../../shared/contract'
 import { tsr } from '../common'
 import { athenaMiddleware } from '../middleware'
 import { sendToDevice } from '../ws'

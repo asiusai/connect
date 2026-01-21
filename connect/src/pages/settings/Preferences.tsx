@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
-import { env } from '../../utils/env'
+import { env } from '../../../../shared/env'
 
 const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
   <div

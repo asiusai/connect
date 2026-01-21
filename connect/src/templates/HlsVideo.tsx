@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Html5Video, useDelayRender, useRemotionEnvironment } from 'remotion'
 import { Video } from '@remotion/media'
 import Hls from 'hls.js'
-import { PreviewFiles } from '../types'
+import { PreviewFiles } from '../../../shared/types'
 import { tsFilesToMp4 } from '../utils/ffmpeg'
 
 export const HlsVideo = ({ files }: { files: PreviewFiles }) => {

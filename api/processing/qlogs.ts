@@ -1,4 +1,4 @@
-import { LogReader } from '../../connect/src/log-reader'
+import { LogReader } from '../../shared/log-reader'
 
 type ParamEntry = {
   Key?: string

@@ -1,5 +1,5 @@
 import { CSSProperties } from 'react'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 
 export const Logo = ({ className, style }: { className?: string; style?: CSSProperties }) => {
   if (env.MODE === 'comma')

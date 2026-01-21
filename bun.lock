@@ -62,9 +62,7 @@
         "@vitejs/plugin-react": "^5.1.0",
         "@xterm/addon-fit": "^0.11.0",
         "@xterm/xterm": "^6.0.0",
-        "capnp-ts": "^0.7.0",
         "clsx": "^2.1.1",
-        "fzstd": "^0.1.1",
         "hls.js": "1.5.20",
         "jsonwebtoken": "^9.0.3",
         "leaflet": "^1.9.4",
@@ -115,6 +113,15 @@
         "ts-node": "^10.9.2",
       },
     },
+    "shared": {
+      "name": "@asiusai/shared",
+      "dependencies": {
+        "@ts-rest/core": "3.52.1",
+        "capnp-ts": "^0.7.0",
+        "fzstd": "^0.1.1",
+        "zod": "3.22.3",
+      },
+    },
     "site": {
       "name": "site",
       "version": "0.0.1",
@@ -162,6 +169,8 @@
     "@asiusai/asiusai": ["@asiusai/asiusai@workspace:connect"],
 
     "@asiusai/infra": ["@asiusai/infra@workspace:infra"],
+
+    "@asiusai/shared": ["@asiusai/shared@workspace:shared"],
 
     "@astrojs/compiler": ["@astrojs/compiler@2.13.0", "", {}, "sha512-mqVORhUJViA28fwHYaWmsXSzLO9osbdZ5ImUfxBarqsYdMlPbqAqGJCxsNzvppp1BEzc1mJNjOVvQqeDN8Vspw=="],
 

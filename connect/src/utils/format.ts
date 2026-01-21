@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import type { Route } from '../types'
+import type { Route } from '../../../shared/types'
 import { storage } from './storage'
 
 export const MI_TO_KM = 1.609344

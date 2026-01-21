@@ -7,7 +7,7 @@ import { Loading } from '../components/Loading'
 import { Icon } from '../components/Icon'
 import { api, invalidate } from '../api'
 import clsx from 'clsx'
-import { env } from '../utils/env'
+import { env } from '../../../shared/env'
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return '0 B'

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { useAthena } from '../../api/athena'
-import { decode, encode, parse, ZustandType } from '../../utils/helpers'
+import { decode, encode, parse, ZustandType } from '../../../../shared/helpers'
 import { DeviceParamKey } from '../../utils/params'
 import { toast } from 'sonner'
 import { useAsyncEffect, useIsDeviceOwner } from '../../utils/hooks'

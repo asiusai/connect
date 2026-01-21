@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../api'
-import { Device, getDeviceName, getCommaName } from '../../types'
+import { Device, getDeviceName, getCommaName } from '../../../../shared/types'
 import { timeAgo } from '../../utils/format'
 import { Icon } from '../../components/Icon'
 

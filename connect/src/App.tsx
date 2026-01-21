@@ -5,7 +5,7 @@ import { ErrorPage } from './pages/error'
 
 import 'leaflet/dist/leaflet.css'
 import { Toaster } from 'sonner'
-import { env } from './utils/env'
+import { env } from '../../shared/env'
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)

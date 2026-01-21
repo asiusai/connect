@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 import { ButtonBase } from '../../components/ButtonBase'
-import { getDeviceName } from '../../types'
+import { getDeviceName } from '../../../../shared/types'
 import { useRouteParams } from '../../utils/hooks'
 import { Icon } from '../../components/Icon'
 

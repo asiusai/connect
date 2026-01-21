@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { type PrimePlan } from '../../types'
+import { type PrimePlan } from '../../../../shared/types'
 import { formatCurrency, formatDate } from '../../utils/format'
 import { ButtonBase } from '../../components/ButtonBase'
 import { Icon } from '../../components/Icon'

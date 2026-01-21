@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import { test } from 'bun:test'
 import { chromium, devices as playDevices } from 'playwright'
-import { keys } from '../connect/src/utils/helpers'
-import { Mode, PROVIDERS } from '../connect/src/utils/env'
+import { keys } from '../shared/helpers'
+import { Mode, PROVIDERS } from '../shared/env'
 
 const FOLDER = process.env.FOLDER || 'screenshots'
 const DEVICE = process.env.DEVICE

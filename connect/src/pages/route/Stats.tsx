@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { formatDistance, formatDuration, formatRouteDuration, getRouteDurationMs } from '../../utils/format'
-import { Route } from '../../types'
+import { Route } from '../../../../shared/types'
 import { useAsyncMemo } from '../../utils/hooks'
 import { getRouteStats, getTimelineEvents } from '../../utils/derived'
 

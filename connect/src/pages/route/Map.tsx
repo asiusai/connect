@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Route } from '../../types'
+import { Route } from '../../../../shared/types'
 import { getCoords, GPSPathPoint } from '../../utils/derived'
 import { useAsyncMemo } from '../../utils/hooks'
 import { MapContainer, TileLayer, Polyline, CircleMarker, useMap } from 'react-leaflet'

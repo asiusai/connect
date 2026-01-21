@@ -3,7 +3,7 @@ import { Button } from '../../components/Button'
 import { Select } from '../../components/Select'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { parse } from '../../utils/helpers'
+import { parse } from '../../../../shared/helpers'
 import { useRouteParams } from '../../utils/hooks'
 
 type ModelBundle = { index: number; display_name: string; environment: string; runner?: string; generation: number }

@@ -1,5 +1,5 @@
 import { asc, and, eq } from 'drizzle-orm'
-import { Permission, Route, RouteSegment } from '../connect/src/types'
+import { Permission, Route, RouteSegment } from '../shared/types'
 import { db } from './db/client'
 import { routesTable } from './db/schema'
 import { env } from './env'

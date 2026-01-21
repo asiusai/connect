@@ -1,7 +1,7 @@
-import type { DerivedFile, Route } from '../types'
+import type { DerivedFile, Route } from '../../../shared/types'
 import { getRouteDurationMs } from '../utils/format'
 import { DB } from './db'
-import { getRouteUrl } from './helpers'
+import { getRouteUrl } from '../../../shared/helpers'
 
 type OpenpilotState = 'disabled' | 'preEnabled' | 'enabled' | 'softDisabling' | 'overriding'
 type AlertStatus = 0 | 1 | 2

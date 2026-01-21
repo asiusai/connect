@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { DetailRow } from '../../components/DetailRow'
-import { Route } from '../../types'
+import { Route } from '../../../../shared/types'
 
 export const Info = ({ route, className }: { route: Route; className?: string }) => {
   return (

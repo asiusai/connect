@@ -1,4 +1,4 @@
-import { contract } from '../../connect/src/api/contract'
+import { contract } from '../../shared/contract'
 import { tsr } from '../common'
 import { athena } from './athena'
 import { devices } from './devices'

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { IconButton } from './IconButton'
-import { isSignedIn } from '../utils/helpers'
 import { Logo } from './Logo'
+import { isSignedIn } from '../utils/helpers'
 
 export const BackButton = ({ href }: { href: string }) => {
   if (!isSignedIn())

@@ -3,8 +3,8 @@ import { useParams as useParamsRouter } from 'react-router-dom'
 import { UploadQueueItem, useAthena } from '../api/athena'
 import { z } from 'zod'
 import { api } from '../api'
-import { isSignedIn } from './helpers'
-import { env } from './env'
+import { isSignedIn } from '../utils/helpers'
+import { env } from '../../../shared/env'
 
 let isOwner = false
 
