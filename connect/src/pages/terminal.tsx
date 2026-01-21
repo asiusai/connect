@@ -10,8 +10,7 @@ import { useRouteParams } from '../utils/hooks'
 import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../utils/encryption'
 import { env } from '../../../shared/env'
-
-const getProvider = (mode: string) => (mode === 'konik' ? 'konik' : mode === 'comma' ? 'comma' : 'asius')
+import { provider } from '../../../shared/provider'
 
 const Terminal = ({ wsUrl, onClose }: { wsUrl: string; onClose?: () => void }) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -97,8 +96,7 @@ export const Component = () => {
 
   if (!dongleId || !encToken) return null
 
-  const provider = getProvider(env.MODE)
-  const wsUrl = `wss://ssh.asius.ai/browser/${provider}-${dongleId}-${encToken}`
+  const wsUrl = `wss://ssh.asius.ai/browser/${provider.MODE}-${dongleId}-${encToken}`
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">

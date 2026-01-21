@@ -4,7 +4,7 @@ import { UploadQueueItem, useAthena } from '../api/athena'
 import { z } from 'zod'
 import { api } from '../api'
 import { isSignedIn } from '../utils/helpers'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 
 let isOwner = false
 
@@ -16,7 +16,7 @@ export const useIsDeviceOwner = () => {
   const [user] = api.auth.me.useQuery({})
 
   // Konik for some reason always returns is_owner=false
-  isOwner = env.MODE === 'konik' || !!device?.is_owner || !!user?.superuser
+  isOwner = provider.MODE === 'konik' || !!device?.is_owner || !!user?.superuser
   return isOwner
 }
 

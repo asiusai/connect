@@ -4,12 +4,13 @@ import { BackButton } from '../components/BackButton'
 import { useRouteParams } from '../utils/hooks'
 import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../utils/encryption'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 import { Icon } from '../components/Icon'
 import { Button } from '../components/Button'
 import { toast } from 'sonner'
 import { useDevice } from './device/useDevice'
 import clsx from 'clsx'
+import { env } from '../../../shared/env'
 
 const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
   const copyToClipboard = (text: string) => {
@@ -47,7 +48,7 @@ export const Component = () => {
   const githubUsername = get('GithubUsername')
   const isSharedKey = githubUsername === env.SSH_USERNAME
 
-  const sshConfig = `Host ${env.MODE}-*
+  const sshConfig = `Host ${provider.MODE}-*
   HostName localhost
   User comma
   ProxyCommand ssh -W %h:%p %n-${encToken}@ssh.asius.ai -p 2222`
@@ -122,7 +123,7 @@ export const Component = () => {
               <p className="text-xs md:text-sm text-white/50">One-line command to connect instantly</p>
             </div>
           </div>
-          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p ${env.MODE}-${dongleId}-${encToken}@ssh.asius.ai -p 2222" comma@localhost`} />
+          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p ${provider.MODE}-${dongleId}-${encToken}@ssh.asius.ai -p 2222" comma@localhost`} />
         </div>
 
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
@@ -140,7 +141,7 @@ export const Component = () => {
 
           <Copy value={sshConfig} />
           <p className="text-xs md:text-sm text-white/50">Then connect with:</p>
-          <Copy value={`ssh ${env.MODE}-${dongleId}`} />
+          <Copy value={`ssh ${provider.MODE}-${dongleId}`} />
         </div>
       </div>
     </div>

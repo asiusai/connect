@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { api } from '.'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 import { AthenaError, Service } from '../../../shared/types'
 import { toast } from 'sonner'
 import { useIsDeviceOwner, useRouteParams } from '../utils/hooks'
@@ -183,7 +183,7 @@ export const callAthena = async <T extends AthenaRequest>({
   expiry?: number
   isOwner: boolean | undefined
 }): Promise<AthenaResponse<T> | undefined> => {
-  if (!env.ATHENA_URL) return
+  if (!provider.ATHENA_URL) return
   if (!isOwner) throw new Error('Athena called without being device owner')
   const req = REQUESTS[type]
 

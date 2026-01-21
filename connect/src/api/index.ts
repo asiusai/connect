@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useSyncExternalStore } from 'react'
 import { initClient, AppRoute, AppRouter, ClientInferRequest, ClientInferResponses } from '@ts-rest/core'
 import { contract } from '../../../shared/contract'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 import { accessToken } from '../utils/helpers'
 
 // Types
@@ -61,13 +61,13 @@ export const invalidate = (...keyParts: string[]) => {
 
 // Base client
 const baseClient = initClient(contract, {
-  baseUrl: env.API_URL,
+  baseUrl: provider.API_URL,
   baseHeaders: {},
   validateResponse: true,
   api: async (args) => {
     let path = args.path
     const baseUrl = (args.route.metadata as any)?.baseUrl
-    if (baseUrl) path = path.replace(env.API_URL, baseUrl)
+    if (baseUrl) path = path.replace(provider.API_URL, baseUrl)
 
     if (args.contentType === 'multipart/form-data' && args.rawBody) {
       const data = new FormData()

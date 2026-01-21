@@ -7,7 +7,7 @@ import { Loading } from '../components/Loading'
 import { Icon } from '../components/Icon'
 import { api, invalidate } from '../api'
 import clsx from 'clsx'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return '0 B'
@@ -443,7 +443,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
     error: 'bg-red-500/20 text-red-400',
   }
 
-  const getFileUrl = (key: string, sig: string) => `${env.API_URL}/connectdata/${key}?sig=${sig}`
+  const getFileUrl = (key: string, sig: string) => `${provider.API_URL}/connectdata/${key}?sig=${sig}`
 
   const handleDelete = async (key: string) => {
     if (!confirm(`Delete file ${key}? This cannot be undone.`)) return

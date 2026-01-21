@@ -1,6 +1,6 @@
 import { Button } from '../components/Button'
 import { Logo } from '../components/Logo'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 
 export const OfflinePage = () => {
   return (
@@ -8,7 +8,7 @@ export const OfflinePage = () => {
       <div className="flex max-w-sm flex-col items-center gap-4">
         <Logo className="h-24 w-24" />
         <div className="flex flex-col gap-2 items-center">
-          <h1 className="text-2xl">{env.NAME}</h1>
+          <h1 className="text-2xl">{provider.NAME}</h1>
           <div className="flex items-center gap-3">
             <span className="size-2 rounded-full bg-error-alt" />
             <p className="text-lg">offline</p>

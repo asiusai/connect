@@ -5,7 +5,7 @@ import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
-import { env } from '../../../../shared/env'
+import { provider } from '../../../../shared/provider'
 import { api } from '../../api'
 import { isSignedIn } from '../../utils/helpers'
 import { Button } from '../../components/Button'
@@ -23,7 +23,7 @@ export const Component = () => {
         {isOwner && <Device />}
         <Preferences />
         {isOwner && <Users />}
-        {!!env.BILLING_URL && isOwner && <Prime />}
+        {!!provider.BILLING_URL && isOwner && <Prime />}
 
         {profile && (
           <div className="flex flex-col gap-4">

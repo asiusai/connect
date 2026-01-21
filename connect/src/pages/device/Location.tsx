@@ -10,12 +10,12 @@ import { IconButton } from '../../components/IconButton'
 import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { useNavigate } from 'react-router-dom'
 import { useStorage } from '../../utils/storage'
-import { env } from '../../../../shared/env'
 import { toast } from 'sonner'
 import { useDevice } from './useDevice'
 import { create } from 'zustand'
 import { truncate, ZustandType } from '../../../../shared/helpers'
 import { api } from '../../api'
+import { env } from '../../../../shared/env'
 
 type MarkerType = {
   id: string

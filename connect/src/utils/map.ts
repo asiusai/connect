@@ -1,8 +1,8 @@
 import polyline from '@mapbox/polyline'
 import type { FeatureCollection, Point } from 'geojson'
-import { env } from '../../../shared/env'
 import { Route } from '../../../shared/types'
 import { DB } from './db'
+import { env } from '../../../shared/env'
 
 /**
  * @see {@link https://docs.mapbox.com/api/search/geocoding/#geocoding-response-object}

@@ -3,7 +3,7 @@ import { Composition, Still } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
 import { Preview } from './Preview'
 import { PreviewProps } from '../../../shared/types'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 import { OG, ogCalculateMetadata, OGProps } from './OG'
 
 export const RemotionRoot = () => {
@@ -18,7 +18,7 @@ export const RemotionRoot = () => {
         height={HEIGHT}
         schema={PreviewProps}
         defaultProps={{
-          routeName: env.EXAMPLE_ROUTE_NAME!,
+          routeName: provider.EXAMPLE_ROUTE_NAME!,
           largeCameraType: 'cameras',
           smallCameraType: 'dcameras',
         }}
@@ -31,7 +31,7 @@ export const RemotionRoot = () => {
         schema={OGProps}
         calculateMetadata={ogCalculateMetadata}
         defaultProps={{
-          routeName: env.EXAMPLE_ROUTE_NAME!,
+          routeName: provider.EXAMPLE_ROUTE_NAME!,
         }}
       />
     </>

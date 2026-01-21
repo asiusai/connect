@@ -4,7 +4,7 @@ import { Icon } from '../../components/Icon'
 import clsx from 'clsx'
 import { api } from '../../api'
 import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
-import { env } from '../../../../shared/env'
+import { provider } from '../../../../shared/provider'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
   const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })
@@ -70,7 +70,7 @@ export const Actions = ({ route, className }: { route: Route; className?: string
     let url = `${window.location.protocol}//${window.location.host}/${routeName}`
 
     // Use signature when route is private. Doesn't work with comma API
-    if (!route.is_public && env.MODE !== 'comma') {
+    if (!route.is_public && provider.MODE !== 'comma') {
       const res = await api.route.shareSignature.query({ params: { routeName: routeName.replace('/', '|') }, query: {} })
       if (res.body) url = url + `?sig=${res.body.sig}&exp=${res.body.exp}`
     }

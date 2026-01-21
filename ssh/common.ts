@@ -1,7 +1,7 @@
 import { Client, ServerChannel, ClientChannel } from 'ssh2'
 import { Duplex } from 'stream'
 import { z } from 'zod'
-import { PROVIDERS } from '../shared/env'
+import { PROVIDERS } from '../shared/provider'
 import { decryptToken } from '../connect/src/utils/encryption'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222

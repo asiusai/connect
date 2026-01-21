@@ -13,7 +13,7 @@ import { FPS } from '../templates/shared'
 import { IconButton } from './IconButton'
 import { usePlayerStore } from './VideoPlayer'
 import { CircularProgress } from './CircularProgress'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 
 type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 
@@ -176,7 +176,7 @@ const DownloadSegment = ({ type, files, segment }: { segment: number; type: File
   const file = files[type][segment]
   if (!file) return null
   const name = `${routeName}--${segment}--${FILE_INFO[type].name}`
-  if (env.IS_OURS && ['cameras', 'ecameras', 'dcameras'].includes(type))
+  if (provider.IS_OURS && ['cameras', 'ecameras', 'dcameras'].includes(type))
     return <FileAction label={FILE_INFO[type].processed || 'Process'} icon="movie" download={name.replace('.hevc', '.mp4')} href={file} />
   return <FileAction label={FILE_INFO[type].raw} icon="raw_on" href={file} download={name} />
 }
@@ -208,7 +208,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
     )
 
   // Asius API returns already mp4 for videos
-  if (env.IS_OURS) return null
+  if (provider.IS_OURS) return null
 
   return (
     <FileAction

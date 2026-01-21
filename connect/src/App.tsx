@@ -5,14 +5,14 @@ import { ErrorPage } from './pages/error'
 
 import 'leaflet/dist/leaflet.css'
 import { Toaster } from 'sonner'
-import { env } from '../../shared/env'
+import { provider } from '../../shared/provider'
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
 
-  if (window.location.host === env.HACK_LOGIN_CALLBACK_HOST && env.HACK_DEFAULT_REDICT_HOST) {
+  if (window.location.host === provider.HACK_LOGIN_CALLBACK_HOST && provider.HACK_DEFAULT_REDICT_HOST) {
     const newUrl = new URL(window.location.href)
-    newUrl.hostname = env.HACK_DEFAULT_REDICT_HOST
+    newUrl.hostname = provider.HACK_DEFAULT_REDICT_HOST
     window.location.replace(newUrl.toString())
   }
 

@@ -3,13 +3,13 @@ import { Video } from '@remotion/media'
 import { hevcToMp4 } from '../utils/ffmpeg'
 import { createChunker } from '../utils/hevc'
 import { useDelayRender } from 'remotion'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 import clsx from 'clsx'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 
 export const HevcVideo = (props: VideoProps) => {
-  if (env.IS_OURS) return <Video {...props} showInTimeline={false} className={clsx('relative', props.className)} />
+  if (provider.IS_OURS) return <Video {...props} showInTimeline={false} className={clsx('relative', props.className)} />
   else return <RawHevcVideo {...props} />
 }
 

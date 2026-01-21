@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 type ServiceStatus = { status: 'ok' | 'error' | 'pending'; name?: string; latency?: number; error?: string }
 type Heartbeat = { timestamp: number }
 
@@ -113,7 +113,7 @@ export const StatusPage = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`${env.API_URL}/status`)
+        const res = await fetch(`${provider.API_URL}/status`)
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         setData(await res.json())
         setError(null)

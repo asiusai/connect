@@ -10,7 +10,7 @@ import { Route } from '../../../shared/types'
 import { DateTime } from 'luxon'
 import clsx from 'clsx'
 import { Logo } from '../components/Logo'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 
 export const OGProps = z.object({
   routeName: z.string(),
@@ -129,7 +129,7 @@ export const OG = ({ data }: OGProps) => {
         </div>
         <div className="flex items-center gap-4 opacity-80">
           <Logo className="" />
-          <Img src={staticFile(env.FAVICON)} className="h-10 w-auto" />
+          <Img src={staticFile(provider.FAVICON)} className="h-10 w-auto" />
           <span className="text-3xl font-bold tracking-tight">
             comma <span className="opacity-70">connect</span>
           </span>

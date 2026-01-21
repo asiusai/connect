@@ -1,23 +1,23 @@
 import { useNavigate } from 'react-router-dom'
 import { ButtonBase } from '../components/ButtonBase'
 import { Icon } from '../components/Icon'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 import { Logo } from '../components/Logo'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
 // Redirecting straight back on localhost, but elsewhere redirect to the HACK url
-const state = `service,${window.location.hostname === 'localhost' || !env.HACK_LOGIN_CALLBACK_HOST ? window.location.host : env.HACK_LOGIN_CALLBACK_HOST}`
+const state = `service,${window.location.hostname === 'localhost' || !provider.HACK_LOGIN_CALLBACK_HOST ? window.location.host : provider.HACK_LOGIN_CALLBACK_HOST}`
 
 const PROVIDERS = {
   google: {
     title: 'Google',
     image: '/logo-google.svg',
-    href: env.GOOGLE_CLIENT_ID
+    href: provider.GOOGLE_CLIENT_ID
       ? `https://accounts.google.com/o/oauth2/auth?${stringify({
           type: 'web_server',
-          client_id: env.GOOGLE_CLIENT_ID,
-          redirect_uri: `${env.AUTH_URL}/v2/auth/g/redirect/`,
+          client_id: provider.GOOGLE_CLIENT_ID,
+          redirect_uri: `${provider.AUTH_URL}/v2/auth/g/redirect/`,
           response_type: 'code',
           scope: 'https://www.googleapis.com/auth/userinfo.email',
           prompt: 'select_account',
@@ -28,10 +28,10 @@ const PROVIDERS = {
   apple: {
     title: 'Apple',
     image: '/logo-apple.svg',
-    href: env.APPLE_CLIENT_ID
+    href: provider.APPLE_CLIENT_ID
       ? `https://appleid.apple.com/auth/authorize?${stringify({
-          client_id: env.APPLE_CLIENT_ID,
-          redirect_uri: `${env.AUTH_URL}/v2/auth/a/redirect/`,
+          client_id: provider.APPLE_CLIENT_ID,
+          redirect_uri: `${provider.AUTH_URL}/v2/auth/a/redirect/`,
           response_type: 'code',
           response_mode: 'form_post',
           scope: 'name email',
@@ -42,11 +42,11 @@ const PROVIDERS = {
   github: {
     title: 'GitHub',
     image: '/logo-github.svg',
-    href: env.GITHUB_CLIENT_ID
+    href: provider.GITHUB_CLIENT_ID
       ? `https://github.com/login/oauth/authorize?${stringify({
-          client_id: env.GITHUB_CLIENT_ID,
-          redirect_uri: `${env.AUTH_URL}/v2/auth/h/redirect/`,
-          scope: env.IS_OURS ? 'user:email' : 'read:user',
+          client_id: provider.GITHUB_CLIENT_ID,
+          redirect_uri: `${provider.AUTH_URL}/v2/auth/h/redirect/`,
+          scope: provider.IS_OURS ? 'user:email' : 'read:user',
           state,
         })}`
       : undefined,
@@ -64,7 +64,7 @@ export const Component = () => {
             <Logo className="text-black h-16 w-16" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">{env.NAME}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{provider.NAME}</h1>
             <p className="text-white/60">Manage your openpilot experience.</p>
           </div>
         </div>
@@ -92,7 +92,7 @@ export const Component = () => {
             <p className="text-xs text-white/60 leading-relaxed">Make sure to sign in with the same account if you have previously paired your comma device.</p>
           </div>
 
-          {env.DEMO_ACCESS_TOKEN && (
+          {provider.DEMO_ACCESS_TOKEN && (
             <ButtonBase
               onClick={() => navigate('/demo')}
               className="w-full py-4 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2 group"

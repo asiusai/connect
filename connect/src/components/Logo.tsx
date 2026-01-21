@@ -1,8 +1,8 @@
 import { CSSProperties } from 'react'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 
 export const Logo = ({ className, style }: { className?: string; style?: CSSProperties }) => {
-  if (env.MODE === 'comma')
+  if (provider.MODE === 'comma')
     return (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="45 27 41 74" fill="currentColor" className={className} style={style}>
         <path
@@ -12,7 +12,7 @@ export const Logo = ({ className, style }: { className?: string; style?: CSSProp
         />
       </svg>
     )
-  if (env.MODE === 'konik')
+  if (provider.MODE === 'konik')
     return (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 69 110" fill="currentColor" className={className} style={style}>
         <g transform="translate(0,110) scale(0.1,-0.1)">

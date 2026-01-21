@@ -5,7 +5,7 @@ import { Icon } from '../components/Icon'
 import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
 import { Logo } from '../components/Logo'
-import { env } from '../../../shared/env'
+import { provider } from '../../../shared/provider'
 
 export const Component = () => {
   const navigate = useNavigate()
@@ -18,19 +18,19 @@ export const Component = () => {
   })
 
   const code = params.get('code')
-  const provider = params.get('provider')
+  const authProvider = params.get('provider')
 
   useEffect(() => {
-    if (!code || !provider) return
-    mutate({ body: { code, provider } })
-  }, [code, provider, navigate])
+    if (!code || !authProvider) return
+    mutate({ body: { code, provider: authProvider } })
+  }, [code, authProvider, navigate])
 
-  if (!code || !provider) return <Navigate to="/login" />
+  if (!code || !authProvider) return <Navigate to="/login" />
   return (
     <div className="flex min-h-screen max-w-lg flex-col gap-8 items-center mx-auto justify-center p-6">
       <div className="flex flex-col gap-4 items-center">
         <Logo className="h-24 w-24" />
-        <h1 className="text-2xl">{env.NAME}</h1>
+        <h1 className="text-2xl">{provider.NAME}</h1>
       </div>
       {error ? (
         <>

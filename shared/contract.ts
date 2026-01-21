@@ -17,7 +17,7 @@ import {
   DerivedFile,
 } from './types'
 import { z } from 'zod'
-import { env } from './env'
+import { provider } from './provider'
 
 const c = initContract()
 
@@ -33,7 +33,7 @@ const auth = c.router({
     method: 'POST',
     path: '/v2/auth/',
     body: z.object({ code: z.string(), provider: z.string() }),
-    contentType: env.IS_OURS ? undefined : 'application/x-www-form-urlencoded',
+    contentType: provider.IS_OURS ? undefined : 'application/x-www-form-urlencoded',
     responses: {
       200: z.object({ access_token: z.string() }),
     },
@@ -76,7 +76,7 @@ const devices = c.router({
     method: 'POST',
     path: '/v2/pilotpair/',
     // TODO: check comma, maybe for comma it was supposed to be multipart/form-data, but this is needed for konik
-    contentType: env.IS_OURS ? undefined : 'application/x-www-form-urlencoded',
+    contentType: provider.IS_OURS ? undefined : 'application/x-www-form-urlencoded',
     body: z.object({ pair_token: z.string() }),
     responses: {
       200: z.object({
@@ -348,7 +348,7 @@ const users = c.router({
 
 const athena = c.router({
   athena: {
-    metadata: { baseUrl: env.ATHENA_URL },
+    metadata: { baseUrl: provider.ATHENA_URL },
     method: 'POST',
     path: '/:dongleId',
     pathParams: z.object({
@@ -364,7 +364,7 @@ const athena = c.router({
 
 const prime = c.router({
   status: {
-    metadata: { baseUrl: env.BILLING_URL },
+    metadata: { baseUrl: provider.BILLING_URL },
     method: 'GET',
     path: '/v1/prime/subscription',
     query: z.object({
@@ -375,7 +375,7 @@ const prime = c.router({
     },
   },
   info: {
-    metadata: { baseUrl: env.BILLING_URL },
+    metadata: { baseUrl: provider.BILLING_URL },
     method: 'GET',
     path: '/v1/prime/subscribe_info',
     query: z.object({
@@ -386,7 +386,7 @@ const prime = c.router({
     },
   },
   cancel: {
-    metadata: { baseUrl: env.BILLING_URL },
+    metadata: { baseUrl: provider.BILLING_URL },
     method: 'POST',
     path: '/v1/prime/cancel',
     body: z.object({
@@ -399,7 +399,7 @@ const prime = c.router({
     },
   },
   getCheckout: {
-    metadata: { baseUrl: env.BILLING_URL },
+    metadata: { baseUrl: provider.BILLING_URL },
     method: 'POST',
     path: '/v1/prime/stripe_checkout',
     body: z.object({
@@ -414,7 +414,7 @@ const prime = c.router({
     },
   },
   getPortal: {
-    metadata: { baseUrl: env.BILLING_URL },
+    metadata: { baseUrl: provider.BILLING_URL },
     method: 'GET',
     path: '/v1/prime/stripe_portal',
     query: z.object({
@@ -425,7 +425,7 @@ const prime = c.router({
     },
   },
   getSession: {
-    metadata: { baseUrl: env.BILLING_URL },
+    metadata: { baseUrl: provider.BILLING_URL },
     method: 'GET',
     path: '/v1/prime/stripe_session',
     query: z.object({
