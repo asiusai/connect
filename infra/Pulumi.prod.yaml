@@ -29,3 +29,5 @@ config:
     secure: v1:gWqmwQMX5VJNwPZ8:UBEFe5B059TR0lhCoZ6jbG7/aIhlImqnExeBrKqZ31UU21BW
   asius:ghRunnerToken:
     secure: v1:g2LQLFNYZavg7zJ+:BWnpBfcX690NPpLh/sjZaT78ewTraTqXnLp7DBPAwthGk/OCEwYZ+YTmkC4i
+  asius:encryptionPrivateKey:
+    secure: v1:pk9n2ptbMRKnOQ7e:IPykr3I+74yqxc5uBGKYg8srQrLu+IE6tSn7WCig3bNvgobIcHDx3OIBLIarenmrm2G4KSvbxtik0omY

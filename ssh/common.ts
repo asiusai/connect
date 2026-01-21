@@ -1,4 +1,4 @@
-import { Client, utils, ServerChannel, ClientChannel } from 'ssh2'
+import { Client, ServerChannel, ClientChannel } from 'ssh2'
 import { Duplex } from 'stream'
 import { z } from 'zod'
 import { PROVIDERS } from '../connect/src/utils/env'
@@ -9,7 +9,12 @@ export const WS_PORT = Number(process.env.WS_PORT) || 8080
 export const WS_ORIGIN = process.env.WS_ORIGIN || 'wss://ssh.asius.ai'
 export const MAX_BUFFER_SIZE = 1024 * 1024
 export const HIGH_WATER_MARK = 64 * 1024
-export const SSH_PRIVATE_KEY = process.env.SSH_PRIVATE_KEY?.replace(/\\n/g, '\n') || utils.generateKeyPairSync('ed25519').private
+
+export const SSH_PRIVATE_KEY = process.env.SSH_PRIVATE_KEY?.replace(/\\n/g, '\n') as string
+if (!SSH_PRIVATE_KEY) throw new Error('No SSH_PRIVATE_KEY')
+
+export const ENCRYPTION_PRIVATE_KEY = process.env.ENCRYPTION_PRIVATE_KEY!
+if (!ENCRYPTION_PRIVATE_KEY) throw new Error('No ENCRYPTION_PRIVATE_KEY')
 
 export const Provider = z.enum(['asius', 'comma', 'konik'])
 export type Provider = z.infer<typeof Provider>
@@ -47,7 +52,7 @@ export const parseUsername = (username: string): Auth | undefined => {
   const res = Provider.safeParse(provider)
   if (!res.success) return undefined
 
-  const token = tokenPart.startsWith('enc.') ? decryptToken(tokenPart, SSH_PRIVATE_KEY) : tokenPart
+  const token = tokenPart.startsWith('enc.') ? decryptToken(tokenPart, ENCRYPTION_PRIVATE_KEY) : tokenPart
   if (!token) return undefined
 
   return { provider: res.data, dongleId, token }

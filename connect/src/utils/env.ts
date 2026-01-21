@@ -42,7 +42,7 @@ export const Provider = z.object({
   FORK: zArray(),
 
   SSH_USERNAME: z.string(),
-  SSH_KEY: z.string(),
+  ENCRYPTION_KEY: z.string(),
 })
 export type Provider = z.infer<typeof Provider>
 
@@ -54,7 +54,7 @@ const defaults = {
   FORK: ['asiusai/openpilot', 'asiusai/sunnypilot'],
 
   SSH_USERNAME: 'ouasius',
-  SSH_KEY: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDQH+lvGNtgUH+cdN150USzkUg/zIjuE5D1cX5nClov7',
+  ENCRYPTION_KEY: 'yYwKdXFxqgnX5riNMPJCJtnXpcPvqWXPtn9YoTUw+kM=',
 }
 
 const comma: Provider = {

@@ -323,6 +323,7 @@ export const ssh = new Server('ssh', {
             WS_PORT: '8080',
             WS_ORIGIN: 'wss://ssh.asius.ai',
             SSH_PRIVATE_KEY: config.requireSecret('browserSshPrivateKey'),
+            ENCRYPTION_PRIVATE_KEY: config.requireSecret('encryptionPrivateKey'),
           },
         },
         Install: {

@@ -5,7 +5,6 @@ import { DeviceParamKey } from '../../utils/params'
 import { toast } from 'sonner'
 import { useAsyncEffect, useIsDeviceOwner } from '../../utils/hooks'
 import { useCallback, useMemo } from 'react'
-import { env } from '../../utils/env'
 
 type Changes = Partial<Record<DeviceParamKey, string | null>>
 const init = {
@@ -75,15 +74,8 @@ export const useDevice = () => {
     [save],
   )
 
-  const setSSHKey = async () =>
-    await save({
-      GithubUsername: env.SSH_USERNAME,
-      GithubSshKeys: env.SSH_KEY,
-      SshEnabled: '1',
-    })
-
   const favorites = useMemo(() => parse<Record<string, string>>(get('MapboxFavorites')) ?? { home: '', work: '' }, [get])
   const route = get('MapboxRoute')
 
-  return { isLoading, isError, isSaving, types, changes, saved, set, setSSHKey, favorites, route, setMapboxRoute, save, get, initialized }
+  return { isLoading, isError, isSaving, types, changes, saved, set, favorites, route, setMapboxRoute, save, get, initialized }
 }

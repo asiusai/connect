@@ -92,7 +92,7 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const navigate = useNavigate()
   const token = accessToken()
-  const encToken = useMemo(() => (token ? encryptToken(token, env.SSH_KEY) : undefined), [token])
+  const encToken = useMemo(() => (token ? encryptToken(token, env.ENCRYPTION_KEY) : undefined), [token])
   const [key, setKey] = useState(0)
 
   if (!dongleId || !encToken) return null

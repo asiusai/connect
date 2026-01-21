@@ -40,7 +40,7 @@ export const Component = () => {
   const { get } = useDevice()
 
   const token = accessToken()!
-  const encToken = useMemo(() => encryptToken(token, env.SSH_KEY), [token])
+  const encToken = useMemo(() => encryptToken(token, env.ENCRYPTION_KEY), [token])
 
   if (!dongleId || !encToken) return null
 
