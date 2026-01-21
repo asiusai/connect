@@ -3,7 +3,8 @@ import { Route } from '../../../../shared/types'
 import { Icon } from '../../components/Icon'
 import clsx from 'clsx'
 import { api } from '../../api'
-import { useIsDeviceOwner } from '../../utils/hooks'
+import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
+import { env } from '../../../../shared/env'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
   const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })
@@ -59,13 +60,21 @@ const ActionButton = ({
 )
 
 export const Actions = ({ route, className }: { route: Route; className?: string }) => {
+  const { routeName } = useRouteParams()
   const isOwner = useIsDeviceOwner()
   const [isPreserved, setIsPreserved] = useIsPreserved(route, isOwner)
   const [isPublic, setIsPublic] = useIsPublic(route)
   const [copied, setCopied] = useState(false)
 
-  const handleShare = () => {
-    const url = window.location.href
+  const handleShare = async () => {
+    let url = `${window.location.protocol}//${window.location.host}/${routeName}`
+
+    // Use signature when route is private. Doesn't work with comma API
+    if (!route.is_public && env.MODE !== 'comma') {
+      const res = await api.route.shareSignature.query({ params: { routeName: routeName.replace('/', '|') }, query: {} })
+      if (res.body) url = url + `?sig=${res.body.sig}&exp=${res.body.exp}`
+    }
+
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

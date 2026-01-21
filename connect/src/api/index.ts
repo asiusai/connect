@@ -75,11 +75,16 @@ const baseClient = initClient(contract, {
       args.body = data
     }
 
-    const res = await fetch(path, {
-      method: args.method,
-      body: args.body,
-      headers: { ...args.headers, authorization: `JWT ${accessToken()}` },
-    })
+    const token = accessToken()
+    if (token) args.headers.authorization = `JWT ${token}`
+
+    // Add sig/exp from URL params for shared routes
+    const urlParams = new URLSearchParams(window.location.search)
+    const sig = urlParams.get('sig')
+    const exp = urlParams.get('exp')
+    if (sig && exp) path = `${path}${path.includes('?') ? '&' : '?'}sig=${encodeURIComponent(sig)}&exp=${encodeURIComponent(exp)}`
+
+    const res = await fetch(path, { method: args.method, body: args.body, headers: args.headers })
 
     const text = await res.text()
     try {

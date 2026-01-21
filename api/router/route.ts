@@ -53,8 +53,9 @@ export const route = tsr.router(contract.route, {
   }),
   shareSignature: routeMiddleware(async (_, { route }) => {
     const routeId = route.fullname.split('|')[1]
-    const exp = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    const sig = createRouteSignature(route.dongle_id, routeId, 'read_access', 24 * 60 * 60)
+    const expiresIn = 24 * 60 * 60 * 30
+    const sig = createRouteSignature(route.dongle_id, routeId, 'read_access', expiresIn)
+    const exp = String(Math.floor(Date.now() / 1000) + expiresIn)
 
     return { status: 200, body: { exp, sig } }
   }),

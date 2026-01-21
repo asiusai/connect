@@ -239,7 +239,7 @@ const routes = c.router({
   },
 })
 
-const routeQuery = z.object({ sig: z.string().optional() })
+const routeQuery = z.object({ sig: z.string().optional(), exp: z.string().optional() })
 
 const route = c.router({
   get: {
