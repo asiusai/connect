@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Terminal as XTerm } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
@@ -8,6 +8,7 @@ import { BackButton } from '../components/BackButton'
 import { IconButton } from '../components/IconButton'
 import { useRouteParams } from '../utils/hooks'
 import { accessToken } from '../utils/helpers'
+import { encryptToken } from '../utils/encryption'
 import { env } from '../utils/env'
 
 const getProvider = (mode: string) => (mode === 'konik' ? 'konik' : mode === 'comma' ? 'comma' : 'asius')
@@ -91,13 +92,13 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const navigate = useNavigate()
   const token = accessToken()
+  const encToken = useMemo(() => (token ? encryptToken(token, env.SSH_KEY) : undefined), [token])
   const [key, setKey] = useState(0)
 
-  if (!dongleId) return null
+  if (!dongleId || !encToken) return null
 
   const provider = getProvider(env.MODE)
-  const hostname = token ? `${provider}-${dongleId}-${token}` : `${provider}-${dongleId}`
-  const wsUrl = `wss://ssh.asius.ai/browser/${hostname}`
+  const wsUrl = `wss://ssh.asius.ai/browser/${provider}-${dongleId}-${encToken}`
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
