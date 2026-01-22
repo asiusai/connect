@@ -1,11 +1,11 @@
 ---
-title: Asius Connect
-description: Better web interface for openpilot with high-res video, file management, and more
+title: Asius Connect - Comma Connect Alternative with Better Features
+description: Free Comma Connect alternative with high-res video playback, video rendering, file management, and remote SSH. Works with any openpilot device.
 ---
 
 # Asius Connect
 
-A modern web interface for openpilot with features not available in the stock connect app.
+A free Comma Connect alternative with better video playback, file management, and features not available in the stock app.
 
 ## Features
 

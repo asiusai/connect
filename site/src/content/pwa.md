@@ -1,11 +1,11 @@
 ---
-title: Progressive Web App
-description: Install Asius Connect as a native app on your device
+title: Install Openpilot Connect App - PWA for Android and iOS
+description: Install Asius Connect as a native app on Android or iOS. Access your openpilot device from your home screen with offline support.
 ---
 
-# Progressive Web App
+# Install as App (PWA)
 
-Asius Connect can be installed as a PWA for a native app experience - works offline and launches from your home screen.
+Install Asius Connect as a native app on your phone for quick access to your openpilot device.
 
 ## Android
 

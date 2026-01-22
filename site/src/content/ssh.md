@@ -1,11 +1,11 @@
 ---
-title: SSH Remote Access
-description: How to SSH into your comma device remotely
+title: Remote SSH for Comma Device - Free SSH Access from Anywhere
+description: Free remote SSH access to your comma device from anywhere. Works with any openpilot fork, no Prime subscription needed. Browser and CLI options.
 ---
 
-# SSH Remote Access
+# Remote SSH for Comma Device
 
-SSH into your comma device from anywhere. Works with any openpilot fork and any API, completely free.
+SSH into your comma device from anywhere, completely free. Works with any openpilot fork and any API - no Prime subscription needed.
 
 ## CLI
 

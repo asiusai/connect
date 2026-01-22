@@ -1,11 +1,11 @@
 ---
-title: Asius Forks
-description: Install Asius openpilot or sunnypilot fork on your device
+title: Asius Forks - Openpilot Fork with Remote Streaming and Joystick
+description: Enhanced openpilot and sunnypilot forks with remote video streaming, joystick control, and remote params editing. Easy one-click installation.
 ---
 
 # Asius Forks
 
-Our modified [openpilot](https://github.com/asiusai/openpilot) and [sunnypilot](https://github.com/asiusai/sunnypilot) forks add remote control features that aren't available in stock openpilot.
+Enhanced [openpilot](https://github.com/asiusai/openpilot) and [sunnypilot](https://github.com/asiusai/sunnypilot) forks with remote streaming, joystick control, and features not available in stock openpilot.
 
 ## Features
 

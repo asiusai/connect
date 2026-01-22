@@ -1,11 +1,11 @@
 ---
-title: Asius API
-description: Cloud backend with 1TB storage, fast video playback, and no device restrictions
+title: Asius API - Comma API Alternative with No Device Blocking
+description: Comma API alternative with 1TB storage, fast video playback, and no device restrictions. Use clones, PCs, and custom hardware without blocking.
 ---
 
 # Asius API
 
-Our cloud backend that replaces the comma API with better features and fewer restrictions.
+A Comma API alternative with more storage, faster video, and no device blocking.
 
 ## Features
 
