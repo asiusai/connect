@@ -1,16 +1,17 @@
 ---
-title: Install Openpilot Fork
+title: Asius Forks
 description: How to install Asius openpilot or sunnypilot forks on your comma device
-order: 1
 ---
+
+# Asius Forks
 
 Install our openpilot forks on your comma device to unlock extra features like video streaming, joystick control, and more.
 
 ## Choose Your Fork
 
-| Fork | Best For |
-|------|----------|
-| **Openpilot** | Stock openpilot + Asius features |
+| Fork           | Best For                                                          |
+| -------------- | ----------------------------------------------------------------- |
+| **Openpilot**  | Stock openpilot + Asius features                                  |
 | **Sunnypilot** | All sunnypilot features + Asius extras (navigation editing, etc.) |
 
 ## Option 1: URL Install
@@ -18,11 +19,13 @@ Install our openpilot forks on your comma device to unlock extra features like v
 On your comma device, enter one of these URLs in the installer:
 
 **Openpilot:**
+
 ```
 https://openpilot.asius.ai
 ```
 
 **Sunnypilot:**
+
 ```
 https://sunnypilot.asius.ai
 ```
@@ -32,11 +35,13 @@ https://sunnypilot.asius.ai
 Or clone directly from GitHub:
 
 **Openpilot:**
+
 ```bash
 git clone https://github.com/asiusai/openpilot
 ```
 
 **Sunnypilot:**
+
 ```bash
 git clone https://github.com/asiusai/sunnypilot
 ```

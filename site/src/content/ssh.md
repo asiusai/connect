@@ -1,8 +1,9 @@
 ---
 title: SSH Remote Access
 description: How to SSH into your comma device remotely via Asius
-order: 4
 ---
+
+# SSH Remote Access
 
 SSH into your comma device from anywhere using your GitHub SSH keys - free for everyone.
 
@@ -101,6 +102,7 @@ This works through firewalls and NAT without requiring port forwarding.
 ### Device Offline
 
 If you get a connection timeout, make sure your device is:
+
 - Powered on
 - Connected to the internet
 - Running openpilot/sunnypilot with athena enabled
@@ -108,6 +110,7 @@ If you get a connection timeout, make sure your device is:
 ### Permission Denied
 
 Make sure:
+
 - Your GitHub SSH keys are configured on the device (Settings > SSH Keys > Add GitHub username)
 - You're using the correct SSH key locally
 - SSH is enabled on the device
