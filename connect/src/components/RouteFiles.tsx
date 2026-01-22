@@ -46,14 +46,14 @@ const FileAction = ({
       download={download}
       disabled={disabled || !!loading}
       className={clsx(
-        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors text-xs font-medium disabled:opacity-50',
+        'flex items-center gap-1 px-2 py-1.5 rounded-lg transition-colors text-xs font-medium disabled:opacity-50',
         isUpload ? 'bg-white text-black hover:bg-white/90' : 'bg-white/5 hover:bg-white/10 text-white',
       )}
     >
       {loading !== undefined ? (
-        <CircularProgress loading={loading} className={clsx('w-[14px] h-[14px] rounded-full ', isUpload ? 'text-black' : 'text-white')} />
+        <CircularProgress loading={loading} className={clsx('w-3.5 h-3.5 rounded-full ', isUpload ? 'text-black' : 'text-white')} />
       ) : (
-        <Icon name={icon as any} className="text-[16px]" />
+        <Icon name={icon as any} className="text-[16px]!" />
       )}
       <span>{label}</span>
     </ButtonBase>
@@ -260,7 +260,7 @@ const SegmentDetails = ({
                 )}
                 <Upload type={type} files={files} route={route} segment={segment} uploadProgress={uploadProgress} />
               </div>
-              <div title="1" className="h-[3px] w-full absolute bottom-0 translate-y-1/2 rounded-full overflow-hidden flex">
+              <div title="1" className="h-0.75 w-full absolute bottom-0 translate-y-1/2 rounded-full overflow-hidden flex">
                 {Array.from({ length: files.length }).map((_, i) => {
                   const isSegmentUploading = uploadProgress.isUploading(i, fileName)
                   const segmentProgress = uploadProgress.getProgress(i, fileName)
