@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Route } from '../../../../shared/types'
 import { Icon } from '../../components/Icon'
-import clsx from 'clsx'
 import { api } from '../../api'
 import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { provider } from '../../../../shared/provider'
+import { cn } from '../../../../shared/helpers'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
   const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })
@@ -48,13 +48,13 @@ const ActionButton = ({
   <button
     onClick={onClick}
     disabled={disabled}
-    className={clsx(
+    className={cn(
       'flex flex-1 flex-col items-center justify-center gap-2 rounded-xl p-3 transition-all active:scale-95',
       active ? 'bg-white text-black' : 'bg-background-alt text-white hover:bg-background-alt/80',
       disabled && 'opacity-50 cursor-not-allowed',
     )}
   >
-    <Icon name={icon as any} className={clsx('text-2xl', active ? 'text-black' : 'text-white')} />
+    <Icon name={icon as any} className={cn('text-2xl', active ? 'text-black' : 'text-white')} />
     <span className="text-xs font-medium">{label}</span>
   </button>
 )
@@ -81,7 +81,7 @@ export const Actions = ({ route, className }: { route: Route; className?: string
   }
 
   return (
-    <div className={clsx('grid grid-cols-3 gap-3', className)}>
+    <div className={cn('grid grid-cols-3 gap-3', className)}>
       <ActionButton
         icon={isPreserved ? 'bookmark_check' : 'bookmark'}
         label={isPreserved ? 'Preserved' : 'Preserve'}

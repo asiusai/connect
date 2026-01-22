@@ -9,10 +9,9 @@ import { Route, RouteSegment } from '../../../../shared/types'
 import { Link } from 'react-router-dom'
 import { getStartEndPlaceName } from '../../utils/map'
 import { useRouteParams } from '../../utils/hooks'
-import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
 import { getRouteStats, getTimelineEvents, RouteStats, TimelineEvent } from '../../utils/derived'
-import { getRouteUrl } from '../../../../shared/helpers'
+import { cn, getRouteUrl } from '../../../../shared/helpers'
 
 const PAGE_SIZE = 10
 
@@ -44,7 +43,7 @@ const Timeline = ({ events, duration, baseRouteUrl }: { events: TimelineEvent[];
           <Link
             key={i}
             to={`${baseRouteUrl}?seek=${Math.round(start / 1000)}`}
-            className={clsx('absolute top-0 bottom-0 hover:brightness-125 transition-all', color)}
+            className={cn('absolute top-0 bottom-0 hover:brightness-125 transition-all', color)}
             style={{ left: `${left}%`, width: `${width}%` }}
             onClick={(e) => e.stopPropagation()}
             title={ev.type}
@@ -165,7 +164,7 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
             {formatTime(startTime)} - {formatTime(endTime)}
           </div>
           {/* Location */}
-          <div className="text-xs text-white/50 truncate max-w-[280px]">{location ? getLocationText(location) : 'Loading location...'}</div>
+          <div className="text-xs text-white/50 truncate max-w-70">{location ? getLocationText(location) : 'Loading location...'}</div>
         </div>
 
         {/* Stats Grid */}
@@ -183,7 +182,7 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
           </div>
 
           {/* Engagement Block */}
-          <div className="flex flex-col items-end min-w-[36px]">
+          <div className="flex flex-col items-end min-w-9">
             <span className="text-lg font-bold text-[#32CD32] leading-none">{Math.round(engagementPercent || 0)}%</span>
             <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Engaged</span>
           </div>
@@ -309,7 +308,7 @@ export const Routes = ({ className }: { className: string }) => {
   const [show, setShow] = useStorage('routesType')
 
   return (
-    <div className={clsx('relative flex flex-col', className)}>
+    <div className={cn('relative flex flex-col', className)}>
       <div className="flex items-center justify-between px-2 pb-4">
         <h2 className="text-xl font-bold tracking-tight">Drives</h2>
         <Slider options={{ all: 'All', preserved: 'Preserved' }} value={show} onChange={setShow} />

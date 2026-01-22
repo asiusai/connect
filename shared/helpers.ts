@@ -1,5 +1,8 @@
 import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from './types'
 import { provider } from './provider'
+import { twMerge } from 'tailwind-merge'
+
+export const cn = twMerge
 
 export type ZustandType<T> = T & { set: (partial: Partial<T> | ((state: T) => Partial<T>)) => void }
 

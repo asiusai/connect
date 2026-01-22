@@ -6,8 +6,8 @@ import { isSignedIn } from '../utils/helpers'
 import { Loading } from '../components/Loading'
 import { Icon } from '../components/Icon'
 import { api, invalidate } from '../api'
-import clsx from 'clsx'
 import { provider } from '../../../shared/provider'
+import { cn } from '../../../shared/helpers'
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return '0 B'
@@ -170,7 +170,7 @@ const PaginationHeader = ({
 const TabButton = ({ tab, activeTab, onClick, children }: { tab: Tab; activeTab: Tab; onClick: () => void; children: React.ReactNode }) => (
   <button
     onClick={onClick}
-    className={clsx('px-4 py-2 font-medium rounded-lg transition-colors', activeTab === tab ? 'bg-primary text-white' : 'bg-background-alt hover:bg-white/10')}
+    className={cn('px-4 py-2 font-medium rounded-lg transition-colors', activeTab === tab ? 'bg-primary text-white' : 'bg-background-alt hover:bg-white/10')}
   >
     {children}
   </button>
@@ -408,7 +408,7 @@ const SortHeader = ({
   return (
     <button
       onClick={handleClick}
-      className={clsx('flex items-center gap-1 font-medium text-white/60 hover:text-white transition-colors', align === 'right' && 'ml-auto')}
+      className={cn('flex items-center gap-1 font-medium text-white/60 hover:text-white transition-colors', align === 'right' && 'ml-auto')}
     >
       {label}
       {isActive && <Icon name={currentOrder === 'asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} className="text-base" />}
@@ -556,7 +556,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
       <div className="flex flex-wrap gap-2 mb-4 items-center">
         <button
           onClick={() => onFilterChange({ ...filter, status: undefined, offset: 0 })}
-          className={clsx('px-3 py-1 rounded-lg text-sm', !filter.status ? 'bg-white/20' : 'bg-background-alt hover:bg-white/10')}
+          className={cn('px-3 py-1 rounded-lg text-sm', !filter.status ? 'bg-white/20' : 'bg-background-alt hover:bg-white/10')}
         >
           All
         </button>
@@ -564,7 +564,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
           <button
             key={status}
             onClick={() => onFilterChange({ ...filter, status, offset: 0 })}
-            className={clsx('px-3 py-1 rounded-lg text-sm capitalize', filter.status === status ? 'bg-white/20' : 'bg-background-alt hover:bg-white/10')}
+            className={cn('px-3 py-1 rounded-lg text-sm capitalize', filter.status === status ? 'bg-white/20' : 'bg-background-alt hover:bg-white/10')}
           >
             {status}
           </button>
@@ -658,7 +658,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                         value={file.processingStatus}
                         onChange={(e) => handleStatusChange(file.key, e.target.value as 'queued' | 'processing' | 'done' | 'error')}
                         disabled={updatingStatus === file.key}
-                        className={clsx(
+                        className={cn(
                           'px-2 py-1 rounded text-xs cursor-pointer bg-transparent border border-white/20 focus:outline-none focus:border-primary',
                           statusColors[file.processingStatus],
                           updatingStatus === file.key && 'opacity-50',
@@ -870,7 +870,7 @@ const SegmentsSortHeader = ({
   return (
     <button
       onClick={handleClick}
-      className={clsx('flex items-center gap-1 font-medium text-white/60 hover:text-white transition-colors', align === 'right' && 'ml-auto')}
+      className={cn('flex items-center gap-1 font-medium text-white/60 hover:text-white transition-colors', align === 'right' && 'ml-auto')}
     >
       {label}
       {isActive && <Icon name={currentOrder === 'asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} className="text-base" />}

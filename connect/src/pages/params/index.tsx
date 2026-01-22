@@ -7,11 +7,11 @@ import { SettingCategory, DeviceParam, DEVICE_PARAMS, DeviceParamKey } from '../
 import { Button } from '../../components/Button'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
-import clsx from 'clsx'
 import { Icon } from '../../components/Icon'
 import { useRouteParams } from '../../utils/hooks'
 import { Navigation } from './Navigation'
 import { Models } from './Models'
+import { cn } from '../../../../shared/helpers'
 
 const CATEGORY_LABELS: Record<SettingCategory, string> = {
   models: 'Models',
@@ -27,7 +27,7 @@ const CATEGORY_LABELS: Record<SettingCategory, string> = {
 
 const SectionHeader = ({ label, isOpen, onClick, count }: { label: string; isOpen: boolean; onClick: () => void; count?: number }) => (
   <button onClick={onClick} className="flex items-center gap-3 w-full py-3">
-    <Icon name="keyboard_arrow_down" className={clsx('transition-transform', isOpen ? 'text-primary' : '-rotate-90 opacity-40')} />
+    <Icon name="keyboard_arrow_down" className={cn('transition-transform', isOpen ? 'text-primary' : '-rotate-90 opacity-40')} />
     <h2 className="text-lg font-semibold">{label}</h2>
     {count !== undefined && <span className="text-sm opacity-40">{count}</span>}
   </button>

@@ -6,8 +6,7 @@ import { HevcVideo } from './HevcVideo'
 import { HlsVideo } from './HlsVideo'
 import { OpenpilotUI } from './OpenpilotUI'
 import { Loading } from '../components/Loading'
-import clsx from 'clsx'
-import { toSegmentFiles } from '../../../shared/helpers'
+import { cn, toSegmentFiles } from '../../../shared/helpers'
 import { Icon } from '../components/Icon'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
@@ -31,7 +30,7 @@ const getFiles = (files: SegmentFiles, preffered?: FileType, fallback?: FileType
 const Camera = ({ className, files, name }: { name: string; files?: PreviewFiles; className?: string }) => {
   if (!files) return null
   return (
-    <div className={clsx('absolute', className)} style={{ aspectRatio: WIDTH / HEIGHT }}>
+    <div className={cn('absolute', className)} style={{ aspectRatio: WIDTH / HEIGHT }}>
       <Loading className="absolute inset-0" />
       <div className="relative h-full w-full">
         {files.type === 'qcameras' && <HlsVideo files={files} />}
@@ -70,11 +69,7 @@ export const Preview = ({ routeName, showPath, unitFormat, largeCameraType, smal
     <AbsoluteFill>
       <Camera files={getFiles(data.files, largeCameraType, 'qcameras')} name="Large" className="inset-0" />
       <UI files={getFiles(data.files, logType)} routeName={routeName} showPath={!!showPath} unitFormat={unitFormat} />
-      <Camera
-        files={getFiles(data.files, smallCameraType)}
-        name="Small"
-        className="h-[400px] bottom-[30px] right-[30px] rounded-[20px] w-auto overflow-hidden"
-      />
+      <Camera files={getFiles(data.files, smallCameraType)} name="Small" className="h-100 bottom-7.5 right-7.5 rounded-[20px] w-auto overflow-hidden" />
     </AbsoluteFill>
   )
 }

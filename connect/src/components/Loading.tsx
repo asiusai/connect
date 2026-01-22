@@ -1,6 +1,6 @@
-import clsx from 'clsx'
 import { CSSProperties } from 'react'
+import { cn } from '../../../shared/helpers'
 
 export const Loading = ({ className, style }: { className?: string; style?: CSSProperties }) => {
-  return <div className={clsx('skeleton-loader', className)} style={style}></div>
+  return <div className={cn('skeleton-loader', className)} style={style}></div>
 }

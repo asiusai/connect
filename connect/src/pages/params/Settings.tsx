@@ -2,8 +2,8 @@ import { useDevice } from '../device/useDevice'
 import { DeviceParam, DeviceParamKey, DeviceParamType } from '../../utils/params'
 import { Toggle } from '../../components/Toggle'
 import { Select } from '../../components/Select'
-import clsx from 'clsx'
 import { AddToActionBar } from '../device/ActionBar'
+import { cn } from '../../../../shared/helpers'
 
 export type Setting = DeviceParam & { key: string; value: string | null | undefined; type: number | undefined }
 
@@ -94,7 +94,7 @@ export const Settings = ({ settings }: { settings: Setting[] }) => {
               return (
                 <div
                   key={x.key}
-                  className={clsx(
+                  className={cn(
                     'flex flex-col outline outline-white/5 rounded-lg p-4 gap-3 relative group',
                     readonly && 'opacity-60',
                     changed && 'outline-primary outline-2 bg-primary/5',

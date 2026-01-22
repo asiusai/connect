@@ -11,10 +11,10 @@ import { DevicesMobile } from './DevicesMobile'
 import { Icon } from '../../components/Icon'
 import { useStorage } from '../../utils/storage'
 import { useDevice } from './useDevice'
-import clsx from 'clsx'
 import { toast } from 'sonner'
 import { IconButton } from '../../components/IconButton'
 import { Navigate } from 'react-router-dom'
+import { cn } from '../../../../shared/helpers'
 
 const NavButton = () => {
   const { set } = useSearch()
@@ -24,7 +24,7 @@ const NavButton = () => {
     return (
       <div
         onClick={() => set({ isSearchOpen: true })}
-        className={clsx(
+        className={cn(
           'flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full pl-3 pr-1 py-1 cursor-pointer',
           'hover:bg-background/90 transition-colors max-w-[50vw] md:max-w-64',
         )}
@@ -74,20 +74,20 @@ export const Component = () => {
       <div className="w-full sticky top-0" style={{ height }}>
         <Location device={device} className="h-full w-full" />
         {usingCorrectFork && (
-          <div className="fixed top-3 right-3 z-[9999] hidden md:block">
+          <div className="fixed top-3 right-3 z-9999 hidden md:block">
             <NavButton />
           </div>
         )}
-        <div className="absolute z-[999] top-0 w-full p-4 md:hidden">
+        <div className="absolute z-999 top-0 w-full p-4 md:hidden">
           <div className="flex justify-between items-start gap-2 w-full">
             <DevicesMobile />
             {usingCorrectFork && <NavButton />}
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-0 bg-background z-[999]" style={{ opacity: scroll / height }} />
+        <div className="pointer-events-none absolute inset-0 bg-background z-999" style={{ opacity: scroll / height }} />
       </div>
       <div className="grid md:grid-cols-3 gap-10 p-6 bg-background relative">
-        <div className="md:hidden absolute top-0 -translate-y-[100%] py-2 flex w-full">
+        <div className="md:hidden absolute top-0 -translate-y-full py-2 flex w-full">
           <ActionBar className="mx-auto w-64 gap-4" />
         </div>
         <Navigation className="md:hidden" />

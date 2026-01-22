@@ -1,6 +1,5 @@
 import { Player, PlayerRef } from '@remotion/player'
 import { renderMediaOnWeb } from '@remotion/web-renderer'
-import clsx from 'clsx'
 import { FPS, HEIGHT, toFrames, toSeconds, WIDTH } from '../templates/shared'
 import { Preview } from '../templates/Preview'
 import { CameraType, FileType, LogType, PreviewProps } from '../../../shared/types'
@@ -11,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { useFiles } from '../api/queries'
 import { api } from '../api'
 import { IconButton } from './IconButton'
-import { getRouteUrl, saveFile, ZustandType } from '../../../shared/helpers'
+import { cn, getRouteUrl, saveFile, ZustandType } from '../../../shared/helpers'
 import { Icon } from './Icon'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useStorage } from '../utils/storage'
@@ -86,7 +85,7 @@ const RenderButton = () => {
     return (
       <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
         <Icon name="movie" className="text-base opacity-70" />
-        <span className="text-xs opacity-70 min-w-[32px]">{renderState.progress === 0 ? 'Loading...' : `${renderState.progress}%`}</span>
+        <span className="text-xs opacity-70 min-w-8">{renderState.progress === 0 ? 'Loading...' : `${renderState.progress}%`}</span>
         <button onClick={cancel} className="text-white/50 hover:text-white/80 transition-colors" title="Cancel render">
           <Icon name="close" className="text-base" />
         </button>
@@ -98,7 +97,7 @@ const RenderButton = () => {
     return (
       <div className="flex items-center gap-1 bg-red-500/20 rounded-lg px-2 py-1">
         <Icon name="error" className="text-base text-red-400" />
-        <span className="text-xs text-red-400 max-w-[150px] truncate" title={renderState.message}>
+        <span className="text-xs text-red-400 max-w-37.5 truncate" title={renderState.message}>
           {renderState.message}
         </span>
         <button onClick={startRender} className="text-red-400 hover:text-red-300 transition-colors" title="Retry">
@@ -122,13 +121,10 @@ const FILE_LABELS: Record<FileType, string> = {
 
 const OptionItem = ({ label, selected, onClick, disabled }: { label: string; selected: boolean; onClick: () => void; disabled?: boolean }) => (
   <div
-    className={clsx(
-      'flex items-center gap-3 px-4 py-2 hover:bg-white/10 cursor-pointer text-sm transition-colors',
-      disabled && 'opacity-50 pointer-events-none',
-    )}
+    className={cn('flex items-center gap-3 px-4 py-2 hover:bg-white/10 cursor-pointer text-sm transition-colors', disabled && 'opacity-50 pointer-events-none')}
     onClick={onClick}
   >
-    <Icon name="check" className={clsx('text-lg', !selected && 'invisible')} />
+    <Icon name="check" className={cn('text-lg', !selected && 'invisible')} />
     <span>{label}</span>
   </div>
 )
@@ -186,8 +182,8 @@ const SettingsMenu = () => {
               onClick={() => setShowPath(!showPath)}
             >
               <span>Show Path</span>
-              <div className={clsx('w-8 h-4 rounded-full transition-colors relative', showPath ? 'bg-green-500' : 'bg-white/30')}>
-                <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform', showPath ? 'translate-x-4' : 'translate-x-0.5')} />
+              <div className={cn('w-8 h-4 rounded-full transition-colors relative', showPath ? 'bg-green-500' : 'bg-white/30')}>
+                <div className={cn('absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform', showPath ? 'translate-x-4' : 'translate-x-0.5')} />
               </div>
             </div>
           )}
@@ -384,7 +380,7 @@ const Timeline = ({ route }: { route?: Route }) => {
   return (
     <div
       ref={ref}
-      className={clsx(
+      className={cn(
         'relative h-14 w-full bg-black/20 rounded-lg overflow-visible cursor-pointer select-none group', // overflow-visible for time labels
         'ring-1 ring-white/10 hover:ring-white/20 transition-all',
       )}
@@ -413,7 +409,7 @@ const Timeline = ({ route }: { route?: Route }) => {
               <div
                 key={i}
                 title={title}
-                className={clsx('absolute top-0 h-full hover:brightness-150', classes)}
+                className={cn('absolute top-0 h-full hover:brightness-150', classes)}
                 style={{ left: `${left}%`, width: `${width}%`, zIndex }}
               />
             )
@@ -462,14 +458,14 @@ const Timeline = ({ route }: { route?: Route }) => {
             }}
           >
             <div
-              className={clsx(
+              className={cn(
                 'w-1 h-full bg-white rounded-full shadow-lg transition-transform group-hover/handle:scale-x-150',
                 isStart ? 'translate-x-0.5' : '-translate-x-0.5',
               )}
             />
 
             <div
-              className={clsx(
+              className={cn(
                 'absolute -top-7 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-mono whitespace-nowrap opacity-100 transition-opacity pointer-events-none',
                 !showLabel && 'hidden',
               )}
@@ -507,14 +503,14 @@ export const VideoControls = ({ className, inFullscreen }: { className?: string;
   const seconds = toSeconds(frame)
 
   return (
-    <div className={clsx('flex flex-col gap-2 p-2 bg-black/20 rounded-xl backdrop-blur-md border border-white/5', className)}>
+    <div className={cn('flex flex-col gap-2 p-2 bg-black/20 rounded-xl backdrop-blur-md border border-white/5', className)}>
       <Timeline route={route} />
 
       <div className="flex items-center gap-2 pt-2">
         <IconButton title={playing ? 'Pause' : 'Play'} name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
         <IconButton title={muted ? 'Unmute' : 'Mute'} name={muted ? 'volume_off' : 'volume_up'} onClick={() => (muted ? player?.unmute() : player?.mute())} />
 
-        <span className="text-sm font-mono opacity-80 min-w-[100px]">
+        <span className="text-sm font-mono opacity-80 min-w-25">
           {formatVideoTime(Math.round(seconds))} / {formatVideoTime(Math.round(duration))}
         </span>
 
@@ -648,11 +644,11 @@ export const RouteVideoPlayer = ({ className, props }: { className?: string; pro
   return (
     <div
       id="fullscreen"
-      className={clsx('relative rounded-xl overflow-hidden bg-black', fullscreen && 'flex flex-col h-full', className)}
+      className={cn('relative rounded-xl overflow-hidden bg-black', fullscreen && 'flex flex-col h-full', className)}
       style={fullscreen ? undefined : { aspectRatio: WIDTH / HEIGHT }}
     >
       <PlayerState props={props} playerRef={playerRef} route={route} />
-      <div className={clsx('relative', fullscreen ? 'flex-1 min-h-0' : 'w-full h-full')}>
+      <div className={cn('relative', fullscreen ? 'flex-1 min-h-0' : 'w-full h-full')}>
         <Player
           ref={playerRef}
           component={Preview}

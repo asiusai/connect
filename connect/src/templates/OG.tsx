@@ -8,9 +8,9 @@ import { getPathStaticMapUrl } from '../utils/map'
 import { formatDistance, formatDuration, getRouteDurationMs } from '../utils/format'
 import { Route } from '../../../shared/types'
 import { DateTime } from 'luxon'
-import clsx from 'clsx'
 import { Logo } from '../../../shared/components/Logo'
 import { provider } from '../../../shared/provider'
+import { cn } from '../../../shared/helpers'
 
 export const OGProps = z.object({
   routeName: z.string(),
@@ -118,7 +118,7 @@ export const OG = ({ data }: OGProps) => {
     ?.replace(' hr', 'h')
     ?.replace(' min', 'm')
   return (
-    <AbsoluteFill className="bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#1a1a1a] to-[#050505] text-white font-sans p-12 flex flex-col justify-between">
+    <AbsoluteFill className="bg-[radial-gradient(ellipse_at_top_right,var(--tw-gradient-stops))] from-[#1a1a1a] to-[#050505] text-white font-sans p-12 flex flex-col justify-between">
       {/* Header */}
       <div className="flex justify-between items-start">
         <div className="flex flex-col">
@@ -138,11 +138,11 @@ export const OG = ({ data }: OGProps) => {
 
       {/* Middle */}
       <div className="flex flex-row h-[55%] w-full gap-16 items-center">
-        <div className="h-full flex-grow relative rounded-[2.5rem] overflow-hidden border-[1px] border-white/10 shadow-2xl bg-[#1a1a1a]">
+        <div className="h-full grow relative rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl bg-[#1a1a1a]">
           {data.staticMap && <Img src={data.staticMap} className="w-full h-full object-cover opacity-80" />}
         </div>
 
-        <div className="flex flex-col justify-center gap-12 min-w-[300px]">
+        <div className="flex flex-col justify-center gap-12 min-w-75">
           {[
             { label: 'Distance', icon: Icons.route, value: data.route.distance ? formatDistance(data.route.distance) : undefined },
             { label: 'Duration', icon: Icons.schedule, value: duration },
@@ -154,7 +154,7 @@ export const OG = ({ data }: OGProps) => {
               hidden: !engagedPercent,
             },
           ].map(({ icon, label, value, highlight, hidden }) => (
-            <div key={label} className={clsx('flex flex-col gap-1', hidden && 'hidden')}>
+            <div key={label} className={cn('flex flex-col gap-1', hidden && 'hidden')}>
               <div className="flex items-center gap-4 text-white/60 mb-1">
                 <div className="w-8 h-8 flex items-center justify-center opacity-80">{icon}</div>
                 <span className="text-3xl font-medium">{label}</span>

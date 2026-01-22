@@ -6,9 +6,9 @@ import { BackButton } from '../../components/BackButton'
 import { IconButton } from '../../components/IconButton'
 import { useStorage } from '../../utils/storage'
 import { useDevice } from '../device/useDevice'
-import clsx from 'clsx'
 import { LiveView } from './live'
 import { SnapshotView } from './snapshot'
+import { cn } from '../../../../shared/helpers'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
@@ -32,7 +32,7 @@ export const Component = () => {
             <IconButton
               name="refresh"
               title="Refresh connection"
-              className={clsx('p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5', reconnecting && 'animate-spin')}
+              className={cn('p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5', reconnecting && 'animate-spin')}
               onClick={() => setupRTCConnectionRef.current?.()}
               disabled={reconnecting}
             />

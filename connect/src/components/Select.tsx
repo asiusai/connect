@@ -1,5 +1,5 @@
-import clsx from 'clsx'
 import { CSSProperties, ReactNode } from 'react'
+import { cn } from '../../../shared/helpers'
 
 export const Select = <T extends string>({
   value,
@@ -21,7 +21,7 @@ export const Select = <T extends string>({
       disabled={disabled}
       value={value}
       onChange={(e) => onChange(e.currentTarget.value as T)}
-      className={clsx(
+      className={cn(
         'appearance-none bg-background-alt text-sm font-medium pl-3 pr-8 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 transition-colors cursor-pointer',
         className,
       )}

@@ -1,8 +1,8 @@
-import clsx from 'clsx'
 import { formatDistance, formatDuration, formatRouteDuration, getRouteDurationMs } from '../../utils/format'
 import { Route } from '../../../../shared/types'
 import { useAsyncMemo } from '../../utils/hooks'
 import { getRouteStats, getTimelineEvents } from '../../utils/derived'
+import { cn } from '../../../../shared/helpers'
 
 export const Stats = ({ className, route }: { className?: string; route: Route }) => {
   const stats = useAsyncMemo(() => getTimelineEvents(route).then(getRouteStats), [route])
@@ -17,7 +17,7 @@ export const Stats = ({ className, route }: { className?: string; route: Route }
   const engagementPercent = stats && durationMs ? (100 * stats.engagedDurationMs) / durationMs : undefined
 
   return (
-    <div className={clsx('grid w-full grid-cols-3 items-center divide-x divide-white/10 rounded-xl bg-background-alt py-4', className)}>
+    <div className={cn('grid w-full grid-cols-3 items-center divide-x divide-white/10 rounded-xl bg-background-alt py-4', className)}>
       <div className="flex flex-col items-center px-4">
         <span className="text-2xl font-bold text-white leading-none">{distVal}</span>
         <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">{distUnit}</span>

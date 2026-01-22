@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../../templates/shared'
 import { Icon } from '../../components/Icon'
 import { useStorage } from '../../utils/storage'
-import clsx from 'clsx'
+import { cn } from '../../../../shared/helpers'
 
 export const ControlButton = ({
   onClick,
@@ -36,8 +36,8 @@ export const ControlButton = ({
     onPointerUp={onPointerUp}
     onPointerLeave={onPointerLeave}
     disabled={disabled}
-    className={clsx(
-      'flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl transition-all min-w-[72px]',
+    className={cn(
+      'flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl transition-all min-w-18',
       primary
         ? active
           ? 'bg-primary text-black'
@@ -48,7 +48,7 @@ export const ControlButton = ({
       disabled && 'opacity-50 cursor-not-allowed',
     )}
   >
-    <Icon name={icon as any} className={clsx('text-xl', spin && 'animate-spin')} />
+    <Icon name={icon as any} className={cn('text-xl', spin && 'animate-spin')} />
     <span className="text-[10px] font-medium">{label}</span>
   </button>
 )
@@ -420,14 +420,14 @@ export const LiveView = ({
 
       <div className="h-full flex flex-col gap-4 p-4 relative overflow-hidden items-center justify-between">
         {/* Video Grid - always render both, hide with CSS */}
-        <div className={clsx(' overflow-hidden flex gap-4 flex-col md:flex-row')}>
+        <div className={cn(' overflow-hidden flex gap-4 flex-col md:flex-row')}>
           {[
             { videoRef: driverRef, hidden: cameraView === 'road' },
             { videoRef: roadRef, hidden: cameraView === 'driver' },
           ].map(({ videoRef, hidden }, i) => (
             <div
               key={i}
-              className={clsx('relative rounded-xl overflow-hidden border border-white/5 bg-background-alt', hidden && 'hidden')}
+              className={cn('relative rounded-xl overflow-hidden border border-white/5 bg-background-alt', hidden && 'hidden')}
               style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }}
             >
               <video autoPlay playsInline muted ref={videoRef} className=" object-contain" style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }} />

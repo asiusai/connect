@@ -1,8 +1,7 @@
-import clsx from 'clsx'
-
 import { ButtonBase, type ButtonBaseProps } from './ButtonBase'
 import { ReactNode } from 'react'
 import { CircularProgress } from './CircularProgress'
+import { cn } from '../../../shared/helpers'
 
 type ButtonProps = ButtonBaseProps & {
   color?: 'primary' | 'secondary' | 'tertiary' | 'error' | 'text'
@@ -27,7 +26,7 @@ export const Button = ({ color, leading, trailing, className, children, disabled
 
   return (
     <ButtonBase
-      className={clsx(
+      className={cn(
         'inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg px-6 py-2 font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none',
         colorClasses,
         className,
@@ -36,8 +35,8 @@ export const Button = ({ color, leading, trailing, className, children, disabled
       disabled={disabled}
     >
       {leading}
-      <span className={clsx('relative')}>
-        <span className={clsx('text-sm', isLoading && 'invisible')}>{children}</span>
+      <span className={cn('relative')}>
+        <span className={cn('text-sm', isLoading && 'invisible')}>{children}</span>
         {isLoading && (
           <span className="absolute inset-0 flex justify-center items-center">
             <CircularProgress loading={loading} className="h-5 w-5" />

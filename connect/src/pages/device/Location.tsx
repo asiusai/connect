@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import { createPortal } from 'react-dom'
 import { Device, getDeviceName } from '../../../../shared/types'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -13,7 +12,7 @@ import { useStorage } from '../../utils/storage'
 import { toast } from 'sonner'
 import { useDevice } from './useDevice'
 import { create } from 'zustand'
-import { truncate, ZustandType } from '../../../../shared/helpers'
+import { cn, truncate, ZustandType } from '../../../../shared/helpers'
 import { api } from '../../api'
 import { env } from '../../../../shared/env'
 
@@ -218,8 +217,8 @@ export const Location = ({ className, device }: { className?: string; device?: D
 
   const markers = [deviceMarker, userMarker, destinationMarker].filter(Boolean) as MarkerType[]
   return (
-    <div className={clsx(className)}>
-      <MapContainer attributionControl={false} zoomControl={false} center={SAN_DIEGO} zoom={10} className="h-full w-full !bg-background-alt">
+    <div className={cn(className)}>
+      <MapContainer attributionControl={false} zoomControl={false} center={SAN_DIEGO} zoom={10} className="h-full w-full bg-background-alt!">
         <TileLayer url={getTileUrl()} />
 
         {directions && directions.coordinates.length > 0 && (
@@ -238,7 +237,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
             }}
             icon={L.divIcon({
               className: 'border-none bg-none',
-              html: `<div class="flex size-[40px] items-center justify-center rounded-full shadow-xl border-2 border-white/80 ${x.iconClass || 'bg-primary text-primary-x'}"><span class="material-symbols-outlined flex icon-filled">${x.iconName}</span></div>`,
+              html: `<div class="flex size-10 items-center justify-center rounded-full shadow-xl border-2 border-white/80 ${x.iconClass || 'bg-primary text-primary-x'}"><span class="material-symbols-outlined flex icon-filled">${x.iconName}</span></div>`,
               iconSize: [40, 40],
               iconAnchor: [20, 20],
             })}
@@ -253,13 +252,13 @@ export const Location = ({ className, device }: { className?: string; device?: D
         createPortal(
           <>
             <div
-              className="fixed inset-0 z-[9998] bg-black/60"
+              className="fixed inset-0 z-9998 bg-black/60"
               onClick={() => {
                 set({ isSearchOpen: false })
                 search('')
               }}
             />
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[90%] max-w-md flex flex-col bg-background rounded-xl shadow-2xl border border-white/10 overflow-hidden">
+            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-9999 w-[90%] max-w-md flex flex-col bg-background rounded-xl shadow-2xl border border-white/10 overflow-hidden">
               <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
                 <Icon name="search" className="text-xl opacity-50" />
                 <input
@@ -331,12 +330,12 @@ export const Location = ({ className, device }: { className?: string; device?: D
         <IconButton
           name="my_location"
           title="Request location"
-          className="absolute bottom-4 right-2 bg-background p-2 z-[999]"
+          className="absolute bottom-4 right-2 bg-background p-2 z-999"
           onClick={() => requestPosition()}
         />
       )}
       {!markers.length && (
-        <div className="absolute left-1/2 top-1/2 z-[5000] flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-background-alt px-4 py-2 shadow">
+        <div className="absolute left-1/2 top-1/2 z-5000 flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-background-alt px-4 py-2 shadow">
           <div className="mr-2 size-4 animate-spin rounded-full border-2 border-background-alt-x border-t-transparent" />
           <span className="text-sm">Locating...</span>
         </div>

@@ -1,10 +1,11 @@
 {
   "name": "@asiusai/shared",
   "dependencies": {
-    "@ts-rest/core": "3.52.1",
-    "fzstd": "^0.1.1",
-    "capnp-ts": "^0.7.0",
     "@commaai/wasm-bz2": "^0.0.4",
+    "@ts-rest/core": "3.52.1",
+    "capnp-ts": "^0.7.0",
+    "fzstd": "^0.1.1",
+    "tailwind-merge": "^3.4.0",
     "zod": "3.22.3"
   }
 }

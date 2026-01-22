@@ -1,5 +1,5 @@
-import clsx from 'clsx'
 import { z } from 'zod'
+import { cn } from '../../../shared/helpers'
 
 // Specify icon names to load only the necessary icons, reducing font payload.
 // https://developers.google.com/fonts/docs/material_symbols#optimize_the_icon_font
@@ -195,16 +195,5 @@ export type IconProps = {
  */
 export const Icon = (props: IconProps) => {
   // size-20, 24 etc. defined in root.css
-  return (
-    <span
-      className={clsx(
-        'material-symbols-outlined flex select-none',
-        props.filled ? 'icon-filled' : 'icon-outline',
-
-        props.className,
-      )}
-    >
-      {props.name}
-    </span>
-  )
+  return <span className={cn('material-symbols-outlined flex select-none', props.filled ? 'icon-filled' : 'icon-outline', props.className)}>{props.name}</span>
 }

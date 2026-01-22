@@ -1,13 +1,13 @@
-import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
 import { env } from '../../../../shared/env'
+import { cn } from '../../../../shared/helpers'
 
 const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
   <div
-    className={clsx('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', value ? 'bg-white' : 'bg-white/10')}
+    className={cn('w-12 h-7 rounded-full p-1 transition-colors cursor-pointer relative', value ? 'bg-white' : 'bg-white/10')}
     onClick={() => onChange(!value)}
   >
-    <div className={clsx('w-5 h-5 rounded-full shadow-sm transition-all absolute top-1', value ? 'bg-black left-[24px]' : 'bg-white left-1')} />
+    <div className={cn('w-5 h-5 rounded-full shadow-sm transition-all absolute top-1', value ? 'bg-black left-6' : 'bg-white left-1')} />
   </div>
 )
 

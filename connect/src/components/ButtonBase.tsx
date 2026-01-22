@@ -1,6 +1,6 @@
-import clsx from 'clsx'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { cn } from '../../../shared/helpers'
 
 export type ButtonBaseProps = {
   className?: string
@@ -15,7 +15,7 @@ export type ButtonBaseProps = {
 }
 
 export const ButtonBase = ({ activeClass, href, onClick, ...props }: ButtonBaseProps) => {
-  const className = clsx('isolate overflow-hidden', props.className, props.disabled && 'opacity-65 pointer-events-none')
+  const className = cn('isolate overflow-hidden', props.className, props.disabled && 'opacity-65 pointer-events-none')
   return href ? (
     <Link {...props} to={href} className={className} />
   ) : (

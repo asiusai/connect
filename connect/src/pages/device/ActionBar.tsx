@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import { IconName } from '../../components/Icon'
 import { z } from 'zod'
 import { useDevice } from './useDevice'
@@ -7,6 +6,7 @@ import { IconButton } from '../../components/IconButton'
 import { DeviceParamType } from '../../utils/params'
 import { useStorage } from '../../utils/storage'
 import { useEffect, useRef, useState } from 'react'
+import { cn } from '../../../../shared/helpers'
 
 const BaseAction = z.object({
   icon: IconName,
@@ -43,7 +43,7 @@ const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectA
       name={icon}
       href={href.replaceAll('{dongleId}', dongleId)}
       disabled={!href.replaceAll('{dongleId}', dongleId)}
-      className={clsx(BUTTON_STYLE)}
+      className={cn(BUTTON_STYLE)}
       title={title}
     />
   )
@@ -61,7 +61,7 @@ const ToggleActionComponent = ({ icon, toggleKey, toggleType, title, disabled }:
         await save({ [toggleKey]: isSelected ? '0' : '1' })
       }}
       disabled={isLoading || isError || value === undefined || disabled}
-      className={clsx(BUTTON_STYLE, isSelected && SELECTED_BUTTON)}
+      className={cn(BUTTON_STYLE, isSelected && SELECTED_BUTTON)}
       title={title}
     />
   )
@@ -79,7 +79,7 @@ const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof Nav
         await setMapboxRoute(address)
       }}
       disabled={!address || route === undefined}
-      className={clsx(BUTTON_STYLE, isSelected && SELECTED_BUTTON)}
+      className={cn(BUTTON_STYLE, isSelected && SELECTED_BUTTON)}
       title={title}
     />
   )
@@ -100,7 +100,7 @@ export const AddToActionBar = ({ action }: { action: Action }) => {
       name={isAdded ? 'check' : 'close_small'}
       title={isAdded ? 'Added to action bar' : 'Add to action bar'}
       onClick={() => !isAdded && setActions([...actions, action])}
-      className={clsx(
+      className={cn(
         'absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 flex md:hidden md:group-hover:flex border border-white/20 z-20',
         isAdded ? 'bg-green-600 text-white' : 'rotate-45 bg-background-alt',
       )}
@@ -143,7 +143,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
   return (
     <div
       ref={containerRef}
-      className={clsx('flex gap-2 flex-wrap items-center justify-center cursor-pointer', className)}
+      className={cn('flex gap-2 flex-wrap items-center justify-center cursor-pointer', className)}
       style={{
         gridTemplateColumns: `repeat(${actions.length}, minmax(2, 2fr))`,
       }}
@@ -165,7 +165,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
             onClick={() => {
               setActions(actions.filter((_, j) => i !== j))
             }}
-            className={clsx(
+            className={cn(
               'absolute translate-x-1/2 -translate-y-1/2 top-0 right-0 border border-white/20 z-10 text-white bg-background aspect-square hover:bg-background-alt cursor-pointer',
               editing ? 'flex' : 'hidden! md:group-hover:flex!',
             )}

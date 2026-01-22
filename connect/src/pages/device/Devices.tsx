@@ -1,14 +1,14 @@
-import clsx from 'clsx'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../api'
 import { Device, getDeviceName, getCommaName } from '../../../../shared/types'
 import { timeAgo } from '../../utils/format'
 import { Icon } from '../../components/Icon'
+import { cn } from '../../../../shared/helpers'
 
 export const Active = ({ device, className }: { device: Device; className?: string }) => {
-  if (!device.last_athena_ping) return <span className={clsx('text-white/30', className)}>Offline</span>
+  if (!device.last_athena_ping) return <span className={cn('text-white/30', className)}>Offline</span>
   return (
-    <p className={clsx(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70', className)}>
+    <p className={cn(Math.floor(Date.now() / 1000) - device.last_athena_ping < 120 ? 'text-green-400' : 'text-white/70', className)}>
       {timeAgo(device.last_athena_ping)}
     </p>
   )
@@ -21,9 +21,9 @@ export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?:
 
   return (
     <div
-      className={clsx(
+      className={cn(
         'flex flex-col w-full bg-background text-background-x overflow-hidden',
-        isDropdown ? 'max-h-[400px]' : 'animate-in slide-in-from-top-5 fade-in duration-200 max-h-[60vh]',
+        isDropdown ? 'max-h-100' : 'animate-in slide-in-from-top-5 fade-in duration-200 max-h-[60vh]',
       )}
     >
       {!isDropdown && (
@@ -39,7 +39,7 @@ export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?:
         {devices?.map((device) => (
           <div
             key={device.dongle_id}
-            className={clsx(
+            className={cn(
               'flex flex-col gap-0.5 p-3 rounded-xl cursor-pointer shrink-0 transition-colors',
               device.dongle_id === dongleId ? 'bg-white/10 border border-green-500/50' : 'hover:bg-white/5',
             )}

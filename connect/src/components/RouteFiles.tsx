@@ -1,11 +1,10 @@
 import { FileType, Route, SegmentFiles } from '../../../shared/types'
 import { useState } from 'react'
-import { FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus } from '../../../shared/helpers'
+import { FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus, cn } from '../../../shared/helpers'
 import { api } from '../api'
 import { useAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4, hevcBinsToMp4, tsFilesToMp4 } from '../utils/ffmpeg'
-import clsx from 'clsx'
 import { useIsDeviceOwner, useRouteParams, useUploadProgress } from '../utils/hooks'
 import { Icon } from './Icon'
 import { ButtonBase } from './ButtonBase'
@@ -45,13 +44,13 @@ const FileAction = ({
       href={href}
       download={download}
       disabled={disabled || !!loading}
-      className={clsx(
+      className={cn(
         'flex items-center gap-1 px-2 py-1.5 rounded-lg transition-colors text-xs font-medium disabled:opacity-50',
         isUpload ? 'bg-white text-black hover:bg-white/90' : 'bg-white/5 hover:bg-white/10 text-white',
       )}
     >
       {loading !== undefined ? (
-        <CircularProgress loading={loading} className={clsx('w-3.5 h-3.5 rounded-full ', isUpload ? 'text-black' : 'text-white')} />
+        <CircularProgress loading={loading} className={cn('w-3.5 h-3.5 rounded-full ', isUpload ? 'text-black' : 'text-white')} />
       ) : (
         <Icon name={icon as any} className="text-[16px]!" />
       )}
@@ -269,7 +268,7 @@ const SegmentDetails = ({
                       key={i}
                       title={isSegmentUploading ? `Segment ${i} - ${Math.round((segmentProgress ?? 0) * 100)}%` : `Segment ${i}`}
                       onClick={() => setSegment(i)}
-                      className={clsx(
+                      className={cn(
                         'h-full cursor-pointer relative',
                         !files[type][i] ? 'bg-white/80' : type.startsWith('q') ? 'bg-blue-400' : 'bg-green-400',
                         segment !== i ? 'opacity-40' : 'opacity-80',
@@ -300,7 +299,7 @@ const SegmentGrid = ({ files, selectedSegment, onSelect }: { files: SegmentFiles
   return (
     <div className="flex flex-wrap gap-1.5 p-1">
       <button
-        className={clsx(
+        className={cn(
           'h-8 px-3 flex items-center justify-center rounded-lg text-xs font-bold border transition-all',
           getStatusColor(getRouteUploadStatus(files)),
           selectedSegment === -1 && 'ring-2 ring-white border-transparent bg-white text-black',
@@ -314,7 +313,7 @@ const SegmentGrid = ({ files, selectedSegment, onSelect }: { files: SegmentFiles
         return (
           <button
             key={i}
-            className={clsx(
+            className={cn(
               'h-8 w-8 flex items-center justify-center rounded-lg text-xs font-medium border transition-all',
               getStatusColor(getSegmentUploadStatus(files, i)),
               selectedSegment === i && 'ring-2 ring-white border-transparent bg-white text-black',
@@ -344,7 +343,7 @@ export const RouteFiles = ({ route, className }: { route: Route; className?: str
   const uploadProgress = useUploadProgress(dongleId, routeId, refetch)
 
   return (
-    <div className={clsx('flex flex-col gap-2 bg-background-alt rounded-xl p-4', className)}>
+    <div className={cn('flex flex-col gap-2 bg-background-alt rounded-xl p-4', className)}>
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">
           Files
@@ -354,7 +353,7 @@ export const RouteFiles = ({ route, className }: { route: Route; className?: str
           title="Refresh"
           onClick={() => void refetch()}
           name="refresh"
-          className={clsx('text-xl text-white/40 hover:text-white transition-colors', refetching && 'animate-spin')}
+          className={cn('text-xl text-white/40 hover:text-white transition-colors', refetching && 'animate-spin')}
         />
       </div>
       {files && (

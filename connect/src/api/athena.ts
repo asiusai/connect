@@ -184,7 +184,7 @@ export const callAthena = async <T extends AthenaRequest>({
   isOwner: boolean | undefined
 }): Promise<AthenaResponse<T> | undefined> => {
   if (!provider.ATHENA_URL) return
-  if (!isOwner) throw new Error('Athena called without being device owner')
+  if (!isOwner) throw new Error(`Athena ${type} called without being device owner`)
   const req = REQUESTS[type]
 
   const parse = req.params.safeParse(params)

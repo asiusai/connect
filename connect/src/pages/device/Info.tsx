@@ -1,9 +1,9 @@
-import clsx from 'clsx'
 import { api } from '../../api'
 import { DetailRow } from '../../components/DetailRow'
 import { useRouteParams } from '../../utils/hooks'
 import { useStorage } from '../../utils/storage'
 import { env } from '../../../../shared/env'
+import { cn } from '../../../../shared/helpers'
 
 export const Info = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
@@ -15,7 +15,7 @@ export const Info = ({ className }: { className?: string }) => {
   if (usingCorrectFork === undefined && env.FORK.some((x) => route?.git_remote?.includes(x))) setUsingCorrectFork(true)
   if (!route) return null
   return (
-    <div className={clsx('flex flex-col gap-4 pb-10', className)}>
+    <div className={cn('flex flex-col gap-4 pb-10', className)}>
       <h2 className="text-xl font-bold px-2">Vehicle Info</h2>
       <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
         <DetailRow label="Dongle ID" value={route.dongle_id} mono copyable />

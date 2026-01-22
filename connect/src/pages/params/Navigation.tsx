@@ -1,11 +1,11 @@
 import { useDevice } from '../device/useDevice'
 import { useEffect, useRef, useState } from 'react'
 import { IconButton } from '../../components/IconButton'
-import clsx from 'clsx'
 import { Icon, IconName, Icons } from '../../components/Icon'
 import { useSuggestions } from '../device/Location'
 import { Setting, Settings } from './Settings'
 import { AddToActionBar } from '../device/ActionBar'
+import { cn } from '../../../../shared/helpers'
 
 type MapboxSuggestion = { place_name: string; center: [number, number] }
 
@@ -50,7 +50,7 @@ const AddressAutocomplete = ({
         }}
         onFocus={() => setIsOpen(true)}
         placeholder={placeholder}
-        className={clsx('bg-background-alt text-sm px-3 py-1.5 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 w-full', className)}
+        className={cn('bg-background-alt text-sm px-3 py-1.5 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 w-full', className)}
       />
       {isOpen && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-background rounded-lg border border-white/10 shadow-xl z-50 max-h-48 overflow-y-auto">

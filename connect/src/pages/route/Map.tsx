@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import { Route } from '../../../../shared/types'
 import { getCoords, GPSPathPoint } from '../../utils/derived'
 import { useAsyncMemo } from '../../utils/hooks'
@@ -8,6 +7,7 @@ import { useEffect, useRef } from 'react'
 import L, { LatLngBounds } from 'leaflet'
 import { toSeconds } from '../../templates/shared'
 import { usePlayerStore } from '../../components/VideoPlayer'
+import { cn } from '../../../../shared/helpers'
 
 const FitBounds = ({ coords }: { coords: GPSPathPoint[] }) => {
   const map = useMap()
@@ -58,7 +58,7 @@ export const DynamicMap = ({ route, className }: { className?: string; route: Ro
   const coords = useAsyncMemo(async () => await getCoords(route), [route])
 
   return (
-    <div className={clsx('relative rounded-xl overflow-hidden shrink-0 bg-background-alt isolate h-full aspect-square md:aspect-auto', className)}>
+    <div className={cn('relative rounded-xl overflow-hidden shrink-0 bg-background-alt isolate h-full aspect-square md:aspect-auto', className)}>
       {!coords?.length && <div className="size-full bg-white/5 animate-pulse" />}
       {coords?.length && (
         <MapContainer center={[coords[0].lat, coords[0].lng]} zoom={13} zoomControl={false} attributionControl={false} className="size-full z-0">

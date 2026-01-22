@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { Icon } from './Icon'
-import clsx from 'clsx'
 import { getDeviceName } from '../../../shared/types'
 import { useState } from 'react'
 import { Active, Devices } from '../pages/device/Devices'
@@ -12,6 +11,7 @@ import { Voltage } from '../pages/device/DevicesMobile'
 import { IconButton } from './IconButton'
 import { Logo } from '../../../shared/components/Logo'
 import { isSignedIn } from '../utils/helpers'
+import { cn } from '../../../shared/helpers'
 
 export const Sidebar = () => {
   const { dongleId } = useRouteParams()
@@ -47,7 +47,7 @@ export const Sidebar = () => {
               </div>
               <Icon
                 name="keyboard_arrow_down"
-                className={clsx('text-white/60 group-hover:text-white transition-colors duration-200', showDeviceList && 'rotate-180')}
+                className={cn('text-white/60 group-hover:text-white transition-colors duration-200', showDeviceList && 'rotate-180')}
               />
             </div>
 

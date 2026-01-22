@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import { type PrimePlan } from '../../../../shared/types'
 import { formatCurrency, formatDate } from '../../utils/format'
 import { ButtonBase } from '../../components/ButtonBase'
@@ -7,6 +6,7 @@ import { ReactNode, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { api } from '../../api'
 import { useRouteParams } from '../../utils/hooks'
+import { cn } from '../../../../shared/helpers'
 
 type PlanProps = { name: PrimePlan; amount: number; description: string; disabled?: boolean }
 const PrimePlanName: Record<PrimePlan, string> = {
@@ -30,7 +30,7 @@ const PlanSelector = ({
       {plans.map((plan) => (
         <div
           key={plan.name}
-          className={clsx(
+          className={cn(
             'flex flex-col gap-1 p-4 rounded-xl border-2 cursor-pointer transition-all',
             selectedPlan === plan.name ? 'border-white bg-white/10' : 'border-white/5 hover:border-white/20 bg-background-alt',
             (plan.disabled || disabled) && 'opacity-50 cursor-not-allowed pointer-events-none',
@@ -170,7 +170,7 @@ const PrimeCheckout = () => {
 
       {checkoutText && (
         <ButtonBase
-          className={clsx(
+          className={cn(
             'w-full py-3 rounded-xl font-bold text-center transition-colors',
             selectedPlan ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white/40 cursor-not-allowed',
           )}

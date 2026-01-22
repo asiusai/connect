@@ -9,8 +9,8 @@ import { Icon } from '../components/Icon'
 import { Button } from '../components/Button'
 import { toast } from 'sonner'
 import { useDevice } from './device/useDevice'
-import clsx from 'clsx'
 import { env } from '../../../shared/env'
+import { cn } from '../../../shared/helpers'
 
 const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
   const copyToClipboard = (text: string) => {
@@ -84,9 +84,9 @@ export const Component = () => {
             </Button>
           </div>
           <div
-            className={clsx(isSharedKey ? 'bg-green-500/5 border-green-500/15' : 'bg-white/5 border-white/10', 'border rounded-lg p-2 flex items-center gap-2')}
+            className={cn(isSharedKey ? 'bg-green-500/5 border-green-500/15' : 'bg-white/5 border-white/10', 'border rounded-lg p-2 flex items-center gap-2')}
           >
-            <Icon name={isSharedKey ? 'check' : 'info'} className={clsx(isSharedKey ? 'text-green-500' : 'text-white/50', 'text-lg shrink-0 mt-0.5')} />
+            <Icon name={isSharedKey ? 'check' : 'info'} className={cn(isSharedKey ? 'text-green-500' : 'text-white/50', 'text-lg shrink-0 mt-0.5')} />
             {isSharedKey ? (
               <p className="text-xs text-green-400/80">
                 Key set to <code className="bg-white/10 px-1 rounded">{env.SSH_USERNAME}</code>, good to go!

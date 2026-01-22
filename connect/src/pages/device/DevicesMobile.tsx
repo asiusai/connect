@@ -1,4 +1,3 @@
-import clsx from 'clsx'
 import { useState } from 'react'
 import { useAthena } from '../../api/athena'
 import { api } from '../../api'
@@ -7,6 +6,7 @@ import { useAsyncEffect, useIsDeviceOwner, useRouteParams } from '../../utils/ho
 import { Active, Devices } from './Devices'
 import { Icon } from '../../components/Icon'
 import { createPortal } from 'react-dom'
+import { cn } from '../../../../shared/helpers'
 
 const getVoltageColor = (voltage: number) => (voltage < 12.1 ? 'text-red-400' : voltage < 12.4 ? 'text-yellow-400' : 'text-green-400')
 
@@ -23,8 +23,8 @@ export const Voltage = () => {
   return (
     <>
       <div className="w-1 h-1 rounded-full bg-white/40" />
-      <div className={clsx('flex gap-1 items-center', getVoltageColor(Number(voltage)))}>
-        <Icon name="battery_5_bar" className="rotate-90 !text-[18px]" />
+      <div className={cn('flex gap-1 items-center', getVoltageColor(Number(voltage)))}>
+        <Icon name="battery_5_bar" className="rotate-90 text-[18px]!" />
         <p>{voltage}V</p>
       </div>
     </>
@@ -51,7 +51,7 @@ export const DevicesMobile = () => {
       </div>
       {open &&
         createPortal(
-          <div className="fixed inset-0 z-[999999] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-999999 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
               <Devices close={() => setOpen(false)} />
             </div>

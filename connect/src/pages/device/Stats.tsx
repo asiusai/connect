@@ -3,8 +3,8 @@ import { Slider } from '../../components/Slider'
 import { DetailRow } from '../../components/DetailRow'
 import { formatDistance, formatDuration } from '../../utils/format'
 import { useRouteParams } from '../../utils/hooks'
-import clsx from 'clsx'
 import { useStorage } from '../../utils/storage'
+import { cn } from '../../../../shared/helpers'
 
 export const Stats = ({ className }: { className: string }) => {
   const { dongleId } = useRouteParams()
@@ -14,7 +14,7 @@ export const Stats = ({ className }: { className: string }) => {
   const currentStats = stats?.[timeRange ?? 'all']
   if (!currentStats) return null
   return (
-    <div className={clsx('flex flex-col gap-4', className)}>
+    <div className={cn('flex flex-col gap-4', className)}>
       <div className="flex items-center justify-between px-2">
         <h2 className="text-xl font-bold">Statistics</h2>
         <Slider options={{ all: 'All', week: 'Weekly' }} value={timeRange} onChange={setTimeRange} />

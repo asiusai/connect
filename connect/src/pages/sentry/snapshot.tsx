@@ -5,10 +5,9 @@ import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../../templates/shared'
 import { Icon } from '../../components/Icon'
 import { IconButton } from '../../components/IconButton'
-import { saveFile } from '../../../../shared/helpers'
+import { cn, saveFile } from '../../../../shared/helpers'
 import { ControlButton } from './live'
 import { useStorage } from '../../utils/storage'
-import clsx from 'clsx'
 
 const toB64 = (x?: string | null) => (x ? `data:image/jpeg;base64,${x}` : undefined)
 
@@ -34,7 +33,7 @@ export const SnapshotView = () => {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* Image Grid - matches live view layout */}
-      <div className={clsx('flex-1 flex flex-col gap-4 p-4 relative overflow-hidden items-start justify-start md:flex-row w-full h-full')}>
+      <div className={cn('flex-1 flex flex-col gap-4 p-4 relative overflow-hidden items-start justify-start md:flex-row w-full h-full')}>
         {[
           { src: toB64(images?.jpegFront), hidden: cameraView === 'road' },
           { src: toB64(images?.jpegBack), hidden: cameraView === 'driver' },
@@ -42,7 +41,7 @@ export const SnapshotView = () => {
           <div
             id="shit"
             key={i}
-            className={clsx('relative rounded-xl overflow-hidden border border-white/5 group w-full', hidden && 'hidden')}
+            className={cn('relative rounded-xl overflow-hidden border border-white/5 group w-full', hidden && 'hidden')}
             style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }}
           >
             {!isLoading ? (

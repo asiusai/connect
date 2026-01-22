@@ -1,10 +1,10 @@
-import clsx from 'clsx'
 import { DetailRow } from '../../components/DetailRow'
 import { Route } from '../../../../shared/types'
+import { cn } from '../../../../shared/helpers'
 
 export const Info = ({ route, className }: { route: Route; className?: string }) => {
   return (
-    <div className={clsx('bg-background-alt rounded-xl p-4 flex flex-col', className)}>
+    <div className={cn('bg-background-alt rounded-xl p-4 flex flex-col', className)}>
       <h3 className="text-xs font-bold uppercase tracking-wider text-white/40 mb-2">Details</h3>
       <DetailRow label="Route" value={route.fullname.replace('|', '/')} mono copyable />
       <DetailRow label="Dongle ID" value={route.dongle_id} mono copyable />

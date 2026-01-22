@@ -7,9 +7,9 @@ import { useState } from 'react'
 import { SyntaxHighlightedJson } from '../components/SyntaxHighlightedJson'
 import { Service } from '../../../shared/types'
 import { Loading } from '../components/Loading'
-import clsx from 'clsx'
 import { Label } from '../components/Label'
 import { useStorage } from '../utils/storage'
+import { cn } from '../../../shared/helpers'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
@@ -36,7 +36,7 @@ export const Component = () => {
         </Label>
         {state === 'loading' && <Loading className="h-64 w-full rounded-lg" />}
         {state !== 'loading' && json && (
-          <div className={clsx(state === 'error' ? 'bg-error-x' : 'bg-background-alt', 'whitespace-pre rounded-lg p-4')}>
+          <div className={cn(state === 'error' ? 'bg-error-x' : 'bg-background-alt', 'whitespace-pre rounded-lg p-4')}>
             <SyntaxHighlightedJson json={json} />
           </div>
         )}
