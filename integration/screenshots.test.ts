@@ -4,7 +4,7 @@ import { chromium, devices as playDevices } from 'playwright'
 import { keys } from '../shared/helpers'
 import { Mode, PROVIDERS } from '../shared/provider'
 
-const FOLDER = process.env.FOLDER || 'screenshots'
+const FOLDER = process.env.FOLDER || 'site/public/screenshots'
 const DEVICE = process.env.DEVICE
 const EXECUTABLE = '/usr/bin/chromium'
 

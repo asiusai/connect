@@ -13,6 +13,6 @@ const { page } = Astro.props
 const { Content } = await render(page)
 ---
 
-<Layout title={page.data.title} description={page.data.description} className="container mx-auto px-6 py-12 max-w-3xl prose prose-invert">
+<Layout title={page.data.title} description={page.data.description} className="container mx-auto px-6 py-12 max-w-5xl prose prose-invert">
     <Content />
 </Layout>

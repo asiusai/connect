@@ -7,43 +7,73 @@ description: Better file management, nicer UI, video streaming, joystick control
 
 Better file management, nicer UI, video streaming, joystick control, and more for your openpilot device.
 
-[Connect for Comma](https://comma.asius.ai) 
+We have three components: Connect, Forks and API - use them together or pick what you need.
+You can try our [upgraded Connect](https://comma.asius.ai) right now - works with stock openpilot, just log in with your Comma account.
 
-[Connect for Konik](https://konik.asius.ai) 
+---
 
+<div className='grid md:grid-cols-2 gap-4' >
+  <div className=''>
 
-Install our fork from [openpilot.asius.ai](https://openpilot.asius.ai) or [sunnypilot.asius.ai](https://sunnypilot.asius.ai)
+## Asius Connect
 
-After installing our fork you can "Enable Asius API" from the settings to start using [Asius Connect](https://connect.asius.ai) 
+Our web frontend with better UX, video player, file management, and more.
+
+Works with stock openpilot - no modifications needed. Just log in with your Comma account.
+
+[Comma Connect](https://comma.asius.ai) · [Konik Connect](https://konik.asius.ai) · [Asius Connect](https://connect.asius.ai)
+
+  </div>
+    <img src="/screenshots/konik/desktop/route.png" alt="Asius Connect Route" className='aspect-video object-cover object-top border border-background-alt rounded-lg shadow-lg shadow-background-alt' />
+</div>
+
+---
+
+## Asius Fork
+
+Modified openpilot (or sunnypilot) with remote streaming, joystick control, and device params editing.
+
+Reset your device and then input [openpilot.asius.ai](https://openpilot.asius.ai) or [sunnypilot.asius.ai](https://sunnypilot.asius.ai)
+
+[More info](/forks)
+
+---
+
+## Asius API (still in alpha and free)
+
+Cloud backend with 1TB storage, fast video playback, and no device blocking.
+
+After installing our fork, enable "Asius API" from the device settings, then use [Asius Connect](https://connect.asius.ai) going forward.
+
+[More info](/api)
 
 ---
 
 ## Feature Comparison
 
-| Feature                                     | Stock                | Asius Connect | Asius Fork | Asius API |
-| ------------------------------------------- | -------------------- | ------------- | ---------- | --------- |
-| Low-Res video playback                      | ✅                   | ✅            | ✅         | ✅        |
-| High-Res video playback                     | ❌                   | ✅            | ✅         | ✅        |
-| High-Res video/segment mp4 download         | ❌                   | ✅            | ✅         | ✅        |
-| Speed and OP UI in video player             | ❌                   | ✅            | ✅         | ✅        |
-| File management                             | 🟡 (very basic)      | ✅            | ✅         | ✅        |
-| Online video clipper                        | ❌                   | ✅            | ✅         | ✅        |
-| Detailed route info                         | ❌                   | ✅            | ✅         | ✅        |
-| Share route with signature                  | ❌                   | ✅            | ✅         | ✅        |
-| Progressive Web App                         | ❌                   | ✅            | ✅         | ✅        |
-| Quick action buttons                        | ❌                   | ✅            | ✅         | ✅        |
-| -                                           |
-| Remote snapshot                             | ✅                   | ✅            | ✅         | ✅        |
-| Remote SSH                                  | 🟡 (only with prime) | ✅            | ✅         | ✅        |
-| Remote SSH from browser                     | ❌                   | ✅            | ✅         | ✅        |
-| Remote video streaming                      | ❌                   | ❌            | ✅         | ✅        |
-| Remote joystick control                     | ❌                   | ❌            | ✅         | ✅        |
-| Remote device params editing                | ❌                   | ❌            | ✅         | ✅        |
-| Switch driving models remotely              | ❌                   | ❌            | ✅         | ✅        |
-| Basic Navigation (our sunnypilot fork only) | ❌                   | ❌            | ✅         | ✅        |
-| -                                           |
-| Fast High-Res video playback                | ❌                   | ❌            | ❌         | ✅        |
-| 1TB storage per device                      | ❌                   | ❌            | ❌         | ✅        |
-| Use any device                              | ❌                   | ❌            | ❌         | ✅        |
-| No device blocking                          | ❌                   | ❌            | ❌         | ✅        |
-
+| Feature                                             | Stock                | Asius Connect | Asius Fork | Asius API |
+| --------------------------------------------------- | -------------------- | ------------- | ---------- | --------- |
+| Low-Res video playback                              | ✅                   | ✅            | ✅         | ✅        |
+| High-Res video playback                             | ❌                   | ✅            | ✅         | ✅        |
+| High-Res video/segment mp4 download                 | ❌                   | ✅            | ✅         | ✅        |
+| Speed and OP UI in video player                     | ❌                   | ✅            | ✅         | ✅        |
+| File management                                     | 🟡 (basic)           | ✅            | ✅         | ✅        |
+| [Online video clipper](/clipper)                    | ❌                   | ✅            | ✅         | ✅        |
+| Detailed route info                                 | ❌                   | ✅            | ✅         | ✅        |
+| Share route with signature                          | ❌                   | ✅            | ✅         | ✅        |
+| [Progressive Web App](/pwa)                         | ❌                   | ✅            | ✅         | ✅        |
+| Quick action buttons                                | ❌                   | ✅            | ✅         | ✅        |
+| -                                                   |
+| Remote snapshot                                     | ✅                   | ✅            | ✅         | ✅        |
+| [Remote SSH](/ssh)                                  | 🟡 (only with prime) | ✅            | ✅         | ✅        |
+| [Remote SSH from browser](/ssh)                     | ❌                   | ✅            | ✅         | ✅        |
+| Remote video streaming                              | ❌                   | ❌            | ✅         | ✅        |
+| Remote joystick control                             | ❌                   | ❌            | ✅         | ✅        |
+| Remote device params editing                        | ❌                   | ❌            | ✅         | ✅        |
+| Switch driving models remotely                      | ❌                   | ❌            | ✅         | ✅        |
+| [Basic Navigation (our sunnypilot fork only)](/nav) | ❌                   | ❌            | ✅         | ✅        |
+| -                                                   |
+| Fast High-Res video playback                        | ❌                   | ❌            | ❌         | ✅        |
+| 1TB storage per device                              | ❌                   | ❌            | ❌         | ✅        |
+| Use any device                                      | ❌                   | ❌            | ❌         | ✅        |
+| No device blocking                                  | ❌                   | ❌            | ❌         | ✅        |
