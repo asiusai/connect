@@ -1,72 +1,79 @@
 ---
 title: Asius Forks
-description: How to install Asius openpilot or sunnypilot forks on your comma device
+description: Install Asius openpilot or sunnypilot fork on your device
 ---
 
 # Asius Forks
 
-Install our openpilot forks on your comma device to unlock extra features like video streaming, joystick control, and more.
+Our modified [openpilot](https://github.com/asiusai/openpilot) and [sunnypilot](https://github.com/asiusai/sunnypilot) forks add remote control features that aren't available in stock openpilot.
 
-## Choose Your Fork
+## Features
 
-| Fork           | Best For                                                          |
-| -------------- | ----------------------------------------------------------------- |
-| **Openpilot**  | Stock openpilot + Asius features                                  |
-| **Sunnypilot** | All sunnypilot features + Asius extras (navigation editing, etc.) |
+- **Remote video streaming** - Watch your car's cameras live from anywhere
+- **Remote joystick control** - Control your car from your phone
+- **Remote params editing** - Change device settings without SSH
+- **Model switching** - Switch driving models from the web interface
+- **Navigation** - Basic navigation support (alpha feature, sunnypilot only)
 
-## Option 1: URL Install
+After installing, you'll find an **Asius** tab in your device settings to configure these features.
 
-On your comma device, enter one of these URLs in the installer:
+## Installation
 
-**Openpilot:**
+### Easy Install (Recommended)
 
-```
-https://openpilot.asius.ai
-```
+1. Go to **Settings > Software** on your device and tap **Uninstall**
+2. After reboot, select **Custom Software**
+3. Enter one of these URLs:
+   - `openpilot.asius.ai` - for openpilot
+   - `sunnypilot.asius.ai` - for sunnypilot
 
-**Sunnypilot:**
+**Custom branches:** Use `sunnypilot.asius.ai/USERNAME/BRANCH` to install from `github.com/USERNAME/sunnypilot/tree/BRANCH`. Defaults to `asiusai/master`.
 
-```
-https://sunnypilot.asius.ai
-```
+### SSH Install
 
-## Option 2: Git Clone
+[SSH into your device](/ssh) and run:
 
-Or clone directly from GitHub:
-
-**Openpilot:**
-
+**openpilot:**
 ```bash
-git clone https://github.com/asiusai/openpilot
+cd /data && rm -rf openpilot && git clone https://github.com/asiusai/openpilot && cd openpilot && git submodule update --init --recursive && sudo reboot
 ```
 
-**Sunnypilot:**
-
+**sunnypilot:**
 ```bash
-git clone https://github.com/asiusai/sunnypilot
+cd /data && rm -rf openpilot && git clone https://github.com/asiusai/sunnypilot openpilot && cd openpilot && git submodule update --init --recursive && sudo reboot
 ```
 
-## After Installation
+## Remote Streaming
 
-Once installed, you can access your device at:
+Watch your car's cameras live from anywhere in the world.
 
-1. [comma.asius.ai](https://comma.asius.ai) - if using Comma API (default)
-2. [connect.asius.ai](https://connect.asius.ai) - if using Asius API (premium)
+- **Dual camera view** - Wide road and driver cameras displayed side by side
+- **Two-way audio** - Hear your car's microphone and hold to speak through the speakers
+- **Disabled by default** - Enable in Asius settings when needed
 
-## Sunnypilot Extras
+## Joystick Control
 
-The sunnypilot fork includes additional features:
+Remote vehicle control for testing and debugging purposes.
 
-- Edit navigation favourites from the app
-- Navigate to destinations from the app
+**Setup:**
+1. Enable **Remote Streaming** in Asius settings
+2. Enable **Joystick Debug Mode** in Developer settings on your device
+3. Open the Sentry page in Connect and tap **Joystick**
 
-## CLI on Existing Device
+**Controls:**
+- Drag to steer and accelerate/brake
+- Adjust sensitivity with the slider at the bottom
 
-```bash
-echo -n "http://10.93.51.50:8080" > /data/params/d/APIHost
-echo -n "ws://10.93.51.50:8080" > /data/params/d/AthenaHost
-rm /data/params/d/DongleId
-./system/athena/registration.py # for testing
-find /data/media/0/realdata -type f -exec setfattr -x user.upload {} + 2>/dev/null && echo "Done"
-sudo reboot
-```
+**Warning:** For debugging only. Not suitable for regular driving.
+
+## Remote Params Editing
+
+Modify device parameters remotely without SSH. You can edit all params except SSH keys.
+
+**Common use cases:**
+- Switch driving models
+- Set navigation favorites and start navigation
+- Reboot or shutdown the device
+- Change hidden settings (screen timeout, etc.)
+- Toggle remote streaming on/off
+

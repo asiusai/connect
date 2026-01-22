@@ -1,120 +1,64 @@
 ---
 title: SSH Remote Access
-description: How to SSH into your comma device remotely via Asius
+description: How to SSH into your comma device remotely
 ---
 
 # SSH Remote Access
 
-SSH into your comma device from anywhere using your GitHub SSH keys - free for everyone.
+SSH into your comma device from anywhere. Works with any openpilot fork and any API, completely free.
 
-## Quick Start
+## CLI
 
-One-liner to SSH into your device:
+**Prerequisites:** Set `SSH Keys` on your device to a GitHub account where you own the private keys.
 
-```bash
-ssh -o ProxyCommand="ssh -W %h:%p -p 2222 %h@ssh.asius.ai" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null comma@asius-DONGLE_ID
-```
+The easiest way is to use the copy-paste commands in our connect app. For manual setup, follow the instructions below.
 
-Replace `DONGLE_ID` with your device's dongle ID.
+Replace `DONGLE_ID` with your device's dongle ID and `JWT_TOKEN` with your API token. We recommend using an encrypted token - if your shell history or config file leaks, the encrypted token remains secure since only our API can decrypt it. Get your encrypted token from the connect app.
 
-## Recommended Setup
+**API prefixes:** These examples use the comma API (`comma-`). For other APIs, use `konik-` or `asius-` instead.
 
-Add this to your `~/.ssh/config` for easier access:
-
-```
-Host ssh.asius.ai
-  Port 2222
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null
-
-Host asius-*
-  User comma
-  ProxyCommand ssh -W %h:%p %h@ssh.asius.ai
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null
-```
-
-Then simply run:
+### Quick command
 
 ```bash
-ssh asius-DONGLE_ID
+ssh -o ProxyCommand="ssh -W %h:%p comma-DONGLE_ID-JWT_TOKEN@ssh.asius.ai -p 2222" comma@localhost
 ```
 
-## Multi-Provider Support
+### SSH config (multiple devices)
 
-Asius SSH proxy works with devices connected to **comma.ai**, **konik.ai**, or **asius.ai**. For comma and konik devices, you need to include your auth token in the connection.
-
-### For comma.ai devices
-
-Get your token from [comma connect](https://connect.comma.ai) settings, then:
+Add to `~/.ssh/config`:
 
 ```bash
-ssh comma-DONGLE_ID-YOUR_JWT_TOKEN
-```
-
-Or add to `~/.ssh/config`:
-
-```
 Host comma-*
+  HostName localhost
   User comma
-  ProxyCommand ssh -W %h:%p %h@ssh.asius.ai
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null
+  ProxyCommand ssh -W %h:%p %n-JWT_TOKEN@ssh.asius.ai -p 2222
 ```
 
-### For konik.ai devices
-
-Get your token from [konik connect](https://connect.konik.ai) settings, then:
+Then connect using your dongle ID:
 
 ```bash
-ssh konik-DONGLE_ID-YOUR_JWT_TOKEN
+ssh comma-DONGLE_ID
 ```
 
-Or add to `~/.ssh/config`:
+### SSH config (single device)
 
-```
-Host konik-*
+Add to `~/.ssh/config` (you can rename `comma3x` to anything):
+
+```bash
+Host comma3x
+  HostName localhost
   User comma
-  ProxyCommand ssh -W %h:%p %h@ssh.asius.ai
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null
+  ProxyCommand ssh -W %h:%p comma-DONGLE_ID-JWT_TOKEN@ssh.asius.ai -p 2222
 ```
 
-## Prerequisites
+Then connect with:
 
-- Device online (connected to athena)
-- SSH enabled on your device with your GitHub SSH keys configured
-- For asius: Device paired with your Asius account
-- For comma/konik: Valid auth token from their connect app
+```bash
+ssh comma3x
+```
 
-## How It Works
+## Browser
 
-1. You SSH to `ssh.asius.ai:2222` with your dongle ID (and token for comma/konik)
-2. The server sends a `startLocalProxy` command to your device via athena
-3. Your device opens a WebSocket connection back to the server
-4. SSH traffic flows through the relay to your device
-5. Your device authenticates you using your GitHub SSH keys
+The connect app includes a browser-based terminal. To enable it, set `SSH Keys` on your device to `ouasius`. Then you can go to the terminal page in our connect.
 
-This works through firewalls and NAT without requiring port forwarding.
-
-## Troubleshooting
-
-### Device Offline
-
-If you get a connection timeout, make sure your device is:
-
-- Powered on
-- Connected to the internet
-- Running openpilot/sunnypilot with athena enabled
-
-### Permission Denied
-
-Make sure:
-
-- Your GitHub SSH keys are configured on the device (Settings > SSH Keys > Add GitHub username)
-- You're using the correct SSH key locally
-- SSH is enabled on the device
-
-### Token Expired (comma/konik)
-
-If you get an authentication error, your token may have expired. Get a fresh token from the connect app settings.
+**Security note:** Browser SSH relies only on JWT authentication. If someone obtains your JWT token, they can access your device. We recommend removing the `ouasius` key when you're done. Best used for quick access on mobile when CLI isn't available.
