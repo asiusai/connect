@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { useRouteParams } from '../../utils/hooks'
-import { useAthena } from '../../api/athena'
+import { useRouteParams } from '../utils/hooks'
+import { useAthena } from '../api/athena'
 import { toast } from 'sonner'
-import { HEIGHT, WIDTH } from '../../templates/shared'
-import { Icon } from '../../components/Icon'
-import { useStorage } from '../../utils/storage'
-import { cn } from '../../../../shared/helpers'
+import { HEIGHT, WIDTH } from '../templates/shared'
+import { Icon } from '../components/Icon'
+import { useStorage } from '../utils/storage'
+import { cn } from '../../../shared/helpers'
+import { TopAppBar } from '../components/TopAppBar'
+import { BackButton } from '../components/BackButton'
+import { IconButton } from '../components/IconButton'
 
 export const ControlButton = ({
   onClick,
@@ -53,7 +56,7 @@ export const ControlButton = ({
   </button>
 )
 
-export const LiveView = ({
+const LiveView = ({
   setReconnecting,
   setupRTCConnectionRef,
 }: {
@@ -221,7 +224,6 @@ export const LiveView = ({
     }
   }
 
-  // Expose setupRTCConnection to parent
   useEffect(() => {
     setupRTCConnectionRef.current = setupRTCConnection
   }, [dongleId])
@@ -231,7 +233,6 @@ export const LiveView = ({
     return () => disconnectRTCConnection()
   }, [dongleId])
 
-  // Collect FPS and latency stats
   useEffect(() => {
     let prevFrames = 0
     let prevTimestamp = 0
@@ -245,13 +246,11 @@ export const LiveView = ({
 
       statsReport.forEach((report) => {
         if (report.type === 'inbound-rtp' && report.kind === 'video') {
-          // Use the report's timestamp for accurate FPS calculation
           const frames = report.framesDecoded || 0
           const timestamp = report.timestamp || 0
           if (prevTimestamp > 0 && timestamp > prevTimestamp) {
             const elapsed = (timestamp - prevTimestamp) / 1000
             const newFps = Math.round((frames - prevFrames) / elapsed)
-            // Sanity check: FPS should be reasonable (1-120)
             if (newFps > 0 && newFps < 120) {
               fps = newFps
             }
@@ -303,7 +302,6 @@ export const LiveView = ({
   const toggleMute = () => {
     setIsMuted((m) => {
       const newMuted = !m
-      // When unmuting, explicitly play to handle browser autoplay restrictions
       if (!newMuted && remoteAudioRef.current) {
         remoteAudioRef.current.play().catch(() => {})
       }
@@ -321,7 +319,6 @@ export const LiveView = ({
     }
   }
 
-  // Keyboard controls for joystick
   const keysPressed = useRef<Set<string>>(new Set())
 
   useEffect(() => {
@@ -419,7 +416,6 @@ export const LiveView = ({
       <audio ref={remoteAudioRef} autoPlay muted={isMuted} />
 
       <div className="h-full flex flex-col gap-4 p-4 relative overflow-hidden items-center justify-between">
-        {/* Video Grid - always render both, hide with CSS */}
         <div className={cn(' overflow-hidden flex gap-4 flex-col md:flex-row')}>
           {[
             { videoRef: driverRef, hidden: cameraView === 'road' },
@@ -443,7 +439,6 @@ export const LiveView = ({
           ))}
         </div>
 
-        {/* Joystick and Stats - above bottom bar */}
         {joystickEnabled && (
           <div className="flex flex-col items-center gap-4">
             <div
@@ -464,7 +459,6 @@ export const LiveView = ({
               </div>
             </div>
 
-            {/* Vertical Sensitivity slider */}
             <input
               type="range"
               min="0.1"
@@ -478,7 +472,6 @@ export const LiveView = ({
           </div>
         )}
 
-        {/* Stats - absolute positioned to bottom right */}
         {stats && (
           <div className="absolute right-4 bottom-2 flex gap-4 text-right">
             <div>
@@ -493,7 +486,6 @@ export const LiveView = ({
         )}
       </div>
 
-      {/* Bottom Bar */}
       <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
         <ControlButton
           onClick={() => setCameraView(cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both')}
@@ -513,6 +505,33 @@ export const LiveView = ({
         />
         <ControlButton onClick={() => setJoystickEnabled(!joystickEnabled)} active={joystickEnabled} icon="gamepad" label="Joystick" />
       </div>
+    </div>
+  )
+}
+
+export const Component = () => {
+  const { dongleId } = useRouteParams()
+  const [reconnecting, setReconnecting] = useState(false)
+  const setupRTCConnectionRef = useRef<(() => Promise<void>) | null>(null)
+
+  return (
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+      <TopAppBar
+        leading={<BackButton href={`/${dongleId}`} />}
+        trailing={
+          <IconButton
+            name="refresh"
+            title="Refresh connection"
+            className={cn('p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5', reconnecting && 'animate-spin')}
+            onClick={() => setupRTCConnectionRef.current?.()}
+            disabled={reconnecting}
+          />
+        }
+      >
+        Live
+      </TopAppBar>
+
+      <LiveView setReconnecting={setReconnecting} setupRTCConnectionRef={setupRTCConnectionRef} />
     </div>
   )
 }

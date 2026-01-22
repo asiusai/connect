@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useRouteParams } from '../../utils/hooks'
-import { AthenaResponse, useAthena } from '../../api/athena'
+import { useRouteParams } from '../utils/hooks'
+import { AthenaResponse, useAthena } from '../api/athena'
 import { toast } from 'sonner'
-import { HEIGHT, WIDTH } from '../../templates/shared'
-import { Icon } from '../../components/Icon'
-import { IconButton } from '../../components/IconButton'
-import { cn, saveFile } from '../../../../shared/helpers'
+import { HEIGHT, WIDTH } from '../templates/shared'
+import { Icon } from '../components/Icon'
+import { IconButton } from '../components/IconButton'
+import { cn, saveFile } from '../../../shared/helpers'
 import { ControlButton } from './live'
-import { useStorage } from '../../utils/storage'
+import { useStorage } from '../utils/storage'
+import { TopAppBar } from '../components/TopAppBar'
+import { BackButton } from '../components/BackButton'
 
 const toB64 = (x?: string | null) => (x ? `data:image/jpeg;base64,${x}` : undefined)
 
-export const SnapshotView = () => {
+const SnapshotView = () => {
   const [cameraView, setCameraView] = useStorage('cameraView')
   const { dongleId } = useRouteParams()
   const [images, setImages] = useState<AthenaResponse<'takeSnapshot'>['result']>()
@@ -32,14 +34,12 @@ export const SnapshotView = () => {
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      {/* Image Grid - matches live view layout */}
       <div className={cn('flex-1 flex flex-col gap-4 p-4 relative overflow-hidden items-start justify-start md:flex-row w-full h-full')}>
         {[
           { src: toB64(images?.jpegFront), hidden: cameraView === 'road' },
           { src: toB64(images?.jpegBack), hidden: cameraView === 'driver' },
         ].map(({ src, hidden }, i) => (
           <div
-            id="shit"
             key={i}
             className={cn('relative rounded-xl overflow-hidden border border-white/5 group w-full', hidden && 'hidden')}
             style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }}
@@ -74,7 +74,6 @@ export const SnapshotView = () => {
         ))}
       </div>
 
-      {/* Bottom Bar */}
       <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
         <ControlButton
           onClick={() => setCameraView(cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both')}
@@ -83,6 +82,18 @@ export const SnapshotView = () => {
         />
         <ControlButton onClick={shot} disabled={isLoading} icon="camera" label="Retake" spin={isLoading} />
       </div>
+    </div>
+  )
+}
+
+export const Component = () => {
+  const { dongleId } = useRouteParams()
+
+  return (
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+      <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>Snapshot</TopAppBar>
+
+      <SnapshotView />
     </div>
   )
 }

@@ -17,10 +17,17 @@ export const Navigation = ({ className }: { className?: string }) => {
       color: 'text-blue-400',
     },
     {
-      title: 'Sentry',
+      title: 'Live',
       icon: 'videocam',
-      href: `/${dongleId}/sentry`,
+      href: `/${dongleId}/live`,
       color: 'text-red-400',
+      disabled: !isOwner,
+    },
+    {
+      title: 'Snapshot',
+      icon: 'camera',
+      href: `/${dongleId}/snapshot`,
+      color: 'text-orange-400',
       disabled: !isOwner,
     },
     {

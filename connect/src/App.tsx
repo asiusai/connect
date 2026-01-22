@@ -115,8 +115,12 @@ const router = createBrowserRouter([
         path: ':dongleId',
         children: [
           {
-            path: 'sentry',
-            lazy: () => import('./pages/sentry'),
+            path: 'live',
+            lazy: () => import('./pages/live'),
+          },
+          {
+            path: 'snapshot',
+            lazy: () => import('./pages/snapshot'),
           },
           {
             path: 'params',
