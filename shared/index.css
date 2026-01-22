@@ -46,6 +46,6 @@ html {
   width: 100vw;
 }
 
-button{
+button {
   @apply cursor-pointer;
 }
