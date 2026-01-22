@@ -1,0 +1,43 @@
+---
+title: Videos
+description: High-res video playback and rendering for openpilot
+---
+
+# Videos
+
+## Playback
+
+Openpilot records high-res videos in raw HEVC format. Playing these directly in the browser requires client-side conversion using WebAssembly FFmpeg, which can take 10+ seconds before playback starts depending on your hardware. Low-res videos play instantly.
+
+Playback settings:
+- **Large Camera** - primary video source (Road, Wide, Driver, or Quantized for low-res)
+- **Small Camera** - optional second camera displayed alongside the primary view (Road, Wide, Driver, or Off)
+- **Openpilot UI** - overlay showing speed, alerts, and driving state. Options are Full (requires qlog files uploaded) or Quantized (uses lighter qlog data)
+- **Show Path** - display the predicted driving path overlay
+
+With [Asius API](/api), we convert HEVC to MP4 server-side, so high-res video playback is instant.
+
+## Download
+
+Download options for video files:
+- **Raw segment files** - original HEVC files as recorded by openpilot
+- **Segment MP4** - client-side converted MP4 for a single segment
+- **Full route MP4** - complete route video for any camera (Road, Wide, Driver)
+
+## Rendering
+
+Click the render button in the player to export your video as MP4. The render uses your current playback settings - start/end times, camera selection, and UI overlay are all included in the final output.
+
+All rendering happens client-side, no data is sent to external servers. With [Asius API](/api), rendering is faster since videos are already in MP4 format and don't need client-side HEVC conversion first.
+
+### Example render
+
+<iframe
+  width="100%"
+  style={{aspectRatio: '16/9'}}
+  src="https://www.youtube.com/embed/k5Jt-TiLi1M"
+  title="Example rendered video"
+  className="border-0 rounded-lg"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>
