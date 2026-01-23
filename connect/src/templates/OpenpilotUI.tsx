@@ -120,11 +120,11 @@ export const OpenpilotUI = ({
   const speedMultiplier = 2.23694 * (unitFormat === 'imperial' ? 1 : MI_TO_KM)
   return (
     <AbsoluteFill>
-      {frame.CarState?.CruiseEnabled && <div className="absolute -inset-[30px] border-[60px] border-[#00c853] z-10 pointer-events-none rounded-[80px]" />}
+      {frame.CarState?.CruiseEnabled && <div className="absolute -inset-7.5 border-60 border-[#00c853] z-10 pointer-events-none rounded-[80px]" />}
 
       {frame.CarState && (
         <>
-          <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-[32px] w-56 h-56 flex flex-col items-center justify-center z-20">
+          <div className="absolute top-12 left-12 bg-[#1e1e1e] border border-white/20 rounded-4xl w-56 h-56 flex flex-col items-center justify-center z-20">
             <div className="text-[#00c853] text-4xl font-bold mb-2">MAX</div>
             <div className="text-white text-[100px] leading-none font-bold">
               {frame.CarState.CruiseEnabled ? (frame.CarState.CruiseSpeed * speedMultiplier).toFixed(0) : '-'}
