@@ -4,11 +4,9 @@ import { api } from '../../api'
 import { getDeviceName } from '../../../../shared/types'
 import { useAsyncEffect, useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { Active, Devices } from './Devices'
-import { BatteryFullIcon, ChevronDownIcon } from 'lucide-react'
+import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, ChevronDownIcon } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../../../shared/helpers'
-
-const getVoltageColor = (voltage: number) => (voltage < 12.1 ? 'text-red-400' : voltage < 12.4 ? 'text-yellow-400' : 'text-green-400')
 
 export const Voltage = () => {
   const [voltage, setVoltage] = useState<string>()
@@ -20,11 +18,15 @@ export const Voltage = () => {
     setVoltage(res?.result ? (res.result.peripheralState.voltage / 1000).toFixed(1) : undefined)
   }, [athena])
   if (!voltage) return null
+
+  const num = Number(voltage)
+  const color = num < 12.1 ? 'text-red-400' : num < 12.4 ? 'text-yellow-400' : 'text-green-400'
+  const Icon = num < 12.1 ? BatteryLowIcon : num < 12.4 ? BatteryMediumIcon : BatteryFullIcon
   return (
     <>
       <div className="w-1 h-1 rounded-full bg-white/40" />
-      <div className={cn('flex gap-1 items-center', getVoltageColor(Number(voltage)))}>
-        <BatteryFullIcon className="rotate-90 text-[18px]!" />
+      <div className={cn('flex gap-1 items-center', color)}>
+        <Icon className="text-[18px]!" />
         <p>{voltage}V</p>
       </div>
     </>
