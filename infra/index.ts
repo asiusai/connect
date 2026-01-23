@@ -12,6 +12,7 @@ const folderHash = (path: string): string => {
   const hash = createHash('md5')
   const walk = (dir: string) => {
     for (const entry of readdirSync(dir).sort()) {
+      if (entry === 'node_modules') continue
       const full = join(dir, entry)
       if (statSync(full).isDirectory()) walk(full)
       else hash.update(readFileSync(full))

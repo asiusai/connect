@@ -80,7 +80,7 @@ export const dataHandler = async (req: Request, identity?: Identity): Promise<Re
 
   // PUT: upload file
   if (req.method === 'PUT') {
-    const res = await mkv.put(key, req.body, { 'Content-Type': req.headers.get('Content-Type') || 'application/octet-stream' }, true)
+    const res = await mkv.put(key, req.body, { 'Content-Type': req.headers.get('Content-Type') || 'application/octet-stream' }, false)
 
     if (res.status === 201) await queueFile(key)
 

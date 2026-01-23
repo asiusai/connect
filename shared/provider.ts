@@ -73,8 +73,8 @@ const konik: Provider = {
 
   DEMO_ACCESS_TOKEN:
     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZGVudGl0eSI6IjI1ZmM2ODY1LTkzNTYtNDQzMS1hYWE1LTUxNmFjYTlhNWI1YyIsIm5iZiI6MTc2ODIyNzE3NiwiaWF0IjoxNzY4MjI3MTc2LCJleHAiOjE3NzYwMDMxNzZ9.OVIIzXn5CdxfuV1WJdZHeoLl8sFNNbIWaf694XWlkFq6BQ8isYu0WpSjWiA4eU7RtZt0P5qWHPbVjVs6iMJPLw',
-  DEMO_DONGLE_ID: '385ea74960625fa7',
-  DEMO_ROUTE_ID: '0000002c--d68dde99ca',
+  DEMO_DONGLE_ID: 'edf69f3fa55ca722',
+  DEMO_ROUTE_ID: '0000002b--abc7a490ca',
 }
 const asius: Provider = {
   MODE: 'asius',
@@ -93,8 +93,8 @@ const asius: Provider = {
 
   DEMO_ACCESS_TOKEN:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6IjYxMDA4MDY1NjcxMjU3YmIiLCJpYXQiOjE3NjgyMjY5MzEsImV4cCI6MTc5OTc2MjkzMX0.9fnF0nu2f7ZJidtyQGCxL60ZcQ1yrdQeiCjQzWaQyyg',
-  DEMO_DONGLE_ID: '4f6a9c72d5ab73a3',
-  DEMO_ROUTE_ID: '0000002c--d68dde99ca',
+  DEMO_DONGLE_ID: '1ce5b966287a55e9',
+  DEMO_ROUTE_ID: '0000002b--abc7a490ca',
 }
 const dev: Provider = {
   ...asius,
