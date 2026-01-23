@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import { Icon } from './Icon'
+import { ChevronDownIcon, LogOutIcon, ShieldIcon } from 'lucide-react'
 import { getDeviceName } from '../../../shared/types'
 import { useState } from 'react'
 import { Active, Devices } from '../pages/device/Devices'
@@ -45,10 +45,7 @@ export const Sidebar = () => {
                   </div>
                 )}
               </div>
-              <Icon
-                name="keyboard_arrow_down"
-                className={cn('text-white/60 group-hover:text-white transition-colors duration-200', showDeviceList && 'rotate-180')}
-              />
+              <ChevronDownIcon className={cn('text-white/60 group-hover:text-white transition-colors duration-200', showDeviceList && 'rotate-180')} />
             </div>
 
             {showDeviceList && (
@@ -75,7 +72,7 @@ export const Sidebar = () => {
 
           {profile?.superuser && (
             <Link to="/admin" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary transition-colors text-primary-x">
-              <Icon name="security" className="text-xl" />
+              <ShieldIcon className="text-xl" />
               <span className="text-sm font-medium">Admin</span>
             </Link>
           )}
@@ -92,7 +89,7 @@ export const Sidebar = () => {
                 href="/logout"
                 className="p-2 -mr-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors text-xl aspect-square shrink-0"
                 title="Log out"
-                name="logout"
+                icon={LogOutIcon}
               />
             </div>
           )}

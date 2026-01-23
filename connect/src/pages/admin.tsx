@@ -4,7 +4,21 @@ import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { isSignedIn } from '../utils/helpers'
 import { Loading } from '../components/Loading'
-import { Icon } from '../components/Icon'
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  ExternalLinkIcon,
+  RefreshCwIcon,
+  RouteIcon,
+  SmartphoneIcon,
+  LoaderIcon,
+  Trash2Icon,
+  UserIcon,
+  XIcon,
+} from 'lucide-react'
 import { api, invalidate } from '../api'
 import { provider } from '../../../shared/provider'
 import { cn } from '../../../shared/helpers'
@@ -101,7 +115,7 @@ const PaginationControls = ({
         className="p-1 rounded hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
         title="Previous page"
       >
-        <Icon name="keyboard_arrow_left" className="text-xl" />
+        <ChevronLeftIcon className="text-xl" />
       </button>
       <span className="px-2 text-sm">
         {currentPage} / {totalPages}
@@ -112,7 +126,7 @@ const PaginationControls = ({
         className="p-1 rounded hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
         title="Next page"
       >
-        <Icon name="keyboard_arrow_right" className="text-xl" />
+        <ChevronRightIcon className="text-xl" />
       </button>
     </div>
   )
@@ -160,7 +174,7 @@ const PaginationHeader = ({
         Showing {Math.min(offset + 1, total)}-{Math.min(offset + pageSize, total)} of {total} {label}
       </div>
       <button onClick={onRefresh} className="p-1 rounded hover:bg-white/10 text-white/40 hover:text-white" title="Refresh">
-        <Icon name="refresh" className="text-base" />
+        <RefreshCwIcon className="text-base" />
       </button>
     </div>
     <PaginationControls total={total} offset={offset} pageSize={pageSize} onOffsetChange={onOffsetChange} />
@@ -228,7 +242,7 @@ const UsersTable = ({
                   )}
                 </td>
                 <td className="py-3 px-4 text-right">{formatBytes(user.totalSize)}</td>
-                <td className="py-3 px-4 text-center">{user.superuser && <Icon name="check" className="text-green-500" />}</td>
+                <td className="py-3 px-4 text-center">{user.superuser && <CheckIcon className="text-green-500" />}</td>
                 <td className="py-3 px-4"></td>
               </tr>
             ))}
@@ -273,7 +287,7 @@ const DevicesTable = ({
       {user && (
         <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10 mb-4">
           <div className="flex items-center gap-2">
-            <Icon name="person" className="text-primary" />
+            <UserIcon className="text-primary" />
             <span className="font-medium">User</span>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -297,7 +311,7 @@ const DevicesTable = ({
             {user.superuser && <span className="text-green-400">Superuser</span>}
           </div>
           <button onClick={() => onFilterChange({ offset: 0 })} className="ml-auto text-white/40 hover:text-white">
-            <Icon name="close" className="text-base" />
+            <XIcon className="text-base" />
           </button>
         </div>
       )}
@@ -335,7 +349,7 @@ const DevicesTable = ({
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs">{device.dongle_id}</span>
                         <Link to={`/${device.dongle_id}`} className="text-white/40 hover:text-primary transition-colors" title="View device">
-                          <Icon name="open_in_new" className="text-sm" />
+                          <ExternalLinkIcon className="text-sm" />
                         </Link>
                       </div>
                     </td>
@@ -360,7 +374,7 @@ const DevicesTable = ({
                         className="text-white/40 hover:text-red-400 transition-colors disabled:opacity-50"
                         title="Delete device"
                       >
-                        <Icon name={deleting === device.dongle_id ? 'sync' : 'delete'} className="text-sm" />
+                        {deleting === device.dongle_id ? <LoaderIcon className="text-sm animate-spin" /> : <Trash2Icon className="text-sm" />}
                       </button>
                     </td>
                   </tr>
@@ -411,7 +425,7 @@ const SortHeader = ({
       className={cn('flex items-center gap-1 font-medium text-white/60 hover:text-white transition-colors', align === 'right' && 'ml-auto')}
     >
       {label}
-      {isActive && <Icon name={currentOrder === 'asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} className="text-base" />}
+      {isActive && (currentOrder === 'asc' ? <ChevronUpIcon className="text-base" /> : <ChevronDownIcon className="text-base" />)}
     </button>
   )
 }
@@ -474,7 +488,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
           {device && (
             <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10">
               <div className="flex items-center gap-2">
-                <Icon name="smartphone" className="text-primary" />
+                <SmartphoneIcon className="text-primary" />
                 <span className="font-medium">Device</span>
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -501,20 +515,20 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                 </span>
               </div>
               <Link to={`/${device.dongle_id}`} className="ml-auto text-white/40 hover:text-primary" title="View device">
-                <Icon name="open_in_new" className="text-base" />
+                <ExternalLinkIcon className="text-base" />
               </Link>
               <button
                 onClick={() => onFilterChange({ ...filter, dongle_id: undefined, route_id: undefined, offset: 0 })}
                 className="text-white/40 hover:text-white"
               >
-                <Icon name="close" className="text-base" />
+                <XIcon className="text-base" />
               </button>
             </div>
           )}
           {route && (
             <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10">
               <div className="flex items-center gap-2">
-                <Icon name="route" className="text-primary" />
+                <RouteIcon className="text-primary" />
                 <span className="font-medium">Route</span>
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -542,10 +556,10 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                 </span>
               </div>
               <Link to={`/${route.dongle_id}/${route.route_id}`} className="ml-auto text-white/40 hover:text-primary" title="View route">
-                <Icon name="open_in_new" className="text-base" />
+                <ExternalLinkIcon className="text-base" />
               </Link>
               <button onClick={() => onFilterChange({ ...filter, route_id: undefined, offset: 0 })} className="text-white/40 hover:text-white">
-                <Icon name="close" className="text-base" />
+                <XIcon className="text-base" />
               </button>
             </div>
           )}
@@ -627,7 +641,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                           className="text-white/40 hover:text-primary transition-colors"
                           title="Download file"
                         >
-                          <Icon name="open_in_new" className="text-sm" />
+                          <ExternalLinkIcon className="text-sm" />
                         </a>
                       </div>
                     </td>
@@ -681,7 +695,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
                         className="text-white/40 hover:text-red-400 transition-colors disabled:opacity-50"
                         title="Delete file"
                       >
-                        <Icon name={deleting === file.key ? 'sync' : 'delete'} className="text-sm" />
+                        {deleting === file.key ? <LoaderIcon className="text-sm animate-spin" /> : <Trash2Icon className="text-sm" />}
                       </button>
                     </td>
                   </tr>
@@ -719,7 +733,7 @@ const RoutesTable = ({
       {device && (
         <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10 mb-4">
           <div className="flex items-center gap-2">
-            <Icon name="smartphone" className="text-primary" />
+            <SmartphoneIcon className="text-primary" />
             <span className="font-medium">Device</span>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -746,10 +760,10 @@ const RoutesTable = ({
             </span>
           </div>
           <Link to={`/${device.dongle_id}`} className="ml-auto text-white/40 hover:text-primary" title="View device">
-            <Icon name="open_in_new" className="text-base" />
+            <ExternalLinkIcon className="text-base" />
           </Link>
           <button onClick={() => onFilterChange({ ...filter, dongle_id: undefined, offset: 0 })} className="text-white/40 hover:text-white">
-            <Icon name="close" className="text-base" />
+            <XIcon className="text-base" />
           </button>
         </div>
       )}
@@ -804,7 +818,7 @@ const RoutesTable = ({
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-xs">{route.route_id}</span>
                         <Link to={`/${route.dongle_id}/${route.route_id}`} className="text-white/40 hover:text-primary transition-colors" title="View route">
-                          <Icon name="open_in_new" className="text-sm" />
+                          <ExternalLinkIcon className="text-sm" />
                         </Link>
                       </div>
                     </td>
@@ -873,7 +887,7 @@ const SegmentsSortHeader = ({
       className={cn('flex items-center gap-1 font-medium text-white/60 hover:text-white transition-colors', align === 'right' && 'ml-auto')}
     >
       {label}
-      {isActive && <Icon name={currentOrder === 'asc' ? 'keyboard_arrow_up' : 'keyboard_arrow_down'} className="text-base" />}
+      {isActive && (currentOrder === 'asc' ? <ChevronUpIcon className="text-base" /> : <ChevronDownIcon className="text-base" />)}
     </button>
   )
 }
@@ -892,7 +906,7 @@ const SegmentsTable = ({ filter, onFilterChange }: { filter: SegmentsFilter; onF
       {device && (
         <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10 mb-4">
           <div className="flex items-center gap-2">
-            <Icon name="smartphone" className="text-primary" />
+            <SmartphoneIcon className="text-primary" />
             <span className="font-medium">Device</span>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
@@ -909,7 +923,7 @@ const SegmentsTable = ({ filter, onFilterChange }: { filter: SegmentsFilter; onF
             onClick={() => onFilterChange({ ...filter, dongle_id: undefined, route_id: undefined, offset: 0 })}
             className="ml-auto text-white/40 hover:text-white"
           >
-            <Icon name="close" className="text-base" />
+            <XIcon className="text-base" />
           </button>
         </div>
       )}
@@ -918,12 +932,12 @@ const SegmentsTable = ({ filter, onFilterChange }: { filter: SegmentsFilter; onF
       {filter.route_id && (
         <div className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/10 mb-4">
           <div className="flex items-center gap-2">
-            <Icon name="route" className="text-primary" />
+            <RouteIcon className="text-primary" />
             <span className="font-medium">Route</span>
           </div>
           <span className="font-mono text-sm">{filter.route_id}</span>
           <button onClick={() => onFilterChange({ ...filter, route_id: undefined, offset: 0 })} className="ml-auto text-white/40 hover:text-white">
-            <Icon name="close" className="text-base" />
+            <XIcon className="text-base" />
           </button>
         </div>
       )}

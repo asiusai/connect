@@ -3,7 +3,7 @@ import { LogReader } from '../../../shared/log-reader'
 import { useFiles } from '../api/queries'
 import { api } from '../api'
 import { useAsyncEffect, useRouteParams } from '../utils/hooks'
-import { Icon } from '../components/Icon'
+import { CircleAlertIcon } from 'lucide-react'
 import { TopAppBar } from '../components/TopAppBar'
 import { Select } from '../components/Select'
 import { BackButton } from '../components/BackButton'
@@ -76,21 +76,21 @@ export const Component = () => {
           value={segment.toString()}
           onChange={(value) => updateParam('segment', value)}
           options={Array.from({ length: files.length }).map((_, i) => ({ value: i.toString(), label: `Segment ${i}` }))}
-          className="min-w-[120px]"
+          className="min-w-30"
         />
 
         <Select
           value={eventName}
           onChange={(value) => updateParam('eventName', value)}
           options={Service.options.map((x) => ({ value: x, label: x }))}
-          className="min-w-[200px]"
+          className="min-w-50"
         />
 
         <Select
           value={limit.toString()}
           onChange={(value) => updateParam('limit', value)}
           options={[10, 100, 500, 1000, 2000, 5000].map((x) => ({ value: x.toString(), label: `${x} items` }))}
-          className="min-w-[120px]"
+          className="min-w-30"
         />
 
         <div className="w-px h-6 bg-white/10 shrink-0" />
@@ -118,7 +118,7 @@ export const Component = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-white/40 gap-2">
-                <Icon name="error" className="text-white/20 text-4xl" />
+                <CircleAlertIcon className="text-white/20 text-4xl" />
                 <span>No events found for {eventName}</span>
               </div>
             )

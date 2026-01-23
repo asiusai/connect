@@ -1,11 +1,12 @@
 import { useDevice } from '../device/useDevice'
 import { useEffect, useRef, useState } from 'react'
 import { IconButton } from '../../components/IconButton'
-import { Icon, IconName, Icons } from '../../components/Icon'
 import { useSuggestions } from '../device/Location'
 import { Setting, Settings } from './Settings'
 import { AddToActionBar } from '../device/ActionBar'
 import { cn } from '../../../../shared/helpers'
+import { MapPinIcon, NavigationIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { ICON_MAP } from '../../utils/iconMap'
 
 type MapboxSuggestion = { place_name: string; center: [number, number] }
 
@@ -120,33 +121,36 @@ export const Navigation = ({ settings }: { settings: Setting[] }) => {
       <div className="flex flex-col gap-3">
         <label className="text-xs uppercase tracking-wider opacity-60">Quick Destinations</label>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {Object.entries(favorites ?? {}).map(([name, address]) => (
-            <div key={name} className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1 relative group">
-              <AddToActionBar
-                action={{
-                  type: 'navigation',
-                  icon: Icons.includes(name as IconName) ? (name as IconName) : 'location_on',
-                  location: name,
-                  title: `Navigate to ${name}`,
-                }}
-              />
-              <Icon name={Icons.includes(name as IconName) ? (name as IconName) : 'location_on'} className="text-white/60 shrink-0" />
-              <AddressAutocomplete value={address} onChange={(v) => updateFavorites({ ...favorites, [name]: v })} placeholder={name} />
-              <IconButton
-                name="navigation"
-                title="Navigate"
-                onClick={() => handleNavigate(address)}
-                disabled={!address || route === address}
-                className="shrink-0"
-              />
-              {!['work', 'home'].includes(name) && (
-                <IconButton name="delete" title="Remove" onClick={() => handleDeleteFavorite(name)} className="shrink-0 text-red-400" />
-              )}
-            </div>
-          ))}
+          {Object.entries(favorites ?? {}).map(([name, address]) => {
+            const FavIcon = ICON_MAP[name] ?? MapPinIcon
+            return (
+              <div key={name} className="flex items-center gap-2 outline outline-white/10 rounded-lg p-2 pr-1 relative group">
+                <AddToActionBar
+                  action={{
+                    type: 'navigation',
+                    icon: ICON_MAP[name] ? name : 'location_on',
+                    location: name,
+                    title: `Navigate to ${name}`,
+                  }}
+                />
+                <FavIcon className="text-white/60 shrink-0" />
+                <AddressAutocomplete value={address} onChange={(v) => updateFavorites({ ...favorites, [name]: v })} placeholder={name} />
+                <IconButton
+                  icon={NavigationIcon}
+                  title="Navigate"
+                  onClick={() => handleNavigate(address)}
+                  disabled={!address || route === address}
+                  className="shrink-0"
+                />
+                {!['work', 'home'].includes(name) && (
+                  <IconButton icon={Trash2Icon} title="Remove" onClick={() => handleDeleteFavorite(name)} className="shrink-0 text-red-400" />
+                )}
+              </div>
+            )
+          })}
 
           <div className="flex items-center gap-2 border border-dashed border-white/10 rounded-lg p-2 pr-1">
-            <Icon name="add" className="text-white/40 shrink-0" />
+            <PlusIcon className="text-white/40 shrink-0" />
             <input
               type="text"
               value={newFavName}
@@ -155,7 +159,7 @@ export const Navigation = ({ settings }: { settings: Setting[] }) => {
               className="bg-background-alt text-sm px-3 py-1.5 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 w-20"
             />
             <AddressAutocomplete value={newFavAddress} onChange={setNewFavAddress} placeholder="Address..." />
-            <IconButton name="add" title="Add" onClick={handleAddFavorite} disabled={!newFavName.trim() || !newFavAddress.trim()} className="shrink-0" />
+            <IconButton icon={PlusIcon} title="Add" onClick={handleAddFavorite} disabled={!newFavName.trim() || !newFavAddress.trim()} className="shrink-0" />
           </div>
         </div>
       </div>

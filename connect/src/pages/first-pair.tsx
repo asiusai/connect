@@ -1,7 +1,7 @@
 import { api } from '../api'
 import { isSignedIn } from '../utils/helpers'
 import { ButtonBase } from '../components/ButtonBase'
-import { Icon } from '../components/Icon'
+import { CameraIcon, InfoIcon, PlusIcon } from 'lucide-react'
 import { TopAppBar } from '../components/TopAppBar'
 
 export const Component = () => {
@@ -14,7 +14,7 @@ export const Component = () => {
         <section className="flex flex-col gap-6 items-center w-full max-w-md bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5">
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-2">
-              <Icon name="add" className="text-white text-4xl" />
+              <PlusIcon className="text-white text-4xl" />
             </div>
             <h2 className="text-2xl font-bold">Pair your device</h2>
             <p className="text-base text-white/60">Hey {profile?.email}, scan the QR code on your device to get started.</p>
@@ -22,7 +22,7 @@ export const Component = () => {
 
           <div className="w-full bg-background rounded-xl p-4 flex flex-col gap-2 border border-white/5">
             <div className="flex items-center gap-2">
-              <Icon name="info" className="text-white text-xl" />
+              <InfoIcon className="text-white text-xl" />
               <span className="text-sm font-medium">Don't see a QR code?</span>
             </div>
             <ul className="text-xs text-white/60 flex flex-col gap-1 pl-7">
@@ -44,7 +44,7 @@ export const Component = () => {
               className="w-full py-3 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-colors flex items-center justify-center gap-2"
               href="/pair"
             >
-              <Icon name="camera" />
+              <CameraIcon />
               Scan QR Code
             </ButtonBase>
             <ButtonBase className="w-full py-3 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors text-center" href="/logout">

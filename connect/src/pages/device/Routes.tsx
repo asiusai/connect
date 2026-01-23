@@ -1,5 +1,5 @@
 import { ButtonBase } from '../../components/ButtonBase'
-import { Icon } from '../../components/Icon'
+import { CarIcon, GlobeIcon } from 'lucide-react'
 import { formatDate, formatDistance, formatDurationMs, getRouteDurationMs, formatTime, getDateTime } from '../../utils/format'
 import { useEffect, useState, useMemo, useRef, useLayoutEffect } from 'react'
 import { Slider } from '../../components/Slider'
@@ -146,7 +146,7 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
         {/* Public Icon Overlay */}
         {route.is_public && (
           <div className="absolute top-0 right-0 z-10 rounded-bl-lg bg-green-500 p-1.5 shadow-md">
-            <Icon name="public" className="text-white text-[16px]" />
+            <GlobeIcon className="text-white text-[16px]" />
           </div>
         )}
 
@@ -194,7 +194,7 @@ const RouteCard = ({ route }: { route: RouteSegment | (Route & { is_preserved: t
 
 const EmptyState = ({ preserved }: { preserved?: boolean }) => (
   <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-    <Icon name="directions_car" className="text-white/20 text-5xl mb-4" />
+    <CarIcon className="text-white/20 text-5xl mb-4" />
     <h3 className="text-lg font-semibold text-white/70 mb-2">{preserved ? 'No preserved drives' : 'No drives yet'}</h3>
     <p className="text-sm text-white/40 max-w-xs">
       {preserved

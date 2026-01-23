@@ -11,7 +11,22 @@ import { useFiles } from '../api/queries'
 import { api } from '../api'
 import { IconButton } from './IconButton'
 import { cn, getRouteUrl, saveFile, ZustandType } from '../../../shared/helpers'
-import { Icon } from './Icon'
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  CircleAlertIcon,
+  FilmIcon,
+  MaximizeIcon,
+  MinimizeIcon,
+  PauseIcon,
+  PlayIcon,
+  RefreshCwIcon,
+  SettingsIcon,
+  Volume2Icon,
+  VolumeOffIcon,
+  XIcon,
+} from 'lucide-react'
 import { getTimelineEvents, TimelineEvent } from '../utils/derived'
 import { useStorage } from '../utils/storage'
 import { Route } from '../../../shared/types'
@@ -84,10 +99,10 @@ const RenderButton = () => {
   if (renderState.status === 'rendering') {
     return (
       <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
-        <Icon name="movie" className="text-base opacity-70" />
+        <FilmIcon className="text-base opacity-70" />
         <span className="text-xs opacity-70 min-w-8">{renderState.progress === 0 ? 'Loading...' : `${renderState.progress}%`}</span>
         <button onClick={cancel} className="text-white/50 hover:text-white/80 transition-colors" title="Cancel render">
-          <Icon name="close" className="text-base" />
+          <XIcon className="text-base" />
         </button>
       </div>
     )
@@ -96,18 +111,18 @@ const RenderButton = () => {
   if (renderState.status === 'error') {
     return (
       <div className="flex items-center gap-1 bg-red-500/20 rounded-lg px-2 py-1">
-        <Icon name="error" className="text-base text-red-400" />
+        <CircleAlertIcon className="text-base text-red-400" />
         <span className="text-xs text-red-400 max-w-37.5 truncate" title={renderState.message}>
           {renderState.message}
         </span>
         <button onClick={startRender} className="text-red-400 hover:text-red-300 transition-colors" title="Retry">
-          <Icon name="refresh" className="text-base" />
+          <RefreshCwIcon className="text-base" />
         </button>
       </div>
     )
   }
 
-  return <IconButton title="Render video" name="movie" onClick={startRender} />
+  return <IconButton title="Render video" icon={FilmIcon} onClick={startRender} />
 }
 
 const FILE_LABELS: Record<FileType, string> = {
@@ -124,7 +139,7 @@ const OptionItem = ({ label, selected, onClick, disabled }: { label: string; sel
     className={cn('flex items-center gap-3 px-4 py-2 hover:bg-white/10 cursor-pointer text-sm transition-colors', disabled && 'opacity-50 pointer-events-none')}
     onClick={onClick}
   >
-    <Icon name="check" className={cn('text-lg', !selected && 'invisible')} />
+    <CheckIcon className={cn('text-lg', !selected && 'invisible')} />
     <span>{label}</span>
   </div>
 )
@@ -151,7 +166,7 @@ const SettingsMenu = () => {
     <div className="absolute bottom-[120%] right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
       {title && (
         <div className="flex items-center gap-2 px-2 py-2 border-b border-white/10 mb-1">
-          <IconButton title="Back" name="arrow_back" className="text-xl" onClick={onBack} />
+          <IconButton title="Back" icon={ArrowLeftIcon} className="text-xl" onClick={onBack} />
           <span className="text-sm font-medium">{title}</span>
         </div>
       )}
@@ -172,7 +187,7 @@ const SettingsMenu = () => {
               <span>{TITLES[view]}</span>
               <div className="flex items-center gap-1 text-white/70">
                 <span>{value}</span>
-                <Icon name="chevron_right" />
+                <ChevronRightIcon />
               </div>
             </div>
           ))}
@@ -507,8 +522,8 @@ export const VideoControls = ({ className, inFullscreen }: { className?: string;
       <Timeline route={route} />
 
       <div className="flex items-center gap-2 pt-2">
-        <IconButton title={playing ? 'Pause' : 'Play'} name={playing ? 'pause' : 'play_arrow'} onClick={() => player?.toggle()} />
-        <IconButton title={muted ? 'Unmute' : 'Mute'} name={muted ? 'volume_off' : 'volume_up'} onClick={() => (muted ? player?.unmute() : player?.mute())} />
+        <IconButton title={playing ? 'Pause' : 'Play'} icon={playing ? PauseIcon : PlayIcon} onClick={() => player?.toggle()} />
+        <IconButton title={muted ? 'Unmute' : 'Mute'} icon={muted ? VolumeOffIcon : Volume2Icon} onClick={() => (muted ? player?.unmute() : player?.mute())} />
 
         <span className="text-sm font-mono opacity-80 min-w-25">
           {formatVideoTime(Math.round(seconds))} / {formatVideoTime(Math.round(duration))}
@@ -520,11 +535,11 @@ export const VideoControls = ({ className, inFullscreen }: { className?: string;
 
         <div className="relative flex items-center justify-center" ref={settingsRef}>
           {showSettings && <SettingsMenu />}
-          <IconButton title="Settings" name="settings" onClick={() => setShowSettings(!showSettings)} />
+          <IconButton title="Settings" icon={SettingsIcon} onClick={() => setShowSettings(!showSettings)} />
         </div>
         <IconButton
           title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-          name={fullscreen ? 'fullscreen_exit' : 'fullscreen'}
+          icon={fullscreen ? MinimizeIcon : MaximizeIcon}
           onClick={() => {
             if (fullscreen) document.exitFullscreen()
             else document.querySelector('#fullscreen')?.requestFullscreen()

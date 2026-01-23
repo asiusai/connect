@@ -49,3 +49,9 @@ html {
 button {
   @apply cursor-pointer;
 }
+
+.lucide {
+  /* Icon size will relative to font-size of .text-wrapper */
+  width: 1em;
+  height: 1em;
+}

@@ -1,7 +1,7 @@
 import { type PrimePlan } from '../../../../shared/types'
 import { formatCurrency, formatDate } from '../../utils/format'
 import { ButtonBase } from '../../components/ButtonBase'
-import { Icon } from '../../components/Icon'
+import { CheckIcon, CircleAlertIcon, CreditCardIcon, InfoIcon, LoaderIcon } from 'lucide-react'
 import { ReactNode, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { api } from '../../api'
@@ -141,7 +141,7 @@ const PrimeCheckout = () => {
 
       {stripeCancelled && (
         <div className="flex gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-          <Icon name="error" className="text-xl shrink-0" />
+          <CircleAlertIcon className="text-xl shrink-0" />
           Checkout cancelled
         </div>
       )}
@@ -163,7 +163,7 @@ const PrimeCheckout = () => {
 
       {disabledDataPlanText && (
         <div className="flex gap-2 rounded-lg bg-blue-500/10 p-3 text-sm text-blue-400 border border-blue-500/20">
-          <Icon name="info" className="text-xl shrink-0" />
+          <InfoIcon className="text-xl shrink-0" />
           <div>{disabledDataPlanText}</div>
         </div>
       )}
@@ -199,7 +199,7 @@ const StripeSession = ({ id }: { id: string }) => {
   if (!stripeSession || !subscription)
     return (
       <div className="flex gap-2 rounded-lg bg-background-alt p-3 text-sm text-white/60">
-        <Icon className="animate-spin text-xl" name="autorenew" />
+        <LoaderIcon className="animate-spin text-xl" />
         Processing subscription...
       </div>
     )
@@ -207,14 +207,14 @@ const StripeSession = ({ id }: { id: string }) => {
   if (paymentStatus === 'unpaid')
     return (
       <div className="flex gap-2 rounded-lg bg-background-alt p-3 text-sm text-white/60">
-        <Icon name="payments" className="text-xl" />
+        <CreditCardIcon className="text-xl" />
         Waiting for confirmed payment...
       </div>
     )
   if (paymentStatus === 'paid' && subscription)
     return (
       <div className="flex gap-2 rounded-lg bg-green-500/10 p-3 text-sm text-green-400 border border-green-500/20">
-        <Icon name="check" className="text-xl" />
+        <CheckIcon className="text-xl" />
         <div className="flex flex-col gap-1">
           <p className="font-bold">comma prime activated</p>
           {subscription.is_prime_sim &&
@@ -243,12 +243,12 @@ const PrimeManage = () => {
 
       {cancel.isError ? (
         <div className="flex gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-          <Icon className="text-xl" name="error" />
+          <CircleAlertIcon className="text-xl" />
           Failed to cancel subscription: {cancel.error as any}
         </div>
       ) : cancel.isSuccess ? (
         <div className="flex gap-2 rounded-lg bg-background-alt p-3 text-sm text-white/60">
-          <Icon name="check" className="text-xl" />
+          <CheckIcon className="text-xl" />
           Subscription cancelled
         </div>
       ) : null}

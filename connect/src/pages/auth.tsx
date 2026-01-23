@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/Button'
-import { Icon } from '../components/Icon'
+import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
 import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
 import { Logo } from '../../../shared/components/Logo'
@@ -35,7 +35,7 @@ export const Component = () => {
       {error ? (
         <>
           <div className="flex gap-4 items-center">
-            <Icon className="text-error shrink-0 text-2xl" name="error" />
+            <CircleAlertIcon className="text-error shrink-0 text-2xl" />
             <span className="text-md">{String(error)}</span>
           </div>
           <Button color="secondary" href="/login">
@@ -44,7 +44,7 @@ export const Component = () => {
         </>
       ) : (
         <div className="flex items-center gap-3">
-          <Icon className="animate-spin text-2xl" name="autorenew" />
+          <LoaderIcon className="animate-spin text-2xl" />
           <p className="text-lg">authenticating</p>
         </div>
       )}

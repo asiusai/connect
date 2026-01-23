@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-import type { IconName } from '../components/Icon'
-
 export const SettingCategory = z.enum(['models', 'navigation', 'device', 'toggles', 'steering', 'cruise', 'visuals', 'developer', 'other'])
 export type SettingCategory = z.infer<typeof SettingCategory>
 
@@ -9,7 +7,7 @@ export type DeviceParam = {
   label: string
   description: string
   category: SettingCategory
-  icon: IconName
+  icon: string
   advanced?: boolean
   readonly?: boolean
   hidden?: boolean

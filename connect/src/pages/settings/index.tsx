@@ -9,7 +9,7 @@ import { provider } from '../../../../shared/provider'
 import { api } from '../../api'
 import { isSignedIn } from '../../utils/helpers'
 import { Button } from '../../components/Button'
-import { Icon } from '../../components/Icon'
+import { LogOutIcon } from 'lucide-react'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
@@ -33,7 +33,7 @@ export const Component = () => {
                 <span className="font-medium">{profile.email ?? profile.id}</span>
                 <span className="text-xs text-white/60">Signed in</span>
               </div>
-              <Button href="/logout" color="error" leading={<Icon name="logout" />}>
+              <Button href="/logout" color="error" leading={<LogOutIcon />}>
                 Log out
               </Button>
             </div>

@@ -1,5 +1,5 @@
 import { ButtonBase } from '../../components/ButtonBase'
-import { Icon } from '../../components/Icon'
+import { CircleAlertIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../api'
 import { useRouteParams } from '../../utils/hooks'
@@ -31,7 +31,7 @@ export const Users = () => {
         <h2 className="text-xl font-bold">Users</h2>
         {!isAdding && (
           <div className="p-2 -mr-2 cursor-pointer hover:bg-white/10 rounded-full transition-colors" onClick={() => setIsAdding(true)}>
-            <Icon name="add" className="text-xl" />
+            <PlusIcon className="text-xl" />
           </div>
         )}
       </div>
@@ -65,7 +65,7 @@ export const Users = () => {
 
       {addUser.error && (
         <div className="flex gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-          <Icon className="text-xl" name="error" />
+          <CircleAlertIcon className="text-xl" />
           {(addUser.error as any) || 'Failed to add user'}
         </div>
       )}
@@ -85,7 +85,7 @@ export const Users = () => {
                   deleteUser.mutate({ body: { email: user.email }, params: { dongleId } })
                 }}
               >
-                <Icon name="delete" className="text-xl" />
+                <Trash2Icon className="text-xl" />
               </div>
             )}
           </div>

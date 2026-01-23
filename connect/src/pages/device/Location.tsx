@@ -1,7 +1,6 @@
 import { createPortal } from 'react-dom'
 import { Device, getDeviceName } from '../../../../shared/types'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Icon, IconName, Icons } from '../../components/Icon'
 import { getTileUrl } from '../../utils/map'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap, Polyline } from 'react-leaflet'
@@ -15,13 +14,15 @@ import { create } from 'zustand'
 import { cn, truncate, ZustandType } from '../../../../shared/helpers'
 import { api } from '../../api'
 import { env } from '../../../../shared/env'
+import { CarIcon, FlagIcon, LocateIcon, MapPinIcon, SearchIcon, SearchXIcon, StarIcon, UserIcon, HomeIcon, BriefcaseIcon, LucideIcon } from 'lucide-react'
+import { renderToStaticMarkup } from 'react-dom/server'
 
 type MarkerType = {
   id: string
   lat: number
   lng: number
   label: string
-  iconName: IconName
+  icon: LucideIcon
   iconClass?: string
   href?: string
 }
@@ -163,7 +164,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
           lng: location.lng,
           href: `/${device.dongle_id}`,
           label: getDeviceName(device),
-          iconName: 'directions_car',
+          icon: CarIcon,
         } satisfies MarkerType)
       : undefined
   const userMarker = position
@@ -172,7 +173,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
         lat: position.coords.latitude,
         lng: position.coords.longitude,
         label: 'You',
-        iconName: 'person' as IconName,
+        icon: UserIcon,
         iconClass: 'bg-tertiary text-tertiary-x',
       } satisfies MarkerType)
     : undefined
@@ -184,7 +185,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
         lat: directions.destination[0],
         lng: directions.destination[1],
         label: route ?? 'Destination',
-        iconName: 'flag' as IconName,
+        icon: FlagIcon,
         iconClass: 'bg-green-600 text-white',
       } satisfies MarkerType)
     : undefined
@@ -194,10 +195,11 @@ export const Location = ({ className, device }: { className?: string; device?: D
     set({ query })
     updateSuggestions(query, deviceMarker)
   }
+  const FAV_ICONS: Record<string, LucideIcon> = { home: HomeIcon, work: BriefcaseIcon }
   const favs = Object.entries(favorites ?? {}).map(([key, address]) => ({
     name: `${key} (${truncate(address, 25)})`,
     address,
-    icon: Icons.includes(key as IconName) ? (key as IconName) : 'star',
+    icon: FAV_ICONS[key] ?? StarIcon,
   }))
   const nav = async (address: string) => {
     if (!device || !address) return
@@ -225,24 +227,27 @@ export const Location = ({ className, device }: { className?: string; device?: D
           <Polyline positions={directions.coordinates} pathOptions={{ color: '#22c55e', weight: 4, opacity: 0.8 }} />
         )}
 
-        {markers.map((x) => (
-          <Marker
-            key={x.id}
-            title={x.label}
-            position={[x.lat, x.lng]}
-            eventHandlers={{
-              click: () => {
-                if (x.href) navigate(x.href)
-              },
-            }}
-            icon={L.divIcon({
-              className: 'border-none bg-none',
-              html: `<div class="flex size-10 items-center justify-center rounded-full shadow-xl border-2 border-white/80 ${x.iconClass || 'bg-primary text-primary-x'}"><span class="material-symbols-outlined flex icon-filled">${x.iconName}</span></div>`,
-              iconSize: [40, 40],
-              iconAnchor: [20, 20],
-            })}
-          />
-        ))}
+        {markers.map((x) => {
+          const IconComponent = x.icon
+          return (
+            <Marker
+              key={x.id}
+              title={x.label}
+              position={[x.lat, x.lng]}
+              eventHandlers={{
+                click: () => {
+                  if (x.href) navigate(x.href)
+                },
+              }}
+              icon={L.divIcon({
+                className: 'border-none bg-none',
+                html: `<div class="flex size-10 items-center justify-center rounded-full shadow-xl border-2 border-white/80 ${x.iconClass || 'bg-primary text-primary-x'}">${renderToStaticMarkup(<IconComponent className="size-5" />)}</div>`,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20],
+              })}
+            />
+          )
+        })}
         <FitBounds markers={markers} />
       </MapContainer>
 
@@ -260,7 +265,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
             />
             <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-9999 w-[90%] max-w-md flex flex-col bg-background rounded-xl shadow-2xl border border-white/10 overflow-hidden">
               <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
-                <Icon name="search" className="text-xl opacity-50" />
+                <SearchIcon className="text-xl opacity-50" />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -284,7 +289,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
                           disabled={isSendingNav}
                           className="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-left disabled:opacity-50"
                         >
-                          <Icon name={fav.icon} className="text-lg opacity-60" />
+                          <fav.icon className="text-lg opacity-60" />
                           <span className="text-sm capitalize">{fav.name}</span>
                         </button>
                       ))}
@@ -301,7 +306,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
                         disabled={isSendingNav}
                         className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/10 rounded-lg transition-colors text-left disabled:opacity-50"
                       >
-                        <Icon name="location_on" className="text-lg opacity-60" />
+                        <MapPinIcon className="text-lg opacity-60" />
                         <span className="text-sm leading-snug">{suggestion.place_name}</span>
                       </button>
                     ))}
@@ -310,7 +315,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
 
                 {query && !isLoading && suggestions.length === 0 && (
                   <div className="flex items-center justify-center gap-2 py-8 opacity-50">
-                    <Icon name="search_off" className="text-xl" />
+                    <SearchXIcon className="text-xl" />
                     <span className="text-sm">No results found</span>
                   </div>
                 )}
@@ -328,7 +333,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
 
       {!position && (
         <IconButton
-          name="my_location"
+          icon={LocateIcon}
           title="Request location"
           className="absolute bottom-4 right-2 bg-background p-2 z-999"
           onClick={() => requestPosition()}

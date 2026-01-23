@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { ButtonBase } from '../components/ButtonBase'
-import { Icon } from '../components/Icon'
+import { ChevronRightIcon } from 'lucide-react'
 import { provider } from '../../../shared/provider'
 import { Logo } from '../../../shared/components/Logo'
 
@@ -98,7 +98,7 @@ export const Component = () => {
               className="w-full py-4 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2 group"
             >
               <span>Try the demo</span>
-              <Icon name="chevron_right" className="text-white/60 group-hover:translate-x-1 transition-transform" />
+              <ChevronRightIcon className="text-white/60 group-hover:translate-x-1 transition-transform" />
             </ButtonBase>
           )}
         </div>

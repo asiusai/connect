@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Route } from '../../../../shared/types'
-import { Icon } from '../../components/Icon'
 import { api } from '../../api'
 import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { provider } from '../../../../shared/provider'
 import { cn } from '../../../../shared/helpers'
+import { BookmarkIcon, BookmarkCheckIcon, GlobeIcon, GlobeLockIcon, ShareIcon, CheckIcon, LucideIcon } from 'lucide-react'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
   const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })
@@ -33,13 +33,13 @@ const useIsPublic = (route: Route) => {
 }
 
 const ActionButton = ({
-  icon,
+  icon: Icon,
   label,
   active,
   onClick,
   disabled,
 }: {
-  icon: string
+  icon: LucideIcon
   label: string
   active?: boolean
   onClick: () => void
@@ -54,7 +54,7 @@ const ActionButton = ({
       disabled && 'opacity-50 cursor-not-allowed',
     )}
   >
-    <Icon name={icon as any} className={cn('text-2xl', active ? 'text-black' : 'text-white')} />
+    <Icon className={cn('text-2xl', active ? 'text-black' : 'text-white')} />
     <span className="text-xs font-medium">{label}</span>
   </button>
 )
@@ -83,20 +83,20 @@ export const Actions = ({ route, className }: { route: Route; className?: string
   return (
     <div className={cn('grid grid-cols-3 gap-3', className)}>
       <ActionButton
-        icon={isPreserved ? 'bookmark_check' : 'bookmark'}
+        icon={isPreserved ? BookmarkCheckIcon : BookmarkIcon}
         label={isPreserved ? 'Preserved' : 'Preserve'}
         active={isPreserved}
         onClick={() => setIsPreserved(!isPreserved)}
         disabled={!isOwner}
       />
       <ActionButton
-        icon={isPublic ? 'public' : 'public_off'}
+        icon={isPublic ? GlobeIcon : GlobeLockIcon}
         label={isPublic ? 'Public' : 'Private'}
         active={isPublic}
         onClick={() => setIsPublic(!isPublic)}
         disabled={!isOwner}
       />
-      <ActionButton icon={copied ? 'check' : 'share'} label={copied ? 'Copied' : 'Share'} onClick={handleShare} />
+      <ActionButton icon={copied ? CheckIcon : ShareIcon} label={copied ? 'Copied' : 'Share'} onClick={handleShare} />
     </div>
   )
 }

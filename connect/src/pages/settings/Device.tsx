@@ -4,7 +4,7 @@ import { api } from '../../api'
 import { ButtonBase } from '../../components/ButtonBase'
 import { getDeviceName } from '../../../../shared/types'
 import { useRouteParams } from '../../utils/hooks'
-import { Icon } from '../../components/Icon'
+import { CircleAlertIcon, Trash2Icon } from 'lucide-react'
 
 export const Device = () => {
   const { dongleId } = useRouteParams()
@@ -55,7 +55,7 @@ export const Device = () => {
 
       {unpair.error && (
         <div className="flex gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-          <Icon className="text-xl" name="error" />
+          <CircleAlertIcon className="text-xl" />
           {(unpair.error as any) || 'Unknown error'}
         </div>
       )}
@@ -69,7 +69,7 @@ export const Device = () => {
         }}
         disabled={unpair.isPending}
       >
-        <Icon name="delete" />
+        <Trash2Icon />
         Unpair this device
       </ButtonBase>
     </div>

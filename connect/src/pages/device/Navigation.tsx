@@ -1,38 +1,38 @@
 import { cn } from '../../../../shared/helpers'
 import { ButtonBase } from '../../components/ButtonBase'
-import { Icon } from '../../components/Icon'
 import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { useStorage } from '../../utils/storage'
+import { BarChart3Icon, CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
 
 export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
   const isOwner = useIsDeviceOwner()
   const [usingCorrectFork] = useStorage('usingCorrectFork')
 
-  const items = [
+  const items: { title: string; icon: LucideIcon; href: string; color: string; disabled?: boolean; hide?: boolean }[] = [
     {
       title: 'Home',
-      icon: 'home',
+      icon: HomeIcon,
       href: `/${dongleId}`,
       color: 'text-blue-400',
     },
     {
       title: 'Live',
-      icon: 'videocam',
+      icon: VideoIcon,
       href: `/${dongleId}/live`,
       color: 'text-red-400',
       disabled: !isOwner,
     },
     {
       title: 'Snapshot',
-      icon: 'camera',
+      icon: CameraIcon,
       href: `/${dongleId}/snapshot`,
       color: 'text-orange-400',
       disabled: !isOwner,
     },
     {
       title: 'Params',
-      icon: 'switches',
+      icon: ToggleLeftIcon,
       href: `/${dongleId}/params`,
       color: 'text-purple-400',
       hide: !usingCorrectFork,
@@ -40,21 +40,21 @@ export const Navigation = ({ className }: { className?: string }) => {
     },
     {
       title: 'Analyze',
-      icon: 'bar_chart',
+      icon: BarChart3Icon,
       href: `/${dongleId}/analyze`,
       color: 'text-green-500',
       disabled: !isOwner,
     },
     {
       title: 'SSH',
-      icon: 'terminal',
+      icon: TerminalIcon,
       href: `/${dongleId}/ssh`,
       color: 'text-cyan-400',
       disabled: !isOwner,
     },
     {
       title: 'Settings',
-      icon: 'settings',
+      icon: SettingsIcon,
       href: `/${dongleId}/settings`,
       color: 'text-yellow-400',
     },
@@ -63,7 +63,7 @@ export const Navigation = ({ className }: { className?: string }) => {
     <div className={cn('grid grid-cols-2 md:grid-cols-1 gap-4 md:gap-0', className)}>
       {items
         .filter((x) => !x.hide)
-        .map(({ title, href, icon, color, disabled }, i, arr) => (
+        .map(({ title, href, icon: Icon, color, disabled }, i, arr) => (
           <ButtonBase
             key={title}
             href={disabled ? undefined : href}
@@ -76,7 +76,7 @@ export const Navigation = ({ className }: { className?: string }) => {
               i === arr.length - 1 && i % 2 !== 0 && 'justify-center col-span-2 md:col-span-1 md:justify-start',
             )}
           >
-            <Icon name={icon as any} className={cn('text-xl md:text-2xl', color)} />
+            <Icon className={cn('text-xl md:text-2xl', color)} />
             <span>{title}</span>
           </ButtonBase>
         ))}

@@ -3,7 +3,7 @@ import { useRouteParams } from '../utils/hooks'
 import { AthenaResponse, useAthena } from '../api/athena'
 import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../templates/shared'
-import { Icon } from '../components/Icon'
+import { CameraIcon, CarIcon, DownloadIcon, LayoutGridIcon, LoaderIcon, UserIcon } from 'lucide-react'
 import { IconButton } from '../components/IconButton'
 import { cn, saveFile } from '../../../shared/helpers'
 import { ControlButton } from './live'
@@ -55,7 +55,7 @@ const SnapshotView = () => {
                   {src && (
                     <IconButton
                       className="p-2 rounded-full text-xl bg-black/50 hover:bg-black/70 text-white backdrop-blur-sm transition-colors"
-                      name="download"
+                      icon={DownloadIcon}
                       title="Download"
                       onClick={() => saveFile(src, `snapshot${i + 1}.jpg`)}
                     />
@@ -65,7 +65,7 @@ const SnapshotView = () => {
             ) : (
               <div className="flex items-center justify-center bg-background-alt/80 backdrop-blur-sm h-full w-fulll">
                 <div className="flex items-center gap-3">
-                  <Icon name="progress_activity" className="animate-spin text-2xl text-white/40" />
+                  <LoaderIcon className="animate-spin text-2xl text-white/40" />
                   <span className="text-sm text-white/60">Taking snapshot...</span>
                 </div>
               </div>
@@ -77,10 +77,10 @@ const SnapshotView = () => {
       <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
         <ControlButton
           onClick={() => setCameraView(cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both')}
-          icon={cameraView === 'both' ? 'grid_view' : cameraView === 'driver' ? 'person' : 'directions_car'}
+          icon={cameraView === 'both' ? LayoutGridIcon : cameraView === 'driver' ? UserIcon : CarIcon}
           label={cameraView === 'both' ? 'Both' : cameraView === 'driver' ? 'Driver' : 'Road'}
         />
-        <ControlButton onClick={shot} disabled={isLoading} icon="camera" label="Retake" spin={isLoading} />
+        <ControlButton onClick={shot} disabled={isLoading} icon={CameraIcon} label="Retake" spin={isLoading} />
       </div>
     </div>
   )

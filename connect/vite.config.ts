@@ -4,9 +4,6 @@ import tailwindcss from '@tailwindcss/vite'
 
 import { VitePWA } from 'vite-plugin-pwa'
 
-// noinspection ES6PreferShortImport
-import { Icons } from './src/components/Icon'
-
 const PWA_NAMES: Record<string, string> = {
   comma: 'comma connect',
   konik: 'konik connect',
@@ -70,25 +67,6 @@ export default defineConfig(({ mode }) => {
           ],
         },
       }),
-      {
-        name: 'inject-material-symbols',
-        transformIndexHtml(html) {
-          const icons = Icons.toSorted().join(',')
-          return {
-            html,
-            tags: [
-              {
-                tag: 'link',
-                attrs: {
-                  rel: 'stylesheet',
-                  href: `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0..1,0&icon_names=${icons}&display=block`,
-                },
-                injectTo: 'head-prepend',
-              },
-            ],
-          }
-        },
-      },
     ],
     server: {
       port: 3000,

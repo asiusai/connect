@@ -7,7 +7,7 @@ import { HlsVideo } from './HlsVideo'
 import { OpenpilotUI } from './OpenpilotUI'
 import { Loading } from '../components/Loading'
 import { cn, toSegmentFiles } from '../../../shared/helpers'
-import { Icon } from '../components/Icon'
+import { InfoIcon } from 'lucide-react'
 
 export const getPreviewData = async (props: PreviewProps): Promise<PreviewData> => {
   const [dongleId] = props.routeName.split('/')
@@ -39,7 +39,7 @@ const Camera = ({ className, files, name }: { name: string; files?: PreviewFiles
             {files.type !== 'qcameras' && src && <HevcVideo src={src} />}
             {!src && (
               <AbsoluteFill className="bg-black/50 items-center justify-center text-4xl gap-4">
-                <Icon name="info" className="text-6xl" />
+                <InfoIcon className="text-6xl" />
                 <div>This video segment has not uploaded yet or has been deleted.</div>
               </AbsoluteFill>
             )}

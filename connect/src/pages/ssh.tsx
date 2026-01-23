@@ -5,7 +5,7 @@ import { useRouteParams } from '../utils/hooks'
 import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../../../shared/encryption'
 import { provider } from '../../../shared/provider'
-import { Icon } from '../components/Icon'
+import { CheckIcon, CopyIcon, ExternalLinkIcon, InfoIcon, SettingsIcon, TerminalIcon, TriangleAlertIcon, ZapIcon } from 'lucide-react'
 import { Button } from '../components/Button'
 import { toast } from 'sonner'
 import { useDevice } from './device/useDevice'
@@ -29,7 +29,7 @@ const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
           className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded transition-colors"
           title="Copy"
         >
-          <Icon name="file_copy" className="text-xs md:text-sm" />
+          <CopyIcon className="text-xs md:text-sm" />
         </button>
       </div>
     </div>
@@ -59,7 +59,7 @@ export const Component = () => {
       <div className="flex flex-col gap-6 px-4 py-6 pb-20 max-w-2xl mx-auto w-full">
         <div className="flex flex-col gap-2 text-center">
           <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto">
-            <Icon name="terminal" className="text-3xl text-primary" />
+            <TerminalIcon className="text-3xl text-primary" />
           </div>
           <h1 className="text-2xl font-bold">Remote SSH Access</h1>
           <p className="text-white/60">
@@ -73,20 +73,20 @@ export const Component = () => {
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center shrink-0">
-              <Icon name="terminal" className="text-lg md:text-xl text-cyan-400" />
+              <TerminalIcon className="text-lg md:text-xl text-cyan-400" />
             </div>
             <div className="flex-1">
               <h2 className="font-semibold text-sm md:text-base">Browser Terminal</h2>
               <p className="text-xs md:text-sm text-white/50">Connect directly from your browser</p>
             </div>
-            <Button href={`/${dongleId}/terminal`} leading={<Icon name="open_in_new" />}>
+            <Button href={`/${dongleId}/terminal`} leading={<ExternalLinkIcon />}>
               Open
             </Button>
           </div>
           <div
             className={cn(isSharedKey ? 'bg-green-500/5 border-green-500/15' : 'bg-white/5 border-white/10', 'border rounded-lg p-2 flex items-center gap-2')}
           >
-            <Icon name={isSharedKey ? 'check' : 'info'} className={cn(isSharedKey ? 'text-green-500' : 'text-white/50', 'text-lg shrink-0 mt-0.5')} />
+            {isSharedKey ? <CheckIcon className="text-green-500 text-lg shrink-0 mt-0.5" /> : <InfoIcon className="text-white/50 text-lg shrink-0 mt-0.5" />}
             {isSharedKey ? (
               <p className="text-xs text-green-400/80">
                 Key set to <code className="bg-white/10 px-1 rounded">{env.SSH_USERNAME}</code>, good to go!
@@ -99,7 +99,7 @@ export const Component = () => {
             )}
           </div>
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 flex items-center gap-2">
-            <Icon name="warning" className="text-yellow-400 text-lg shrink-0 mt-0.5" />
+            <TriangleAlertIcon className="text-yellow-400 text-lg shrink-0 mt-0.5" />
             <p className="text-xs text-yellow-400/80">
               Browser terminal requires setting your device's SSH key to <code className="bg-white/10 px-1 rounded">{env.SSH_USERNAME}</code>. This reduces
               security as it relies only on connect authentication, for maximum security, use CLI access with your own SSH keys.
@@ -116,7 +116,7 @@ export const Component = () => {
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
-              <Icon name="bolt" className="text-lg md:text-xl text-green-400" />
+              <ZapIcon className="text-lg md:text-xl text-green-400" />
             </div>
             <div>
               <h2 className="font-semibold text-sm md:text-base">Quick Connect</h2>
@@ -129,7 +129,7 @@ export const Component = () => {
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
-              <Icon name="settings" className="text-lg md:text-xl text-blue-400" />
+              <SettingsIcon className="text-lg md:text-xl text-blue-400" />
             </div>
             <div>
               <h2 className="font-semibold text-sm md:text-base">SSH Config</h2>

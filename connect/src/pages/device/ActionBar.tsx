@@ -1,4 +1,3 @@
-import { IconName } from '../../components/Icon'
 import { z } from 'zod'
 import { useDevice } from './useDevice'
 import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
@@ -7,9 +6,11 @@ import { DeviceParamType } from '../../utils/params'
 import { useStorage } from '../../utils/storage'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../../../shared/helpers'
+import { CheckIcon, MapPinIcon, XIcon } from 'lucide-react'
+import { ICON_MAP } from '../../utils/iconMap'
 
 const BaseAction = z.object({
-  icon: IconName,
+  icon: z.string(),
   title: z.string(),
 })
 
@@ -40,7 +41,7 @@ const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectA
   const { dongleId } = useRouteParams()
   return (
     <IconButton
-      name={icon}
+      icon={ICON_MAP[icon] ?? MapPinIcon}
       href={href.replaceAll('{dongleId}', dongleId)}
       disabled={!href.replaceAll('{dongleId}', dongleId)}
       className={cn(BUTTON_STYLE)}
@@ -56,7 +57,7 @@ const ToggleActionComponent = ({ icon, toggleKey, toggleType, title, disabled }:
   const isSelected = value === '1'
   return (
     <IconButton
-      name={icon}
+      icon={ICON_MAP[icon] ?? MapPinIcon}
       onClick={async () => {
         await save({ [toggleKey]: isSelected ? '0' : '1' })
       }}
@@ -73,7 +74,7 @@ const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof Nav
   const isSelected = route && route === address
   return (
     <IconButton
-      name={icon}
+      icon={ICON_MAP[icon] ?? MapPinIcon}
       onClick={async () => {
         if (!address) return
         await setMapboxRoute(address)
@@ -97,7 +98,7 @@ export const AddToActionBar = ({ action }: { action: Action }) => {
 
   return (
     <IconButton
-      name={isAdded ? 'check' : 'close_small'}
+      icon={isAdded ? CheckIcon : XIcon}
       title={isAdded ? 'Added to action bar' : 'Add to action bar'}
       onClick={() => !isAdded && setActions([...actions, action])}
       className={cn(
@@ -160,7 +161,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
           {props.type === 'toggle' && <ToggleActionComponent {...props} />}
           {props.type === 'navigation' && <NavigationActionComponent {...props} />}
           <IconButton
-            name="close_small"
+            icon={XIcon}
             title="Remove"
             onClick={() => {
               setActions(actions.filter((_, j) => i !== j))

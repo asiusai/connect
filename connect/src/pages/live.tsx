@@ -3,7 +3,19 @@ import { useRouteParams } from '../utils/hooks'
 import { useAthena } from '../api/athena'
 import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../templates/shared'
-import { Icon } from '../components/Icon'
+import {
+  CarIcon,
+  GamepadIcon,
+  LayoutGridIcon,
+  LoaderIcon,
+  LucideIcon,
+  MicIcon,
+  MicOffIcon,
+  RefreshCwIcon,
+  UserIcon,
+  Volume2Icon,
+  VolumeOffIcon,
+} from 'lucide-react'
 import { useStorage } from '../utils/storage'
 import { cn } from '../../../shared/helpers'
 import { TopAppBar } from '../components/TopAppBar'
@@ -17,7 +29,7 @@ export const ControlButton = ({
   onPointerLeave,
   active,
   disabled,
-  icon,
+  icon: Icon,
   label,
   primary,
   spin,
@@ -28,7 +40,7 @@ export const ControlButton = ({
   onPointerLeave?: () => void
   active?: boolean
   disabled?: boolean
-  icon: string
+  icon: LucideIcon
   label: string
   primary?: boolean
   spin?: boolean
@@ -51,7 +63,7 @@ export const ControlButton = ({
       disabled && 'opacity-50 cursor-not-allowed',
     )}
   >
-    <Icon name={icon as any} className={cn('text-xl', spin && 'animate-spin')} />
+    <Icon className={cn('text-xl', spin && 'animate-spin')} />
     <span className="text-[10px] font-medium">{label}</span>
   </button>
 )
@@ -430,7 +442,7 @@ const LiveView = ({
               {status && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background-alt/80 backdrop-blur-sm">
                   <div className="flex items-center gap-3">
-                    <Icon name="progress_activity" className="animate-spin text-2xl text-white/40" />
+                    <LoaderIcon className="animate-spin text-2xl text-white/40" />
                     <span className="text-sm text-white/60">{status}</span>
                   </div>
                 </div>
@@ -489,21 +501,21 @@ const LiveView = ({
       <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
         <ControlButton
           onClick={() => setCameraView(cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both')}
-          icon={cameraView === 'both' ? 'grid_view' : cameraView === 'driver' ? 'person' : 'directions_car'}
+          icon={cameraView === 'both' ? LayoutGridIcon : cameraView === 'driver' ? UserIcon : CarIcon}
           label={cameraView === 'both' ? 'Both' : cameraView === 'driver' ? 'Driver' : 'Road'}
         />
-        <ControlButton onClick={toggleMute} active={isMuted} icon={isMuted ? 'volume_off' : 'volume_up'} label="Audio" />
+        <ControlButton onClick={toggleMute} active={isMuted} icon={isMuted ? VolumeOffIcon : Volume2Icon} label="Audio" />
         <ControlButton
           onClick={undefined}
           onPointerDown={handleStartSpeaking}
           onPointerUp={handleStopSpeaking}
           onPointerLeave={handleStopSpeaking}
           active={isSpeaking}
-          icon={isSpeaking ? 'mic' : 'mic_off'}
+          icon={isSpeaking ? MicIcon : MicOffIcon}
           label={isSpeaking ? 'Speaking' : 'Hold'}
           primary
         />
-        <ControlButton onClick={() => setJoystickEnabled(!joystickEnabled)} active={joystickEnabled} icon="gamepad" label="Joystick" />
+        <ControlButton onClick={() => setJoystickEnabled(!joystickEnabled)} active={joystickEnabled} icon={GamepadIcon} label="Joystick" />
       </div>
     </div>
   )
@@ -520,7 +532,7 @@ export const Component = () => {
         leading={<BackButton href={`/${dongleId}`} />}
         trailing={
           <IconButton
-            name="refresh"
+            icon={RefreshCwIcon}
             title="Refresh connection"
             className={cn('p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5', reconnecting && 'animate-spin')}
             onClick={() => setupRTCConnectionRef.current?.()}

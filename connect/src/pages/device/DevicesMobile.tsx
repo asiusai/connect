@@ -4,7 +4,7 @@ import { api } from '../../api'
 import { getDeviceName } from '../../../../shared/types'
 import { useAsyncEffect, useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
 import { Active, Devices } from './Devices'
-import { Icon } from '../../components/Icon'
+import { BatteryFullIcon, ChevronDownIcon } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../../../shared/helpers'
 
@@ -24,7 +24,7 @@ export const Voltage = () => {
     <>
       <div className="w-1 h-1 rounded-full bg-white/40" />
       <div className={cn('flex gap-1 items-center', getVoltageColor(Number(voltage)))}>
-        <Icon name="battery_5_bar" className="rotate-90 text-[18px]!" />
+        <BatteryFullIcon className="rotate-90 text-[18px]!" />
         <p>{voltage}V</p>
       </div>
     </>
@@ -42,7 +42,7 @@ export const DevicesMobile = () => {
       <div className="flex flex-col">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setOpen(true)}>
           <h1 className="text-2xl font-bold">{getDeviceName(device)}</h1>
-          <Icon name="keyboard_arrow_down" className="drop-shadow-md" />
+          <ChevronDownIcon className="drop-shadow-md" />
         </div>
         <div className="flex items-center gap-3 text-sm font-medium opacity-90">
           <Active device={device} />

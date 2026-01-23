@@ -11,6 +11,7 @@ import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../../../shared/encryption'
 import { env } from '../../../shared/env'
 import { provider } from '../../../shared/provider'
+import { RefreshCwIcon } from 'lucide-react'
 
 const Terminal = ({ wsUrl, onClose }: { wsUrl: string; onClose?: () => void }) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -102,7 +103,7 @@ export const Component = () => {
     <div className="flex flex-col h-screen bg-background text-foreground">
       <TopAppBar
         leading={<BackButton href={`/${dongleId}/ssh`} />}
-        trailing={<IconButton name="refresh" title="Reconnect" onClick={() => setKey((k) => k + 1)} />}
+        trailing={<IconButton icon={RefreshCwIcon} title="Reconnect" onClick={() => setKey((k) => k + 1)} />}
       >
         SSH Terminal
       </TopAppBar>

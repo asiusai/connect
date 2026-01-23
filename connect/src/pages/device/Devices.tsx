@@ -2,7 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../api'
 import { Device, getDeviceName, getCommaName } from '../../../../shared/types'
 import { timeAgo } from '../../utils/format'
-import { Icon } from '../../components/Icon'
+import { PlusIcon, XIcon } from 'lucide-react'
 import { cn } from '../../../../shared/helpers'
 
 export const Active = ({ device, className }: { device: Device; className?: string }) => {
@@ -30,7 +30,7 @@ export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?:
         <div className="flex items-center justify-between px-4 py-4 border-b border-white/5">
           <h2 className="text-lg font-bold">Switch Device</h2>
           <div className="p-2 -mr-2 cursor-pointer hover:bg-white/5 rounded-full" onClick={close}>
-            <Icon name="close" className="text-xl" />
+            <XIcon className="text-xl" />
           </div>
         </div>
       )}
@@ -64,7 +64,7 @@ export const Devices = ({ close, isDropdown }: { close: () => void; isDropdown?:
             navigate('/pair')
           }}
         >
-          <Icon name="add" className="text-xl" />
+          <PlusIcon className="text-xl" />
           <span className="font-medium text-sm">Pair new device</span>
         </div>
       </div>

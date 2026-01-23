@@ -6,13 +6,13 @@ import { useAthena } from '../api/athena'
 import { useFiles } from '../api/queries'
 import { downloadFile, hevcToMp4, hevcBinsToMp4, tsFilesToMp4 } from '../utils/ffmpeg'
 import { useIsDeviceOwner, useRouteParams, useUploadProgress } from '../utils/hooks'
-import { Icon } from './Icon'
 import { ButtonBase } from './ButtonBase'
 import { FPS } from '../templates/shared'
 import { IconButton } from './IconButton'
 import { usePlayerStore } from './VideoPlayer'
 import { CircularProgress } from './CircularProgress'
 import { provider } from '../../../shared/provider'
+import { CloudUploadIcon, ExternalLinkIcon, FileIcon, FilmIcon, LucideIcon, RefreshCwIcon, UploadIcon } from 'lucide-react'
 
 type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 
@@ -20,7 +20,7 @@ const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
 const FileAction = ({
-  icon,
+  Icon,
   label,
   onClick,
   href,
@@ -29,7 +29,7 @@ const FileAction = ({
   isUpload,
   disabled,
 }: {
-  icon: string
+  Icon: LucideIcon
   label: string
   onClick?: () => void
   href?: string
@@ -45,14 +45,14 @@ const FileAction = ({
       download={download}
       disabled={disabled || !!loading}
       className={cn(
-        'flex items-center gap-1 px-2 py-1.5 rounded-lg transition-colors text-xs font-medium disabled:opacity-50',
+        'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors text-xs font-medium disabled:opacity-50',
         isUpload ? 'bg-white text-black hover:bg-white/90' : 'bg-white/5 hover:bg-white/10 text-white',
       )}
     >
       {loading !== undefined ? (
         <CircularProgress loading={loading} className={cn('w-3.5 h-3.5 rounded-full ', isUpload ? 'text-black' : 'text-white')} />
       ) : (
-        <Icon name={icon as any} className="text-[16px]!" />
+        <Icon className="text-[16px]" />
       )}
       <span>{label}</span>
     </ButtonBase>
@@ -88,7 +88,7 @@ const Upload = ({
   return (
     <FileAction
       label={isCurrentlyUploading && avgProgress !== undefined ? `${Math.round(avgProgress * 100)}%` : 'Upload'}
-      icon={isCurrentlyUploading ? 'cloud_upload' : 'upload'}
+      Icon={isCurrentlyUploading ? CloudUploadIcon : UploadIcon}
       isUpload
       loading={avgProgress}
       disabled={!isOwner}
@@ -135,13 +135,13 @@ const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFile
   if (!files[type].every(Boolean)) return null
 
   if (type === 'logs' || type === 'qlogs')
-    return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}`} />
+    return <FileAction label={FILE_INFO[type].processed || 'View'} Icon={ExternalLinkIcon} href={`/${dongleId}/${date}/${type}`} />
 
   if (type === 'qcameras')
     return (
       <FileAction
         label={FILE_INFO.qcameras.processed || 'Download'}
-        icon="movie"
+        Icon={FilmIcon}
         loading={loading}
         onClick={async () => {
           setProgress({})
@@ -156,7 +156,7 @@ const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFile
   return (
     <FileAction
       label={FILE_INFO[type].processed || 'Download'}
-      icon="movie"
+      Icon={FilmIcon}
       loading={loading}
       onClick={async () => {
         setProgress({})
@@ -176,8 +176,8 @@ const DownloadSegment = ({ type, files, segment }: { segment: number; type: File
   if (!file) return null
   const name = `${routeName}--${segment}--${FILE_INFO[type].name}`
   if (provider.IS_OURS && ['cameras', 'ecameras', 'dcameras'].includes(type))
-    return <FileAction label={FILE_INFO[type].processed || 'Process'} icon="movie" download={name.replace('.hevc', '.mp4')} href={file} />
-  return <FileAction label={FILE_INFO[type].raw} icon="raw_on" href={file} download={name} />
+    return <FileAction label={FILE_INFO[type].processed || 'Process'} Icon={FilmIcon} download={name.replace('.hevc', '.mp4')} href={file} />
+  return <FileAction label={FILE_INFO[type].raw} Icon={FileIcon} href={file} download={name} />
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
@@ -188,13 +188,13 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
   if (!file) return null
 
   if (type === 'logs' || type === 'qlogs')
-    return <FileAction label={FILE_INFO[type].processed || 'View'} icon="open_in_new" href={`/${dongleId}/${date}/${type}?segment=${segment}`} />
+    return <FileAction label={FILE_INFO[type].processed || 'View'} Icon={ExternalLinkIcon} href={`/${dongleId}/${date}/${type}?segment=${segment}`} />
 
   if (type === 'qcameras')
     return (
       <FileAction
         label={FILE_INFO[type].processed || 'Process'}
-        icon="movie"
+        Icon={FilmIcon}
         loading={progress}
         onClick={async () => {
           setProgress(0)
@@ -212,7 +212,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
   return (
     <FileAction
       label={FILE_INFO[type].processed || 'Process'}
-      icon="movie"
+      Icon={FilmIcon}
       loading={progress}
       onClick={async () => {
         setProgress(0)
@@ -352,7 +352,7 @@ export const RouteFiles = ({ route, className }: { route: Route; className?: str
         <IconButton
           title="Refresh"
           onClick={() => void refetch()}
-          name="refresh"
+          icon={RefreshCwIcon}
           className={cn('text-xl text-white/40 hover:text-white transition-colors', refetching && 'animate-spin')}
         />
       </div>

@@ -3,7 +3,7 @@ import { api } from '../api'
 import { useRouteParams } from '../utils/hooks'
 import { Loading } from '../components/Loading'
 import { Button } from '../components/Button'
-import { Icon } from '../components/Icon'
+import { CircleAlertIcon, HomeIcon, RefreshCwIcon } from 'lucide-react'
 import { Sidebar } from '../components/Sidebar'
 import { isSignedIn } from '../utils/helpers'
 import { useStorage } from '../utils/storage'
@@ -14,15 +14,15 @@ const RouteNotFound = () => {
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-background text-background-x">
       <div className="flex flex-col items-center gap-2">
-        <Icon name="error" className="text-error text-5xl" />
+        <CircleAlertIcon className="text-error text-5xl" />
         <h1 className="flex flex-col items-center text-center text-2xl font-bold text-primary">Route {routeName} not found!</h1>
         <p className="text-secondary-alt-x">The route you are looking for does not exist or has been made private.</p>
       </div>
       <div className="flex gap-4">
-        <Button color="secondary" leading={<Icon name="refresh" />} onClick={() => window.location.reload()}>
+        <Button color="secondary" leading={<RefreshCwIcon />} onClick={() => window.location.reload()}>
           Try again
         </Button>
-        <Button color="primary" leading={<Icon name="home" />} href="/">
+        <Button color="primary" leading={<HomeIcon />} href="/">
           Go home
         </Button>
       </div>

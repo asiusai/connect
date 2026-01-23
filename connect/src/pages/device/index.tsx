@@ -8,13 +8,13 @@ import { ActionBar } from './ActionBar'
 import { Navigation } from './Navigation'
 import { useRouteParams, useScroll } from '../../utils/hooks'
 import { DevicesMobile } from './DevicesMobile'
-import { Icon } from '../../components/Icon'
 import { useStorage } from '../../utils/storage'
 import { useDevice } from './useDevice'
 import { toast } from 'sonner'
 import { IconButton } from '../../components/IconButton'
 import { Navigate } from 'react-router-dom'
 import { cn } from '../../../../shared/helpers'
+import { NavigationIcon, SearchIcon, XIcon } from 'lucide-react'
 
 const NavButton = () => {
   const { set } = useSearch()
@@ -29,10 +29,10 @@ const NavButton = () => {
           'hover:bg-background/90 transition-colors max-w-[50vw] md:max-w-64',
         )}
       >
-        <Icon name="navigation" className="text-primary text-lg shrink-0" />
+        <NavigationIcon className="text-primary text-lg shrink-0" />
         <span className="text-sm truncate">{route}</span>
         <IconButton
-          name="close"
+          icon={XIcon}
           onClick={async (e) => {
             e.stopPropagation()
             const res = await setMapboxRoute(null)
@@ -52,7 +52,7 @@ const NavButton = () => {
       className="flex items-center justify-center size-12 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background/90 transition-colors"
       title="Navigate"
     >
-      <Icon name="search" className="text-xl" />
+      <SearchIcon className="text-xl" />
     </button>
   )
 }
