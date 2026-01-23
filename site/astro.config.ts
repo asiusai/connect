@@ -11,4 +11,22 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   devToolbar: { enabled: false },
+  redirects: {
+    '/issues': 'https://github.com/asiusai/asiusai/issues',
+    '/discussions': 'https://github.com/asiusai/asiusai/discussions',
+    '/pulls': 'https://github.com/asiusai/asiusai/pulls',
+    '/projects': 'https://github.com/orgs/asiusai/projects/1/views/1',
+
+    '/gh': 'https://github.com/asiusai/asiusai',
+    '/github': 'https://github.com/asiusai/asiusai',
+
+    '/openpilot': 'https://github.com/asiusai/openpilot',
+    '/sunnypilot': 'https://github.com/asiusai/sunnypilot',
+
+    '/comma': 'https://comma.asius.ai',
+    '/konik': 'https://konik.asius.ai',
+    '/asius': 'https://connect.asius.ai',
+
+    '/x': 'https://x.com/asius_ai',
+  },
 })
