@@ -72,7 +72,7 @@ export const Navigation = ({ className }: { className?: string }) => {
             disabled={disabled || !href}
             title={'You must be the owner to access this'}
             className={cn(
-              'flex md:flex-row bg-background-alt md:bg-transparent items-center p-4 gap-4 md:gap-3 md:px-3 md:py-2  rounded-lg transition-colors font-medium',
+              'flex md:flex-row bg-background-alt md:bg-transparent items-center p-4 gap-4 md:gap-3 md:px-3 md:py-3  rounded-lg transition-colors font-medium',
               disabled ? 'opacity-50 cursor-not-allowed' : href && 'hover:bg-white/10 text-white',
               title === 'Home' && 'hidden md:flex',
               i === arr.length - 1 && i % 2 !== 0 && 'justify-center col-span-2 md:col-span-1 md:justify-start',
