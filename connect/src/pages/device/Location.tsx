@@ -13,7 +13,7 @@ import { useDevice } from '../../hooks/useDevice'
 import { cn, truncate } from '../../../../shared/helpers'
 import { api } from '../../api'
 import { env } from '../../../../shared/env'
-import { CarIcon, FlagIcon, LocateIcon, MapPinIcon, SearchIcon, SearchXIcon, StarIcon, UserIcon, HomeIcon, BriefcaseIcon, LucideIcon } from 'lucide-react'
+import { CarIcon, FlagIcon, MapPinIcon, SearchIcon, SearchXIcon, StarIcon, UserIcon, HomeIcon, BriefcaseIcon, LucideIcon, LocateFixedIcon } from 'lucide-react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { useSearch } from '../../hooks/useSearch'
@@ -216,7 +216,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
               }}
               icon={L.divIcon({
                 className: 'border-none bg-none',
-                html: `<div class="flex size-10 items-center justify-center rounded-full shadow-xl border-2 border-white/80 ${x.iconClass || 'bg-primary text-primary-x'}">${renderToStaticMarkup(<IconComponent className="size-5" />)}</div>`,
+                html: `<div class="flex size-10 items-center justify-center rounded-full shadow-xl border-2 border-white/80 ${x.iconClass || 'bg-primary text-primary-x'}">${renderToStaticMarkup(<IconComponent className="text-2xl" />)}</div>`,
                 iconSize: [40, 40],
                 iconAnchor: [20, 20],
               })}
@@ -308,9 +308,9 @@ export const Location = ({ className, device }: { className?: string; device?: D
 
       {!position && (
         <IconButton
-          icon={LocateIcon}
+          icon={LocateFixedIcon}
           title="Request location"
-          className="absolute bottom-4 right-2 bg-background p-2 z-999"
+          className="absolute bottom-4 text-xl right-6 bg-background p-2 z-999 rounded-full"
           onClick={() => requestPosition()}
         />
       )}
