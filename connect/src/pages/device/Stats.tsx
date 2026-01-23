@@ -2,7 +2,7 @@ import { api } from '../../api'
 import { Slider } from '../../components/Slider'
 import { DetailRow } from '../../components/DetailRow'
 import { formatDistance, formatDuration } from '../../utils/format'
-import { useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
 import { useStorage } from '../../utils/storage'
 import { cn } from '../../../../shared/helpers'
 

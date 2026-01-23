@@ -1,6 +1,6 @@
 import { BackButton } from '../components/BackButton'
 import { TopAppBar } from '../components/TopAppBar'
-import { useAsyncMemo, useRouteParams } from '../utils/hooks'
+import { useAsyncMemo, useRouteParams } from '../hooks'
 import { useAthena } from '../api/athena'
 import { Select } from '../components/Select'
 import { useState } from 'react'

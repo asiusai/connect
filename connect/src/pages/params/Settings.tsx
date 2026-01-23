@@ -1,4 +1,4 @@
-import { useDevice } from '../device/useDevice'
+import { useDevice } from '../../hooks/useDevice'
 import { DeviceParam, DeviceParamKey, DeviceParamType } from '../../utils/params'
 import { Toggle } from '../../components/Toggle'
 import { Select } from '../../components/Select'

@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { useDevice } from './useDevice'
-import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
+import { useDevice } from '../../hooks/useDevice'
+import { useRouteParams } from '../../hooks'
 import { IconButton } from '../../components/IconButton'
 import { DeviceParamType } from '../../utils/params'
 import { useStorage } from '../../utils/storage'
@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../../../shared/helpers'
 import { CheckIcon, MapPinIcon, XIcon } from 'lucide-react'
 import { ICON_MAP } from '../../utils/iconMap'
+import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 
 const BaseAction = z.object({
   icon: z.string(),

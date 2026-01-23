@@ -3,8 +3,9 @@ import { api } from '.'
 import { provider } from '../../../shared/provider'
 import { AthenaError, Service } from '../../../shared/types'
 import { toast } from 'sonner'
-import { useIsDeviceOwner, useRouteParams } from '../utils/hooks'
+import { useRouteParams } from '../hooks'
 import { useCallback } from 'react'
+import { useIsDeviceOwner } from '../hooks/useIsDeviceOwner'
 
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
@@ -212,6 +213,7 @@ export const callAthena = async <T extends AthenaRequest>({
       })
       .parse(res.body)
 }
+
 export const useAthena = () => {
   const { dongleId } = useRouteParams()
   const isOwner = useIsDeviceOwner()

@@ -1,6 +1,6 @@
 import { api } from '../../api'
 import { DetailRow } from '../../components/DetailRow'
-import { useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
 import { useStorage } from '../../utils/storage'
 import { env } from '../../../../shared/env'
 import { cn } from '../../../../shared/helpers'

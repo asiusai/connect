@@ -1,10 +1,10 @@
-import { useDevice } from '../device/useDevice'
+import { useDevice } from '../../hooks/useDevice'
 import { Button } from '../../components/Button'
 import { Select } from '../../components/Select'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { parse } from '../../../../shared/helpers'
-import { useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
 
 type ModelBundle = { index: number; display_name: string; environment: string; runner?: string; generation: number }
 

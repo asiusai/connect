@@ -1,13 +1,13 @@
 import { Route } from '../../../../shared/types'
 import { getCoords, GPSPathPoint } from '../../utils/derived'
-import { useAsyncMemo } from '../../utils/hooks'
+import { useAsyncMemo } from '../../hooks'
 import { MapContainer, TileLayer, Polyline, CircleMarker, useMap } from 'react-leaflet'
 import { getTileUrl } from '../../utils/map'
 import { useEffect, useRef } from 'react'
 import L, { LatLngBounds } from 'leaflet'
 import { toSeconds } from '../../templates/shared'
-import { usePlayerStore } from '../../components/VideoPlayer'
 import { cn } from '../../../../shared/helpers'
+import { usePlayerStore } from '../../hooks/usePlayerStore'
 
 const FitBounds = ({ coords }: { coords: GPSPathPoint[] }) => {
   const map = useMap()

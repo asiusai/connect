@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { DB } from '../utils/db'
 import { DriverStateRenderer } from './DriverStateRenderer'
 import type { FrameData } from '../../../shared/log-reader/reader'
-import { useAsyncEffect } from '../utils/hooks'
+import { useAsyncEffect } from '../hooks'
 import { LogType, UnitFormat } from '../../../shared/types'
 import { MI_TO_KM } from '../utils/format'
 

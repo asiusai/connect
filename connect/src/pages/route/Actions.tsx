@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Route } from '../../../../shared/types'
 import { api } from '../../api'
-import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
 import { provider } from '../../../../shared/provider'
 import { cn } from '../../../../shared/helpers'
 import { BookmarkIcon, BookmarkCheckIcon, GlobeIcon, GlobeLockIcon, ShareIcon, CheckIcon, LucideIcon } from 'lucide-react'
+import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
   const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })

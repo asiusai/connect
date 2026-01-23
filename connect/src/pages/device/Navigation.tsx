@@ -1,6 +1,7 @@
 import { cn } from '../../../../shared/helpers'
 import { ButtonBase } from '../../components/ButtonBase'
-import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
+import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { useStorage } from '../../utils/storage'
 import { BarChart3Icon, CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
 

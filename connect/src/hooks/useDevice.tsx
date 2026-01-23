@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import { useAthena } from '../../api/athena'
-import { decode, encode, parse, ZustandType } from '../../../../shared/helpers'
-import { DeviceParamKey } from '../../utils/params'
+import { useAthena } from '../api/athena'
+import { decode, encode, parse, ZustandType } from '../../../shared/helpers'
+import { DeviceParamKey } from '../utils/params'
 import { toast } from 'sonner'
-import { useAsyncEffect, useIsDeviceOwner } from '../../utils/hooks'
+import { useAsyncEffect } from '.'
 import { useCallback, useMemo } from 'react'
+import { useIsDeviceOwner } from './useIsDeviceOwner'
 
 type Changes = Partial<Record<DeviceParamKey, string | null>>
 const init = {

@@ -1,6 +1,6 @@
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
-import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
 import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
@@ -10,6 +10,7 @@ import { api } from '../../api'
 import { isSignedIn } from '../../utils/helpers'
 import { Button } from '../../components/Button'
 import { LogOutIcon } from 'lucide-react'
+import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()

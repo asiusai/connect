@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { api } from '../api'
-import { useRouteParams } from '../utils/hooks'
+import { useRouteParams } from '../hooks'
 import { Loading } from '../components/Loading'
 import { Button } from '../components/Button'
 import { CircleAlertIcon, HomeIcon, RefreshCwIcon } from 'lucide-react'

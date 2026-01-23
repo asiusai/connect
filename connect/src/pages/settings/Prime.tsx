@@ -5,7 +5,7 @@ import { CheckIcon, CircleAlertIcon, CreditCardIcon, InfoIcon, LoaderIcon } from
 import { ReactNode, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { api } from '../../api'
-import { useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
 import { cn } from '../../../../shared/helpers'
 
 type PlanProps = { name: PrimePlan; amount: number; description: string; disabled?: boolean }

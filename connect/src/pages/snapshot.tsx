@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useRouteParams } from '../utils/hooks'
+import { useRouteParams } from '../hooks'
 import { AthenaResponse, useAthena } from '../api/athena'
 import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../templates/shared'

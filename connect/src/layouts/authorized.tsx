@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import { api } from '../api'
-import { useRouteParams } from '../utils/hooks'
+import { useRouteParams } from '../hooks'
 import { Sidebar } from '../components/Sidebar'
 import { useStorage } from '../utils/storage'
 import { useEffect, useRef } from 'react'

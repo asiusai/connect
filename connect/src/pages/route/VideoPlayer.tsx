@@ -1,16 +1,16 @@
 import { Player, PlayerRef } from '@remotion/player'
 import { renderMediaOnWeb } from '@remotion/web-renderer'
-import { FPS, HEIGHT, toFrames, toSeconds, WIDTH } from '../templates/shared'
-import { Preview } from '../templates/Preview'
-import { CameraType, FileType, LogType, PreviewProps } from '../../../shared/types'
-import { formatVideoTime, getRouteDurationMs, formatTime, getDateTime } from '../utils/format'
+import { FPS, HEIGHT, toFrames, toSeconds, WIDTH } from '../../templates/shared'
+import { Preview } from '../../templates/Preview'
+import { CameraType, FileType, LogType, PreviewProps } from '../../../../shared/types'
+import { formatVideoTime, getRouteDurationMs, formatTime, getDateTime } from '../../utils/format'
 import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useAsyncMemo, useRouteParams } from '../utils/hooks'
+import { useAsyncMemo, useRouteParams } from '../../hooks'
 import { useNavigate } from 'react-router-dom'
-import { useFiles } from '../api/queries'
-import { api } from '../api'
-import { IconButton } from './IconButton'
-import { cn, getRouteUrl, saveFile, ZustandType } from '../../../shared/helpers'
+import { useFiles } from '../../api/queries'
+import { api } from '../../api'
+import { IconButton } from '../../components/IconButton'
+import { cn, getRouteUrl, saveFile } from '../../../../shared/helpers'
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -27,27 +27,10 @@ import {
   VolumeOffIcon,
   XIcon,
 } from 'lucide-react'
-import { getTimelineEvents, TimelineEvent } from '../utils/derived'
-import { useStorage } from '../utils/storage'
-import { Route } from '../../../shared/types'
-import { create } from 'zustand'
-
-type RenderState = { status: 'idle' } | { status: 'rendering'; progress: number } | { status: 'done' } | { status: 'error'; message: string }
-
-const initial = {
-  playerRef: null as RefObject<PlayerRef | null> | null,
-  props: null as PreviewProps | null,
-  frame: 0,
-  playing: true,
-  muted: true,
-  fullscreen: false,
-  duration: 0,
-  selection: { start: 0, end: 0 },
-  renderState: { status: 'idle' } as RenderState,
-  renderAbortController: null as AbortController | null,
-}
-
-export const usePlayerStore = create<ZustandType<typeof initial>>((set) => ({ ...initial, set }))
+import { getTimelineEvents, TimelineEvent } from '../../utils/derived'
+import { useStorage } from '../../utils/storage'
+import { Route } from '../../../../shared/types'
+import { usePlayerStore } from '../../hooks/usePlayerStore'
 
 const RenderButton = () => {
   const { props, selection, duration, renderState, renderAbortController, set } = usePlayerStore()

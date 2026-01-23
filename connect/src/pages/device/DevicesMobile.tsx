@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { useAthena } from '../../api/athena'
 import { api } from '../../api'
 import { getDeviceName } from '../../../../shared/types'
-import { useAsyncEffect, useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
+import { useAsyncEffect, useRouteParams } from '../../hooks'
 import { Active, Devices } from './Devices'
 import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, ChevronDownIcon } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../../../shared/helpers'
+import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 
 export const Voltage = () => {
   const [voltage, setVoltage] = useState<string>()

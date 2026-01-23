@@ -1,9 +1,9 @@
-import { RouteFiles } from '../../components/RouteFiles'
-import { RouteVideoPlayer, VideoControls } from '../../components/VideoPlayer'
+import { RouteFiles } from './Files'
+import { RouteVideoPlayer, VideoControls } from './VideoPlayer'
 import { useFiles } from '../../api/queries'
 import { api } from '../../api'
 import { useEffect, useMemo, useState } from 'react'
-import { useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
 import { TopAppBar } from '../../components/TopAppBar'
 import { BackButton } from '../../components/BackButton'
 import { useAthena } from '../../api/athena'
@@ -75,7 +75,7 @@ export const Component = () => {
         )}
       </TopAppBar>
 
-      <div className="grid md:grid-cols-3 gap-3 md:gap-4 p-4 max-w-screen-xl mx-auto">
+      <div className="grid md:grid-cols-3 gap-3 md:gap-4 p-4 max-w-7xl mx-auto">
         <RouteVideoPlayer className="md:col-span-2 md:order-1" props={previewProps} />
         <VideoControls className="md:col-span-2 md:order-3" />
         <Stats route={route} className="md:order-6" />

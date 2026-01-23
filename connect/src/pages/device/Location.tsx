@@ -1,21 +1,22 @@
 import { createPortal } from 'react-dom'
 import { Device, getDeviceName } from '../../../../shared/types'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getTileUrl } from '../../utils/map'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap, Polyline } from 'react-leaflet'
 import { IconButton } from '../../components/IconButton'
-import { useIsDeviceOwner, useRouteParams } from '../../utils/hooks'
+import { usePosition, useRouteParams } from '../../hooks'
 import { useNavigate } from 'react-router-dom'
 import { useStorage } from '../../utils/storage'
 import { toast } from 'sonner'
-import { useDevice } from './useDevice'
-import { create } from 'zustand'
-import { cn, truncate, ZustandType } from '../../../../shared/helpers'
+import { useDevice } from '../../hooks/useDevice'
+import { cn, truncate } from '../../../../shared/helpers'
 import { api } from '../../api'
 import { env } from '../../../../shared/env'
 import { CarIcon, FlagIcon, LocateIcon, MapPinIcon, SearchIcon, SearchXIcon, StarIcon, UserIcon, HomeIcon, BriefcaseIcon, LucideIcon } from 'lucide-react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
+import { useSearch } from '../../hooks/useSearch'
 
 type MarkerType = {
   id: string
@@ -30,29 +31,6 @@ type MarkerType = {
 const SAN_DIEGO: [number, number] = [32.711483, -117.161052]
 
 type MapboxSuggestion = { place_name: string; center: [number, number] }
-
-const usePosition = () => {
-  const [position, setPosition] = useState<GeolocationPosition | null>(null)
-
-  const requestPosition = useCallback(() => {
-    navigator.geolocation.getCurrentPosition(setPosition, (err) => {
-      console.log("Error getting user's position", err)
-      setPosition(null)
-    })
-  }, [])
-
-  useEffect(() => {
-    navigator.permissions
-      .query({ name: 'geolocation' })
-      .then((permission) => {
-        permission.addEventListener('change', requestPosition)
-
-        if (permission.state === 'granted') requestPosition()
-      })
-      .catch(() => setPosition(null))
-  }, [requestPosition])
-  return { position, requestPosition }
-}
 
 const FitBounds = ({ markers }: { markers: MarkerType[] }) => {
   const map = useMap()
@@ -138,9 +116,6 @@ export const useSuggestions = () => {
   }
   return { suggestions, isLoading, updateSuggestions }
 }
-
-const init = { query: '', isSearchOpen: false }
-export const useSearch = create<ZustandType<typeof init>>((set) => ({ ...init, set }))
 
 export const Location = ({ className, device }: { className?: string; device?: Device }) => {
   const { dongleId } = useRouteParams()

@@ -2,7 +2,7 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { CircleAlertIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../api'
-import { useRouteParams } from '../../utils/hooks'
+import { useRouteParams } from '../../hooks'
 
 export const Users = () => {
   const { dongleId } = useRouteParams()

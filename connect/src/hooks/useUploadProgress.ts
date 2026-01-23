@@ -1,84 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams as useParamsRouter } from 'react-router-dom'
-import { UploadQueueItem, useAthena } from '../api/athena'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { z } from 'zod'
-import { api } from '../api'
-import { isSignedIn } from '../utils/helpers'
-import { provider } from '../../../shared/provider'
-
-let isOwner = false
-
-export const getIsDeviceOwner = () => isOwner
-
-export const useIsDeviceOwner = () => {
-  const { dongleId } = useRouteParams()
-  const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: isSignedIn() })
-  const [user] = api.auth.me.useQuery({})
-
-  // Konik for some reason always returns is_owner=false
-  isOwner = provider.MODE === 'konik' || !!device?.is_owner || !!user?.superuser
-  return isOwner
-}
-
-type Dimensions = { width: number; height: number }
-const getDimensions = (): Dimensions => (typeof window === 'undefined' ? { width: 0, height: 0 } : { width: window.innerWidth, height: window.innerHeight })
-export const useDimensions = (): Dimensions => {
-  const [dimensions, setDimensions] = useState(getDimensions())
-
-  useEffect(() => {
-    const onResize = () => setDimensions(getDimensions())
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  return dimensions
-}
-
-export const useRouteParams = () => {
-  const { dongleId, date, start, end } = useParamsRouter()
-  return {
-    dongleId: dongleId!,
-    date: date!,
-    routeName: `${dongleId}/${date}`,
-    start: start ? Number(start) : undefined,
-    end: end ? Number(end) : undefined,
-  }
-}
-
-export const useAsyncEffect = (fn: () => Promise<any>, args: any[]) => {
-  useEffect(() => {
-    fn()
-  }, [...args])
-}
-
-type UseAsyncMemo = {
-  <T>(fn: () => Promise<T>, deps: any[], def: T): T
-  <T>(fn: () => Promise<T>, deps: any[]): T | undefined
-}
-export const useAsyncMemo: UseAsyncMemo = <T>(fn: () => Promise<T>, deps: any[], def?: T) => {
-  const [state, setState] = useState<T | undefined>(def)
-
-  useAsyncEffect(async () => {
-    const res = await fn()
-    setState(res)
-  }, deps)
-
-  return state as T
-}
-
-export const useScroll = () => {
-  const [scroll, setScroll] = useState(1)
-
-  useEffect(() => {
-    const onScroll = () => setScroll(window.scrollY)
-
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-  return scroll
-}
+import { UploadQueueItem, useAthena } from '../api/athena'
 
 export type UploadProgress = z.infer<typeof UploadQueueItem>
+export type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 
 export const useUploadProgress = (dongleId: string, routeId: string, onComplete?: () => void, enabled = true) => {
   const [queue, setQueue] = useState<UploadProgress[]>([])

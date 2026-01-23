@@ -1,4 +1,4 @@
-import { useDevice } from '../device/useDevice'
+import { useDevice } from '../../hooks/useDevice'
 import { useEffect, useRef, useState } from 'react'
 import { IconButton } from '../../components/IconButton'
 import { useSuggestions } from '../device/Location'

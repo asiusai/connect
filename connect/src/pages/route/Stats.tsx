@@ -1,6 +1,6 @@
 import { formatDistance, formatDuration, formatRouteDuration, getRouteDurationMs } from '../../utils/format'
 import { Route } from '../../../../shared/types'
-import { useAsyncMemo } from '../../utils/hooks'
+import { useAsyncMemo } from '../../hooks'
 import { getRouteStats, getTimelineEvents } from '../../utils/derived'
 import { cn } from '../../../../shared/helpers'
 
