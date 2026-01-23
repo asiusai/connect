@@ -11,6 +11,7 @@
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",
     "@astrojs/react": "^4.4.2",
-    "astro": "^5.16.6"
+    "astro": "^5.16.6",
+    "lucide-react": "^0.563.0"
   }
 }
