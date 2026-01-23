@@ -16,11 +16,11 @@ export const useDimensions = (): Dimensions => {
 }
 
 export const useRouteParams = () => {
-  const { dongleId, date, start, end } = useParamsRouter()
+  const { dongleId, routeId, start, end } = useParamsRouter()
   return {
     dongleId: dongleId!,
-    date: date!,
-    routeName: `${dongleId}/${date}`,
+    routeId: routeId!,
+    routeName: `${dongleId}/${routeId}`,
     start: start ? Number(start) : undefined,
     end: end ? Number(end) : undefined,
   }

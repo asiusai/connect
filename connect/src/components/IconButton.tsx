@@ -13,11 +13,7 @@ export const IconButton = ({ className, icon: Icon, loading, ...props }: IconBut
   const isLoading = !!loading || loading === 0
 
   return (
-    <ButtonBase
-      className={cn('inline-flex items-center justify-center rounded-full cursor-pointer', className)}
-      disabled={isLoading || props.disabled}
-      {...props}
-    >
+    <ButtonBase className={cn('inline-flex items-center justify-center cursor-pointer', className)} disabled={isLoading || props.disabled} {...props}>
       {isLoading ? <CircularProgress loading={loading} /> : <Icon />}
     </ButtonBase>
   )

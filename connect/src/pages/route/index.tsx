@@ -49,7 +49,7 @@ export const usePreviewProps = () => {
 }
 
 export const Component = () => {
-  const { routeName, dongleId, date } = useRouteParams()
+  const { routeName, dongleId, routeId } = useRouteParams()
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [location, setLocation] = useState<{ start?: string; end?: string }>()
   const previewProps = usePreviewProps()
@@ -59,8 +59,8 @@ export const Component = () => {
   }, [route])
 
   useEffect(() => {
-    athena('setRouteViewed', { route: date })
-  }, [date, dongleId])
+    athena('setRouteViewed', { route: routeId })
+  }, [routeId, dongleId])
 
   if (!route) return null
 

@@ -42,7 +42,7 @@ const Timeline = ({ events, duration, baseRouteUrl }: { events: TimelineEvent[];
         return (
           <Link
             key={i}
-            to={`${baseRouteUrl}?seek=${Math.round(start / 1000)}`}
+            to={`${baseRouteUrl}/${Math.round(start / 1000)}`}
             className={cn('absolute top-0 bottom-0 hover:brightness-125 transition-all', color)}
             style={{ left: `${left}%`, width: `${width}%` }}
             onClick={(e) => e.stopPropagation()}
@@ -92,7 +92,7 @@ const Filmstrip = ({ route }: { route: Route }) => {
       {images.map((img, i) => (
         <Link
           key={i}
-          to={`${baseRouteUrl}?seek=${img.seekTime}`}
+          to={`${baseRouteUrl}/${img.seekTime}`}
           className="relative w-full h-full overflow-hidden bg-gray-900 block group/image"
           // Prevent dragging link/image to mess up UI
           draggable={false}

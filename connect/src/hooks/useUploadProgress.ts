@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { z } from 'zod'
 import { UploadQueueItem, useAthena } from '../api/athena'
+import { useRouteParams } from '.'
 
 export type UploadProgress = z.infer<typeof UploadQueueItem>
-export type UploadProgressInfo = ReturnType<typeof useUploadProgress>
 
-export const useUploadProgress = (dongleId: string, routeId: string, onComplete?: () => void, enabled = true) => {
+export const useUploadProgress = (onComplete?: () => void, enabled = true) => {
+  const { dongleId, routeId } = useRouteParams()
   const [queue, setQueue] = useState<UploadProgress[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const prevQueueIdsRef = useRef<Set<string>>(new Set())

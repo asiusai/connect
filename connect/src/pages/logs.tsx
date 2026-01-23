@@ -14,7 +14,7 @@ import { Service } from '../../../shared/types'
 import { SyntaxHighlightedJson } from '../components/SyntaxHighlightedJson'
 
 export const Component = () => {
-  const { routeName, dongleId, date } = useRouteParams()
+  const { routeName, dongleId, routeId } = useRouteParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'
@@ -66,7 +66,7 @@ export const Component = () => {
   if (!files) return null
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton href={`/${dongleId}/${date}`} />}>
+      <TopAppBar leading={<BackButton href={`/${dongleId}/${routeId}`} />}>
         <span className="capitalize">{FILE_INFO[type].label}</span>
       </TopAppBar>
 

@@ -16,9 +16,9 @@ import {
   CheckIcon,
   ChevronRightIcon,
   CircleAlertIcon,
-  FilmIcon,
   MaximizeIcon,
   MinimizeIcon,
+  MonitorDownIcon,
   PauseIcon,
   PlayIcon,
   RefreshCwIcon,
@@ -82,7 +82,7 @@ const RenderButton = () => {
   if (renderState.status === 'rendering') {
     return (
       <div className="flex items-center gap-1 bg-white/10 rounded-lg px-2 py-1">
-        <FilmIcon className="text-base opacity-70" />
+        <MonitorDownIcon className="text-base opacity-70" />
         <span className="text-xs opacity-70 min-w-8">{renderState.progress === 0 ? 'Loading...' : `${renderState.progress}%`}</span>
         <button onClick={cancel} className="text-white/50 hover:text-white/80 transition-colors" title="Cancel render">
           <XIcon className="text-base" />
@@ -105,7 +105,7 @@ const RenderButton = () => {
     )
   }
 
-  return <IconButton title="Render video" icon={FilmIcon} onClick={startRender} />
+  return <IconButton title="Render video" icon={MonitorDownIcon} onClick={startRender} />
 }
 
 const FILE_LABELS: Record<FileType, string> = {
@@ -306,15 +306,15 @@ const Filmstrip = ({ route }: { route: Route }) => {
 
 const Timeline = ({ route }: { route?: Route }) => {
   const { playerRef, frame, selection, duration, set } = usePlayerStore()
-  const { dongleId, date } = useRouteParams()
+  const { dongleId, routeId } = useRouteParams()
   const navigate = useNavigate()
   const events = useAsyncMemo(async () => (route ? await getTimelineEvents(route) : undefined), [route])
   const ref = useRef<HTMLDivElement>(null)
 
   // Sync selection to URL
   const syncSelectionToUrl = (sel: { start: number; end: number }) => {
-    if (Math.abs(sel.start) < 1 && Math.abs(sel.end - duration) < 1) navigate(`/${dongleId}/${date}`, { replace: true })
-    else navigate(`/${dongleId}/${date}/${sel.start.toFixed(0)}/${sel.end.toFixed(0)}`, { replace: true })
+    if (Math.abs(sel.start) < 1 && Math.abs(sel.end - duration) < 1) navigate(`/${dongleId}/${routeId}`, { replace: true })
+    else navigate(`/${dongleId}/${routeId}/${sel.start.toFixed(0)}/${sel.end.toFixed(0)}`, { replace: true })
   }
 
   const updateMarker = (clientX: number) => {
@@ -504,7 +504,7 @@ export const VideoControls = ({ className, inFullscreen }: { className?: string;
     <div className={cn('flex flex-col gap-2 p-2 bg-black/20 rounded-xl backdrop-blur-md border border-white/5', className)}>
       <Timeline route={route} />
 
-      <div className="flex items-center gap-2 pt-2">
+      <div className="flex items-center gap-3 pt-2 text-xl">
         <IconButton title={playing ? 'Pause' : 'Play'} icon={playing ? PauseIcon : PlayIcon} onClick={() => player?.toggle()} />
         <IconButton title={muted ? 'Unmute' : 'Mute'} icon={muted ? VolumeOffIcon : Volume2Icon} onClick={() => (muted ? player?.unmute() : player?.mute())} />
 

@@ -74,7 +74,7 @@ const router = createBrowserRouter([
 
   // Route pages
   {
-    path: ':dongleId/:date/:start?/:end?',
+    path: ':dongleId/:routeId/:start?/:end?',
     lazy: () => import('./layouts/route'),
     errorElement: <ErrorPage />,
     children: [

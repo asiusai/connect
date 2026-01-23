@@ -12,7 +12,7 @@ import { IconButton } from '../../components/IconButton'
 import { CircularProgress } from '../../components/CircularProgress'
 import { provider } from '../../../../shared/provider'
 import { CloudUploadIcon, ExternalLinkIcon, FileIcon, FilmIcon, LucideIcon, RefreshCwIcon, UploadIcon } from 'lucide-react'
-import { UploadProgressInfo, useUploadProgress } from '../../hooks/useUploadProgress'
+import { useUploadProgress } from '../../hooks/useUploadProgress'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
 
@@ -59,24 +59,12 @@ const FileAction = ({
   )
 }
 
-const Upload = ({
-  type,
-  files,
-  route,
-  segment,
-  uploadProgress,
-}: {
-  type: FileType
-  files: SegmentFiles
-  route: Route
-  segment: number
-  uploadProgress: UploadProgressInfo
-}) => {
+const Upload = ({ type, files, route, segment }: { type: FileType; files: SegmentFiles; route: Route; segment: number }) => {
   const isOwner = useIsDeviceOwner()
   const athena = useAthena()
   const disabled = segment === -1 ? files[type].every(Boolean) : !!files[type][segment]
+  const uploadProgress = useUploadProgress()
   if (disabled) return null
-
   // Check if this file type is currently uploading
   const fileName = FILE_INFO[type].name
   const segments = segment === -1 ? Array.from({ length: files.length }, (_, i) => i) : [segment]
@@ -127,7 +115,7 @@ const Upload = ({
 }
 
 const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFiles }) => {
-  const { dongleId, date, routeName } = useRouteParams()
+  const { dongleId, routeId: date, routeName } = useRouteParams()
   const [progress, setProgress] = useState<Record<number, number>>({})
 
   const values = Object.values(progress)
@@ -181,7 +169,7 @@ const DownloadSegment = ({ type, files, segment }: { segment: number; type: File
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
-  const { dongleId, date, routeName } = useRouteParams()
+  const { dongleId, routeId: date, routeName } = useRouteParams()
   const file = files[type][segment]
   const [progress, setProgress] = useState<number>()
 
@@ -225,20 +213,9 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
   )
 }
 
-const SegmentDetails = ({
-  segment,
-  files,
-  route,
-  setSegment,
-  uploadProgress,
-}: {
-  segment: number
-  files: SegmentFiles
-  route: Route
-  setSegment: (v: number) => void
-  uploadProgress: UploadProgressInfo
-}) => {
+const SegmentDetails = ({ segment, files, route, setSegment }: { segment: number; files: SegmentFiles; route: Route; setSegment: (v: number) => void }) => {
   const isRoute = segment === -1
+  const uploadProgress = useUploadProgress()
 
   return (
     <div className="flex flex-col gap-2">
@@ -257,7 +234,7 @@ const SegmentDetails = ({
                     <ProcessSegment type={type} files={files} segment={segment} />
                   </>
                 )}
-                <Upload type={type} files={files} route={route} segment={segment} uploadProgress={uploadProgress} />
+                <Upload type={type} files={files} route={route} segment={segment} />
               </div>
               <div title="1" className="h-0.75 w-full absolute bottom-0 translate-y-1/2 rounded-full overflow-hidden flex">
                 {Array.from({ length: files.length }).map((_, i) => {
@@ -329,7 +306,6 @@ const SegmentGrid = ({ files, selectedSegment, onSelect }: { files: SegmentFiles
 }
 
 export const RouteFiles = ({ route, className }: { route: Route; className?: string }) => {
-  const { dongleId } = useRouteParams()
   const playerRef = usePlayerStore((x) => x.playerRef)
   const [files, { refetch, refetching }] = useFiles(route.fullname, route)
   const [segment, _setSegment] = useState<number>(-1) // ROUTE= -1
@@ -338,9 +314,7 @@ export const RouteFiles = ({ route, className }: { route: Route; className?: str
     if (value !== -1) playerRef?.current?.seekTo(value * 60 * FPS)
   }
 
-  // Extract routeId from route.fullname (format: "dongleId|routeId")
-  const routeId = route.fullname.split(/[|/]/)[1] || ''
-  const uploadProgress = useUploadProgress(dongleId, routeId, refetch)
+  const uploadProgress = useUploadProgress(refetch)
 
   return (
     <div className={cn('flex flex-col gap-2 bg-background-alt rounded-xl p-4', className)}>
@@ -360,7 +334,7 @@ export const RouteFiles = ({ route, className }: { route: Route; className?: str
         <>
           <SegmentGrid files={files} selectedSegment={segment} onSelect={setSegment} />
 
-          <SegmentDetails segment={segment} files={files} route={route} setSegment={setSegment} uploadProgress={uploadProgress} />
+          <SegmentDetails segment={segment} files={files} route={route} setSegment={setSegment} />
         </>
       )}
     </div>
