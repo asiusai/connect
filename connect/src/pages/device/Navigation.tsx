@@ -18,17 +18,18 @@ export const Navigation = ({ className }: { className?: string }) => {
       color: 'text-blue-400',
     },
     {
-      title: 'Live',
-      icon: VideoIcon,
-      href: `/${dongleId}/live`,
-      color: 'text-red-400',
-      disabled: !isOwner,
-    },
-    {
       title: 'Snapshot',
       icon: CameraIcon,
       href: `/${dongleId}/snapshot`,
       color: 'text-orange-400',
+      disabled: !isOwner,
+    },
+    {
+      title: 'Live',
+      icon: VideoIcon,
+      href: `/${dongleId}/live`,
+      color: 'text-red-400',
+      hide: !usingCorrectFork,
       disabled: !isOwner,
     },
     {
