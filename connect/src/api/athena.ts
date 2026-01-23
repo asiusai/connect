@@ -27,6 +27,7 @@ export const UploadQueueItem = z.object({
   retry_count: z.number(),
   url: z.string(),
 })
+export type UploadQueueItem = z.infer<typeof UploadQueueItem>
 
 export const ParamValue = z.object({
   key: z.string(),

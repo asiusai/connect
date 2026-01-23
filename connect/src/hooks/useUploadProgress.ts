@@ -1,89 +1,99 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
-import { z } from 'zod'
+import { useEffect, useRef } from 'react'
+import { create } from 'zustand'
+import { ZustandType } from '../../../shared/helpers'
 import { UploadQueueItem, useAthena } from '../api/athena'
 import { useRouteParams } from '.'
+import { useIsDeviceOwner } from './useIsDeviceOwner'
 
-export type UploadProgress = z.infer<typeof UploadQueueItem>
+const initial = {
+  queue: [] as UploadQueueItem[],
+  isLoading: false,
+  prevQueueIds: new Set<string>(),
+  subscribers: 0,
+}
+
+const useUploadProgressStore = create<ZustandType<typeof initial>>((set) => ({ ...initial, set }))
 
 export const useUploadProgress = (onComplete?: () => void, enabled = true) => {
   const { dongleId, routeId } = useRouteParams()
-  const [queue, setQueue] = useState<UploadProgress[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const prevQueueIdsRef = useRef<Set<string>>(new Set())
+  const { queue, isLoading, set } = useUploadProgressStore()
   const athena = useAthena()
-  const fetchQueue = useCallback(async () => {
-    if (!enabled || !dongleId) return
-    setIsLoading(true)
-    try {
-      const result = await athena('listUploadQueue', undefined)
-      if (result?.result) {
-        // Filter to only include items for this route
-        const routeItems = result.result.filter((item) => item.path.includes(routeId))
-        const currentIds = new Set(routeItems.map((item) => item.id))
-
-        // Check if any items completed (were in prev queue but not in current)
-        const prevIds = prevQueueIdsRef.current
-        if (prevIds.size > 0) {
-          const completedIds = [...prevIds].filter((id) => !currentIds.has(id))
-          if (completedIds.length > 0 && onComplete) {
-            // Delay slightly to allow server to process
-            setTimeout(onComplete, 500)
-          }
-        }
-        prevQueueIdsRef.current = currentIds
-
-        setQueue(routeItems)
-      }
-    } catch (error) {
-      console.error('Failed to fetch upload queue:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [dongleId, routeId, enabled, onComplete])
+  const isOwner = useIsDeviceOwner()
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
+  const fetchQueueRef = useRef<(() => Promise<void>) | null>(null)
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || !dongleId || !isOwner) return
 
-    // Initial fetch
-    fetchQueue()
+    const store = useUploadProgressStore.getState()
+    const isFirst = store.subscribers === 0
+    set({ subscribers: store.subscribers + 1 })
 
-    // Poll every 2 seconds
-    const interval = setInterval(fetchQueue, 10_000)
-    return () => clearInterval(interval)
-  }, [fetchQueue, enabled])
+    const fetchQueue = async () => {
+      set({ isLoading: true })
+      try {
+        const result = await athena('listUploadQueue', undefined)
+        if (result?.result) {
+          const routeItems = result.result.filter((item) => item.path.includes(routeId))
+          const currentIds = new Set(routeItems.map((item) => item.id))
 
-  // Helper to check if a specific segment/file is uploading
-  const isUploading = useCallback(
-    (segment: number, fileName?: string) => {
-      return queue.some((item) => {
-        const pathMatch = item.path.includes(`--${segment}/`)
-        if (!fileName) return pathMatch
-        return pathMatch && item.path.includes(fileName)
-      })
-    },
-    [queue],
-  )
+          const prev = useUploadProgressStore.getState().prevQueueIds
+          if (prev.size > 0) {
+            const completedIds = [...prev].filter((id) => !currentIds.has(id))
+            if (completedIds.length > 0 && onCompleteRef.current) {
+              setTimeout(onCompleteRef.current, 500)
+            }
+          }
 
-  // Helper to get progress for a specific segment/file
-  const getProgress = useCallback(
-    (segment: number, fileName?: string) => {
-      const item = queue.find((item) => {
-        const pathMatch = item.path.includes(`--${segment}/`)
-        if (!fileName) return pathMatch
-        return pathMatch && item.path.includes(fileName)
-      })
-      return item?.progress
-    },
-    [queue],
-  )
+          set({ queue: routeItems, prevQueueIds: currentIds })
+        }
+      } catch (error) {
+        console.error('Failed to fetch upload queue:', error)
+      } finally {
+        set({ isLoading: false })
+      }
+    }
 
-  // Get the currently uploading item
+    let interval: ReturnType<typeof setInterval> | undefined
+    if (isFirst) {
+      fetchQueue()
+      interval = setInterval(fetchQueue, 10_000)
+    }
+
+    fetchQueueRef.current = fetchQueue
+
+    return () => {
+      const current = useUploadProgressStore.getState().subscribers
+      set({ subscribers: current - 1 })
+      if (interval) clearInterval(interval)
+    }
+  }, [dongleId, routeId, enabled, isOwner, athena, set])
+
+  const refetch = () => fetchQueueRef.current?.()
+
+  const isUploading = (segment: number, fileName?: string) =>
+    queue.some((item) => {
+      const pathMatch = item.path.includes(`--${segment}/`)
+      if (!fileName) return pathMatch
+      return pathMatch && item.path.includes(fileName)
+    })
+
+  const getProgress = (segment: number, fileName?: string) => {
+    const item = queue.find((item) => {
+      const pathMatch = item.path.includes(`--${segment}/`)
+      if (!fileName) return pathMatch
+      return pathMatch && item.path.includes(fileName)
+    })
+    return item?.progress
+  }
+
   const currentUpload = queue.find((item) => item.current)
 
   return {
     queue,
     isLoading,
-    refetch: fetchQueue,
+    refetch,
     isUploading,
     getProgress,
     currentUpload,

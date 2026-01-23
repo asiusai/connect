@@ -15,6 +15,7 @@ import { formatDate, formatTime } from '../../utils/format'
 import { Info } from './Info'
 import { useStorage } from '../../utils/storage'
 import { PreviewProps } from '../../../../shared/types'
+import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 
 const getLocationText = ({ start, end }: { start?: string; end?: string }) => {
   if (!start && !end) return 'Drive Details'
@@ -53,14 +54,15 @@ export const Component = () => {
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [location, setLocation] = useState<{ start?: string; end?: string }>()
   const previewProps = usePreviewProps()
+  const isOwner = useIsDeviceOwner()
   const athena = useAthena()
   useEffect(() => {
     if (route) getStartEndPlaceName(route).then(setLocation)
   }, [route])
 
   useEffect(() => {
-    athena('setRouteViewed', { route: routeId })
-  }, [routeId, dongleId])
+    if (isOwner) athena('setRouteViewed', { route: routeId })
+  }, [routeId, dongleId, isOwner])
 
   if (!route) return null
 
