@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../../../shared/types'
 import { Action } from '../pages/device/ActionBar'
 import { DEVICE_PARAMS, DeviceParamType } from '../utils/params'
+import { provider } from '../../../shared/provider'
 
 const STORAGES = {
   actions: (): Action[] => [
@@ -15,10 +16,10 @@ const STORAGES = {
   playbackRate: (): number | undefined => 1,
   accessToken: (): string | undefined => undefined,
   lastDongleId: (): string | undefined => undefined,
-  largeCameraType: (): CameraType => 'qcameras',
-  smallCameraType: (): CameraType | undefined => undefined,
+  largeCameraType: (): CameraType => (provider.IS_OURS ? 'cameras' : 'qcameras'),
+  smallCameraType: (): CameraType | undefined => (provider.IS_OURS ? 'dcameras' : undefined),
   logType: (): LogType | undefined => undefined,
-  showPath: (): boolean => true,
+  showPath: (): boolean => false,
   statsTime: (): 'all' | 'week' => 'all',
   routesType: (): 'all' | 'preserved' => 'all',
   analyzeService: (): Service => 'peripheralState',
