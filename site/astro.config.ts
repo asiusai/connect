@@ -15,7 +15,7 @@ export default defineConfig({
     '/issues': 'https://github.com/asiusai/asiusai/issues',
     '/discussions': 'https://github.com/asiusai/asiusai/discussions',
     '/pulls': 'https://github.com/asiusai/asiusai/pulls',
-    '/projects': 'https://github.com/orgs/asiusai/projects/1/views/1',
+    '/todo': 'https://github.com/orgs/asiusai/projects/1/views/1',
 
     '/gh': 'https://github.com/asiusai/asiusai',
     '/github': 'https://github.com/asiusai/asiusai',
