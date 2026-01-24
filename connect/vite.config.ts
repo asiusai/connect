@@ -33,16 +33,9 @@ export default defineConfig(({ mode }) => {
           config: `pwa-assets-${mode === 'dev' ? 'asius' : mode}.config.ts`,
         },
         workbox: {
-          navigateFallback: null,
-          globPatterns: ['**/*.{js,css,ico,png,svg,webp}'],
+          navigateFallback: '/index.html',
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
           runtimeCaching: [
-            {
-              urlPattern: ({ request }) => request.mode === 'navigate',
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'html-cache',
-              },
-            },
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com/,
               handler: 'StaleWhileRevalidate',

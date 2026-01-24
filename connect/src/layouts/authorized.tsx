@@ -6,6 +6,7 @@ import { Sidebar } from '../components/Sidebar'
 import { useStorage } from '../utils/storage'
 import { useEffect, useRef } from 'react'
 import { isSignedIn, signOut } from '../utils/helpers'
+import { useOffline } from '../hooks/useOffline'
 
 const RedirectFromHome = () => {
   const [devices] = api.devices.devices.useQuery({})
@@ -36,13 +37,15 @@ export const Component = () => {
     if (dongleId && dongleId !== lastDongleId) setLastDongleId(dongleId)
   }, [dongleId, lastDongleId, setLastDongleId])
 
+  const isOnline = useOffline((s) => s.isOnline)
+
   useEffect(() => {
-    if (!error) return
+    if (!error || !isOnline) return
 
     errorCount.current++
     if (errorCount.current >= 2) signOut()
     else refetch()
-  }, [error, refetch])
+  }, [error, refetch, isOnline])
 
   if (!isSignedIn()) return <Navigate to="/login" />
 
