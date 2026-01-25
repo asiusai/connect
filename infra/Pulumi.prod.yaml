@@ -17,8 +17,6 @@ config:
     secure: v1:z2hPjQOl6gjlB+ci:YcQ4Z2m5Nmzvdqswt9RFlZQbIN5d8looqKpevnTyNRoGkvnAgXgzAdMjQDFy1NbpUwso
   asius:ghToken:
     secure: v1:hAEvKd9q2/qfIKE/:ERzmxS+BBVmraivjt68ghf5Riqo1ROZmAPST2DYhDBpQ3RuunnF9Z6+gkOioCtax6uWb3PnUcTc=
-  asius:sshApiKey:
-    secure: v1:payCiHHAbiGYjizv:NhE+6SjZnWHvufhqWGEDpO9MUvoyvT2ryl3MJ5KpOoqCKhMlh7UFH2Y6hcDiQJnfu4SXmH9IHFcJXMgaPVH2YxD3lZ31IpNg0gFrFG+TVJ8=
   asius:githubClientId:
     secure: v1:wZm6FkLCgb/qIWHi:nnS9rLLr70k53SWVTJolJYg0gaqDXaK686VemZs/jGPChUkc
   asius:githubClientSecret:

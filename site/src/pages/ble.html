@@ -89,10 +89,10 @@
   </div>
 
   <div>
-    <button id="connectBtn" onclick="connect()">Connect to Device</button>
+    <button id="reconnectBtn" onclick="reconnect()" style="display:none">Reconnect</button>
+    <button id="connectBtn" onclick="connect()">New Device</button>
     <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
   </div>
-  <div class="hint" id="hint"></div>
 
   <div class="methods">
     <h3>Device Info</h3>
@@ -153,13 +153,44 @@ function setStatus(connected, text) {
   document.querySelectorAll('.method-btn').forEach(btn => btn.disabled = !connected);
 }
 
-function updateHint() {
-  const lastDevice = localStorage.getItem('ble_last_device');
-  const hint = document.getElementById('hint');
-  if (lastDevice && !device) {
-    hint.textContent = `Last connected: ${lastDevice} (click Connect to pair again)`;
+async function updateReconnectButton() {
+  const reconnectBtn = document.getElementById('reconnectBtn');
+  if (!navigator.bluetooth.getDevices) {
+    reconnectBtn.style.display = 'none';
+    return;
+  }
+
+  const devices = await navigator.bluetooth.getDevices();
+  const athenaDevice = devices.find(d => d.name?.startsWith('comma-'));
+
+  if (athenaDevice && !device) {
+    reconnectBtn.style.display = 'inline-block';
+    reconnectBtn.textContent = `Reconnect (${athenaDevice.name})`;
   } else {
-    hint.textContent = '';
+    reconnectBtn.style.display = 'none';
+  }
+}
+
+async function reconnect() {
+  try {
+    const devices = await navigator.bluetooth.getDevices();
+    const athenaDevice = devices.find(d => d.name?.startsWith('comma-'));
+
+    if (!athenaDevice) {
+      log('No paired device found, use New Device');
+      return;
+    }
+
+    log(`Reconnecting to ${athenaDevice.name}...`);
+    setStatus(false, 'Connecting...');
+
+    device = athenaDevice;
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+
+    await connectToDevice();
+  } catch (error) {
+    log(`Reconnect error: ${error.message}`);
+    setStatus(false, 'Connection failed');
   }
 }
 
@@ -206,7 +237,7 @@ async function connectToDevice() {
 
     log('Connected!');
     setStatus(true, `Connected to ${device.name}`);
-    updateHint();
+    updateReconnectButton();
 
     // Auto-fetch device info
     callMethod('getDongleId', {});
@@ -220,7 +251,7 @@ async function connectToDevice() {
 function onDisconnected() {
   log('Device disconnected');
   setStatus(false, 'Disconnected');
-  updateHint();
+  updateReconnectButton();
 
   // Auto-reconnect if enabled and device still exists
   if (autoReconnect && device) {
@@ -244,7 +275,7 @@ async function disconnect() {
   }
   device = null;
   setStatus(false, 'Disconnected');
-  updateHint();
+  updateReconnectButton();
   setTimeout(() => { autoReconnect = true; }, 1000);
 }
 
@@ -321,7 +352,7 @@ if (!navigator.bluetooth) {
   document.getElementById('status').textContent = 'Web Bluetooth not supported';
   document.getElementById('connectBtn').disabled = true;
 } else {
-  updateHint();
+  updateReconnectButton();
 }
 </script>
 </body>

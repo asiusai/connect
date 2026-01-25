@@ -34,6 +34,20 @@ const dbBackupBucket = new cloudflare.R2Bucket('db-backup-bucket', {
   name: 'asius-db-backup',
 })
 
+const agnosBucket = new cloudflare.R2Bucket('agnos-bucket', {
+  accountId,
+  name: 'asius-agnos',
+})
+
+// Enable public access via r2.dev domain
+const agnosPublicAccess = new cloudflare.R2ManagedDomain('agnos-public', {
+  accountId,
+  bucketName: agnosBucket.name,
+  enabled: true,
+})
+
+export const agnosPublicUrl = agnosPublicAccess.domain
+
 // ------------------------- PROXIES -------------------------
 new Worker('api-konik-proxy', {
   accountId,
@@ -230,7 +244,6 @@ export const api = new Server('api', {
             GOOGLE_CLIENT_SECRET: config.requireSecret('googleClientSecret'),
             GITHUB_CLIENT_ID: config.requireSecret('githubClientId'),
             GITHUB_CLIENT_SECRET: config.requireSecret('githubClientSecret'),
-            API_ORIGIN: 'wss://api.asius.ai',
             GITHUB_TOKEN: config.requireSecret('ghToken'),
             R2_BUCKET: dbBackupBucket.name,
             R2_ACCOUNT_ID: accountId,
