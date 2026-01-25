@@ -1,25 +1,29 @@
 ---
 title: Bluetooth
-description: Bluetooth
+description: Bluetooth connectivity for comma devices
 ---
-# Bluetooth Gamepad Setup for Comma Devices
 
-This guide explains how to set up Bluetooth gamepad (PS5 DualSense) controls on comma 3X devices running AGNOS with a custom Bluetooth-enabled kernel.
+# Bluetooth for Comma Devices
+
+This guide covers Bluetooth connectivity on comma 3X devices running AGNOS, including:
+1. Building a Bluetooth-enabled kernel
+2. BLE GATT server for remote control without network
+3. Bluetooth gamepad support
 
 ## Overview
 
-The stock AGNOS kernel doesn't have Bluetooth support enabled. This guide covers:
-1. Building a Bluetooth-enabled kernel
-2. Flashing the kernel to your device
-3. Pairing a PS5 DualSense controller
-4. Using joystick controls with openpilot
+The stock AGNOS kernel doesn't have Bluetooth support enabled. This guide shows how to:
+- Build and flash a custom kernel with Bluetooth
+- Run a BLE GATT server that exposes device control APIs
+- Connect from phones/browsers using Web Bluetooth
 
 ## Prerequisites
 
 - macOS with Docker (OrbStack recommended)
 - Case-sensitive APFS volume for kernel building
 - SSH access to your comma device
-- PS5 DualSense controller
+
+---
 
 ## Part 1: Building the Bluetooth Kernel
 
@@ -52,7 +56,7 @@ CONFIG_BT_HCIUART_QCA=y
 
 The device tree also needs Bluetooth UART enabled in `agnos-kernel-sdm845/arch/arm64/boot/dts/qcom/comma_common.dtsi`:
 ```c
-/* Bluetooth UART */
+/* Bluetooth UART - SE6 at 0x898000 */
 &qupv3_se6_4uart {
   status = "ok";
 };
@@ -67,9 +71,11 @@ cd /Volumes/agnos/builder
 
 The output will be at `output/boot.img`.
 
+---
+
 ## Part 2: Flashing the Kernel
 
-### Option A: Flash via SSH (Recommended)
+### Flash via SSH (Recommended)
 
 Copy the boot image to your device and flash:
 ```bash
@@ -90,46 +96,206 @@ sync
 sudo reboot
 ```
 
-### Option B: Flash via QDL/EDL
+### Verify Bluetooth After Reboot
 
-Put device in QDL mode and run:
 ```bash
-cd /Volumes/agnos/builder
-./flash_kernel.sh
+# Check kernel has BT support
+zcat /proc/config.gz | grep CONFIG_BT=
+
+# Check UART devices exist
+ls -la /dev/ttyHS*
+
+# Should show:
+# /dev/ttyHS0 - GPS UART
+# /dev/ttyHS1 - Bluetooth UART
 ```
 
-## Part 3: Bluetooth Setup on Device
+---
 
-### Initialize Bluetooth
+## Part 3: Initializing Bluetooth
+
+### Start Bluetooth Hardware
 
 ```bash
-# Attach Bluetooth UART (use btattach, not hciattach)
+# Kill any existing btattach
+sudo pkill btattach
+
+# Attach Bluetooth UART
+nohup sudo btattach -B /dev/ttyHS1 -S 115200 > /tmp/btattach.log 2>&1 &
+
+# Wait a moment, then verify
+sleep 2
+sudo hciconfig -a
+```
+
+You should see output like:
+```
+hci0: Type: Primary  Bus: UART
+      BD Address: 00:00:00:00:5A:AD  ACL MTU: 1024:7  SCO MTU: 60:8
+      UP RUNNING
+      ...
+      <LE support> <LE and BR/EDR>
+```
+
+### Verify BLE Support
+
+```bash
+sudo hciconfig hci0 lestates
+```
+
+Should show "YES" for advertising and peripheral role states.
+
+---
+
+## Part 4: BLE GATT Server
+
+The BLE GATT server exposes device control over Bluetooth Low Energy, allowing you to control your comma device from a phone without network connectivity.
+
+### Service UUIDs
+
+| Service/Characteristic | UUID |
+|----------------------|------|
+| Athena Service | `a51a5a10-0001-4c0d-b8e6-a51a5a100001` |
+| RPC Request (Write) | `a51a5a10-0002-4c0d-b8e6-a51a5a100001` |
+| RPC Response (Notify) | `a51a5a10-0003-4c0d-b8e6-a51a5a100001` |
+
+### Available RPC Methods
+
+| Method | Description |
+|--------|-------------|
+| `echo` | Echo back params (test) |
+| `getVersion` | Get openpilot version info |
+| `getAllParams` | Get all device params |
+| `getParam` | Get specific param by key |
+| `setParam` | Set a param value |
+| `listDataDirectory` | List files in data directory |
+| `getNetworkType` | Get current network type |
+| `reboot` | Reboot the device |
+| `shutdown` | Shutdown the device |
+
+### Starting the BLE Server
+
+```bash
+# Ensure Bluetooth is initialized first
 sudo btattach -B /dev/ttyHS1 -S 115200 &
+sleep 2
 
-# Verify Bluetooth is up
-hciconfig
-# Should show hci0 with UP RUNNING and BD Address like 00:00:00:00:5A:AD
+# Start the BLE server
+python3 /data/openpilot/system/athena/ble_server.py
 ```
 
-### Pair the Controller
+Output:
+```
+[BLE] Starting BLE GATT Server...
+[BLE] Device name: comma-XXXXXXXX
+[BLE] Service UUID: a51a5a10-0001-4c0d-b8e6-a51a5a100001
+[BLE] Using adapter: /org/bluez/hci0
+[BLE] Server running. Press Ctrl+C to stop.
+[BLE] GATT application registered successfully
+[BLE] Advertisement registered - device is now discoverable
+```
 
-Use `hcitool scan` for classic Bluetooth discovery (works better than bluetoothctl for gamepads):
+### Auto-start on Boot (Optional)
+
+Create a systemd service at `/etc/systemd/system/ble-athena.service`:
+```ini
+[Unit]
+Description=BLE Athena GATT Server
+After=bluetooth.service
+Requires=bluetooth.service
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/btattach -B /dev/ttyHS1 -S 115200
+ExecStart=/usr/bin/python3 /data/openpilot/system/athena/ble_server.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable with:
 ```bash
+sudo systemctl enable ble-athena
+sudo systemctl start ble-athena
+```
+
+---
+
+## Part 5: Connecting from Browser (Web Bluetooth)
+
+### Test Page
+
+Visit `/ble-test.html` on your Connect site to test BLE connectivity.
+
+Requirements:
+- Chrome on desktop or Android
+- Device must be advertising (BLE server running)
+- Browser must have Bluetooth permissions
+
+### Web Bluetooth API Example
+
+```javascript
+const SERVICE_UUID = 'a51a5a10-0001-4c0d-b8e6-a51a5a100001';
+const RPC_REQUEST_UUID = 'a51a5a10-0002-4c0d-b8e6-a51a5a100001';
+const RPC_RESPONSE_UUID = 'a51a5a10-0003-4c0d-b8e6-a51a5a100001';
+
+// Connect
+const device = await navigator.bluetooth.requestDevice({
+  filters: [{ services: [SERVICE_UUID] }]
+});
+const server = await device.gatt.connect();
+const service = await server.getPrimaryService(SERVICE_UUID);
+const requestChar = await service.getCharacteristic(RPC_REQUEST_UUID);
+const responseChar = await service.getCharacteristic(RPC_RESPONSE_UUID);
+
+// Subscribe to responses
+await responseChar.startNotifications();
+responseChar.addEventListener('characteristicvaluechanged', (event) => {
+  const chunk = new TextDecoder().decode(event.target.value);
+  console.log('Response:', chunk);
+});
+
+// Send RPC request
+const request = JSON.stringify({
+  jsonrpc: '2.0',
+  method: 'getVersion',
+  params: {},
+  id: 1
+});
+await requestChar.writeValue(new TextEncoder().encode(request));
+```
+
+---
+
+## Part 6: Bluetooth Gamepad (PS5 DualSense)
+
+### Pairing the Controller
+
+```bash
+# Start Bluetooth scan
 sudo hcitool scan
 ```
 
 Put your DualSense in pairing mode (hold PS + Create buttons until light flashes).
 
-When you see the controller, pair using Python dbus:
+When you see the controller MAC address, pair using Python:
 ```python
 import dbus
 
 bus = dbus.SystemBus()
-MAC = "XX:XX:XX:XX:XX:XX"  # Replace with your controller's MAC
+MAC = "XX:XX:XX:XX:XX:XX"  # Your controller's MAC
 
 device_path = f"/org/bluez/hci0/dev_{MAC.replace(':', '_')}"
-device = dbus.Interface(bus.get_object("org.bluez", device_path), "org.bluez.Device1")
-props = dbus.Interface(bus.get_object("org.bluez", device_path), "org.freedesktop.DBus.Properties")
+device = dbus.Interface(
+  bus.get_object("org.bluez", device_path),
+  "org.bluez.Device1"
+)
+props = dbus.Interface(
+  bus.get_object("org.bluez", device_path),
+  "org.freedesktop.DBus.Properties"
+)
 
 props.Set("org.bluez.Device1", "Trusted", dbus.Boolean(True))
 device.Pair()
@@ -140,69 +306,72 @@ print("Connected!")
 ### Verify Controller
 
 ```bash
-# Check for joystick device
 ls /dev/input/js*
-
-# Test input (optional)
-cat /dev/input/js0 | xxd
+cat /dev/input/js0 | xxd  # See input data
 ```
 
-## Part 4: Using Joystick Controls
+### Using Joystick Control
 
-### Run Joystick Control
-
-Make sure openpilot is offroad, then:
 ```bash
 cd /data/openpilot
 python tools/joystick/joystick_control.py --bluetooth
 ```
-
-### Controls
 
 | Control | Action |
 |---------|--------|
 | Left Stick X | Steering |
 | R2 Trigger | Accelerate |
 | L2 Trigger | Brake |
-| D-pad Up/Down | Speed mode (1/3, 2/3, 3/3) |
+| D-pad Up/Down | Speed mode |
 | Triangle | Cancel cruise |
 
-### Speed Modes
-
-- **Mode 1 (33%)**: Gentle inputs for parking/low speed
-- **Mode 2 (66%)**: Normal driving (default)
-- **Mode 3 (100%)**: Full range for testing
+---
 
 ## Troubleshooting
 
-### Bluetooth not initializing
-```bash
-# Check if UART is available
-ls -la /dev/ttyHS*
+### No /dev/ttyHS1
+The Bluetooth UART is not enabled. Make sure you flashed the correct kernel with BT support.
 
-# Check kernel Bluetooth support
-zcat /proc/config.gz | grep CONFIG_BT
+### btattach hangs or fails
+Try different baud rates:
+```bash
+sudo btattach -B /dev/ttyHS1 -S 115200 &  # Default
+# or
+sudo btattach -B /dev/ttyHS1 -S 3000000 &  # High speed
 ```
 
 ### hciconfig shows DOWN
-Use `btattach` instead of `hciattach`:
 ```bash
-sudo pkill hciattach
-sudo btattach -B /dev/ttyHS1 -S 115200 &
+sudo hciconfig hci0 up
 ```
 
-### Controller not found in bluetoothctl scan
-Use `hcitool scan` instead - it uses classic BR/EDR discovery which works better for gamepads.
+### BLE server fails to register
+Check if BlueZ daemon is running:
+```bash
+systemctl status bluetooth
+# If not running:
+sudo systemctl start bluetooth
+```
 
-### No /dev/input/js0
-- Check if HIDP module is loaded: `lsmod | grep hidp`
-- Verify controller is connected: `hciconfig` should show connection activity
+### Web Bluetooth not working
+- Only works in Chrome/Edge (not Safari/Firefox)
+- Must be served over HTTPS or localhost
+- Device must be advertising
+- Try refreshing the page and re-scanning
 
-## Files Modified
+### Controller not found
+Use `hcitool scan` instead of `bluetoothctl scan` - it uses classic BR/EDR discovery which works better for gamepads.
 
-### Kernel (agnos-kernel-sdm845)
-- `arch/arm64/configs/tici_defconfig` - Bluetooth config options
-- `arch/arm64/boot/dts/qcom/comma_common.dtsi` - Bluetooth UART enable
+---
 
-### openpilot/sunnypilot
-- `tools/joystick/joystick_control.py` - BluetoothGamepad class with `--bluetooth` flag
+## Files Reference
+
+### Kernel Changes
+- `agnos-kernel-sdm845/arch/arm64/configs/tici_defconfig` - Bluetooth kernel config
+- `agnos-kernel-sdm845/arch/arm64/boot/dts/qcom/comma_common.dtsi` - Bluetooth UART enable
+
+### openpilot Changes
+- `system/athena/ble_server.py` - BLE GATT server for remote control
+
+### Connect Site
+- `public/ble-test.html` - Web Bluetooth test page
