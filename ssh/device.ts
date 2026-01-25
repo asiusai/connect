@@ -49,17 +49,26 @@ export const open = (ws: WS) => {
 
   session.device = ws
 
-  console.log(`[${session.auth.provider}/${session.auth.dongleId}] device connected`)
+  console.log(
+    `[${session.auth.provider}/${session.auth.dongleId}] device connected, buffer=${session.buffer.length} items, ${session.bufferSize} bytes, readyState=${ws.readyState}`,
+  )
 
   // Relay buffered data to device
-  for (const data of session.buffer) session.device.send(data)
+  for (const data of session.buffer) {
+    const result = session.device.send(data)
+    console.log(`[${session.auth.provider}/${session.auth.dongleId}] flushed buffer: ${data.length} bytes, result=${result}`)
+  }
   session.buffer = []
+  session.bufferSize = 0
 }
 
 export const message = (ws: WS, data: Buffer) => {
   const session = sessions.get(ws.data.sessionId)
   if (!session) throw new Error('No session!')
   if (!session.device) throw new Error('No device!')
+
+  const preview = data.toString('ascii', 0, Math.min(50, data.length)).replace(/[^\x20-\x7e]/g, '.')
+  console.log(`[${session.auth.provider}/${session.auth.dongleId}] device WS message: ${data.length} bytes, first=${data[0]}, preview=${preview}`)
 
   // Check if we should resume paused upstream
   if (session.paused && session.sshChannel) {
@@ -70,7 +79,12 @@ export const message = (ws: WS, data: Buffer) => {
     }
   }
 
-  if (session.sshChannel) session.sshChannel.write(data)
+  if (session.sshChannel) {
+    const result = session.sshChannel.write(data)
+    console.log(
+      `[${session.auth.provider}/${session.auth.dongleId}] wrote to sshChannel: result=${result}, writable=${session.sshChannel.writable}, destroyed=${session.sshChannel.destroyed}`,
+    )
+  }
 }
 
 export const close = (ws: WS) => {
@@ -128,8 +142,9 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
       const session: Session = { id: sessionId, auth, sshChannel: channel, buffer: [], bufferSize: 0, paused: false }
       sessions.set(sessionId, session)
 
-      // Relay data from SSH channel to device with backpressure
+      // Log when channel receives data FROM the browser side (via jumpClient tunnel)
       channel.on('data', (data: Buffer) => {
+        console.log(`[${auth.provider}/${auth.dongleId}] tcpip channel.on('data'): ${data.length} bytes, device=${!!session.device}`)
         if (session.device) {
           const bufferedAmount = session.device.getBufferedAmount?.() ?? 0
           if (bufferedAmount > HIGH_WATER_MARK) {
@@ -138,7 +153,8 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
               channel.pause()
             }
           }
-          session.device.send(data)
+          const result = session.device.send(data)
+          console.log(`[${auth.provider}/${auth.dongleId}] device.send result: ${result}`)
         } else {
           if (session.bufferSize + data.length > MAX_BUFFER_SIZE) {
             console.error(`[${auth.provider}/${auth.dongleId}] buffer overflow, closing`)
@@ -148,6 +164,7 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
           }
           session.buffer.push(data)
           session.bufferSize += data.length
+          console.log(`[${auth.provider}/${auth.dongleId}] buffered ${data.length} bytes, total=${session.bufferSize}`)
         }
       })
 
