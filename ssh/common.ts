@@ -1,10 +1,9 @@
-import { Client, ServerChannel, ClientChannel } from 'ssh2'
-import { Duplex } from 'stream'
 import { z } from 'zod'
 import { PROVIDERS } from '../shared/provider'
 import { decryptToken } from '../shared/encryption'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222
+export const INTERNAL_HOST = '127.0.0.1'
 export const WS_PORT = Number(process.env.WS_PORT) || 8080
 export const WS_ORIGIN = process.env.WS_ORIGIN || 'wss://ssh.asius.ai'
 export const MAX_BUFFER_SIZE = 1024 * 1024
@@ -30,20 +29,6 @@ export type WsData = {
   sessionId: string
 }
 
-export type Session = {
-  id: string
-  auth: Auth
-  sshChannel?: ServerChannel
-  browser?: Bun.ServerWebSocket<WsData>
-  device?: Bun.ServerWebSocket<WsData>
-  sshClient?: Client
-  shellStream?: ClientChannel
-  buffer: Buffer[]
-  bufferSize: number
-  paused: boolean
-  wsStream?: Duplex
-}
-
 export const parseUsername = (username: string): Auth | undefined => {
   const [provider, dongleId, ...rest] = username.split('-')
   const tokenPart = rest.join('-')
@@ -60,36 +45,7 @@ export const parseUsername = (username: string): Auth | undefined => {
 
 export const randomId = () => crypto.randomUUID()
 
-export const sessions = new Map<string, Session>()
-
-export const callAthena = async (auth: Auth, sessionId: string) => {
-  const athenaUrl = PROVIDERS[auth.provider].ATHENA_URL
-  if (!athenaUrl) return { error: `Unknown provider: ${auth.provider}` }
-
-  try {
-    const res = await fetch(`${athenaUrl}/${auth.dongleId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `JWT ${auth.token}` },
-      body: JSON.stringify({
-        method: 'startLocalProxy',
-        params: { remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`, local_port: 22 },
-        id: 0,
-        jsonrpc: '2.0',
-      }),
-      signal: AbortSignal.timeout(15000),
-    })
-
-    if (!res.ok) return { error: `HTTP ${res.status}: ${res.statusText}` }
-
-    const data = await res.json()
-    if (data.error) return { error: data.error.message || 'Device error' }
-    return {}
-  } catch (e: any) {
-    return { error: e?.message || 'Connection failed' }
-  }
-}
-
-export const getGithubUsername = async (auth: Auth): Promise<string | undefined> => {
+const callAthenaRpc = async <T>(auth: Auth, method: string, params: Record<string, unknown> = {}): Promise<T | undefined> => {
   const athenaUrl = PROVIDERS[auth.provider].ATHENA_URL
   if (!athenaUrl) return undefined
 
@@ -97,51 +53,43 @@ export const getGithubUsername = async (auth: Auth): Promise<string | undefined>
     const res = await fetch(`${athenaUrl}/${auth.dongleId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `JWT ${auth.token}` },
-      body: JSON.stringify({
-        method: 'getGithubUsername',
-        params: {},
-        id: 0,
-        jsonrpc: '2.0',
-      }),
+      body: JSON.stringify({ method, params, id: 0, jsonrpc: '2.0' }),
       signal: AbortSignal.timeout(15000),
     })
 
     if (!res.ok) return undefined
-
     const data = await res.json()
-    if (data.error || !data.result) return undefined
-    return data.result as string
+    if (data.error) return undefined
+    return data.result as T
   } catch {
     return undefined
   }
 }
 
-export const fetchGithubKeys = async (username: string): Promise<string[]> => {
-  try {
-    const res = await fetch(`https://github.com/${username}.keys`, {
-      signal: AbortSignal.timeout(10000),
-    })
-    if (!res.ok) return []
-    const text = await res.text()
-    return text.trim().split('\n').filter(Boolean)
-  } catch {
-    return []
-  }
+export const startLocalProxy = async (auth: Auth, sessionId: string) => {
+  const result = await callAthenaRpc<{ success: number }>(auth, 'startLocalProxy', {
+    remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`,
+    local_port: 22,
+  })
+  return result !== undefined
 }
 
-export const parseOpenSSHKey = (keyLine: string) => {
+export const getAuthorizedKeys = async (auth: Auth): Promise<string[]> => {
+  const result = await callAthenaRpc<string>(auth, 'getSshAuthorizedKeys')
+  if (!result) return []
+  return result.trim().split('\n').filter(Boolean)
+}
+
+const parseOpenSSHKey = (keyLine: string) => {
   const parts = keyLine.trim().split(' ')
   if (parts.length < 2) return undefined
-  const algo = parts[0]
-  const data = Buffer.from(parts[1], 'base64')
-  return { algo, data }
+  return { algo: parts[0], data: Buffer.from(parts[1], 'base64') }
 }
 
 export const keysMatch = (key: { algo: string; data: Buffer }, authorizedKeys: string[]) => {
   for (const keyLine of authorizedKeys) {
     const parsed = parseOpenSSHKey(keyLine)
-    if (!parsed) continue
-    if (parsed.algo === key.algo && parsed.data.equals(key.data)) return true
+    if (parsed && parsed.algo === key.algo && parsed.data.equals(key.data)) return true
   }
   return false
 }

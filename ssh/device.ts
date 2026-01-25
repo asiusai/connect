@@ -1,33 +1,64 @@
 import { Server } from 'ssh2'
 import {
   Auth,
-  callAthena,
-  fetchGithubKeys,
-  getGithubUsername,
+  getAuthorizedKeys,
   HIGH_WATER_MARK,
   keysMatch,
   SSH_PRIVATE_KEY,
   MAX_BUFFER_SIZE,
   parseUsername,
   randomId,
-  Session,
-  sessions,
+  startLocalProxy,
+  WsData,
 } from './common'
-import { onDeviceOpen } from './browser'
+import { Channel } from 'ssh2'
 
-export const open = (session: Session) => {
-  if (!session.device) throw new Error('No device!')
+type WS = Bun.ServerWebSocket<WsData>
+
+export type Session = {
+  id: string
+  auth: Auth
+  sshChannel: Channel
+  device?: Bun.ServerWebSocket<WsData>
+  buffer: Buffer[]
+  bufferSize: number
+  paused: boolean
+}
+export const sessions = new Map<string, Session>()
+
+// Clean up sessions
+setInterval(() => {
+  for (const [id, session] of sessions) {
+    if (!session.device && !session.sshChannel) sessions.delete(id)
+  }
+}, 30000)
+
+export const start = (req: Request, server: Bun.Server<WsData>) => {
+  const sessionId = new URL(req.url).pathname.slice(5)
+  const session = sessions.get(sessionId)
+
+  if (!session) return new Response(`Session ${sessionId} not found`, { status: 404 })
+
+  if (server.upgrade(req, { data: { sessionId, type: 'device' } })) return undefined
+  return new Response('Upgrade failed', { status: 400 })
+}
+
+export const open = (ws: WS) => {
+  const session = sessions.get(ws.data.sessionId)
+  if (!session) throw new Error('No session!')
+
+  session.device = ws
 
   console.log(`[${session.auth.provider}/${session.auth.dongleId}] device connected`)
 
-  if (session.browser) return onDeviceOpen(session)
-
-  // No browser, just relay to SSH channel
+  // Relay buffered data to device
   for (const data of session.buffer) session.device.send(data)
   session.buffer = []
 }
 
-export const message = (session: Session, data: Buffer) => {
+export const message = (ws: WS, data: Buffer) => {
+  const session = sessions.get(ws.data.sessionId)
+  if (!session) throw new Error('No session!')
   if (!session.device) throw new Error('No device!')
 
   // Check if we should resume paused upstream
@@ -39,15 +70,14 @@ export const message = (session: Session, data: Buffer) => {
     }
   }
 
-  if (session.wsStream) session.wsStream.push(data)
-  else if (session.sshChannel) session.sshChannel.write(data)
+  if (session.sshChannel) session.sshChannel.write(data)
 }
 
-export const close = (session: Session) => {
+export const close = (ws: WS) => {
+  const session = sessions.get(ws.data.sessionId)
+  if (!session) throw new Error('No session!')
+
   console.log(`[${session.auth.provider}/${session.auth.dongleId}] device disconnected`)
-  session.shellStream?.close()
-  session.sshClient?.end()
-  session.browser?.close()
   session.sshChannel?.close()
   sessions.delete(session.id)
 }
@@ -68,27 +98,20 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
       return
     }
 
-    const githubUsername = await getGithubUsername(auth)
-    if (!githubUsername) {
-      console.log(`[${auth.provider}/${auth.dongleId}] no GitHub username configured on device`)
-      ctx.reject(['publickey'])
-      return
-    }
-
-    const authorizedKeys = await fetchGithubKeys(githubUsername)
+    const authorizedKeys = await getAuthorizedKeys(auth)
     if (authorizedKeys.length === 0) {
-      console.log(`[${auth.provider}/${auth.dongleId}] no SSH keys found for GitHub user ${githubUsername}`)
+      console.log(`[${auth.provider}/${auth.dongleId}] no SSH keys configured on device`)
       ctx.reject(['publickey'])
       return
     }
 
     if (!keysMatch(ctx.key, authorizedKeys)) {
-      console.log(`[${auth.provider}/${auth.dongleId}] SSH key not authorized for GitHub user ${githubUsername}`)
+      console.log(`[${auth.provider}/${auth.dongleId}] SSH key not authorized`)
       ctx.reject(['publickey'])
       return
     }
 
-    console.log(`[${auth.provider}/${auth.dongleId}] SSH key verified for GitHub user ${githubUsername}`)
+    console.log(`[${auth.provider}/${auth.dongleId}] SSH key verified`)
     ctx.accept()
   })
 
@@ -135,9 +158,9 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
       })
 
       // Call athena to start local proxy
-      const res = await callAthena(auth, sessionId)
-      if (res.error) {
-        console.error(`[${auth.provider}/${auth.dongleId}] athena error:`, res.error)
+      const started = await startLocalProxy(auth, sessionId)
+      if (!started) {
+        console.error(`[${auth.provider}/${auth.dongleId}] failed to start local proxy`)
         channel.close()
         sessions.delete(sessionId)
         return
@@ -174,3 +197,11 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
 
   client.on('error', (err) => console.error('SSH error:', err.message))
 })
+
+export const drain = (ws: WS) => {
+  const session = sessions.get(ws.data.sessionId)
+  if (!session) throw new Error('No session!')
+
+  session.paused = false
+  if (session.sshChannel) session.sshChannel.resume()
+}
