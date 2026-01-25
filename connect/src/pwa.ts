@@ -9,10 +9,7 @@ registerSW({
       if (r.installing || !navigator || ('connection' in navigator && !navigator.onLine)) return
       const resp = await fetch(swUrl, {
         cache: 'no-store',
-        headers: {
-          cache: 'no-store',
-          'cache-control': 'no-cache',
-        },
+        headers: { 'cache-control': 'no-cache' },
       })
       if (resp.status !== 200) return
       await r.update()
