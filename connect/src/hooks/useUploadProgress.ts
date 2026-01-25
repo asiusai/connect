@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { create } from 'zustand'
 import { ZustandType } from '../../../shared/helpers'
-import { UploadQueueItem, useAthena } from '../api/athena'
+import { UploadQueueItem } from '../../../shared/athena'
 import { useRouteParams } from '.'
 import { useIsDeviceOwner } from './useIsDeviceOwner'
+import { useAthena } from './useAthena'
 
 const initial = {
   queue: [] as UploadQueueItem[],

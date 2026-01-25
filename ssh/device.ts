@@ -90,8 +90,8 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
     if (ctx.method !== 'publickey') return ctx.reject(['publickey'])
 
     const authorizedKeys = await getAuthorizedKeys(auth)
-    if (authorizedKeys.length === 0) return ctx.reject(['publickey'])
-    if (!keysMatch(ctx.key, authorizedKeys)) return ctx.reject(['publickey'])
+    if (!authorizedKeys || authorizedKeys?.length === 0) return ctx.reject(['publickey'])
+    else if (!keysMatch(ctx.key, authorizedKeys)) return ctx.reject(['publickey'])
 
     ctx.accept()
   })

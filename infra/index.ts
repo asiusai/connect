@@ -8,7 +8,7 @@ import { Site } from './Site'
 import { Worker } from './Worker'
 import { Server } from './Server'
 
-const folderHash = (path: string): string => {
+const folderHash = (...paths: string[]): string => {
   const hash = createHash('md5')
   const walk = (dir: string) => {
     for (const entry of readdirSync(dir).sort()) {
@@ -18,7 +18,7 @@ const folderHash = (path: string): string => {
       else hash.update(readFileSync(full))
     }
   }
-  walk(path)
+  for (const path of paths) walk(path)
   return hash.digest('hex')
 }
 
@@ -222,7 +222,7 @@ export const api = new Server('api', {
     {
       name: 'asius-api',
       check: 'until curl -sf http://localhost:8080/health; do sleep 0.5; done',
-      trigger: folderHash('../api'),
+      trigger: folderHash('../api', '../shared'),
       service: {
         Unit: {
           Description: 'Asius API',
@@ -321,7 +321,7 @@ export const ssh = new Server('ssh', {
     {
       name: 'asius-ssh',
       check: 'until nc -z localhost 2222; do sleep 0.5; done',
-      trigger: folderHash('../ssh'),
+      trigger: folderHash('../ssh', '../shared'),
       service: {
         Unit: {
           Description: 'Asius SSH Proxy',

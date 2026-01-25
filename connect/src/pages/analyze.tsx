@@ -1,7 +1,6 @@
 import { BackButton } from '../components/BackButton'
 import { TopAppBar } from '../components/TopAppBar'
 import { useAsyncMemo, useRouteParams } from '../hooks'
-import { useAthena } from '../api/athena'
 import { Select } from '../components/Select'
 import { useState } from 'react'
 import { SyntaxHighlightedJson } from '../components/SyntaxHighlightedJson'
@@ -10,6 +9,7 @@ import { Loading } from '../components/Loading'
 import { Label } from '../components/Label'
 import { useStorage } from '../utils/storage'
 import { cn } from '../../../shared/helpers'
+import { useAthena } from '../hooks/useAthena'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()

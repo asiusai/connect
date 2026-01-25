@@ -1,11 +1,6 @@
 import { z } from 'zod'
-import { api } from '.'
-import { provider } from '../../../shared/provider'
-import { AthenaError, Service } from '../../../shared/types'
-import { toast } from 'sonner'
-import { useRouteParams } from '../hooks'
-import { useCallback } from 'react'
-import { useIsDeviceOwner } from '../hooks/useIsDeviceOwner'
+import { getProvider, Mode } from './provider'
+import { AthenaError, Service } from './types'
 
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
@@ -177,51 +172,47 @@ export const callAthena = async <T extends AthenaRequest>({
   params,
   dongleId,
   expiry,
-  isOwner,
+  token,
+  provider: mode,
 }: {
   type: T
   params: AthenaParams<T>
   dongleId: string
   expiry?: number
-  isOwner: boolean | undefined
+  token: string | undefined
+  provider?: Mode
 }): Promise<AthenaResponse<T> | undefined> => {
-  if (!provider.ATHENA_URL) return
-  if (!isOwner) throw new Error(`Athena ${type} called without being device owner`)
-  const req = REQUESTS[type]
-
-  const parse = req.params.safeParse(params)
+  const parse = REQUESTS[type].params.safeParse(params)
   if (!parse.success) console.error(parse.error)
 
-  const res = await api.athena.athena.mutate({
-    body: {
+  const provider = getProvider(mode)
+  if (!token) return void console.error(`Athena called without token`)
+
+  const res = await fetch(`${provider.ATHENA_URL}/${dongleId}`, {
+    method: 'POST',
+    body: JSON.stringify({
       id: 0,
       jsonrpc: '2.0',
       method: type,
       params,
       expiry,
+    }),
+    headers: {
+      Authorization: `JWT ${token}`,
     },
-    params: { dongleId },
   })
+  if (!res.ok) return
+
   if (res.status === 202) {
-    toast(res.body.result)
+    console.warn(await res.text())
     return
   }
+
   if (res.status === 200)
     return z
       .object({
         error: AthenaError.optional(),
-        result: req.result.optional(),
+        result: REQUESTS[type].result.optional(),
       })
-      .parse(res.body)
-}
-
-export const useAthena = () => {
-  const { dongleId } = useRouteParams()
-  const isOwner = useIsDeviceOwner()
-  return useCallback(
-    async <T extends AthenaRequest>(type: T, params: AthenaParams<T>, expiry?: number) => {
-      return await callAthena({ type, params, dongleId, isOwner, expiry })
-    },
-    [dongleId, isOwner],
-  )
+      .parse(await res.json())
 }

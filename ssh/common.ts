@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { PROVIDERS } from '../shared/provider'
 import { decryptToken } from '../shared/encryption'
+import { callAthena } from '../shared/athena'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222
 export const INTERNAL_HOST = '127.0.0.1'
@@ -45,39 +45,22 @@ export const parseUsername = (username: string): Auth | undefined => {
 
 export const randomId = () => crypto.randomUUID()
 
-const callAthenaRpc = async <T>(auth: Auth, method: string, params: Record<string, unknown> = {}): Promise<T | undefined> => {
-  const athenaUrl = PROVIDERS[auth.provider].ATHENA_URL
-  if (!athenaUrl) return undefined
-
-  try {
-    const res = await fetch(`${athenaUrl}/${auth.dongleId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `JWT ${auth.token}` },
-      body: JSON.stringify({ method, params, id: 0, jsonrpc: '2.0' }),
-      signal: AbortSignal.timeout(15000),
-    })
-
-    if (!res.ok) return undefined
-    const data = await res.json()
-    if (data.error) return undefined
-    return data.result as T
-  } catch {
-    return undefined
-  }
-}
-
 export const startLocalProxy = async (auth: Auth, sessionId: string) => {
-  const result = await callAthenaRpc<{ success: number }>(auth, 'startLocalProxy', {
-    remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`,
-    local_port: 22,
+  const res = await callAthena({
+    ...auth,
+    type: 'startLocalProxy',
+    params: { remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`, local_port: 22 },
   })
-  return result !== undefined
+  return res?.result
 }
 
-export const getAuthorizedKeys = async (auth: Auth): Promise<string[]> => {
-  const result = await callAthenaRpc<string>(auth, 'getSshAuthorizedKeys')
-  if (!result) return []
-  return result.trim().split('\n').filter(Boolean)
+export const getAuthorizedKeys = async (auth: Auth) => {
+  const res = await callAthena({
+    ...auth,
+    type: 'getSshAuthorizedKeys',
+    params: undefined,
+  })
+  return res?.result?.trim().split('\n').filter(Boolean)
 }
 
 const parseOpenSSHKey = (keyLine: string) => {

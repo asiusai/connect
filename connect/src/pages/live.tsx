@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouteParams } from '../hooks'
-import { useAthena } from '../api/athena'
 import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../templates/shared'
 import {
@@ -21,6 +20,7 @@ import { cn } from '../../../shared/helpers'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { IconButton } from '../components/IconButton'
+import { useAthena } from '../hooks/useAthena'
 
 export const ControlButton = ({
   onClick,

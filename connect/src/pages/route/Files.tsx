@@ -2,7 +2,6 @@ import { FileType, Route, SegmentFiles } from '../../../../shared/types'
 import { useState } from 'react'
 import { FILE_INFO, parseRouteName, saveFile, getRouteUploadStatus, getSegmentUploadStatus, UploadStatus, cn } from '../../../../shared/helpers'
 import { api } from '../../api'
-import { useAthena } from '../../api/athena'
 import { useFiles } from '../../api/queries'
 import { downloadFile, hevcToMp4, hevcBinsToMp4, tsFilesToMp4 } from '../../utils/ffmpeg'
 import { useRouteParams } from '../../hooks'
@@ -15,6 +14,7 @@ import { CloudUploadIcon, ExternalLinkIcon, FileIcon, FilmIcon, LucideIcon, Refr
 import { useUploadProgress } from '../../hooks/useUploadProgress'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
+import { useAthena } from '../../hooks/useAthena'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline

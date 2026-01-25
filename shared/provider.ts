@@ -113,3 +113,5 @@ const sysEnv = typeof process !== 'undefined' ? process.env : import.meta.env
 export const mode = Mode.safeParse(sysEnv.MODE).success ? (sysEnv.MODE! as Mode) : 'asius'
 
 export const provider = PROVIDERS[mode]
+
+export const getProvider = (mode?: Mode) => (mode ? PROVIDERS[mode] : provider)

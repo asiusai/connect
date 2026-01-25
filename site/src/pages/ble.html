@@ -150,7 +150,7 @@ function setStatus(connected, text) {
 
   document.getElementById('connectBtn').disabled = connected;
   document.getElementById('disconnectBtn').disabled = !connected;
-  document.querySelectorAll('.method-btn').forEach(btn => btn.disabled = !connected);
+  document.querySelectorAll('.method-btn').forEach(btn => {btn.disabled = !connected});
 }
 
 async function updateReconnectButton() {

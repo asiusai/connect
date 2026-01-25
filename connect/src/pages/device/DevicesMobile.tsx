@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useAthena } from '../../api/athena'
 import { api } from '../../api'
 import { getDeviceName } from '../../../../shared/types'
 import { useAsyncEffect, useRouteParams } from '../../hooks'
@@ -8,6 +7,7 @@ import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, ChevronDownIcon } f
 import { createPortal } from 'react-dom'
 import { cn } from '../../../../shared/helpers'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
+import { useAthena } from '../../hooks/useAthena'
 
 export const Voltage = () => {
   const [voltage, setVoltage] = useState<string>()

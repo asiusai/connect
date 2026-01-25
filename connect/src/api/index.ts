@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useSyncExternalStore } from 'react'
-import { initClient, AppRoute, AppRouter, ClientInferRequest, ClientInferResponses } from '@ts-rest/core'
+import { AppRoute, AppRouter, ClientInferRequest, ClientInferResponses } from '@ts-rest/core'
 import { contract } from '../../../shared/contract'
-import { provider } from '../../../shared/provider'
+import { createClient } from '../../../shared/api'
 import { accessToken } from '../utils/helpers'
 
 // Types
@@ -58,43 +58,6 @@ export const invalidate = (...keyParts: string[]) => {
   }
   notify()
 }
-
-// Base client
-const baseClient = initClient(contract, {
-  baseUrl: provider.API_URL,
-  baseHeaders: {},
-  validateResponse: true,
-  api: async (args) => {
-    let path = args.path
-    const baseUrl = (args.route.metadata as any)?.baseUrl
-    if (baseUrl) path = path.replace(provider.API_URL, baseUrl)
-
-    if (args.contentType === 'multipart/form-data' && args.rawBody) {
-      const data = new FormData()
-      for (const [k, v] of Object.entries(args.rawBody)) data.append(k, v)
-      args.body = data
-    }
-
-    const token = accessToken()
-    if (token) args.headers.authorization = `JWT ${token}`
-
-    // Add sig/exp from URL params for shared routes
-    const urlParams = new URLSearchParams(window.location.search)
-    const sig = urlParams.get('sig')
-    const exp = urlParams.get('exp')
-    if (sig && exp) path = `${path}${path.includes('?') ? '&' : '?'}sig=${encodeURIComponent(sig)}&exp=${encodeURIComponent(exp)}`
-
-    const res = await fetch(path, { method: args.method, body: args.body, headers: args.headers })
-
-    const text = await res.text()
-    try {
-      const body = text ? JSON.parse(text) : undefined
-      return { status: res.status, headers: res.headers, body }
-    } catch {
-      return { status: res.status, headers: res.headers, body: text }
-    }
-  },
-})
 
 // Hook implementations
 const createUseQuery = <T extends AppRoute>(routePath: string, fetcher: (args: Req<T>) => Promise<{ status: number; body: Res<T> }>) => {
@@ -224,4 +187,4 @@ const wrapRouter = <T extends AppRouter>(router: T, client: any): WrappedRouter<
   return result
 }
 
-export const api = wrapRouter(contract, baseClient)
+export const api = wrapRouter(contract, createClient(accessToken))

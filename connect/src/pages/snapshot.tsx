@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouteParams } from '../hooks'
-import { AthenaResponse, useAthena } from '../api/athena'
+import { AthenaResponse } from '../../../shared/athena'
 import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../templates/shared'
 import { CameraIcon, CarIcon, DownloadIcon, LayoutGridIcon, LoaderIcon, UserIcon } from 'lucide-react'
@@ -10,6 +10,7 @@ import { ControlButton } from './live'
 import { useStorage } from '../utils/storage'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
+import { useAthena } from '../hooks/useAthena'
 
 const toB64 = (x?: string | null) => (x ? `data:image/jpeg;base64,${x}` : undefined)
 

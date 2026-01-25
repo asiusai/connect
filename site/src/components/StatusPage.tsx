@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { provider } from '../../../shared/provider'
+import { createClient } from '../../../shared/api'
+
 type ServiceStatus = { status: 'ok' | 'error' | 'pending'; name?: string; latency?: number; error?: string }
 type Heartbeat = { timestamp: number }
 
@@ -107,20 +108,16 @@ const Stat = ({ value, label }: { value: string | number; label: string }) => (
 )
 
 export const StatusPage = () => {
-  const [data, setData] = useState<StatusData | null>(null)
+  const [data, setData] = useState<StatusData>()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch(`${provider.API_URL}/status`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        setData(await res.json())
-        setError(null)
-      } catch (e) {
-        setError(String(e))
-      }
-    }
+    const client = createClient(() => undefined)
+    const fetchStatus = () =>
+      client.admin
+        .status()
+        .then((x) => setData(x.status === 200 ? x.body : undefined))
+        .catch((e) => setError(String(e)))
 
     fetchStatus()
     const interval = setInterval(fetchStatus, 30000)
