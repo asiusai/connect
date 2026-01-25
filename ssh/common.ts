@@ -88,3 +88,60 @@ export const callAthena = async (auth: Auth, sessionId: string) => {
     return { error: e?.message || 'Connection failed' }
   }
 }
+
+export const getGithubUsername = async (auth: Auth): Promise<string | undefined> => {
+  const athenaUrl = PROVIDERS[auth.provider].ATHENA_URL
+  if (!athenaUrl) return undefined
+
+  try {
+    const res = await fetch(`${athenaUrl}/${auth.dongleId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `JWT ${auth.token}` },
+      body: JSON.stringify({
+        method: 'getGithubUsername',
+        params: {},
+        id: 0,
+        jsonrpc: '2.0',
+      }),
+      signal: AbortSignal.timeout(15000),
+    })
+
+    if (!res.ok) return undefined
+
+    const data = await res.json()
+    if (data.error || !data.result) return undefined
+    return data.result as string
+  } catch {
+    return undefined
+  }
+}
+
+export const fetchGithubKeys = async (username: string): Promise<string[]> => {
+  try {
+    const res = await fetch(`https://github.com/${username}.keys`, {
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!res.ok) return []
+    const text = await res.text()
+    return text.trim().split('\n').filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+export const parseOpenSSHKey = (keyLine: string) => {
+  const parts = keyLine.trim().split(' ')
+  if (parts.length < 2) return undefined
+  const algo = parts[0]
+  const data = Buffer.from(parts[1], 'base64')
+  return { algo, data }
+}
+
+export const keysMatch = (key: { algo: string; data: Buffer }, authorizedKeys: string[]) => {
+  for (const keyLine of authorizedKeys) {
+    const parsed = parseOpenSSHKey(keyLine)
+    if (!parsed) continue
+    if (parsed.algo === key.algo && parsed.data.equals(key.data)) return true
+  }
+  return false
+}

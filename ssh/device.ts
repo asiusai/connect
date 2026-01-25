@@ -1,5 +1,18 @@
 import { Server } from 'ssh2'
-import { Auth, callAthena, HIGH_WATER_MARK, SSH_PRIVATE_KEY, MAX_BUFFER_SIZE, parseUsername, randomId, Session, sessions } from './common'
+import {
+  Auth,
+  callAthena,
+  fetchGithubKeys,
+  getGithubUsername,
+  HIGH_WATER_MARK,
+  keysMatch,
+  SSH_PRIVATE_KEY,
+  MAX_BUFFER_SIZE,
+  parseUsername,
+  randomId,
+  Session,
+  sessions,
+} from './common'
 import { onDeviceOpen } from './browser'
 
 export const open = (session: Session) => {
@@ -42,7 +55,7 @@ export const close = (session: Session) => {
 export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
   let auth: Auth
 
-  client.on('authentication', (ctx) => {
+  client.on('authentication', async (ctx) => {
     const parsed = parseUsername(ctx.username)
     if (!parsed) {
       ctx.reject(['publickey'])
@@ -50,8 +63,33 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
     }
     auth = parsed
 
-    if (ctx.method === 'publickey') ctx.accept()
-    else ctx.reject(['publickey'])
+    if (ctx.method !== 'publickey') {
+      ctx.reject(['publickey'])
+      return
+    }
+
+    const githubUsername = await getGithubUsername(auth)
+    if (!githubUsername) {
+      console.log(`[${auth.provider}/${auth.dongleId}] no GitHub username configured on device`)
+      ctx.reject(['publickey'])
+      return
+    }
+
+    const authorizedKeys = await fetchGithubKeys(githubUsername)
+    if (authorizedKeys.length === 0) {
+      console.log(`[${auth.provider}/${auth.dongleId}] no SSH keys found for GitHub user ${githubUsername}`)
+      ctx.reject(['publickey'])
+      return
+    }
+
+    if (!keysMatch(ctx.key, authorizedKeys)) {
+      console.log(`[${auth.provider}/${auth.dongleId}] SSH key not authorized for GitHub user ${githubUsername}`)
+      ctx.reject(['publickey'])
+      return
+    }
+
+    console.log(`[${auth.provider}/${auth.dongleId}] SSH key verified for GitHub user ${githubUsername}`)
+    ctx.accept()
   })
 
   client.on('ready', () => {

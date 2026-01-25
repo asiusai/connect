@@ -44,7 +44,7 @@ const comma: Provider = {
   CONNECT_URL: 'https://comma.asius.ai',
 
   DEMO_DONGLE_ID: '9748a98e983e0b39',
-  DEMO_ROUTE_ID: '0000002c--d68dde99ca',
+  DEMO_ROUTE_ID: '0000002b--abc7a490ca',
   DEMO_ACCESS_TOKEN:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzYwMDgwODcsIm5iZiI6MTc2ODIzMjA4NywiaWF0IjoxNzY4MjMyMDg3LCJpZGVudGl0eSI6IjE4ZWQ3ZWM1MGZmZmU5YTYifQ.FD77OD9sX8Gq8fiOJrNaccz4ovNvd2dgIVIfX69_Nsg',
 
