@@ -347,14 +347,18 @@ curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --batch 
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
 apt-get update && apt-get install -y caddy
 
-# Create Caddy data directory for TLS certs
+# Create data directory
 mkdir -p /data/caddy
+
+# Write SSH key for browser connections
+echo '${config.requireSecret('browserSshPrivateKey')}' | sed 's/\\\\n/\\n/g' > /data/browser-ssh-key
+chmod 600 /data/browser-ssh-key
 
 # Stop default Caddy service (we use our own)
 systemctl stop caddy || true
 systemctl disable caddy || true
 `,
-  deployScript: `cd /app/ssh && bun install`,
+  deployScript: 'cd /app/ssh && bun install',
 })
 
 // ------------------------- ARM BUILD SERVER -------------------------
