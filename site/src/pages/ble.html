@@ -102,10 +102,12 @@
   </div>
 
   <div class="methods">
-    <h3>GitHub Username</h3>
-    <button class="method-btn" onclick="callMethod('getGithubUsername', {})" disabled>Get</button>
-    <input type="text" id="githubInput" placeholder="username">
-    <button class="method-btn" onclick="setGithubUsername()" disabled>Set</button>
+    <h3>Params</h3>
+    <button class="method-btn" onclick="callMethod('getGithubUsername', {})" disabled>getGithubUsername</button>
+    <button class="method-btn" onclick="callMethod('getSimInfo', {})" disabled>getSimInfo</button>
+    <br>
+    <input type="text" id="paramKey" placeholder="param key" style="width:120px">
+    <button class="method-btn" onclick="getParam()" disabled>getParam</button>
   </div>
 
   <div class="methods">
@@ -294,10 +296,10 @@ async function callMethod(method, params) {
   }
 }
 
-function setGithubUsername() {
-  const username = document.getElementById('githubInput').value.trim();
-  if (username) {
-    callMethod('setGithubUsername', { username });
+function getParam() {
+  const key = document.getElementById('paramKey').value.trim();
+  if (key) {
+    callMethod('getParam', { key });
   }
 }
 
