@@ -100,6 +100,7 @@
   <div class="methods">
     <h3>Params</h3>
     <button class="method-btn" onclick="callMethod('getAllParams', {})" disabled>getAllParams</button>
+    <button class="method-btn" onclick="saveParamsPrompt()" disabled>saveParams</button>
   </div>
 
   <h3>Response</h3>
@@ -279,6 +280,29 @@ function handleResponse(event) {
   } catch (e) {
     // Incomplete JSON, wait for more
   }
+}
+
+function saveParamsPrompt() {
+  const key = prompt('Parameter key:');
+  if (!key) return;
+
+  const valueStr = prompt('Value (use true/false for bools, numbers for ints/floats, or JSON for objects):');
+  if (valueStr === null) return;
+
+  let value;
+  if (valueStr === 'true') value = true;
+  else if (valueStr === 'false') value = false;
+  else if (valueStr === '' || valueStr === 'null') value = null;
+  else if (!isNaN(Number(valueStr))) value = Number(valueStr);
+  else {
+    try {
+      value = JSON.parse(valueStr);
+    } catch {
+      value = valueStr;
+    }
+  }
+
+  callMethod('saveParams', { params_to_update:{[key]: value} });
 }
 
 async function callMethod(method, params) {

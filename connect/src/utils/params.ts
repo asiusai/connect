@@ -27,6 +27,7 @@ export enum ParamType {
   JSON = 5,
   Binary = 6,
 }
+export type DeviceParamKey = keyof typeof DEVICE_PARAMS
 
 export const DEVICE_PARAMS = {
   MapboxToken: { label: 'Mapbox Token', description: 'API token for Mapbox navigation', category: 'navigation', icon: 'key' },
@@ -1337,4 +1338,3 @@ export const DEVICE_PARAMS = {
   LastAgnosPowerMonitorShutdown: { label: '', description: '', category: 'other', icon: 'power_settings_new', hidden: true },
   CarList: { label: '', description: '', category: 'other', icon: 'directions_car', hidden: true },
 }
-export type DeviceParamKey = keyof typeof DEVICE_PARAMS
