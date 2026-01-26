@@ -1,5 +1,5 @@
 import { useDevice } from '../../hooks/useDevice'
-import { DeviceParam, DeviceParamKey, DeviceParamType } from '../../utils/params'
+import { DeviceParam, DeviceParamKey, ParamType } from '../../utils/params'
 import { Toggle } from '../../components/Toggle'
 import { Select } from '../../components/Select'
 import { AddToActionBar } from '../device/ActionBar'
@@ -20,7 +20,7 @@ const SettingInput = ({
 }) => {
   const type = setting.type
 
-  if (type === DeviceParamType.SelectOrInt && setting.options) {
+  if (type === ParamType.SelectOrInt && setting.options) {
     return (
       <Select
         value={value ?? ''}
@@ -30,7 +30,7 @@ const SettingInput = ({
       />
     )
   }
-  if (type === DeviceParamType.Number || type === DeviceParamType.SelectOrInt) {
+  if (type === ParamType.Number || type === ParamType.SelectOrInt) {
     return (
       <input
         disabled={disabled}
@@ -44,7 +44,7 @@ const SettingInput = ({
       />
     )
   }
-  if (type === DeviceParamType.Boolean) {
+  if (type === ParamType.Boolean) {
     const bool = value === '1'
     return (
       <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ const SettingInput = ({
       </div>
     )
   }
-  if (type === DeviceParamType.String)
+  if (type === ParamType.String)
     return (
       <input
         type="text"
@@ -63,7 +63,7 @@ const SettingInput = ({
         className="bg-background-alt text-sm px-3 py-2 rounded-lg border border-white/5 focus:outline-none focus:border-white/20 font-mono"
       />
     )
-  if (type === DeviceParamType.JSON || type === DeviceParamType.Date)
+  if (type === ParamType.JSON || type === ParamType.Date)
     return (
       <textarea
         disabled={disabled}

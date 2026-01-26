@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../../../shared/types'
 import { Action } from '../pages/device/ActionBar'
-import { DEVICE_PARAMS, DeviceParamType } from '../utils/params'
+import { DEVICE_PARAMS, ParamType } from '../utils/params'
 import { provider } from '../../../shared/provider'
 
 const STORAGES = {
   actions: (): Action[] => [
-    { type: 'toggle', icon: 'power_settings_new', title: DEVICE_PARAMS.DoShutdown.label, toggleKey: 'DoShutdown', toggleType: DeviceParamType.Boolean },
+    { type: 'toggle', icon: 'power_settings_new', title: DEVICE_PARAMS.DoShutdown.label, toggleKey: 'DoShutdown', toggleType: ParamType.Boolean },
     // { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: DeviceParamType.Boolean },
     { type: 'navigation', icon: 'home', title: 'Navigate to home', location: 'home' },
     { type: 'navigation', icon: 'work', title: 'Navigate to work', location: 'work' },

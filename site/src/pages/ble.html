@@ -67,18 +67,6 @@
       font-size: 14px;
     }
     .method-btn:hover:not(:disabled) { background: #2563eb; }
-    input[type="text"] {
-      padding: 10px;
-      border-radius: 4px;
-      border: none;
-      width: 200px;
-      font-size: 14px;
-    }
-    .hint {
-      font-size: 12px;
-      color: #888;
-      margin-top: 5px;
-    }
   </style>
 </head>
 <body>
@@ -96,24 +84,22 @@
 
   <div class="methods">
     <h3>Device Info</h3>
-    <button class="method-btn" onclick="callMethod('getDongleId', {})" disabled>getDongleId</button>
     <button class="method-btn" onclick="callMethod('getVersion', {})" disabled>getVersion</button>
     <button class="method-btn" onclick="callMethod('getNetworkType', {})" disabled>getNetworkType</button>
+    <button class="method-btn" onclick="callMethod('getNetworkMetered', {})" disabled>getNetworkMetered</button>
+    <button class="method-btn" onclick="callMethod('getNetworks', {})" disabled>getNetworks</button>
+  </div>
+
+  <div class="methods">
+    <h3>Device</h3>
+    <button class="method-btn" onclick="callMethod('getPublicKey', {})" disabled>getPublicKey</button>
+    <button class="method-btn" onclick="callMethod('getGithubUsername', {})" disabled>getGithubUsername</button>
+    <button class="method-btn" onclick="callMethod('getSimInfo', {})" disabled>getSimInfo</button>
   </div>
 
   <div class="methods">
     <h3>Params</h3>
-    <button class="method-btn" onclick="callMethod('getGithubUsername', {})" disabled>getGithubUsername</button>
-    <button class="method-btn" onclick="callMethod('getSimInfo', {})" disabled>getSimInfo</button>
-    <br>
-    <input type="text" id="paramKey" placeholder="param key" style="width:120px">
-    <button class="method-btn" onclick="getParam()" disabled>getParam</button>
-  </div>
-
-  <div class="methods">
-    <h3>Device Control</h3>
-    <button class="method-btn" style="background:#ef4444" onclick="confirmReboot()" disabled>Reboot</button>
-    <button class="method-btn" style="background:#ef4444" onclick="confirmShutdown()" disabled>Shutdown</button>
+    <button class="method-btn" onclick="callMethod('getAllParams', {})" disabled>getAllParams</button>
   </div>
 
   <h3>Response</h3>
@@ -240,7 +226,7 @@ async function connectToDevice() {
     updateReconnectButton();
 
     // Auto-fetch device info
-    callMethod('getDongleId', {});
+    callMethod('getVersion', {});
 
   } catch (error) {
     log(`Connection error: ${error.message}`);
@@ -253,7 +239,6 @@ function onDisconnected() {
   setStatus(false, 'Disconnected');
   updateReconnectButton();
 
-  // Auto-reconnect if enabled and device still exists
   if (autoReconnect && device) {
     log('Attempting to reconnect in 2s...');
     setTimeout(async () => {
@@ -324,25 +309,6 @@ async function callMethod(method, params) {
     }
   } catch (error) {
     log(`Error: ${error.message}`);
-  }
-}
-
-function getParam() {
-  const key = document.getElementById('paramKey').value.trim();
-  if (key) {
-    callMethod('getParam', { key });
-  }
-}
-
-function confirmReboot() {
-  if (confirm('Reboot device?')) {
-    callMethod('reboot', {});
-  }
-}
-
-function confirmShutdown() {
-  if (confirm('Shutdown device?')) {
-    callMethod('shutdown', {});
   }
 }
 

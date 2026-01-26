@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { useDevice } from '../../hooks/useDevice'
 import { useRouteParams } from '../../hooks'
 import { IconButton } from '../../components/IconButton'
-import { DeviceParamType } from '../../utils/params'
+import { ParamType } from '../../utils/params'
 import { useStorage } from '../../utils/storage'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../../../shared/helpers'
@@ -53,7 +53,7 @@ const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectA
 
 const ToggleActionComponent = ({ icon, toggleKey, toggleType, title, disabled }: z.infer<typeof ToggleAction>) => {
   const { get, isLoading, isError, save } = useDevice()
-  if (toggleType !== DeviceParamType.Boolean) return null
+  if (toggleType !== ParamType.Boolean) return null
   const value = get(toggleKey as any)
   const isSelected = value === '1'
   return (
