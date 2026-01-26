@@ -9,15 +9,15 @@ import { cn } from '../../../../shared/helpers'
 export const Stats = ({ className }: { className: string }) => {
   const { dongleId } = useRouteParams()
   const [stats] = api.device.stats.useQuery({ params: { dongleId } })
-  const [timeRange, setTimeRange] = useStorage('statsTime')
+  const { statsTime, set } = useStorage()
 
-  const currentStats = stats?.[timeRange ?? 'all']
+  const currentStats = stats?.[statsTime ?? 'all']
   if (!currentStats) return null
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       <div className="flex items-center justify-between px-2">
         <h2 className="text-xl font-bold">Statistics</h2>
-        <Slider options={{ all: 'All', week: 'Weekly' }} value={timeRange} onChange={setTimeRange} />
+        <Slider options={{ all: 'All', week: 'Weekly' }} value={statsTime} onChange={(statsTime) => set({ statsTime })} />
       </div>
       <div className="bg-background-alt rounded-xl px-4 py-3 flex flex-col">
         <DetailRow label="Distance" value={formatDistance(currentStats.distance)} />

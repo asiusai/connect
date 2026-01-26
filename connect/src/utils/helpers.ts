@@ -1,7 +1,7 @@
-import { storage } from './storage'
+import { useStorage } from './storage'
 
-export const accessToken = () => storage.get('accessToken')
-export const setAccessToken = (token: string | undefined) => storage.set('accessToken', token)
+export const accessToken = () => useStorage.getState().accessToken
+export const setAccessToken = (accessToken: string | undefined) => useStorage.setState({ accessToken })
 export const isSignedIn = () => !!accessToken()
 
 export const signOut = async () => {

@@ -305,15 +305,15 @@ const Preserved = () => {
 }
 
 export const Routes = ({ className }: { className: string }) => {
-  const [show, setShow] = useStorage('routesType')
+  const { routesType, set } = useStorage()
 
   return (
     <div className={cn('relative flex flex-col', className)}>
       <div className="flex items-center justify-between px-2 pb-4">
         <h2 className="text-xl font-bold tracking-tight">Drives</h2>
-        <Slider options={{ all: 'All', preserved: 'Preserved' }} value={show} onChange={setShow} />
+        <Slider options={{ all: 'All', preserved: 'Preserved' }} value={routesType} onChange={(routesType) => set({ routesType })} />
       </div>
-      {show === 'all' ? <All /> : <Preserved />}
+      {routesType === 'all' ? <All /> : <Preserved />}
     </div>
   )
 }

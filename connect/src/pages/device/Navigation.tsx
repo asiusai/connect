@@ -8,7 +8,7 @@ import { BarChart3Icon, CameraIcon, HomeIcon, LucideIcon, SettingsIcon, Terminal
 export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
   const isOwner = useIsDeviceOwner()
-  const [usingCorrectFork] = useStorage('usingCorrectFork')
+  const { usingCorrectFork } = useStorage()
 
   const items: { title: string; icon: LucideIcon; href: string; color: string; disabled?: boolean; hide?: boolean }[] = [
     {

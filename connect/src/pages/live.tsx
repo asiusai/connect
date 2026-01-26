@@ -79,8 +79,7 @@ const LiveView = ({
   const [status, setStatus] = useState<string | null>(null)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
-  const [cameraView, setCameraView] = useStorage('cameraView')
-  const [joystickEnabled, setJoystickEnabled] = useStorage('joystickEnabled')
+  const { cameraView, joystickEnabled, set } = useStorage()
   const [joystickPosition, setJoystickPosition] = useState({ x: 0, y: 0 })
   const [joystickSensitivity, setJoystickSensitivity] = useState(0.25)
   const [stats, setStats] = useState<{ fps: number; latency: number } | null>(null)
@@ -500,7 +499,7 @@ const LiveView = ({
 
       <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
         <ControlButton
-          onClick={() => setCameraView(cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both')}
+          onClick={() => set({ cameraView: cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both' })}
           icon={cameraView === 'both' ? LayoutGridIcon : cameraView === 'driver' ? UserIcon : CarIcon}
           label={cameraView === 'both' ? 'Both' : cameraView === 'driver' ? 'Driver' : 'Road'}
         />
@@ -515,7 +514,7 @@ const LiveView = ({
           label={isSpeaking ? 'Speaking' : 'Hold'}
           primary
         />
-        <ControlButton onClick={() => setJoystickEnabled(!joystickEnabled)} active={joystickEnabled} icon={GamepadIcon} label="Joystick" />
+        <ControlButton onClick={() => set({ joystickEnabled: !joystickEnabled })} active={joystickEnabled} icon={GamepadIcon} label="Joystick" />
       </div>
     </div>
   )

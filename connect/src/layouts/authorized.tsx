@@ -10,7 +10,7 @@ import { useOffline } from '../hooks/useOffline'
 
 const RedirectFromHome = () => {
   const [devices] = api.devices.devices.useQuery({})
-  const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
+  const { lastDongleId, set } = useStorage()
 
   // Wait for the devices to load
   if (!devices) return null
@@ -19,7 +19,7 @@ const RedirectFromHome = () => {
 
   const firstDongleId = devices[0]?.dongle_id
   if (firstDongleId) {
-    setLastDongleId(firstDongleId)
+    set({ lastDongleId: firstDongleId })
     return <Navigate to={`/${firstDongleId}`} />
   }
 
@@ -30,12 +30,12 @@ export const Component = () => {
   const location = useLocation()
   const [_, { error, refetch }] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const { dongleId } = useRouteParams()
-  const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
+  const { lastDongleId, set } = useStorage()
   const errorCount = useRef(0)
 
   useEffect(() => {
-    if (dongleId && dongleId !== lastDongleId) setLastDongleId(dongleId)
-  }, [dongleId, lastDongleId, setLastDongleId])
+    if (dongleId && dongleId !== lastDongleId) set({ lastDongleId: dongleId })
+  }, [dongleId, lastDongleId])
 
   const isOnline = useOffline((s) => s.isOnline)
 

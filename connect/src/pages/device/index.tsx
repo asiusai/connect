@@ -61,7 +61,7 @@ const NavButton = () => {
 export const Component = () => {
   const { dongleId } = useRouteParams()
   const [device, { loading, error }] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
-  const [usingCorrectFork] = useStorage('usingCorrectFork')
+  const { usingCorrectFork } = useStorage()
 
   const scroll = useScroll()
 

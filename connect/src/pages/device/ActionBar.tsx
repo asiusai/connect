@@ -88,7 +88,7 @@ const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof Nav
 }
 
 export const AddToActionBar = ({ action }: { action: Action }) => {
-  const [actions, setActions] = useStorage('actions')
+  const { actions, set } = useStorage()
   const isAdded = actions.some(
     (a) =>
       a.type === action.type &&
@@ -101,7 +101,7 @@ export const AddToActionBar = ({ action }: { action: Action }) => {
     <IconButton
       icon={isAdded ? CheckIcon : XIcon}
       title={isAdded ? 'Added to action bar' : 'Add to action bar'}
-      onClick={() => !isAdded && setActions([...actions, action])}
+      onClick={() => !isAdded && set({ actions: [...actions, action] })}
       className={cn(
         'absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 flex md:hidden md:group-hover:flex border border-white/20 z-20',
         isAdded ? 'bg-green-600 text-white' : 'rotate-45 bg-background-alt',
@@ -111,7 +111,7 @@ export const AddToActionBar = ({ action }: { action: Action }) => {
 }
 
 export const ActionBar = ({ className }: { className?: string }) => {
-  const [actions, setActions] = useStorage('actions')
+  const { actions, set } = useStorage()
   const [editing, setEditing] = useState(false)
   const isOwner = useIsDeviceOwner()
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -164,9 +164,7 @@ export const ActionBar = ({ className }: { className?: string }) => {
           <IconButton
             icon={XIcon}
             title="Remove"
-            onClick={() => {
-              setActions(actions.filter((_, j) => i !== j))
-            }}
+            onClick={() => set({ actions: actions.filter((_, j) => i !== j) })}
             className={cn(
               'absolute translate-x-1/2 -translate-y-1/2 top-0 right-0 border border-white/20 z-10 text-white bg-background aspect-square hover:bg-background-alt cursor-pointer',
               editing ? 'flex' : 'hidden! md:group-hover:flex!',

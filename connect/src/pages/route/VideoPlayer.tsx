@@ -139,11 +139,7 @@ const SettingsMenu = () => {
 
   const title = view ? TITLES[view] : undefined
 
-  const [largeCameraType, setLargeCameraType] = useStorage('largeCameraType')
-  const [smallCameraType, setSmallCameraType] = useStorage('smallCameraType')
-  const [logType, setLogType] = useStorage('logType')
-  const [playbackRate, setPlaybackRate] = useStorage('playbackRate')
-  const [showPath, setShowPath] = useStorage('showPath')
+  const { largeCameraType, smallCameraType, logType, playbackRate, showPath, set } = useStorage()
 
   return (
     <div className="absolute bottom-[120%] right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -177,7 +173,7 @@ const SettingsMenu = () => {
           {logType && (
             <div
               className="flex items-center justify-between px-4 py-3 hover:bg-white/10 cursor-pointer text-sm transition-colors"
-              onClick={() => setShowPath(!showPath)}
+              onClick={() => set({ showPath: !showPath })}
             >
               <span>Show Path</span>
               <div className={cn('w-8 h-4 rounded-full transition-colors relative', showPath ? 'bg-green-500' : 'bg-white/30')}>
@@ -196,7 +192,7 @@ const SettingsMenu = () => {
             selected={largeCameraType === option.value}
             disabled={option.disabled}
             onClick={() => {
-              setLargeCameraType(option.value)
+              set({ largeCameraType: option.value })
               setView(undefined)
             }}
           />
@@ -210,7 +206,7 @@ const SettingsMenu = () => {
             selected={(smallCameraType ?? 'none') === option.value}
             disabled={option.disabled}
             onClick={() => {
-              setSmallCameraType(option.value === 'none' ? undefined : option.value)
+              set({ smallCameraType: option.value === 'none' ? undefined : option.value })
               setView(undefined)
             }}
           />
@@ -224,7 +220,7 @@ const SettingsMenu = () => {
             selected={(logType ?? 'none') === option.value}
             disabled={option.disabled}
             onClick={() => {
-              setLogType(option.value === 'none' ? undefined : option.value)
+              set({ logType: option.value === 'none' ? undefined : option.value })
               setView(undefined)
             }}
           />
@@ -237,7 +233,7 @@ const SettingsMenu = () => {
             label={`${rate}x`}
             selected={playbackRate === rate}
             onClick={() => {
-              setPlaybackRate(rate)
+              set({ playbackRate: rate })
               setView(undefined)
             }}
           />
@@ -637,7 +633,7 @@ export const RouteVideoPlayer = ({ className, props }: { className?: string; pro
   const fullscreen = usePlayerStore((x) => x.fullscreen)
   const { start } = useRouteParams()
   const duration = getRouteDurationMs(route)! / 1000
-  const [playbackRate] = useStorage('playbackRate')
+  const playbackRate = useStorage((x) => x.playbackRate)
 
   return (
     <div

@@ -12,9 +12,7 @@ const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boole
 )
 
 export const Preferences = () => {
-  const [unitFormat, setUnitFormat] = useStorage('unitFormat')
-  const [timeFormat, setTimeFormat] = useStorage('timeFormat')
-  const [usingCorrectFork, setUsingCorrectFork] = useStorage('usingCorrectFork')
+  const { unitFormat, timeFormat, usingCorrectFork, set } = useStorage()
 
   return (
     <div className="flex flex-col gap-4">
@@ -24,21 +22,21 @@ export const Preferences = () => {
           <span className="font-medium">Imperial units</span>
           <span className="text-xs text-white/60">Use miles instead of kilometers</span>
         </div>
-        <ToggleSwitch value={unitFormat === 'imperial'} onChange={(v) => setUnitFormat(v ? 'imperial' : 'metric')} />
+        <ToggleSwitch value={unitFormat === 'imperial'} onChange={(v) => set({ unitFormat: v ? 'imperial' : 'metric' })} />
       </div>
       <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
         <div className="flex flex-col">
           <span className="font-medium">12-hour clock</span>
           <span className="text-xs text-white/60">Use 12h (AM/PM) format instead of 24h</span>
         </div>
-        <ToggleSwitch value={timeFormat === '12h'} onChange={(v) => setTimeFormat(v ? '12h' : '24h')} />
+        <ToggleSwitch value={timeFormat === '12h'} onChange={(v) => set({ timeFormat: v ? '12h' : '24h' })} />
       </div>
       <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
         <div className="flex flex-col">
           <span className="font-medium">Using {env.FORK.join(' or ')} fork</span>
           <span className="text-xs text-white/60">Enable if your device runs our fork (required for all features)</span>
         </div>
-        <ToggleSwitch value={!!usingCorrectFork} onChange={setUsingCorrectFork} />
+        <ToggleSwitch value={!!usingCorrectFork} onChange={(usingCorrectFork) => set({ usingCorrectFork })} />
       </div>
     </div>
   )

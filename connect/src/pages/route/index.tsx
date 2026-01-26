@@ -28,11 +28,7 @@ export const usePreviewProps = () => {
   const { routeName } = useRouteParams()
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [files] = useFiles(routeName, route)
-  const [largeCameraType] = useStorage('largeCameraType')
-  const [smallCameraType] = useStorage('smallCameraType')
-  const [logType] = useStorage('logType')
-  const [unitFormat] = useStorage('unitFormat')
-  const [showPath] = useStorage('showPath')
+  const { largeCameraType, smallCameraType, logType, unitFormat, showPath } = useStorage()
 
   const props = useMemo<PreviewProps>(
     () => ({

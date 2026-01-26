@@ -33,13 +33,13 @@ const RouteNotFound = () => {
 export const Component = () => {
   const { routeName, dongleId } = useRouteParams()
   const [route, { loading }] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
-  const [lastDongleId, setLastDongleId] = useStorage('lastDongleId')
+  const { lastDongleId, set } = useStorage()
 
   useEffect(() => {
     if (dongleId && dongleId !== lastDongleId) {
-      setLastDongleId(dongleId)
+      set({ lastDongleId: dongleId })
     }
-  }, [dongleId, lastDongleId, setLastDongleId])
+  }, [dongleId, lastDongleId])
 
   if (loading) return <Loading className="h-screen w-screen" />
 

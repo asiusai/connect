@@ -13,7 +13,7 @@ import { useAthena } from '../hooks/useAthena'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const [service, setService] = useStorage('analyzeService')
+  const { analyzeService: service, set } = useStorage()
   const [state, setState] = useState<'loading' | 'error' | 'success'>()
   const athena = useAthena()
   const json = useAsyncMemo(async () => {
@@ -32,7 +32,7 @@ export const Component = () => {
       <div className="p-6 flex flex-col gap-6">
         <Label>
           Service
-          <Select value={service} onChange={(e) => setService(e)} options={Service.options.map((x) => ({ value: x, label: x }))} />
+          <Select value={service} onChange={(e) => set({ analyzeService: e })} options={Service.options.map((x) => ({ value: x, label: x }))} />
         </Label>
         {state === 'loading' && <Loading className="h-64 w-full rounded-lg" />}
         {state !== 'loading' && json && (

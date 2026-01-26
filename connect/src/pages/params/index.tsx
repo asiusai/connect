@@ -36,7 +36,7 @@ const SectionHeader = ({ label, isOpen, onClick, count }: { label: string; isOpe
 export const Component = () => {
   const { dongleId } = useRouteParams()
   const { isError, save, isSaving, get, types, set, changes } = useDevice()
-  const [openSection, setOpenSection] = useStorage('togglesOpenTab')
+  const { togglesOpenTab, set: setOpenSection } = useStorage()
 
   const settingsByCategory = useMemo(() => {
     if (!Object.keys(types).length) return null
@@ -97,7 +97,7 @@ export const Component = () => {
     else toast.success(`Saved ${changeCount} parameter(s)`)
   }
 
-  const toggleSection = (cat: SettingCategory) => setOpenSection(openSection === cat ? null : cat)
+  const toggleSection = (cat: SettingCategory) => setOpenSection({ togglesOpenTab: togglesOpenTab === cat ? null : cat })
 
   return (
     <div className="flex flex-col min-h-screen bg-transparent text-foreground gap-4">
@@ -133,8 +133,8 @@ export const Component = () => {
         {settingsByCategory && (
           <div className="flex flex-col divide-y divide-white/5">
             <div>
-              <SectionHeader label={CATEGORY_LABELS.models} isOpen={openSection === 'models'} onClick={() => toggleSection('models')} />
-              {openSection === 'models' && (
+              <SectionHeader label={CATEGORY_LABELS.models} isOpen={togglesOpenTab === 'models'} onClick={() => toggleSection('models')} />
+              {togglesOpenTab === 'models' && (
                 <div className="pb-6">
                   <Models />
                 </div>
@@ -142,8 +142,8 @@ export const Component = () => {
             </div>
 
             <div>
-              <SectionHeader label={CATEGORY_LABELS.navigation} isOpen={openSection === 'navigation'} onClick={() => toggleSection('navigation')} />
-              {openSection === 'navigation' && (
+              <SectionHeader label={CATEGORY_LABELS.navigation} isOpen={togglesOpenTab === 'navigation'} onClick={() => toggleSection('navigation')} />
+              {togglesOpenTab === 'navigation' && (
                 <div className="pb-6">
                   <Navigation settings={settingsByCategory.navigation} />
                 </div>
@@ -155,7 +155,7 @@ export const Component = () => {
               .map((cat) => {
                 const settings = settingsByCategory[cat]
                 if (!settings.length) return null
-                const isOpen = openSection === cat
+                const isOpen = togglesOpenTab === cat
                 return (
                   <div key={cat}>
                     <SectionHeader label={CATEGORY_LABELS[cat]} isOpen={isOpen} onClick={() => toggleSection(cat)} count={settings.length} />

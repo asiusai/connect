@@ -122,7 +122,7 @@ export const Location = ({ className, device }: { className?: string; device?: D
   const { setMapboxRoute, favorites, route } = useDevice()
   const { position, requestPosition } = usePosition()
   const navigate = useNavigate()
-  const [usingCorrectFork] = useStorage('usingCorrectFork')
+  const usingCorrectFork = useStorage((x) => x.usingCorrectFork)
   const [isSendingNav, setIsSendingNav] = useState(false)
   const { isSearchOpen, set, query } = useSearch()
 

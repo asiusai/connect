@@ -15,7 +15,7 @@ import { useAthena } from '../hooks/useAthena'
 const toB64 = (x?: string | null) => (x ? `data:image/jpeg;base64,${x}` : undefined)
 
 const SnapshotView = () => {
-  const [cameraView, setCameraView] = useStorage('cameraView')
+  const { cameraView, set } = useStorage()
   const { dongleId } = useRouteParams()
   const [images, setImages] = useState<AthenaResponse<'takeSnapshot'>['result']>()
   const [isLoading, setIsLoading] = useState(false)
@@ -77,7 +77,7 @@ const SnapshotView = () => {
 
       <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
         <ControlButton
-          onClick={() => setCameraView(cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both')}
+          onClick={() => set({ cameraView: cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both' })}
           icon={cameraView === 'both' ? LayoutGridIcon : cameraView === 'driver' ? UserIcon : CarIcon}
           label={cameraView === 'both' ? 'Both' : cameraView === 'driver' ? 'Driver' : 'Road'}
         />
