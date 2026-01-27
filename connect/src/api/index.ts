@@ -3,6 +3,8 @@ import { AppRoute, AppRouter, ClientInferRequest, ClientInferResponses } from '@
 import { contract } from '../../../shared/contract'
 import { createClient } from '../../../shared/api'
 import { accessToken } from '../utils/helpers'
+import { useStorage } from '../utils/storage'
+import { getProvider } from '../../../shared/provider'
 
 // Types
 type Req<T extends AppRoute> = ClientInferRequest<T>
@@ -187,4 +189,7 @@ const wrapRouter = <T extends AppRouter>(router: T, client: any): WrappedRouter<
   return result
 }
 
-export const api = wrapRouter(contract, createClient(accessToken))
+export const api = wrapRouter(
+  contract,
+  createClient(() => ({ provider: getProvider(useStorage.getState().provider), token: accessToken() })),
+)

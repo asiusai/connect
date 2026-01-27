@@ -1,17 +1,19 @@
 import { initClient } from '@ts-rest/core'
-import { getProvider, Provider } from './provider'
+import { ProviderInfo } from './provider'
 import { contract } from './contract'
 
-export const createClient = (getAuth: () => string | undefined, mode?: Provider) => {
-  const provider = getProvider(mode)
+const REPLACE_STR = 'XXXXXXXXXXXXX'
+
+export const createClient = (getState: () => { token: string | undefined; provider: ProviderInfo }) => {
   return initClient(contract, {
-    baseUrl: provider.apiUrl,
+    baseUrl: REPLACE_STR,
     baseHeaders: {},
     validateResponse: true,
     api: async (args) => {
-      let path = args.path
+      const { token, provider } = getState()
+
       const baseUrl = provider[(args.route.metadata as any)?.baseUrl as 'athenaUrl' | 'billingUrl']
-      if (baseUrl) path = path.replace(provider.apiUrl, baseUrl)
+      let path = args.path.replace(REPLACE_STR, baseUrl ?? provider.apiUrl)
 
       if (args.contentType === 'multipart/form-data' && args.rawBody) {
         const data = new FormData()
@@ -19,7 +21,6 @@ export const createClient = (getAuth: () => string | undefined, mode?: Provider)
         args.body = data
       }
 
-      const token = getAuth()
       if (token) args.headers.authorization = `JWT ${token}`
 
       // Add sig/exp from URL params for shared routes
