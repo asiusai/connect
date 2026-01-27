@@ -166,22 +166,22 @@ export const callAthena = async <T extends AthenaRequest>({
   dongleId,
   expiry,
   token,
-  provider: mode,
+  provider,
 }: {
   type: T
   params: AthenaParams<T>
   dongleId: string
   expiry?: number
   token: string | undefined
-  provider?: Provider
+  provider: Provider
 }): Promise<AthenaResponse<T> | undefined> => {
   const parse = REQUESTS[type].params.safeParse(params)
   if (!parse.success) console.error(parse.error)
 
-  const provider = getProvider(mode)
+  const providerInfo = getProvider(provider)
   if (!token) return void console.error(`Athena called without token`)
 
-  const res = await fetch(`${provider.athenaUrl}/${dongleId}`, {
+  const res = await fetch(`${providerInfo.athenaUrl}/${dongleId}`, {
     method: 'POST',
     body: JSON.stringify({
       id: 0,
