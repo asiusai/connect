@@ -2,7 +2,7 @@
 
 Comma Connect alternative with high-res video, file management, remote streaming, and more.
 
-Try it at https://comma.asius.ai
+Try our connect at https://connect.asius.ai
 
 ## Components
 

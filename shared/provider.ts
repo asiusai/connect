@@ -39,7 +39,7 @@ const comma: ProviderInfo = {
   apiUrl: 'https://api.comma.ai',
   authUrl: 'https://api.comma.ai',
   billingUrl: 'https://billing-comma-proxy.asius.ai',
-  connectUrl: 'https://comma.asius.ai',
+  connectUrl: 'https://connect.asius.ai',
 
   demoDongleId: '9748a98e983e0b39',
   demoRouteId: '0000002b--abc7a490ca',
@@ -59,7 +59,7 @@ const konik: ProviderInfo = {
   athenaUrl: 'https://api-konik-proxy.asius.ai/ws',
   apiUrl: 'https://api-konik-proxy.asius.ai',
   authUrl: 'https://api.konik.ai',
-  connectUrl: 'https://konik.asius.ai',
+  connectUrl: 'https://connect.asius.ai',
 
   githubClientId: 'Ov23liy0AI1YCd15pypf',
 

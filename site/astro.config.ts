@@ -23,9 +23,7 @@ export default defineConfig({
     '/openpilot': 'https://github.com/asiusai/openpilot',
     '/sunnypilot': 'https://github.com/asiusai/sunnypilot',
 
-    '/comma': 'https://comma.asius.ai',
-    '/konik': 'https://konik.asius.ai',
-    '/asius': 'https://connect.asius.ai',
+    '/connect': 'https://connect.asius.ai',
 
     '/x': 'https://x.com/asius_ai',
   },

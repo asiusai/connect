@@ -18,22 +18,23 @@ A free Comma Connect alternative with better video playback, file management, an
 - **Quick actions** - One-tap buttons for common operations
 - **[Remote SSH](/ssh)** - Terminal access from your browser
 
-## Versions
+## Supported Backends
 
-We run three versions of Connect, each pointing to a different backend:
+One app, three backends - pick your provider at login:
 
-| Version | URL | Backend | Use if... |
-| --- | --- | --- | --- |
-| **Comma Connect** | [comma.asius.ai](https://comma.asius.ai) | Comma API | You bought from comma.ai (default) |
-| **Konik Connect** | [konik.asius.ai](https://konik.asius.ai) | Konik API | You bought from konik.ai |
-| **Asius Connect** | [connect.asius.ai](https://connect.asius.ai) | [Asius API](/api) | You enabled Asius API on your device |
+| Provider | Backend | Use if... |
+| --- | --- | --- |
+| **Comma** | Comma API | You bought from comma.ai |
+| **Konik** | Konik API | You bought from konik.ai |
+| **Asius** | [Asius API](/api) | You enabled Asius API on your device |
 
-All three versions have the same features - the only difference is which backend they connect to.
+All providers have the same features - the only difference is which backend they connect to.
 
 ## Getting Started
 
-1. Go to [comma.asius.ai](https://comma.asius.ai) (or your preferred version)
-2. Log in with your Comma/Google/GitHub account
-3. Select your device from the list
+1. Go to [connect.asius.ai](https://connect.asius.ai)
+2. Select your provider (Comma, Konik, or Asius)
+3. Log in with your account
+4. Select your device from the list
 
 No device modifications needed - works with stock openpilot.

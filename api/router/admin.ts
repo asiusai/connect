@@ -103,8 +103,6 @@ const getStats = async () => {
 const FRONTENDS: [string, string][] = [
   ['api.asius.ai', 'https://api.asius.ai/health'],
   ['ssh.asius.ai', 'https://ssh.asius.ai/health'],
-  ['comma.asius.ai', 'https://comma.asius.ai'],
-  ['konik.asius.ai', 'https://konik.asius.ai'],
   ['connect.asius.ai', 'https://connect.asius.ai'],
   ['openpilot.asius.ai', 'https://openpilot.asius.ai'],
   ['sunnypilot.asius.ai', 'https://sunnypilot.asius.ai'],

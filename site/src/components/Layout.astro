@@ -1,7 +1,5 @@
 ---
 import '../../../shared/index.css'
-import { Logo } from '../../../shared/components/Logo'
-import { PROVIDERS } from '../../../shared/provider'
 
 type Props = {
   title: string
@@ -10,8 +8,8 @@ type Props = {
 }
 
 const { title, description, className } = Astro.props
-const providers = Object.values(PROVIDERS).filter((x) => x.MODE !== 'dev')
 
+const CONNECT_URL = 'https://connect.asius.ai'
 const GITHUB_URL = 'https://github.com/asiusai/asiusai'
 const X_URL = 'https://x.com/asius_ai'
 ---
@@ -45,18 +43,12 @@ const X_URL = 'https://x.com/asius_ai'
         <div class="flex items-center gap-6 text-sm text-gray-400">
           <div class="flex gap-4">
             <a href="/status" class="hover:text-white transition">Status</a>
-              <a href={GITHUB_URL} class="hover:text-white transition hidden md:flex" aria-label="GitHub">GitHub</a>
+            <a href={GITHUB_URL} class="hover:text-white transition hidden md:flex" aria-label="GitHub">GitHub</a>
             <a href={X_URL} class="hover:text-white transition hidden md:flex" aria-label="X">X</a>
           </div>
-          <div class="flex gap-2">
-            {
-              providers.map(({ MODE, CONNECT_URL }) => (
-                <a href={CONNECT_URL} class="bg-white p-1 rounded-lg hover:bg-white/80 text-black">
-                  <Logo className="h-7 w-7" mode={MODE} />
-                </a>
-              ))
-            }
-          </div>
+          <a href={CONNECT_URL} class="bg-white px-4 py-2 rounded-lg hover:bg-white/80 text-black font-medium text-sm">
+            Connect
+          </a>
         </div>
       </nav>
     </header>
@@ -75,15 +67,7 @@ const X_URL = 'https://x.com/asius_ai'
             <a href="/status" class="hover:text-white transition">Status</a>
             <a href={GITHUB_URL} class="hover:text-white transition" aria-label="GitHub">GitHub</a>
             <a href={X_URL} class="hover:text-white transition" aria-label="X">X</a>
-          </div>
-          <div class="flex gap-2">
-            {
-              providers.map(({ MODE, CONNECT_URL }) => (
-                <a href={CONNECT_URL} class="bg-white p-1 rounded-lg hover:bg-white/80 text-black">
-                  <Logo className="h-7 w-7" mode={MODE} />
-                </a>
-              ))
-            }
+            <a href={CONNECT_URL} class="hover:text-white transition">Connect</a>
           </div>
       </div>
     </footer>
