@@ -24,7 +24,7 @@ const STORAGES = {
     { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: ParamType.BOOL },
     { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/{dongleId}/sentry` },
   ] satisfies Action[],
-  usingCorrectFork: undefined as boolean | undefined,
+  usingAsiusPilot: undefined as boolean | undefined,
   playbackRate: 1 as number | undefined,
   accessToken: undefined as string | undefined,
   lastDongleId: undefined as string | undefined,

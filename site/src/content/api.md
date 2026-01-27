@@ -21,9 +21,9 @@ A Comma API alternative with more storage, faster video, and no device blocking.
 
 ## Setup
 
-### With Asius Fork (Recommended)
+### With AsiusPilot (Recommended)
 
-1. Install one of [our forks](/forks)
+1. Install [AsiusPilot](/asiuspilot)
 2. Go to **Settings > Asius** and enable **Use Asius API**
 3. Device will reboot automatically
 4. Log into [connect.asius.ai](https://connect.asius.ai) and pair your device

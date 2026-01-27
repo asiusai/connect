@@ -104,8 +104,7 @@ const FRONTENDS: [string, string][] = [
   ['api.asius.ai', 'https://api.asius.ai/health'],
   ['ssh.asius.ai', 'https://ssh.asius.ai/health'],
   ['connect.asius.ai', 'https://connect.asius.ai'],
-  ['openpilot.asius.ai', 'https://openpilot.asius.ai'],
-  ['sunnypilot.asius.ai', 'https://sunnypilot.asius.ai'],
+  ['installer.asius.ai', 'https://installer.asius.ai'],
 ]
 const getFrontends = () => Promise.all(FRONTENDS.map(async ([name, url]) => ({ name, ...(await checkUrl(url)) })))
 

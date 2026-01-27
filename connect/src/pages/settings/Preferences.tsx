@@ -12,7 +12,7 @@ const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boole
 )
 
 export const Preferences = () => {
-  const { unitFormat, timeFormat, usingCorrectFork, set } = useStorage()
+  const { unitFormat, timeFormat, usingAsiusPilot, set } = useStorage()
 
   return (
     <div className="flex flex-col gap-4">
@@ -34,9 +34,9 @@ export const Preferences = () => {
       <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
         <div className="flex flex-col">
           <span className="font-medium">Using {env.FORK.join(' or ')} fork</span>
-          <span className="text-xs text-white/60">Enable if your device runs our fork (required for all features)</span>
+          <span className="text-xs text-white/60">Enable if your device runs AsiusPilot (required for all features)</span>
         </div>
-        <ToggleSwitch value={!!usingCorrectFork} onChange={(usingCorrectFork) => set({ usingCorrectFork })} />
+        <ToggleSwitch value={!!usingAsiusPilot} onChange={(usingAsiusPilot) => set({ usingAsiusPilot })} />
       </div>
     </div>
   )

@@ -72,16 +72,10 @@ new Worker('billing-comma-proxy', {
 })
 
 // ------------------------- INSTALLERS -------------------------
-new Worker('openpilot-installer', {
+new Worker('asius-installer', {
   accountId,
   zoneId,
-  domain: 'openpilot.asius.ai',
-  file: './workers/installer.js',
-})
-new Worker('sunnypilot-installer', {
-  accountId,
-  zoneId,
-  domain: 'sunnypilot.asius.ai',
+  domain: 'installer.asius.ai',
   file: './workers/installer.js',
 })
 

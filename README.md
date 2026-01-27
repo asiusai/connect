@@ -7,7 +7,7 @@ Try our connect at https://connect.asius.ai
 ## Components
 
 - **[Connect](https://asius.ai/connect)** - Web frontend with better UX, works with stock openpilot
-- **[Forks](https://asius.ai/forks)** - Enhanced openpilot/sunnypilot with remote streaming and joystick
+- **[AsiusPilot](https://asius.ai/asiuspilot)** - Openpilot with remote streaming, joystick, params editing and bluetooth.
 - **[API](https://asius.ai/api)** - Cloud backend with 1TB storage and no device blocking
 
 ## Development
