@@ -24,13 +24,6 @@ export const UploadQueueItem = z.object({
 })
 export type UploadQueueItem = z.infer<typeof UploadQueueItem>
 
-export const ParamValue = z.object({
-  key: z.string(),
-  type: z.number(),
-  value: z.string().nullish(),
-})
-export type ParamValue = z.infer<typeof ParamValue>
-
 const REQUESTS = {
   echo: {
     params: z.object({ s: z.string() }),
@@ -152,7 +145,7 @@ const REQUESTS = {
   },
   getAllParams: {
     params: z.object({}),
-    result: ParamValue.array(),
+    result: z.record(z.any()),
   },
   saveParams: {
     params: z.object({

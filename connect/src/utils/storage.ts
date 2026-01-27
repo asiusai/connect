@@ -20,12 +20,10 @@ const getDefaultTimeFormat = () => {
 
 const STORAGES = {
   actions: [
-    { type: 'toggle', icon: 'power_settings_new', title: DEVICE_PARAMS.DoShutdown.label, toggleKey: 'DoShutdown', toggleType: ParamType.Boolean },
-    // { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: DeviceParamType.Boolean },
-    { type: 'navigation', icon: 'home', title: 'Navigate to home', location: 'home' },
-    { type: 'navigation', icon: 'work', title: 'Navigate to work', location: 'work' },
+    { type: 'toggle', icon: 'power_settings_new', title: DEVICE_PARAMS.DoShutdown.label, toggleKey: 'DoShutdown', toggleType: ParamType.BOOL },
+    { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: ParamType.BOOL },
     { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/{dongleId}/sentry` },
-  ] as Action[],
+  ] satisfies Action[],
   usingCorrectFork: undefined as boolean | undefined,
   playbackRate: 1 as number | undefined,
   accessToken: undefined as string | undefined,

@@ -122,17 +122,6 @@ export const getRouteUploadStatus = (files: SegmentFiles): UploadStatus => {
   return status
 }
 
-export const encode = (v: string) => btoa(String.fromCharCode(...new TextEncoder().encode(v)))
-
-export const decode = (v: string | null | undefined) => {
-  if (!v) return undefined
-  try {
-    return new TextDecoder().decode(Uint8Array.from(atob(v), (c) => c.charCodeAt(0)))
-  } catch {
-    return atob(v)
-  }
-}
-
 export const parse = <T>(str: string | null | undefined): T | undefined => {
   if (str === undefined || str === null) return
   try {

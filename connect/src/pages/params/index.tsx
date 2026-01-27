@@ -3,19 +3,15 @@ import { TopAppBar } from '../../components/TopAppBar'
 import { useStorage } from '../../utils/storage'
 import { useDevice } from '../../hooks/useDevice'
 import { Setting, Settings } from './Settings'
-import { SettingCategory, DeviceParam, DEVICE_PARAMS, DeviceParamKey } from '../../utils/params'
-import { Button } from '../../components/Button'
+import { SettingCategory, DeviceParam, DEVICE_PARAMS, DeviceParamKey, getParamType } from '../../utils/params'
 import { useMemo } from 'react'
-import { toast } from 'sonner'
 import { useRouteParams } from '../../hooks'
-import { Navigation } from './Navigation'
 import { Models } from './Models'
 import { cn } from '../../../../shared/helpers'
 import { ChevronDownIcon } from 'lucide-react'
 
 const CATEGORY_LABELS: Record<SettingCategory, string> = {
   models: 'Models',
-  navigation: 'Navigation',
   device: 'Device',
   toggles: 'Toggles',
   steering: 'Steering',
@@ -32,17 +28,15 @@ const SectionHeader = ({ label, isOpen, onClick, count }: { label: string; isOpe
     {count !== undefined && <span className="text-sm opacity-40">{count}</span>}
   </button>
 )
-
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const { isError, save, isSaving, get, types, set, changes } = useDevice()
+  const { isError, get, saved } = useDevice()
   const { togglesOpenTab, set: setOpenSection } = useStorage()
 
   const settingsByCategory = useMemo(() => {
-    if (!Object.keys(types).length) return null
+    if (!Object.keys(saved).length) return null
     const result: Record<SettingCategory, Setting[]> = {
       models: [],
-      navigation: [],
       device: [],
       toggles: [],
       steering: [],
@@ -63,39 +57,29 @@ export const Component = () => {
               ...def,
               key,
               value: get(key),
-              type: types[key],
             }) satisfies Setting,
         )
         .filter((x) => x.value !== undefined)
     }
 
     const knownKeys = new Set(Object.keys(DEVICE_PARAMS))
-    const leftOver = Object.keys(types).filter((x) => !knownKeys.has(x))
+    const leftOver = Object.keys(saved).filter((x) => !knownKeys.has(x))
     result.other = [
       ...result.other,
       ...leftOver.map(
         (key): Setting => ({
           key,
           label: key,
+          type: getParamType(get(key as DeviceParamKey)),
           description: '',
           category: 'other',
           value: get(key as DeviceParamKey),
-          type: types[key as DeviceParamKey],
           icon: 'star',
         }),
       ),
     ]
     return result
-  }, [types, get])
-
-  const changeCount = Object.keys(changes).length
-
-  const handleSave = async () => {
-    if (!changeCount) return
-    const result = await save(changes)
-    if (result?.error) toast.error(result.error.data?.message ?? result.error.message)
-    else toast.success(`Saved ${changeCount} parameter(s)`)
-  }
+  }, [saved, get])
 
   const toggleSection = (cat: SettingCategory) => setOpenSection({ togglesOpenTab: togglesOpenTab === cat ? null : cat })
 
@@ -104,16 +88,6 @@ export const Component = () => {
       <TopAppBar leading={<BackButton href={`/${dongleId}`} />} className="z-10 bg-transparent">
         <div className="flex items-center gap-3 w-full">
           <span>Toggles</span>
-          {changeCount > 0 && (
-            <div className="flex items-center gap-2 ml-auto">
-              <button onClick={() => set({ changes: {} })} className="text-xs opacity-50 hover:opacity-100" title="Discard changes">
-                {changeCount} unsaved
-              </button>
-              <Button onClick={handleSave} disabled={isSaving} className="text-sm px-3 py-1.5">
-                {isSaving ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
-          )}
         </div>
       </TopAppBar>
 
@@ -141,17 +115,8 @@ export const Component = () => {
               )}
             </div>
 
-            <div>
-              <SectionHeader label={CATEGORY_LABELS.navigation} isOpen={togglesOpenTab === 'navigation'} onClick={() => toggleSection('navigation')} />
-              {togglesOpenTab === 'navigation' && (
-                <div className="pb-6">
-                  <Navigation settings={settingsByCategory.navigation} />
-                </div>
-              )}
-            </div>
-
             {SettingCategory.options
-              .filter((cat) => cat !== 'models' && cat !== 'navigation')
+              .filter((cat) => cat !== 'models')
               .map((cat) => {
                 const settings = settingsByCategory[cat]
                 if (!settings.length) return null

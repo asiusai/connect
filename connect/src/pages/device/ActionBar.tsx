@@ -15,11 +15,6 @@ const BaseAction = z.object({
   title: z.string(),
 })
 
-const NavigationAction = BaseAction.extend({
-  type: z.literal('navigation'),
-  location: z.string(),
-})
-
 const ToggleAction = BaseAction.extend({
   type: z.literal('toggle'),
   toggleKey: z.string(),
@@ -32,7 +27,7 @@ const RedirectAction = BaseAction.extend({
   href: z.string(),
 })
 
-export const Action = z.discriminatedUnion('type', [NavigationAction, ToggleAction, RedirectAction])
+export const Action = z.discriminatedUnion('type', [ToggleAction, RedirectAction])
 export type Action = z.infer<typeof Action>
 
 const BUTTON_STYLE = 'h-full w-full rounded-md border border-white/5 text-white bg-background-alt hover:bg-background'
@@ -53,7 +48,7 @@ const RedirectActionComponent = ({ icon, title, href }: z.infer<typeof RedirectA
 
 const ToggleActionComponent = ({ icon, toggleKey, toggleType, title, disabled }: z.infer<typeof ToggleAction>) => {
   const { get, isLoading, isError, save } = useDevice()
-  if (toggleType !== ParamType.Boolean) return null
+  if (toggleType !== ParamType.BOOL) return null
   const value = get(toggleKey as any)
   const isSelected = value === '1'
   return (
@@ -69,31 +64,12 @@ const ToggleActionComponent = ({ icon, toggleKey, toggleType, title, disabled }:
   )
 }
 
-const NavigationActionComponent = ({ title, icon, location }: z.infer<typeof NavigationAction>) => {
-  const { setMapboxRoute, route, favorites } = useDevice()
-  const address = favorites?.[location]
-  const isSelected = route && route === address
-  return (
-    <IconButton
-      icon={ICON_MAP[icon] ?? MapPinIcon}
-      onClick={async () => {
-        if (!address) return
-        await setMapboxRoute(address)
-      }}
-      disabled={!address || route === undefined}
-      className={cn(BUTTON_STYLE, isSelected && SELECTED_BUTTON)}
-      title={title}
-    />
-  )
-}
-
 export const AddToActionBar = ({ action }: { action: Action }) => {
   const { actions, set } = useStorage()
   const isAdded = actions.some(
     (a) =>
       a.type === action.type &&
       ((a.type === 'toggle' && action.type === 'toggle' && a.toggleKey === action.toggleKey) ||
-        (a.type === 'navigation' && action.type === 'navigation' && a.location === action.location) ||
         (a.type === 'redirect' && action.type === 'redirect' && a.href === action.href)),
   )
 
@@ -160,7 +136,6 @@ export const ActionBar = ({ className }: { className?: string }) => {
         <div key={i} className="flex text-xl relative group min-w-10 h-10 min-h-10 flex-1">
           {props.type === 'redirect' && <RedirectActionComponent {...props} />}
           {props.type === 'toggle' && <ToggleActionComponent {...props} />}
-          {props.type === 'navigation' && <NavigationActionComponent {...props} />}
           <IconButton
             icon={XIcon}
             title="Remove"

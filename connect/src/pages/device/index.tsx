@@ -8,60 +8,11 @@ import { ActionBar } from './ActionBar'
 import { Navigation } from './Navigation'
 import { useRouteParams, useScroll } from '../../hooks'
 import { DevicesMobile } from './DevicesMobile'
-import { useStorage } from '../../utils/storage'
-import { useDevice } from '../../hooks/useDevice'
-import { toast } from 'sonner'
-import { IconButton } from '../../components/IconButton'
 import { Navigate } from 'react-router-dom'
-import { cn } from '../../../../shared/helpers'
-import { NavigationIcon, SearchIcon, XIcon } from 'lucide-react'
-import { useSearch } from '../../hooks/useSearch'
-
-const NavButton = () => {
-  const { set } = useSearch()
-  const { setMapboxRoute, route, isSaving } = useDevice()
-
-  if (route) {
-    return (
-      <div
-        onClick={() => set({ isSearchOpen: true })}
-        className={cn(
-          'flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full pl-3 pr-1 py-1 cursor-pointer',
-          'hover:bg-background/90 transition-colors max-w-[50vw] md:max-w-64',
-        )}
-      >
-        <NavigationIcon className="text-primary text-lg shrink-0" />
-        <span className="text-sm truncate">{route}</span>
-        <IconButton
-          icon={XIcon}
-          onClick={async (e) => {
-            e.stopPropagation()
-            const res = await setMapboxRoute(null)
-            if (res?.error) toast.error(res.error.data?.message ?? res.error.message)
-          }}
-          disabled={isSaving}
-          className="size-8 flex text-base items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50 shrink-0"
-          title="Clear route"
-        />
-      </div>
-    )
-  }
-
-  return (
-    <button
-      onClick={() => set({ isSearchOpen: true })}
-      className="flex items-center justify-center size-12 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background/90 transition-colors"
-      title="Navigate"
-    >
-      <SearchIcon className="text-xl" />
-    </button>
-  )
-}
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
   const [device, { loading, error }] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
-  const { usingCorrectFork } = useStorage()
 
   const scroll = useScroll()
 
@@ -74,15 +25,9 @@ export const Component = () => {
     <div className="flex flex-col min-h-screen relative">
       <div className="w-full sticky top-0" style={{ height }}>
         <Location device={device} className="h-full w-full" />
-        {usingCorrectFork && (
-          <div className="fixed top-3 right-3 z-9999 hidden md:block">
-            <NavButton />
-          </div>
-        )}
         <div className="absolute z-999 top-0 w-full p-4 md:hidden">
           <div className="flex justify-between items-start gap-2 w-full">
             <DevicesMobile />
-            {usingCorrectFork && <NavButton />}
           </div>
         </div>
         <div className="pointer-events-none absolute inset-0 bg-background z-999" style={{ opacity: scroll / height }} />

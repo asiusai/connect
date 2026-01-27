@@ -3,28 +3,17 @@ import { Button } from '../../components/Button'
 import { Select } from '../../components/Select'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { parse } from '../../../../shared/helpers'
 import { useRouteParams } from '../../hooks'
 
 type ModelBundle = { index: number; display_name: string; environment: string; runner?: string; generation: number }
-
-const parsePythonDict = <T,>(v: string | null | undefined): T | undefined => {
-  if (!v) return undefined
-  const json = v
-    .replace(/'/g, '"')
-    .replace(/\bTrue\b/g, 'true')
-    .replace(/\bFalse\b/g, 'false')
-    .replace(/\bNone\b/g, 'null')
-  return parse(json)
-}
 
 export const Models = () => {
   const { dongleId } = useRouteParams()
   const { save, get, isSaving } = useDevice()
   const [selectedIndex, setSelectedIndex] = useState('')
 
-  const modelsCache = parsePythonDict<{ bundles: ModelBundle[] }>(get('ModelManager_ModelsCache'))
-  const activeBundle = parsePythonDict<{ index: number }>(get('ModelManager_ActiveBundle'))
+  const modelsCache = get('ModelManager_ModelsCache') as { bundles: ModelBundle[] }
+  const activeBundle = get('ModelManager_ActiveBundle') as { index: number }
 
   const models = modelsCache?.bundles.toReversed() ?? []
   const isUsingDefault = activeBundle === null
