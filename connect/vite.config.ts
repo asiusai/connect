@@ -4,20 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 import { VitePWA } from 'vite-plugin-pwa'
 
-const PWA_NAMES: Record<string, string> = {
-  comma: 'comma connect',
-  konik: 'konik connect',
-  asius: 'asius connect',
-  dev: 'asius connect',
-}
+const API_URLS = ['https://api.comma.ai', 'https://api-konik-proxy.asius.ai', 'https://api.asius.ai']
 
-const API_URLS: Record<string, string> = {
-  comma: 'https://api.comma.ai',
-  konik: 'https://api-konik-proxy.asius.ai',
-  asius: 'https://api.asius.ai',
-  dev: 'http://localhost:8080',
-}
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   return {
     optimizeDeps: {
       exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
@@ -28,7 +17,7 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         manifest: {
-          name: PWA_NAMES[mode] ?? 'comma connect',
+          name: 'asius connect',
           short_name: 'connect',
           description: 'manage your openpilot experience',
           background_color: '#131318',
@@ -36,16 +25,14 @@ export default defineConfig(({ mode }) => {
           start_url: '/',
           id: '/',
         },
-        pwaAssets: {
-          config: `pwa-assets-${mode === 'dev' ? 'asius' : mode}.config.ts`,
-        },
+        pwaAssets: { config: `pwa-assets.config.ts` },
         workbox: {
           navigateFallback: '/index.html',
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
           runtimeCaching: [
-            {
-              urlPattern: new RegExp(`^${API_URLS[mode] ?? API_URLS.asius}`),
-              handler: 'NetworkFirst',
+            ...API_URLS.map((url) => ({
+              urlPattern: new RegExp(`^${url}`),
+              handler: 'NetworkFirst' as const,
               options: {
                 cacheName: 'api-cache',
                 networkTimeoutSeconds: 5,
@@ -57,7 +44,7 @@ export default defineConfig(({ mode }) => {
                   statuses: [200],
                 },
               },
-            },
+            })),
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com/,
               handler: 'StaleWhileRevalidate',

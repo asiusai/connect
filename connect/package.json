@@ -9,8 +9,8 @@
     "url": "https://github.com/asius/connect.git"
   },
   "scripts": {
-    "build": "bun run --bun vite build --mode ${MODE:-asius}",
-    "dev": "bun run --bun vite --host --port 4000 --mode ${MODE:-asius}",
+    "build": "bun run --bun vite build",
+    "dev": "bun run --bun vite --host --port 4000",
     "test": "TZ=Greenwich vitest",
     "templates:dev": "remotion studio src/templates/index.ts",
     "templates:build": "remotion bundle src/templates/index.ts",

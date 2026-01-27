@@ -50,4 +50,4 @@ trigger: always_on
 
 ## Testing
 - Unit tests: `bun run test`
-- Integration tests: `MODE=asius bun run integration` (tests against live asius API)
+- Integration tests: `PROVIDER=asius bun run integration` (tests against live asius API)

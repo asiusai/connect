@@ -5,7 +5,7 @@ export type Provider = z.infer<typeof Provider>
 
 const sysEnv = typeof process !== 'undefined' ? process.env : import.meta.env
 
-export const DEFAULT_PROVIDER = Provider.optional().parse(sysEnv.PROVIDER) ?? 'asius'
+export const DEFAULT_PROVIDER = Provider.optional().parse(sysEnv.PROVIDER) ?? 'comma'
 export const LOCAL = !!sysEnv.LOCAL
 
 export const ProviderInfo = z.object({

@@ -4,7 +4,7 @@ import { DEVICE_PARAMS, ParamType } from '../utils/params'
 import { persist } from 'zustand/middleware'
 import { create } from 'zustand'
 import { ZustandType } from '../../../shared/helpers'
-import { getProvider, Provider } from '../../../shared/provider'
+import { DEFAULT_PROVIDER, getProvider, Provider } from '../../../shared/provider'
 
 const getDefaultUnitFormat = () => {
   if (typeof navigator === 'undefined') return 'metric'
@@ -42,7 +42,7 @@ const STORAGES = {
   joystickEnabled: false,
   unitFormat: getDefaultUnitFormat(),
   timeFormat: getDefaultTimeFormat(),
-  provider: 'comma' as Provider,
+  provider: DEFAULT_PROVIDER as Provider,
 }
 
 export const useStorage = create(persist<ZustandType<typeof STORAGES>>((set) => ({ ...STORAGES, set }), { name: 'idk' }))

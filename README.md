@@ -35,7 +35,7 @@ bun run build        # Build for production
 bun run fix          # Lint and format
 bun run tsc          # Type check
 bun run test         # Unit tests
-bun run integration  # Integration tests (MODE=asius)
+bun run integration  # Integration tests (PROVIDER=asius)
 ```
 
-Set `MODE` env to `comma`, `konik`, `asius`, or `dev` for different configurations.
+Set `PROVIDER` env to `comma`, `konik` or `asius` for different configurations.

@@ -86,27 +86,14 @@ new Worker('sunnypilot-installer', {
 })
 
 // ------------------------- SITES -------------------------
-new Site('comma-connect', {
-  accountId,
-  zoneId,
-  rootDir: 'connect',
-  buildCommand: 'bun i && bun run --bun vite build --mode comma',
-  domain: 'comma.asius.ai',
-})
-new Site('konik-connect', {
-  accountId,
-  zoneId,
-  rootDir: 'connect',
-  buildCommand: 'bun i && bun run --bun vite build --mode konik',
-  domain: 'konik.asius.ai',
-})
 new Site('asius-connect', {
   accountId,
   zoneId,
   rootDir: 'connect',
-  buildCommand: 'bun i && bun run --bun vite build --mode asius',
+  buildCommand: 'bun i && bun run --bun vite build',
   domain: 'connect.asius.ai',
 })
+
 new Site('asius-site', {
   accountId,
   zoneId,
