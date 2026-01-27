@@ -4,13 +4,13 @@ import { BackButton } from '../components/BackButton'
 import { useRouteParams } from '../hooks'
 import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../../../shared/encryption'
-import { provider } from '../../../shared/provider'
 import { CheckIcon, CopyIcon, ExternalLinkIcon, InfoIcon, SettingsIcon, TerminalIcon, TriangleAlertIcon, ZapIcon } from 'lucide-react'
 import { Button } from '../components/Button'
 import { toast } from 'sonner'
 import { useDevice } from '../hooks/useDevice'
 import { env } from '../../../shared/env'
 import { cn } from '../../../shared/helpers'
+import { useProvider } from '../utils/storage'
 
 const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
   const copyToClipboard = (text: string) => {
@@ -37,6 +37,7 @@ const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
 }
 
 export const Component = () => {
+  const [provider] = useProvider()
   const { dongleId } = useRouteParams()
   const { get } = useDevice()
 
@@ -48,7 +49,7 @@ export const Component = () => {
   const githubUsername = get('GithubUsername')
   const isSharedKey = githubUsername === env.SSH_USERNAME
 
-  const sshConfig = `Host ${provider.MODE}-*
+  const sshConfig = `Host ${provider.name}-*
   HostName localhost
   User comma
   ProxyCommand ssh -W %h:%p %n-${encToken}@ssh.asius.ai -p 2222`
@@ -123,7 +124,7 @@ export const Component = () => {
               <p className="text-xs md:text-sm text-white/50">One-line command to connect instantly</p>
             </div>
           </div>
-          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p ${provider.MODE}-${dongleId}-${encToken}@ssh.asius.ai -p 2222" comma@localhost`} />
+          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p ${provider.name}-${dongleId}-${encToken}@ssh.asius.ai -p 2222" comma@localhost`} />
         </div>
 
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">
@@ -141,7 +142,7 @@ export const Component = () => {
 
           <Copy value={sshConfig} />
           <p className="text-xs md:text-sm text-white/50">Then connect with:</p>
-          <Copy value={`ssh ${provider.MODE}-${dongleId}`} />
+          <Copy value={`ssh ${provider.name}-${dongleId}`} />
         </div>
       </div>
     </div>

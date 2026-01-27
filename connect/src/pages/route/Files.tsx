@@ -9,12 +9,12 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { FPS } from '../../templates/shared'
 import { IconButton } from '../../components/IconButton'
 import { CircularProgress } from '../../components/CircularProgress'
-import { provider } from '../../../../shared/provider'
 import { CloudUploadIcon, ExternalLinkIcon, FileIcon, FilmIcon, LucideIcon, RefreshCwIcon, UploadIcon } from 'lucide-react'
 import { useUploadProgress } from '../../hooks/useUploadProgress'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
 import { useAthena } from '../../hooks/useAthena'
+import { useProvider } from '../../utils/storage'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
@@ -159,16 +159,18 @@ const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFile
 }
 
 const DownloadSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
+  const [provider] = useProvider()
   const { routeName } = useRouteParams()
   const file = files[type][segment]
   if (!file) return null
   const name = `${routeName}--${segment}--${FILE_INFO[type].name}`
-  if (provider.IS_OURS && ['cameras', 'ecameras', 'dcameras'].includes(type))
+  if (provider.name === 'asius' && ['cameras', 'ecameras', 'dcameras'].includes(type))
     return <FileAction label={FILE_INFO[type].processed || 'Process'} Icon={FilmIcon} download={name.replace('.hevc', '.mp4')} href={file} />
   return <FileAction label={FILE_INFO[type].raw} Icon={FileIcon} href={file} download={name} />
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
+  const [provider] = useProvider()
   const { dongleId, routeId: date, routeName } = useRouteParams()
   const file = files[type][segment]
   const [progress, setProgress] = useState<number>()
@@ -195,7 +197,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
     )
 
   // Asius API returns already mp4 for videos
-  if (provider.IS_OURS) return null
+  if (provider.name === 'asius') return null
 
   return (
     <FileAction

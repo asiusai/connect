@@ -1,13 +1,14 @@
+import { getProvider, Provider, PROVIDERS } from './provider'
 import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from './types'
-import { provider } from './provider'
 import { twMerge } from 'tailwind-merge'
 
 export const cn = twMerge
 
 export type ZustandType<T> = T & { set: (partial: Partial<T> | ((state: T) => Partial<T>)) => void }
 
-export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) =>
-  `${route.url?.replace('https://api.konik.ai', provider.API_URL)}/${segment}/${fn}`
+export const replacCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', PROVIDERS.konik.apiUrl)
+
+export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${replacCORSUrl(route.url)}/${segment}/${fn}`
 
 export const parseRouteName = (routeName: string): RouteInfo => {
   const [dongleId, routeId] = routeName.split(/[|/]/)
@@ -16,8 +17,8 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 
 export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
 
-export const getQCameraUrl = (routeName: string, signature: RouteShareSignature): string =>
-  `${provider.API_URL}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
+export const getQCameraUrl = (routeName: string, signature: RouteShareSignature, provider: Provider): string =>
+  `${getProvider(provider).apiUrl}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
 
 export const findFile = (files: Files, type: FileType, segment: number) => files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
 
@@ -94,7 +95,7 @@ export const toSegmentFiles = (files: Files, length: number | undefined): Segmen
   if (!length) length = Math.max(...FileType.options.map((x) => files[x].length))
   const out: SegmentFiles = { length, cameras: [], dcameras: [], ecameras: [], logs: [], qcameras: [], qlogs: [] }
   for (const key of keys(files)) {
-    for (let i = 0; i < length; i++) out[key][i] = findFile(files, key, i)?.replace('https://api.konik.ai', provider.API_URL)
+    for (let i = 0; i < length; i++) out[key][i] = replacCORSUrl(findFile(files, key, i))
   }
   return out
 }

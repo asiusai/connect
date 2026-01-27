@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { test } from 'bun:test'
 import { chromium, devices as playDevices } from 'playwright'
 import { keys } from '../shared/helpers'
-import { Mode, PROVIDERS } from '../shared/provider'
+import { Provider, PROVIDERS } from '../shared/provider'
 
 const FOLDER = process.env.FOLDER || 'site/public/screenshots'
 const DEVICE = process.env.DEVICE
@@ -15,11 +15,11 @@ const DEVICES = {
 
 const deviceList = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
 
-for (const mode of Mode.options.filter((x) => x !== 'dev')) {
+for (const mode of Provider.options) {
   const provider = PROVIDERS[mode]
-  const BASE_URL = provider.CONNECT_URL
-  const DONGLE_ID = provider.DEMO_DONGLE_ID
-  const ROUTE_ID = provider.DEMO_ROUTE_ID
+  const BASE_URL = provider.connectUrl
+  const DONGLE_ID = provider.demoDongleId
+  const ROUTE_ID = provider.demoRouteId
 
   const PAGES = {
     login: 'login',

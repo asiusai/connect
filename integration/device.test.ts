@@ -3,13 +3,15 @@ import { join, dirname } from 'path'
 import jwt from 'jsonwebtoken'
 import { generateKeyPairSync } from 'crypto'
 import { describe, test, expect, beforeAll } from 'bun:test'
-import { provider } from '../shared/provider'
+import { getProvider, DEFAULT_PROVIDER } from '../shared/provider'
 
 const EXAMPLE_DATA_DIR = join(dirname(import.meta.path), '../example-data')
 const ROUTE_ID = '0000002c--d68dde99ca'
 const SEGMENTS_COUNT = 3
 
-const isKonik = provider.MODE === 'konik'
+const provider = getProvider(DEFAULT_PROVIDER)
+
+const isKonik = provider.name === 'konik'
 
 // RSA keys for device auth
 const { publicKey, privateKey } = generateKeyPairSync('rsa', {
@@ -23,7 +25,7 @@ const jwtAlgorithm = 'RS256' as const
 type UploadInfo = { url: string; headers?: Record<string, string> }
 
 const getUploadInfo = async (path: string, dongleId: string, deviceToken: string): Promise<UploadInfo> => {
-  const res = await fetch(`${provider.API_URL}/v1.4/${dongleId}/upload_url/?path=${encodeURIComponent(path)}`, {
+  const res = await fetch(`${provider.apiUrl}/v1.4/${dongleId}/upload_url/?path=${encodeURIComponent(path)}`, {
     headers: { Authorization: `JWT ${deviceToken}` },
   })
   if (!res.ok) throw new Error(`Get upload URL failed: ${await res.text()}`)
@@ -43,12 +45,12 @@ const upload = async (info: UploadInfo, content: ArrayBuffer | string) => {
 const fetchUrl = async (url: string) => await fetch(url).then(async (res) => (res.ok ? await res.arrayBuffer() : null))
 
 const apiGet = async (path: string, token?: string) => {
-  const res = await fetch(`${provider.API_URL}${path}`, { headers: token ? { Authorization: `JWT ${token}` } : {} })
+  const res = await fetch(`${provider.apiUrl}${path}`, { headers: token ? { Authorization: `JWT ${token}` } : {} })
   return { status: res.status, data: res.ok ? await res.json() : null }
 }
 
 const apiPatch = async (path: string, body: unknown, token?: string) => {
-  const res = await fetch(`${provider.API_URL}${path}`, {
+  const res = await fetch(`${provider.apiUrl}${path}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -60,14 +62,14 @@ const apiPatch = async (path: string, body: unknown, token?: string) => {
 }
 
 // Tests
-describe(`Device Integration (${provider.MODE})`, () => {
+describe(`Device Integration (${provider.name})`, () => {
   // Test state
   let dongleId: string
   let deviceToken: string
   let routeNameEncoded: string
 
   beforeAll(async () => {
-    console.log(`\nTarget: ${provider.MODE} (${provider.API_URL})`)
+    console.log(`\nTarget: ${provider.name} (${provider.apiUrl})`)
 
     // Register device
     const params = new URLSearchParams({
@@ -77,7 +79,7 @@ describe(`Device Integration (${provider.MODE})`, () => {
       public_key: publicKey,
       register_token: jwt.sign({ register: true }, privateKey, { algorithm: jwtAlgorithm, expiresIn: '1h' }),
     })
-    const registerRes = await fetch(`${provider.API_URL}/v2/pilotauth/?${params}`, { method: 'POST' })
+    const registerRes = await fetch(`${provider.apiUrl}/v2/pilotauth/?${params}`, { method: 'POST' })
     if (!registerRes.ok) throw new Error(`Register failed: ${await registerRes.text()}`)
     dongleId = (await registerRes.json()).dongle_id
     deviceToken = jwt.sign({ identity: dongleId, nbf: Math.floor(Date.now() / 1000) }, privateKey, { algorithm: jwtAlgorithm, expiresIn: '1h' })
@@ -199,7 +201,7 @@ describe(`Device Integration (${provider.MODE})`, () => {
       const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, ROUTE_ID, 'route.json'), 'utf-8'))
 
       // Local-only fields
-      if (provider.MODE === 'dev') {
+      if (provider.name === 'asius') {
         expect(res.data.version).toBe(expected.version)
         expect(res.data.git_dirty).toBe(expected.git_dirty)
         expect(res.data.git_commit_date).toBe(expected.git_commit_date)
@@ -286,7 +288,7 @@ describe(`Device Integration (${provider.MODE})`, () => {
 
   describe.skipIf(isKonik)('preserve', () => {
     test('preserve route', async () => {
-      const res = await fetch(`${provider.API_URL}/v1/route/${routeNameEncoded}/preserve`, {
+      const res = await fetch(`${provider.apiUrl}/v1/route/${routeNameEncoded}/preserve`, {
         method: 'POST',
         headers: { Authorization: `JWT ${deviceToken}` },
       })
@@ -301,7 +303,7 @@ describe(`Device Integration (${provider.MODE})`, () => {
     })
 
     test('unpreserve route', async () => {
-      const res = await fetch(`${provider.API_URL}/v1/route/${routeNameEncoded}/preserve`, {
+      const res = await fetch(`${provider.apiUrl}/v1/route/${routeNameEncoded}/preserve`, {
         method: 'DELETE',
         headers: { Authorization: `JWT ${deviceToken}` },
       })
@@ -365,7 +367,7 @@ describe(`Device Integration (${provider.MODE})`, () => {
   test('print pair token', () => {
     const pairToken = jwt.sign({ identity: dongleId, pair: true }, privateKey, { algorithm: jwtAlgorithm, expiresIn: '1h' })
     console.log(`\n${'='.repeat(60)}`)
-    console.log(`Pairing URL: ${provider.CONNECT_URL}/pair?pair=${pairToken}`)
+    console.log(`Pairing URL: ${provider.apiUrl}/pair?pair=${pairToken}`)
     console.log(`Device ID: ${dongleId}`)
     console.log(`${'='.repeat(60)}\n`)
   })

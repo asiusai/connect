@@ -1,10 +1,10 @@
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../../../shared/types'
 import { Action } from '../pages/device/ActionBar'
 import { DEVICE_PARAMS, ParamType } from '../utils/params'
-import { provider } from '../../../shared/provider'
 import { persist } from 'zustand/middleware'
 import { create } from 'zustand'
 import { ZustandType } from '../../../shared/helpers'
+import { getProvider, Provider } from '../../../shared/provider'
 
 const getDefaultUnitFormat = () => {
   if (typeof navigator === 'undefined') return 'metric'
@@ -30,8 +30,8 @@ const STORAGES = {
   playbackRate: 1 as number | undefined,
   accessToken: undefined as string | undefined,
   lastDongleId: undefined as string | undefined,
-  largeCameraType: (provider.IS_OURS ? 'cameras' : 'qcameras') as CameraType,
-  smallCameraType: (provider.IS_OURS ? 'dcameras' : undefined) as CameraType | undefined,
+  largeCameraType: 'qcameras' as CameraType,
+  smallCameraType: undefined as CameraType | undefined,
   logType: undefined as LogType | undefined,
   showPath: false,
   statsTime: 'all' as 'all' | 'week',
@@ -42,6 +42,13 @@ const STORAGES = {
   joystickEnabled: false,
   unitFormat: getDefaultUnitFormat(),
   timeFormat: getDefaultTimeFormat(),
+  provider: 'comma' as Provider,
 }
 
 export const useStorage = create(persist<ZustandType<typeof STORAGES>>((set) => ({ ...STORAGES, set }), { name: 'idk' }))
+
+export const useProvider = () => {
+  const provider = useStorage((x) => x.provider)
+  const set = useStorage((x) => x.set)
+  return [getProvider(provider), (provider: Provider) => set({ provider })] as const
+}

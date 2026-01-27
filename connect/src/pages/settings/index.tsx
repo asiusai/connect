@@ -5,14 +5,15 @@ import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
-import { provider } from '../../../../shared/provider'
 import { api } from '../../api'
 import { isSignedIn } from '../../utils/helpers'
 import { Button } from '../../components/Button'
 import { LogOutIcon } from 'lucide-react'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
+import { useProvider } from '../../utils/storage'
 
 export const Component = () => {
+  const [provider] = useProvider()
   const { dongleId } = useRouteParams()
   const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
   const isOwner = useIsDeviceOwner()
@@ -24,7 +25,7 @@ export const Component = () => {
         {isOwner && <Device />}
         <Preferences />
         {isOwner && <Users />}
-        {!!provider.BILLING_URL && isOwner && <Prime />}
+        {!!provider.billingUrl && isOwner && <Prime />}
 
         {profile && (
           <div className="flex flex-col gap-4">

@@ -1,7 +1,7 @@
-import { Mode, provider } from '../provider'
+import { Provider } from '../provider'
 import { AsiusLogo, CommaLogo, IconProps, KonikLogo } from '../icons'
 
-export const Logo = ({ mode = provider.MODE, ...props }: { mode?: Mode } & IconProps) => {
-  const Icon = mode === 'comma' ? CommaLogo : mode === 'konik' ? KonikLogo : AsiusLogo
+export const Logo = ({ provider, ...props }: { provider: Provider } & IconProps) => {
+  const Icon = provider === 'comma' ? CommaLogo : provider === 'konik' ? KonikLogo : AsiusLogo
   return <Icon {...props} />
 }

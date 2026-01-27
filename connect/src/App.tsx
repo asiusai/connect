@@ -3,18 +3,7 @@ import { ErrorPage } from './pages/error'
 
 import 'leaflet/dist/leaflet.css'
 import { Toaster } from 'sonner'
-import { provider } from '../../shared/provider'
 import { OfflineBanner } from './components/OfflineBanner'
-
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
-  if (window.location.host === provider.HACK_LOGIN_CALLBACK_HOST && provider.HACK_DEFAULT_REDICT_HOST) {
-    const newUrl = new URL(window.location.href)
-    newUrl.hostname = provider.HACK_DEFAULT_REDICT_HOST
-    window.location.replace(newUrl.toString())
-  }
-
-  return <>{children}</>
-}
 
 const router = createBrowserRouter([
   {
@@ -142,8 +131,6 @@ export const App = () => (
   <>
     <Toaster theme="dark" toastOptions={{ className: '!bg-background !text-background-x' }} />
     <OfflineBanner />
-    <AppLayout>
-      <RouterProvider router={router} />
-    </AppLayout>
+    <RouterProvider router={router} />
   </>
 )

@@ -1,39 +1,25 @@
 import '../../../shared/index.css'
-import { Composition, Still } from 'remotion'
+import { Composition } from 'remotion'
 import { FPS, HEIGHT, WIDTH } from './shared'
 import { Preview } from './Preview'
 import { PreviewProps } from '../../../shared/types'
-import { provider } from '../../../shared/provider'
-import { OG, ogCalculateMetadata, OGProps } from './OG'
+import { env } from '../../../shared/env'
 
 export const RemotionRoot = () => {
   return (
-    <>
-      <Composition
-        id="Preview"
-        component={Preview}
-        durationInFrames={100}
-        fps={FPS}
-        width={WIDTH}
-        height={HEIGHT}
-        schema={PreviewProps}
-        defaultProps={{
-          routeName: provider.EXAMPLE_ROUTE_NAME!,
-          largeCameraType: 'cameras',
-          smallCameraType: 'dcameras',
-        }}
-      />
-      <Still
-        id="OG"
-        component={OG}
-        height={630}
-        width={1200}
-        schema={OGProps}
-        calculateMetadata={ogCalculateMetadata}
-        defaultProps={{
-          routeName: provider.EXAMPLE_ROUTE_NAME!,
-        }}
-      />
-    </>
+    <Composition
+      id="Preview"
+      component={Preview}
+      durationInFrames={100}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+      schema={PreviewProps}
+      defaultProps={{
+        routeName: env.EXAMPLE_ROUTE_NAME!,
+        largeCameraType: 'cameras',
+        smallCameraType: 'dcameras',
+      }}
+    />
   )
 }

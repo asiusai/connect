@@ -3,12 +3,14 @@ import { join, dirname } from 'path'
 import { execSync } from 'child_process'
 import { createPublicKey } from 'crypto'
 import jwt from 'jsonwebtoken'
-import { provider } from '../shared/provider'
+import { getProvider, DEFAULT_PROVIDER } from '../shared/provider'
 
 const CONNECT_DATA_DIR = join(dirname(import.meta.path), '../connect-data')
 const JWT_ALGORITHM = 'RS256' as const
 
 type UploadInfo = { url: string; headers?: Record<string, string> }
+
+const provider = getProvider(DEFAULT_PROVIDER)
 
 const getPrivateKey = () => {
   const result = execSync('dotenv -- pulumi config get asius:demoDevicePrivateKey', {
@@ -21,7 +23,7 @@ const getPrivateKey = () => {
 const getPublicKey = (key: string) => createPublicKey({ key, format: 'pem' }).export({ type: 'spki', format: 'pem' }) as string
 
 const getUploadInfo = async (path: string, dongleId: string, deviceToken: string): Promise<UploadInfo> => {
-  const res = await fetch(`${provider.API_URL}/v1.4/${dongleId}/upload_url/?path=${encodeURIComponent(path)}`, {
+  const res = await fetch(`${provider.apiUrl}/v1.4/${dongleId}/upload_url/?path=${encodeURIComponent(path)}`, {
     headers: { Authorization: `JWT ${deviceToken}` },
   })
   if (!res.ok) throw new Error(`Get upload URL failed: ${await res.text()}`)
@@ -41,14 +43,14 @@ const upload = async (info: UploadInfo, content: ArrayBuffer | string) => {
 const registerOrGetDevice = async (privateKey: string, publicKey: string): Promise<string> => {
   const registerToken = jwt.sign({ register: true }, privateKey, { algorithm: JWT_ALGORITHM, expiresIn: '1h' })
   const params = new URLSearchParams({
-    imei: provider.DEMO_DONGLE_ID,
-    imei2: `${provider.DEMO_DONGLE_ID}-2`,
-    serial: provider.DEMO_DONGLE_ID,
+    imei: provider.demoDongleId,
+    imei2: `${provider.demoDongleId}-2`,
+    serial: provider.demoDongleId,
     public_key: publicKey,
     register_token: registerToken,
   })
 
-  const res = await fetch(`${provider.API_URL}/v2/pilotauth/?${params}`, { method: 'POST' })
+  const res = await fetch(`${provider.apiUrl}/v2/pilotauth/?${params}`, { method: 'POST' })
   if (res.ok) return (await res.json()).dongle_id
 
   const text = await res.text()
@@ -61,7 +63,7 @@ const registerOrGetDevice = async (privateKey: string, publicKey: string): Promi
 }
 
 const main = async () => {
-  console.log(`Target: ${provider.MODE} (${provider.API_URL})`)
+  console.log(`Target: ${provider.name} (${provider.apiUrl})`)
 
   console.log('Reading private key from Pulumi config...')
   const privateKey = getPrivateKey()
@@ -71,10 +73,10 @@ const main = async () => {
   let dongleId: string
   try {
     dongleId = await registerOrGetDevice(privateKey, publicKey)
-    if (dongleId !== provider.DEMO_DONGLE_ID) console.error(`Dongle id is ${dongleId}, not ${provider.DEMO_DONGLE_ID}`)
+    if (dongleId !== provider.demoDongleId) console.error(`Dongle id is ${dongleId}, not ${provider.demoDongleId}`)
   } catch {
     console.log('Registration failed, trying to use existing device...')
-    dongleId = provider.DEMO_DONGLE_ID
+    dongleId = provider.demoDongleId
   }
   console.log(`Dongle ID: ${dongleId}`)
 
@@ -126,7 +128,7 @@ const main = async () => {
   const pairToken = jwt.sign({ identity: dongleId, pair: true }, privateKey, { algorithm: JWT_ALGORITHM, expiresIn: '24h' })
 
   console.log(`\n${'='.repeat(60)}`)
-  console.log(`Pairing URL: ${provider.CONNECT_URL}/pair?pair=${pairToken}`)
+  console.log(`Pairing URL: ${provider.connectUrl}/pair?pair=${pairToken}`)
   console.log(`Device ID: ${dongleId}`)
   console.log(`${'='.repeat(60)}\n`)
 }

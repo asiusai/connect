@@ -3,13 +3,14 @@ import { Video } from '@remotion/media'
 import { hevcToMp4 } from '../utils/ffmpeg'
 import { createChunker } from '../utils/hevc'
 import { useDelayRender } from 'remotion'
-import { provider } from '../../../shared/provider'
 import { cn } from '../../../shared/helpers'
+import { useProvider } from '../utils/storage'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 
 export const HevcVideo = (props: VideoProps) => {
-  if (provider.IS_OURS) return <Video {...props} showInTimeline={false} className={cn('relative', props.className)} />
+  const [provider] = useProvider()
+  if (provider.name === 'asius') return <Video {...props} showInTimeline={false} className={cn('relative', props.className)} />
   else return <RawHevcVideo {...props} />
 }
 

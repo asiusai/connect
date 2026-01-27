@@ -3,17 +3,19 @@ import 'swagger-ui-react/swagger-ui.css'
 import { generateOpenApi } from '@ts-rest/open-api'
 import { contract } from '../../../shared/contract'
 import { accessToken } from '../utils/helpers'
-import { provider } from '../../../shared/provider'
+import { Provider, PROVIDERS } from '../../../shared/provider'
 
 const openApiDoc = generateOpenApi(
   contract,
   {
     info: { title: 'Asius API', version: '1.0.0' },
-    servers: [
-      { url: provider.API_URL, description: 'API' },
-      { url: provider.ATHENA_URL, description: 'Athena' },
-      { url: provider.BILLING_URL, description: 'Billing' },
-    ].filter((x) => x.url),
+    servers: Provider.options
+      .flatMap((provider) => [
+        { url: PROVIDERS[provider].apiUrl, description: `${provider} API` },
+        { url: PROVIDERS[provider].athenaUrl, description: `${provider} athena` },
+        { url: PROVIDERS[provider].billingUrl, description: `${provider} billing` },
+      ])
+      .filter((x) => x.url),
   },
   { setOperationId: 'concatenated-path' },
 )

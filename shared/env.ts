@@ -15,6 +15,10 @@ export const Env = z.object({
 
   SSH_USERNAME: z.string().default('ouasius'),
   ENCRYPTION_KEY: z.string().default('yYwKdXFxqgnX5riNMPJCJtnXpcPvqWXPtn9YoTUw+kM='),
+
+  HACK_LOGIN_CALLBACK_HOST: z.string().default('612.connect-d5y.pages.dev'),
+  HACK_DEFAULT_REDICT_HOST: z.string().default('comma.asius.ai'),
+  EXAMPLE_ROUTE_NAME: z.string().default('a2a0ccea32023010/2023-07-27--13-01-19'),
 })
 
 const sysEnv = typeof process !== 'undefined' ? process.env : import.meta.env

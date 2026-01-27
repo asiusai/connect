@@ -20,8 +20,8 @@ import {
   XIcon,
 } from 'lucide-react'
 import { api, invalidate } from '../api'
-import { provider } from '../../../shared/provider'
 import { cn } from '../../../shared/helpers'
+import { useProvider } from '../utils/storage'
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return '0 B'
@@ -431,6 +431,7 @@ const SortHeader = ({
 }
 
 const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterChange: (f: FilesFilter) => void }) => {
+  const [provider] = useProvider()
   const [filesData, { refetch }] = api.admin.files.useQuery({
     query: {
       limit: PAGE_SIZE,
@@ -457,7 +458,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
     error: 'bg-red-500/20 text-red-400',
   }
 
-  const getFileUrl = (key: string, sig: string) => `${provider.API_URL}/connectdata/${key}?sig=${sig}`
+  const getFileUrl = (key: string, sig: string) => `${provider.apiUrl}/connectdata/${key}?sig=${sig}`
 
   const handleDelete = async (key: string) => {
     if (!confirm(`Delete file ${key}? This cannot be undone.`)) return

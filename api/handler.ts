@@ -14,6 +14,25 @@ const headers = {
 
 const getOrigin = (url: URL) => (url.origin.includes('localhost') ? url.origin : url.origin.replace('http://', 'https://'))
 
+// Convert form-encoded requests to JSON so ts-rest can handle both formats
+const normalizeRequest = async (req: Request): Promise<Request> => {
+  const contentType = req.headers.get('content-type') || ''
+  if (!contentType.includes('application/x-www-form-urlencoded')) return req
+
+  const text = await req.text()
+  const params = new URLSearchParams(text)
+  const body = Object.fromEntries(params.entries())
+
+  const newHeaders = new Headers(req.headers)
+  newHeaders.set('content-type', 'application/json')
+
+  return new Request(req.url, {
+    method: req.method,
+    headers: newHeaders,
+    body: JSON.stringify(body),
+  })
+}
+
 export const handler = async (req: Request, server: Bun.Server<WebSocketData>) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers })
 
@@ -41,7 +60,7 @@ export const handler = async (req: Request, server: Bun.Server<WebSocketData>) =
   const res = await fetchRequestHandler({
     contract,
     router,
-    request: req,
+    request: await normalizeRequest(req),
     platformContext: { identity, origin: getOrigin(url) },
     options: { responseValidation: true },
   })

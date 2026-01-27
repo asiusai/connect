@@ -1,17 +1,17 @@
 import { initClient } from '@ts-rest/core'
-import { getProvider, Mode } from './provider'
+import { getProvider, Provider } from './provider'
 import { contract } from './contract'
 
-export const createClient = (getAuth: () => string | undefined, mode?: Mode) => {
+export const createClient = (getAuth: () => string | undefined, mode?: Provider) => {
   const provider = getProvider(mode)
   return initClient(contract, {
-    baseUrl: provider.API_URL,
+    baseUrl: provider.apiUrl,
     baseHeaders: {},
     validateResponse: true,
     api: async (args) => {
       let path = args.path
-      const baseUrl = (args.route.metadata as any)?.baseUrl
-      if (baseUrl) path = path.replace(provider.API_URL, baseUrl)
+      const baseUrl = provider[(args.route.metadata as any)?.baseUrl as 'athenaUrl' | 'billingUrl']
+      if (baseUrl) path = path.replace(provider.apiUrl, baseUrl)
 
       if (args.contentType === 'multipart/form-data' && args.rawBody) {
         const data = new FormData()

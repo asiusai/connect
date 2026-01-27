@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { Route } from '../../../../shared/types'
 import { api } from '../../api'
 import { useRouteParams } from '../../hooks'
-import { provider } from '../../../../shared/provider'
 import { cn } from '../../../../shared/helpers'
 import { BookmarkIcon, BookmarkCheckIcon, GlobeIcon, GlobeLockIcon, ShareIcon, CheckIcon, LucideIcon } from 'lucide-react'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
+import { useProvider } from '../../utils/storage'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
   const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })
@@ -61,6 +61,7 @@ const ActionButton = ({
 )
 
 export const Actions = ({ route, className }: { route: Route; className?: string }) => {
+  const [provider] = useProvider()
   const { routeName } = useRouteParams()
   const isOwner = useIsDeviceOwner()
   const [isPreserved, setIsPreserved] = useIsPreserved(route, isOwner)
@@ -71,7 +72,7 @@ export const Actions = ({ route, className }: { route: Route; className?: string
     let url = `${window.location.protocol}//${window.location.host}/${routeName}`
 
     // Use signature when route is private. Doesn't work with comma API
-    if (!route.is_public && provider.MODE !== 'comma') {
+    if (!route.is_public && provider.name !== 'comma') {
       const res = await api.route.shareSignature.query({ params: { routeName: routeName.replace('/', '|') }, query: {} })
       if (res.body) url = url + `?sig=${res.body.sig}&exp=${res.body.exp}`
     }

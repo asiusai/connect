@@ -5,9 +5,10 @@ import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
 import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
 import { Logo } from '../../../shared/components/Logo'
-import { provider } from '../../../shared/provider'
+import { useProvider } from '../utils/storage'
 
 export const Component = () => {
+  const [provider] = useProvider()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const { mutate, error } = api.auth.auth.useMutation({
@@ -29,8 +30,8 @@ export const Component = () => {
   return (
     <div className="flex min-h-screen max-w-lg flex-col gap-8 items-center mx-auto justify-center p-6">
       <div className="flex flex-col gap-4 items-center">
-        <Logo className="h-24 w-24" />
-        <h1 className="text-2xl">{provider.NAME}</h1>
+        <Logo provider={provider.name} className="h-24 w-24" />
+        <h1 className="text-2xl">{provider.title}</h1>
       </div>
       {error ? (
         <>

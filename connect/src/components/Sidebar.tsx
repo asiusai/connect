@@ -12,8 +12,10 @@ import { IconButton } from './IconButton'
 import { Logo } from '../../../shared/components/Logo'
 import { isSignedIn } from '../utils/helpers'
 import { cn } from '../../../shared/helpers'
+import { useProvider } from '../utils/storage'
 
 export const Sidebar = () => {
+  const [provider] = useProvider()
   const { dongleId } = useRouteParams()
   const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
@@ -24,7 +26,7 @@ export const Sidebar = () => {
       <div className="flex flex-col w-64 h-screen top-0 border-r border-b border-white/5 bg-background shrink-0 fixed">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Logo className="h-8 w-8" />
+            <Logo provider={provider.name} className="h-8 w-8" />
             <span className="text-xl font-bold tracking-tight">connect</span>
           </Link>
         </div>

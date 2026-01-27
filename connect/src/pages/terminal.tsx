@@ -10,8 +10,8 @@ import { useRouteParams } from '../hooks'
 import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../../../shared/encryption'
 import { env } from '../../../shared/env'
-import { provider } from '../../../shared/provider'
 import { RefreshCwIcon } from 'lucide-react'
+import { useProvider } from '../utils/storage'
 
 const Terminal = ({ wsUrl, onClose }: { wsUrl: string; onClose?: () => void }) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -89,6 +89,7 @@ const Terminal = ({ wsUrl, onClose }: { wsUrl: string; onClose?: () => void }) =
 }
 
 export const Component = () => {
+  const [provider] = useProvider()
   const { dongleId } = useRouteParams()
   const navigate = useNavigate()
   const token = accessToken()
@@ -97,7 +98,7 @@ export const Component = () => {
 
   if (!dongleId || !encToken) return null
 
-  const wsUrl = `wss://ssh.asius.ai/browser/${provider.MODE}-${dongleId}-${encToken}`
+  const wsUrl = `wss://ssh.asius.ai/browser/${provider.name}-${dongleId}-${encToken}`
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
