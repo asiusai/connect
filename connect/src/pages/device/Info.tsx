@@ -12,7 +12,7 @@ export const Info = ({ className }: { className?: string }) => {
 
   // Automatically toggle if using correct fork
   const { usingAsiusPilot, set } = useStorage()
-  if (usingAsiusPilot === undefined && env.FORK.some((x) => route?.git_remote?.includes(x))) set({ usingAsiusPilot: true })
+  if (usingAsiusPilot === undefined && route?.git_remote?.includes(env.FORK)) set({ usingAsiusPilot: true })
   if (!route) return null
   return (
     <div className={cn('flex flex-col gap-4 pb-10', className)}>

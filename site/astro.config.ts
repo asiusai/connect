@@ -20,8 +20,7 @@ export default defineConfig({
     '/gh': 'https://github.com/asiusai/asiusai',
     '/github': 'https://github.com/asiusai/asiusai',
 
-    '/openpilot': 'https://github.com/asiusai/openpilot',
-    '/sunnypilot': 'https://github.com/asiusai/sunnypilot',
+    '/op': 'https://github.com/asiusai/openpilot',
 
     '/connect': 'https://connect.asius.ai',
 
