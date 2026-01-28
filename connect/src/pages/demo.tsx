@@ -1,9 +1,22 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { setAccessToken } from '../utils/helpers'
 import { useProvider } from '../utils/storage'
+import { Provider, PROVIDERS } from '../../../shared/provider'
 
 export const Component = () => {
-  const [provider] = useProvider()
+  const [params] = useSearchParams()
+  const [provider, setProvider] = useProvider()
+
+  const providerParam = params.get('provider')
+  if (providerParam && Provider.safeParse(providerParam).success) {
+    const p = providerParam as Provider
+    if (p !== provider.name) {
+      setProvider(p)
+      setAccessToken(PROVIDERS[p].demoAccessToken)
+      return <Navigate to="/" />
+    }
+  }
+
   setAccessToken(provider.demoAccessToken)
   return <Navigate to="/" />
 }

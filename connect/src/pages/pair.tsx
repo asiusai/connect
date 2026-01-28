@@ -4,6 +4,10 @@ import { ButtonBase } from '../components/ButtonBase'
 import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
+import { Button } from '../components/Button'
+import { Logo } from '../../../shared/components/Logo'
+import { Provider, PROVIDERS } from '../../../shared/provider'
+import { useProvider } from '../utils/storage'
 
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -98,6 +102,7 @@ const Pairing = ({ token }: { token: string }) => {
 }
 const Err = ({ error }: { error: string }) => {
   const navigate = useNavigate()
+  const [provider, setProvider] = useProvider()
   return (
     <div className="min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center p-4">
       <div className="bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full text-center">
@@ -111,9 +116,28 @@ const Err = ({ error }: { error: string }) => {
         <ButtonBase onClick={() => navigate(`/pair`)} className="w-full py-3 rounded-xl bg-white text-black font-bold hover:bg-white/90 transition-colors">
           Try Again
         </ButtonBase>
-        <ButtonBase href="/" className="w-full py-3 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors">
-          Cancel
-        </ButtonBase>
+        <div className="flex flex-col gap-2 w-full">
+          <p className="text-sm text-white/60">
+            Are you sure it was a <span className="text-error">{provider.name}</span> device? Try other providers:
+          </p>
+          <div className="flex gap-2 justify-center">
+            {Provider.options
+              .filter((x) => x !== provider.name)
+              .map((x) => (
+                <Button
+                  key={x}
+                  color="secondary"
+                  leading={<Logo provider={x} className="size-5" />}
+                  onClick={() => {
+                    setProvider(x)
+                    window.location.reload()
+                  }}
+                >
+                  {PROVIDERS[x].name}
+                </Button>
+              ))}
+          </div>
+        </div>
       </div>
     </div>
   )

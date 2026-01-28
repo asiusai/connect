@@ -3,28 +3,39 @@ import { api } from '../api'
 import { useRouteParams } from '../hooks'
 import { Loading } from '../components/Loading'
 import { Button } from '../components/Button'
-import { CircleAlertIcon, HomeIcon, RefreshCwIcon } from 'lucide-react'
+import { CircleAlertIcon } from 'lucide-react'
 import { Sidebar } from '../components/Sidebar'
 import { isSignedIn } from '../utils/helpers'
-import { useStorage } from '../utils/storage'
+import { useProvider, useStorage } from '../utils/storage'
 import { useEffect } from 'react'
+import { Provider, PROVIDERS } from '../../../shared/provider'
+import { Logo } from '../../../shared/components/Logo'
 
 const RouteNotFound = () => {
-  const { routeName } = useRouteParams()
+  const [provider, setProvider] = useProvider()
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-background text-background-x">
-      <div className="flex flex-col items-center gap-2">
-        <CircleAlertIcon className="text-error text-5xl" />
-        <h1 className="flex flex-col items-center text-center text-2xl font-bold text-primary">Route {routeName} not found!</h1>
-        <p className="text-secondary-alt-x">The route you are looking for does not exist or has been made private.</p>
+      <CircleAlertIcon className="text-error text-5xl" />
+      <div className="flex flex-col items-center gap-1">
+        <h1 className="text-2xl font-bold text-primary">
+          Route not found on <span className="text-error">{provider.name}</span>
+        </h1>
+        <p className="text-sm text-secondary-alt-x">Try switching providers</p>
       </div>
-      <div className="flex gap-4">
-        <Button color="secondary" leading={<RefreshCwIcon />} onClick={() => window.location.reload()}>
-          Try again
-        </Button>
-        <Button color="primary" leading={<HomeIcon />} href="/">
-          Go home
-        </Button>
+      <div className="flex gap-2">
+        {Provider.options.map((x) => (
+          <Button
+            key={x}
+            color={x === provider.name ? 'primary' : 'secondary'}
+            leading={<Logo provider={x} className="size-5" />}
+            onClick={() => {
+              setProvider(x)
+              window.location.reload()
+            }}
+          >
+            {PROVIDERS[x].name}
+          </Button>
+        ))}
       </div>
     </div>
   )
