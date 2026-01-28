@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { useDevice } from '../hooks/useDevice'
 import { env } from '../../../shared/env'
 import { cn } from '../../../shared/helpers'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 
 const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
   const copyToClipboard = (text: string) => {

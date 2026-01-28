@@ -11,7 +11,7 @@ import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../../../shared/encryption'
 import { env } from '../../../shared/env'
 import { RefreshCwIcon } from 'lucide-react'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 
 const Terminal = ({ wsUrl, onClose }: { wsUrl: string; onClose?: () => void }) => {
   const containerRef = useRef<HTMLDivElement>(null)

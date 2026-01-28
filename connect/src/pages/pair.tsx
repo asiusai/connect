@@ -7,7 +7,7 @@ import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
 import { Logo } from '../../../shared/components/Logo'
 import { Provider, PROVIDERS } from '../../../shared/provider'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'

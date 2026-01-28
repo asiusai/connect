@@ -12,7 +12,7 @@ import { IconButton } from './IconButton'
 import { Logo } from '../../../shared/components/Logo'
 import { isSignedIn } from '../utils/helpers'
 import { cn } from '../../../shared/helpers'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 
 export const Sidebar = () => {
   const [provider] = useProvider()

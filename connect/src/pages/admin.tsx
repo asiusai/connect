@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { api, invalidate } from '../api'
 import { cn } from '../../../shared/helpers'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return '0 B'

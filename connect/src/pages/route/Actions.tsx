@@ -5,7 +5,7 @@ import { useRouteParams } from '../../hooks'
 import { cn } from '../../../../shared/helpers'
 import { BookmarkIcon, BookmarkCheckIcon, GlobeIcon, GlobeLockIcon, ShareIcon, CheckIcon, LucideIcon } from 'lucide-react'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
-import { useProvider } from '../../utils/storage'
+import { useProvider } from '../../utils/useProvider'
 
 const useIsPreserved = (route: Route, isOwner: boolean) => {
   const [preserved] = api.routes.preserved.useQuery({ params: { dongleId: route.dongle_id }, enabled: isOwner })

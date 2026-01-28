@@ -14,7 +14,7 @@ import { useUploadProgress } from '../../hooks/useUploadProgress'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
 import { useAthena } from '../../hooks/useAthena'
-import { useProvider } from '../../utils/storage'
+import { useProvider } from '../../utils/useProvider'
 
 const PRIORITY = 1 // Higher number is lower priority
 const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline

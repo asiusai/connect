@@ -4,7 +4,7 @@ import { hevcToMp4 } from '../utils/ffmpeg'
 import { createChunker } from '../utils/hevc'
 import { useDelayRender } from 'remotion'
 import { cn } from '../../../shared/helpers'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 

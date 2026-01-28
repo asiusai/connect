@@ -3,7 +3,7 @@ import { IconButton } from './IconButton'
 import { Logo } from '../../../shared/components/Logo'
 import { isSignedIn } from '../utils/helpers'
 import { ChevronLeftIcon } from 'lucide-react'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 
 export const BackButton = ({ href }: { href: string }) => {
   const [provider] = useProvider()

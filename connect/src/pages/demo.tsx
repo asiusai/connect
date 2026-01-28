@@ -1,6 +1,6 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { setAccessToken } from '../utils/helpers'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 import { Provider, PROVIDERS } from '../../../shared/provider'
 
 export const Component = () => {

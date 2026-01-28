@@ -10,7 +10,7 @@ import { isSignedIn } from '../../utils/helpers'
 import { Button } from '../../components/Button'
 import { LogOutIcon } from 'lucide-react'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
-import { useProvider } from '../../utils/storage'
+import { useProvider } from '../../utils/useProvider'
 
 export const Component = () => {
   const [provider] = useProvider()

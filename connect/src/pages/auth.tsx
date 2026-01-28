@@ -5,7 +5,7 @@ import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
 import { api } from '../api'
 import { setAccessToken } from '../utils/helpers'
 import { Logo } from '../../../shared/components/Logo'
-import { useProvider } from '../utils/storage'
+import { useProvider } from '../utils/useProvider'
 
 export const Component = () => {
   const [provider] = useProvider()

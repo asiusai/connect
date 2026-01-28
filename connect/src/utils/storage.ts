@@ -4,7 +4,7 @@ import { DEVICE_PARAMS, ParamType } from '../utils/params'
 import { persist } from 'zustand/middleware'
 import { create } from 'zustand'
 import { ZustandType } from '../../../shared/helpers'
-import { DEFAULT_PROVIDER, getProvider, Provider } from '../../../shared/provider'
+import { DEFAULT_PROVIDER, Provider } from '../../../shared/provider'
 
 const getDefaultUnitFormat = () => {
   if (typeof navigator === 'undefined') return 'metric'
@@ -17,6 +17,8 @@ const getDefaultTimeFormat = () => {
   const options = new Intl.DateTimeFormat(undefined, { hour: 'numeric' }).resolvedOptions()
   return options.hourCycle?.startsWith('h1') ? '12h' : ('24h' satisfies TimeFormat)
 }
+
+type Login = { provider: Provider; token: string }
 
 const STORAGES = {
   actions: [
@@ -41,12 +43,7 @@ const STORAGES = {
   unitFormat: getDefaultUnitFormat(),
   timeFormat: getDefaultTimeFormat(),
   provider: DEFAULT_PROVIDER as Provider,
+  logins: [] as Login[],
 }
 
 export const useStorage = create(persist<ZustandType<typeof STORAGES>>((set) => ({ ...STORAGES, set }), { name: 'idk' }))
-
-export const useProvider = () => {
-  const provider = useStorage((x) => x.provider)
-  const set = useStorage((x) => x.set)
-  return [getProvider(provider), (provider: Provider) => set({ provider })] as const
-}
