@@ -191,6 +191,7 @@ export const callAthena = async <T extends AthenaRequest>({
       expiry,
     }),
     headers: {
+      'Content-Type': 'application/json',
       Authorization: `JWT ${token}`,
     },
   })
