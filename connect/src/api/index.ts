@@ -2,9 +2,7 @@ import { useState, useEffect, useCallback, useSyncExternalStore } from 'react'
 import { AppRoute, AppRouter, ClientInferRequest, ClientInferResponses } from '@ts-rest/core'
 import { contract } from '../../../shared/contract'
 import { createClient } from '../../../shared/api'
-import { accessToken } from '../utils/helpers'
-import { useStorage } from '../utils/storage'
-import { getProvider } from '../../../shared/provider'
+import { useAuth } from '../hooks/useAuth'
 
 // Types
 type Req<T extends AppRoute> = ClientInferRequest<T>
@@ -191,5 +189,5 @@ const wrapRouter = <T extends AppRouter>(router: T, client: any): WrappedRouter<
 
 export const api = wrapRouter(
   contract,
-  createClient(() => ({ provider: getProvider(useStorage.getState().provider), token: accessToken() })),
+  createClient(() => useAuth.getState()),
 )

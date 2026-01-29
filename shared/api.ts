@@ -1,19 +1,20 @@
 import { initClient } from '@ts-rest/core'
-import { ProviderInfo } from './provider'
+import { getProviderInfo, Provider } from './provider'
 import { contract } from './contract'
 
 const REPLACE_STR = 'XXXXXXXXXXXXX'
 
-export const createClient = (getState: () => { token: string | undefined; provider: ProviderInfo }) => {
+export const createClient = (getState: () => { token: string | undefined; provider: Provider }) => {
   return initClient(contract, {
     baseUrl: REPLACE_STR,
     baseHeaders: {},
     validateResponse: true,
     api: async (args) => {
       const { token, provider } = getState()
+      const info = getProviderInfo(provider)
 
-      const baseUrl = provider[(args.route.metadata as any)?.baseUrl as 'athenaUrl' | 'billingUrl']
-      let path = args.path.replace(REPLACE_STR, baseUrl ?? provider.apiUrl)
+      const baseUrl = info[(args.route.metadata as any)?.baseUrl as 'athenaUrl' | 'billingUrl']
+      let path = args.path.replace(REPLACE_STR, baseUrl ?? info.apiUrl)
 
       if (args.contentType === 'multipart/form-data' && args.rawBody) {
         const data = new FormData()

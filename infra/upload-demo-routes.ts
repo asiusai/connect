@@ -3,14 +3,14 @@ import { join, dirname } from 'path'
 import { execSync } from 'child_process'
 import { createPublicKey } from 'crypto'
 import jwt from 'jsonwebtoken'
-import { getProvider, DEFAULT_PROVIDER } from '../shared/provider'
+import { getProviderInfo, DEFAULT_PROVIDER } from '../shared/provider'
 
 const CONNECT_DATA_DIR = join(dirname(import.meta.path), '../connect-data')
 const JWT_ALGORITHM = 'RS256' as const
 
 type UploadInfo = { url: string; headers?: Record<string, string> }
 
-const provider = getProvider(DEFAULT_PROVIDER)
+const provider = getProviderInfo(DEFAULT_PROVIDER)
 
 const getPrivateKey = () => {
   const result = execSync('dotenv -- pulumi config get asius:demoDevicePrivateKey', {

@@ -7,11 +7,10 @@ import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { IconButton } from '../components/IconButton'
 import { useRouteParams } from '../hooks'
-import { accessToken } from '../utils/helpers'
 import { encryptToken } from '../../../shared/encryption'
 import { env } from '../../../shared/env'
 import { RefreshCwIcon } from 'lucide-react'
-import { useProvider } from '../utils/storage'
+import { useAuth } from '../hooks/useAuth'
 
 const Terminal = ({ wsUrl, onClose }: { wsUrl: string; onClose?: () => void }) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -89,16 +88,15 @@ const Terminal = ({ wsUrl, onClose }: { wsUrl: string; onClose?: () => void }) =
 }
 
 export const Component = () => {
-  const [provider] = useProvider()
+  const { provider, token } = useAuth()
   const { dongleId } = useRouteParams()
   const navigate = useNavigate()
-  const token = accessToken()
   const encToken = useMemo(() => (token ? encryptToken(token, env.ENCRYPTION_KEY) : undefined), [token])
   const [key, setKey] = useState(0)
 
   if (!dongleId || !encToken) return null
 
-  const wsUrl = `wss://ssh.asius.ai/browser/${provider.name}-${dongleId}-${encToken}`
+  const wsUrl = `wss://ssh.asius.ai/browser/${provider}-${dongleId}-${encToken}`
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">

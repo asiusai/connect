@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { test } from 'bun:test'
 import { chromium, devices as playDevices } from 'playwright'
 import { keys } from '../shared/helpers'
-import { Provider, PROVIDERS } from '../shared/provider'
+import { getProviderInfo, Provider } from '../shared/provider'
 
 const FOLDER = process.env.FOLDER || 'site/public/screenshots'
 const DEVICE = process.env.DEVICE
@@ -16,7 +16,7 @@ const DEVICES = {
 const deviceList = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
 
 for (const mode of Provider.options) {
-  const provider = PROVIDERS[mode]
+  const provider = getProviderInfo(mode)
   const BASE_URL = provider.connectUrl
   const DONGLE_ID = provider.demoDongleId
   const ROUTE_ID = provider.demoRouteId

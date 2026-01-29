@@ -2,13 +2,13 @@ import { cn } from '../../../../shared/helpers'
 import { ButtonBase } from '../../components/ButtonBase'
 import { useRouteParams } from '../../hooks'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
-import { useStorage } from '../../utils/storage'
+import { useSettings } from '../../hooks/useSettings'
 import { BarChart3Icon, CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
 
 export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
   const isOwner = useIsDeviceOwner()
-  const { usingAsiusPilot } = useStorage()
+  const { usingAsiusPilot } = useSettings()
 
   const items: { title: string; icon: LucideIcon; href: string; color: string; disabled?: boolean; hide?: boolean }[] = [
     {

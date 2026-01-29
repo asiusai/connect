@@ -7,13 +7,13 @@ import { SyntaxHighlightedJson } from '../components/SyntaxHighlightedJson'
 import { Service } from '../../../shared/types'
 import { Loading } from '../components/Loading'
 import { Label } from '../components/Label'
-import { useStorage } from '../utils/storage'
+import { useSettings } from '../hooks/useSettings'
 import { cn } from '../../../shared/helpers'
 import { useAthena } from '../hooks/useAthena'
 
 export const Component = () => {
   const { dongleId } = useRouteParams()
-  const { analyzeService: service, set } = useStorage()
+  const { analyzeService: service, set } = useSettings()
   const [state, setState] = useState<'loading' | 'error' | 'success'>()
   const athena = useAthena()
   const json = useAsyncMemo(async () => {

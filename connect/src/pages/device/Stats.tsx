@@ -3,13 +3,13 @@ import { Slider } from '../../components/Slider'
 import { DetailRow } from '../../components/DetailRow'
 import { formatDistance, formatDuration } from '../../utils/format'
 import { useRouteParams } from '../../hooks'
-import { useStorage } from '../../utils/storage'
+import { useSettings } from '../../hooks/useSettings'
 import { cn } from '../../../../shared/helpers'
 
 export const Stats = ({ className }: { className: string }) => {
   const { dongleId } = useRouteParams()
   const [stats] = api.device.stats.useQuery({ params: { dongleId } })
-  const { statsTime, set } = useStorage()
+  const { statsTime, set } = useSettings()
 
   const currentStats = stats?.[statsTime ?? 'all']
   if (!currentStats) return null

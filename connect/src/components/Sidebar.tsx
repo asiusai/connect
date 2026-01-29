@@ -10,15 +10,14 @@ import { useRouteParams } from '../hooks'
 import { Voltage } from '../pages/device/DevicesMobile'
 import { IconButton } from './IconButton'
 import { Logo } from '../../../shared/components/Logo'
-import { isSignedIn } from '../utils/helpers'
-import { cn } from '../../../shared/helpers'
-import { useProvider } from '../utils/storage'
+import { cn, getUserName } from '../../../shared/helpers'
+import { useAuth } from '../hooks/useAuth'
 
 export const Sidebar = () => {
-  const [provider] = useProvider()
+  const { provider, token } = useAuth()
   const { dongleId } = useRouteParams()
   const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
-  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
+  const [user] = api.auth.me.useQuery({ enabled: !!token })
   const [showDeviceList, setShowDeviceList] = useState(false)
 
   return (
@@ -26,7 +25,7 @@ export const Sidebar = () => {
       <div className="flex flex-col w-64 h-screen top-0 border-r border-b border-white/5 bg-background shrink-0 fixed">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Logo provider={provider.name} className="h-8 w-8" />
+            <Logo provider={provider} className="h-8 w-8" />
             <span className="text-xl font-bold tracking-tight">connect</span>
           </Link>
         </div>
@@ -72,19 +71,19 @@ export const Sidebar = () => {
         <div className="p-4 flex flex-col gap-4 bg-background mt-auto">
           {device && <ActionBar />}
 
-          {profile?.superuser && (
+          {user?.superuser && (
             <Link to="/admin" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary transition-colors text-primary-x">
               <ShieldIcon className="text-xl" />
               <span className="text-sm font-medium">Admin</span>
             </Link>
           )}
 
-          {profile && (
+          {user && (
             <div className="flex items-center justify-between px-2 pt-6 border-t border-white/5">
               <div className="flex flex-col min-w-0">
                 <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Signed in as</span>
-                <span className="text-sm font-medium truncate text-white/90" title={profile.email ?? profile.id}>
-                  {profile.email ?? profile.id}
+                <span className="text-sm font-medium truncate text-white/90" title={getUserName(user)}>
+                  {getUserName(user)}
                 </span>
               </div>
               <IconButton

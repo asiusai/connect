@@ -1,12 +1,12 @@
-import { getProvider, Provider, PROVIDERS } from './provider'
-import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from './types'
+import { getProviderInfo, Provider } from './provider'
+import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles, User } from './types'
 import { twMerge } from 'tailwind-merge'
 
 export const cn = twMerge
 
 export type ZustandType<T> = T & { set: (partial: Partial<T> | ((state: T) => Partial<T>)) => void }
 
-export const replacCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', PROVIDERS.konik.apiUrl)
+export const replacCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', getProviderInfo('konik').apiUrl)
 
 export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${replacCORSUrl(route.url)}/${segment}/${fn}`
 
@@ -18,7 +18,7 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
 
 export const getQCameraUrl = (routeName: string, signature: RouteShareSignature, provider: Provider): string =>
-  `${getProvider(provider).apiUrl}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
+  `${getProviderInfo(provider).apiUrl}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
 
 export const findFile = (files: Files, type: FileType, segment: number) => files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
 
@@ -132,3 +132,4 @@ export const parse = <T>(str: string | null | undefined): T | undefined => {
 }
 
 export const truncate = (s: string, len: number) => (s.length > len ? s.slice(0, len) + '...' : s)
+export const getUserName = (user: User) => user.username ?? user.email ?? user.user_id ?? user.id

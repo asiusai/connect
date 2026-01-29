@@ -2,8 +2,8 @@ import SwaggerUI from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
 import { generateOpenApi } from '@ts-rest/open-api'
 import { contract } from '../../../shared/contract'
-import { accessToken } from '../utils/helpers'
-import { Provider, PROVIDERS } from '../../../shared/provider'
+import { getProviderInfo, Provider } from '../../../shared/provider'
+import { useAuth } from '../hooks/useAuth'
 
 const openApiDoc = generateOpenApi(
   contract,
@@ -11,9 +11,9 @@ const openApiDoc = generateOpenApi(
     info: { title: 'Asius API', version: '1.0.0' },
     servers: Provider.options
       .flatMap((provider) => [
-        { url: PROVIDERS[provider].apiUrl, description: `${provider} API` },
-        { url: PROVIDERS[provider].athenaUrl, description: `${provider} athena` },
-        { url: PROVIDERS[provider].billingUrl, description: `${provider} billing` },
+        { url: getProviderInfo(provider).apiUrl, description: `${provider} API` },
+        { url: getProviderInfo(provider).athenaUrl, description: `${provider} athena` },
+        { url: getProviderInfo(provider).billingUrl, description: `${provider} billing` },
       ])
       .filter((x) => x.url),
   },
@@ -122,7 +122,7 @@ const darkStyles = `
 `
 
 export const Component = () => {
-  const token = accessToken() ?? ''
+  const { token } = useAuth()
 
   return (
     <>

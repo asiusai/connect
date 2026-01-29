@@ -7,7 +7,7 @@ import { CameraIcon, CarIcon, DownloadIcon, LayoutGridIcon, LoaderIcon, UserIcon
 import { IconButton } from '../components/IconButton'
 import { cn, saveFile } from '../../../shared/helpers'
 import { ControlButton } from './live'
-import { useStorage } from '../utils/storage'
+import { useSettings } from '../hooks/useSettings'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { useAthena } from '../hooks/useAthena'
@@ -15,7 +15,7 @@ import { useAthena } from '../hooks/useAthena'
 const toB64 = (x?: string | null) => (x ? `data:image/jpeg;base64,${x}` : undefined)
 
 const SnapshotView = () => {
-  const { cameraView, set } = useStorage()
+  const { cameraView, set } = useSettings()
   const { dongleId } = useRouteParams()
   const [images, setImages] = useState<AthenaResponse<'takeSnapshot'>['result']>()
   const [isLoading, setIsLoading] = useState(false)

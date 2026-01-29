@@ -1,12 +1,12 @@
 import { DateTime } from 'luxon'
 import type { Route } from '../../../shared/types'
-import { useStorage } from './storage'
+import { useSettings } from '../hooks/useSettings'
 
 export const MI_TO_KM = 1.609344
 
 export const formatDistance = (miles: number | undefined): string | undefined => {
   if (miles === undefined) return
-  if (useStorage.getState().unitFormat === 'imperial') return `${miles.toFixed(1)} mi`
+  if (useSettings.getState().unitFormat === 'imperial') return `${miles.toFixed(1)} mi`
   return `${(miles * MI_TO_KM).toFixed(1)} km`
 }
 
@@ -45,7 +45,7 @@ export const getDateTime = (input: DateTimeInput) => {
 }
 
 export const formatTime = (time: DateTimeInput, includeSeconds = false) => {
-  const is12h = useStorage.getState().timeFormat === '12h'
+  const is12h = useSettings.getState().timeFormat === '12h'
   const format = [is12h ? 'h:mm' : 'HH:mm', includeSeconds ? ':ss' : '', is12h ? ' a' : ''].join('')
   return getDateTime(time)?.toFormat(format)
 }

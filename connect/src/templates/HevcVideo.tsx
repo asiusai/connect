@@ -4,13 +4,13 @@ import { hevcToMp4 } from '../utils/ffmpeg'
 import { createChunker } from '../utils/hevc'
 import { useDelayRender } from 'remotion'
 import { cn } from '../../../shared/helpers'
-import { useProvider } from '../utils/storage'
+import { useAuth } from '../hooks/useAuth'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 
 export const HevcVideo = (props: VideoProps) => {
-  const [provider] = useProvider()
-  if (provider.name === 'asius') return <Video {...props} showInTimeline={false} className={cn('relative', props.className)} />
+  const { provider } = useAuth()
+  if (provider === 'asius') return <Video {...props} showInTimeline={false} className={cn('relative', props.className)} />
   else return <RawHevcVideo {...props} />
 }
 

@@ -15,7 +15,7 @@ import {
   Volume2Icon,
   VolumeOffIcon,
 } from 'lucide-react'
-import { useStorage } from '../utils/storage'
+import { useSettings } from '../hooks/useSettings'
 import { cn } from '../../../shared/helpers'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
@@ -79,7 +79,7 @@ const LiveView = ({
   const [status, setStatus] = useState<string | null>(null)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
-  const { cameraView, joystickEnabled, set } = useStorage()
+  const { cameraView, joystickEnabled, set } = useSettings()
   const [joystickPosition, setJoystickPosition] = useState({ x: 0, y: 0 })
   const [joystickSensitivity, setJoystickSensitivity] = useState(0.25)
   const [stats, setStats] = useState<{ fps: number; latency: number } | null>(null)
