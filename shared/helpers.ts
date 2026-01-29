@@ -1,12 +1,12 @@
-import { getProviderInfo, Provider, PROVIDERS } from './provider'
-import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from './types'
+import { getProviderInfo, Provider } from './provider'
+import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles, User } from './types'
 import { twMerge } from 'tailwind-merge'
 
 export const cn = twMerge
 
 export type ZustandType<T> = T & { set: (partial: Partial<T> | ((state: T) => Partial<T>)) => void }
 
-export const replacCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', PROVIDERS.konik.apiUrl)
+export const replacCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', getProviderInfo('konik').apiUrl)
 
 export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${replacCORSUrl(route.url)}/${segment}/${fn}`
 
@@ -132,3 +132,4 @@ export const parse = <T>(str: string | null | undefined): T | undefined => {
 }
 
 export const truncate = (s: string, len: number) => (s.length > len ? s.slice(0, len) + '...' : s)
+export const getUserName = (user: User) => user.username ?? user.email ?? user.user_id ?? user.id

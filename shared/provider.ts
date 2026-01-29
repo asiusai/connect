@@ -89,6 +89,6 @@ const asius: ProviderInfo = {
   demoRouteId: '0000002b--abc7a490ca',
 }
 
-export const PROVIDERS = { comma, konik, asius }
+const PROVIDERS = { comma, konik, asius }
 
 export const getProviderInfo = (mode: Provider) => PROVIDERS[mode]

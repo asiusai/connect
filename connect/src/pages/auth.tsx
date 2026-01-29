@@ -5,6 +5,7 @@ import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
 import { api } from '../api'
 import { Logo } from '../../../shared/components/Logo'
 import { useAuth } from '../hooks/useAuth'
+import { getUserName } from '../../../shared/helpers'
 
 export const Component = () => {
   const { provider, logIn } = useAuth()
@@ -12,8 +13,10 @@ export const Component = () => {
   const [params] = useSearchParams()
 
   const { mutate, error } = api.auth.auth.useMutation({
-    onSuccess: (data) => {
-      logIn(data.access_token)
+    onSuccess: async (data) => {
+      const user = await api.auth.me.query({ extraHeaders: { Authorization: `JWT ${data.access_token}` } })
+      if (user.status !== 200) throw new Error(`Invalid token`)
+      logIn({ token: data.access_token, provider, name: getUserName(user.body), id: user.body.id })
       navigate('/')
     },
   })

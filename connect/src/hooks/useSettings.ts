@@ -46,5 +46,3 @@ export const useSettings = create(
     storage: createJSONStorage(() => localStorage),
   }),
 )
-
-console.log(useSettings)

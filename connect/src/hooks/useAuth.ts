@@ -2,40 +2,42 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { DEFAULT_PROVIDER, Provider } from '../../../shared/provider'
 
-type Login = { provider: Provider; token: string }
+type Login = { provider: Provider; token: string; name: string; id: string }
 
 type Store = {
-  provider: Provider
+  id: string | undefined
   token: string | undefined
+  provider: Provider
   logins: Login[]
-  logIn: (token: string, provider?: Provider) => void
-  logOut: (token?: string) => void
+  logIn: (login: Login) => void
+  logOut: (id?: string) => void
   setProvider: (provider: Provider) => void
 }
-console.log('hello')
 
 export const useAuth = create(
   persist<Store>(
     (set, get) => ({
       provider: DEFAULT_PROVIDER,
+      id: undefined,
       token: undefined,
       logins: [],
-      logIn: (token, provider) => {
+      logIn: ({ token, provider, name, id }) => {
         if (!provider) provider = get().provider
-        set((x) => ({ provider, token, logins: [...x.logins, { provider, token }] }))
+        if (id !== 'demo') set((x) => ({ provider, token, id, logins: [...x.logins.filter((x) => x.id !== id), { provider, token, name, id }] }))
       },
-      logOut: (token?: string) => {
-        if (!token) token = get().token
-        set((x) => ({ token: undefined, logins: x.logins.filter((x) => x.token !== token) }))
+      logOut: (id?: string) => {
+        if (!id) id = get().id!
+        set((x) => ({ id: undefined, token: undefined, logins: x.logins.filter((x) => x.id !== id) }))
       },
       setProvider: (provider: Provider) => {
-        const user = get().logins.find((x) => x.provider === provider)
-        set(() => ({ provider, token: user?.token }))
+        const user = Object.values(get().logins).find((x) => x?.provider === provider)
+        set(() => ({ provider, id: user?.id, token: user?.token }))
       },
     }),
     {
       name: 'auth',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
+      version: 2,
     },
   ),
 )

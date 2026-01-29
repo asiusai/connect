@@ -1,8 +1,9 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useEffect } from 'react'
 
 export const Component = () => {
   const { logOut } = useAuth()
-  logOut()
+  useEffect(() => logOut(), [])
   return <Navigate to="/login" />
 }

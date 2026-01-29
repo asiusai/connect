@@ -1,21 +1,19 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { getProviderInfo, Provider, PROVIDERS } from '../../../shared/provider'
+import { getProviderInfo, Provider } from '../../../shared/provider'
+import { useEffect } from 'react'
 
 export const Component = () => {
   const [params] = useSearchParams()
-  const { provider, setProvider, logIn } = useAuth()
+  let { provider, logIn } = useAuth()
 
-  const providerParam = params.get('provider')
-  if (providerParam && Provider.safeParse(providerParam).success) {
-    const p = providerParam as Provider
-    if (p !== provider) {
-      setProvider(p)
-      logIn(PROVIDERS[p].demoAccessToken)
-      return <Navigate to="/" />
-    }
-  }
+  useEffect(() => {
+    const providerParam = Provider.safeParse(params.get('provider'))
+    if (providerParam.success) provider = providerParam.data
 
-  logIn(getProviderInfo(provider).demoAccessToken)
+    const token = getProviderInfo(provider).demoAccessToken
+    logIn({ token, provider, name: 'Demo account', id: 'demo' })
+  }, [])
+
   return <Navigate to="/" />
 }

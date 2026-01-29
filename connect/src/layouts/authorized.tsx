@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useLocation } from 'react-router-dom'
 import { api } from '../api'
 import { useRouteParams } from '../hooks'
@@ -9,21 +9,24 @@ import { useOffline } from '../hooks/useOffline'
 import { useAuth } from '../hooks/useAuth'
 
 const RedirectFromHome = () => {
+  const navigate = useNavigate()
   const [devices] = api.devices.devices.useQuery({})
   const { lastDongleId, set } = useSettings()
 
-  // Wait for the devices to load
-  if (!devices) return null
+  useEffect(() => {
+    if (!devices) return
 
-  if (lastDongleId && devices.some((x) => x.dongle_id === lastDongleId)) return <Navigate to={`/${lastDongleId}`} />
+    const firstDongleId = devices[0]?.dongle_id
 
-  const firstDongleId = devices[0]?.dongle_id
-  if (firstDongleId) {
-    set({ lastDongleId: firstDongleId })
-    return <Navigate to={`/${firstDongleId}`} />
-  }
+    if (lastDongleId && devices.some((x) => x.dongle_id === lastDongleId)) navigate(`/${lastDongleId}`)
+    else if (!firstDongleId) navigate('/first-pair')
+    else {
+      set({ lastDongleId: firstDongleId })
+      navigate(`/${firstDongleId}`)
+    }
+  }, [devices, lastDongleId])
 
-  return <Navigate to="/first-pair" />
+  return null
 }
 
 export const Component = () => {

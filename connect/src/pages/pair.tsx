@@ -6,7 +6,7 @@ import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
 import { Logo } from '../../../shared/components/Logo'
-import { Provider, PROVIDERS } from '../../../shared/provider'
+import { Provider } from '../../../shared/provider'
 import { useAuth } from '../hooks/useAuth'
 
 import { useEffect, useRef } from 'react'
@@ -133,7 +133,7 @@ const Err = ({ error }: { error: string }) => {
                     window.location.reload()
                   }}
                 >
-                  {PROVIDERS[x].name}
+                  {x}
                 </Button>
               ))}
           </div>

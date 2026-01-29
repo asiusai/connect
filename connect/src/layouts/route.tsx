@@ -8,7 +8,7 @@ import { Sidebar } from '../components/Sidebar'
 import { useSettings } from '../hooks/useSettings'
 import { useAuth } from '../hooks/useAuth'
 import { useEffect } from 'react'
-import { Provider, PROVIDERS } from '../../../shared/provider'
+import { Provider } from '../../../shared/provider'
 import { Logo } from '../../../shared/components/Logo'
 
 const RouteNotFound = () => {
@@ -33,7 +33,7 @@ const RouteNotFound = () => {
               window.location.reload()
             }}
           >
-            {PROVIDERS[x].name}
+            {x}
           </Button>
         ))}
       </div>
