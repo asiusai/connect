@@ -18,7 +18,7 @@ import {
   UserIcon,
   XIcon,
 } from 'lucide-react'
-import { api, invalidate } from '../api'
+import { api } from '../api'
 import { cn } from '../../../shared/helpers'
 import { useAuth } from '../hooks/useAuth'
 import { getProviderInfo } from '../../../shared/provider'
@@ -275,7 +275,6 @@ const DevicesTable = ({
     setDeleting(dongleId)
     try {
       await api.admin.deleteDevice.mutate({ params: { dongleId } })
-      invalidate('admin')
     } finally {
       setDeleting(null)
     }
@@ -466,7 +465,6 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
     setDeleting(key)
     try {
       await api.admin.deleteFile.mutate({ params: { key: encodeURIComponent(key) } })
-      invalidate('admin')
     } finally {
       setDeleting(null)
     }

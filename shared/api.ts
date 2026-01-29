@@ -22,7 +22,7 @@ export const createClient = (getState: () => { token: string | undefined; provid
         args.body = data
       }
 
-      if (token) args.headers.authorization = `JWT ${token}`
+      if (token && !args.headers.authorization) args.headers.authorization = `JWT ${token}`
 
       // Add sig/exp from URL params for shared routes
       if (typeof window !== 'undefined') {

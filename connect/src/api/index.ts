@@ -52,18 +52,12 @@ const setCache = (key: string, entry: Partial<CacheEntry>) => {
   notify()
 }
 
-export const invalidate = (...keyParts: string[]) => {
-  for (const k of cache.keys()) {
-    if (keyParts.length === 0 || keyParts.every((part) => k.includes(part))) cache.delete(k)
-  }
-  notify()
-}
-
 // Hook implementations
 const createUseQuery = <T extends AppRoute>(routePath: string, fetcher: (args: Req<T>) => Promise<{ status: number; body: Res<T> }>) => {
   return (options: QueryOptions<T>): QueryOutput<T> => {
     const { enabled = true, refetchInterval, onSuccess, onError, ...args } = options
-    const key = routePath + ':' + JSON.stringify(args)
+    const token = useAuth.getState().token
+    const key = routePath + ':' + token + ':' + JSON.stringify(args)
 
     const entry = useSyncExternalStore(
       (cb) => {

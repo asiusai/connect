@@ -21,7 +21,7 @@ export const useAuth = create(
       id: undefined,
       token: undefined,
       logins: [],
-      logIn: ({ token, provider, name, id }) => {
+      logIn: ({ provider, id, name, token }) => {
         if (!provider) provider = get().provider
         const isDemo = id === 'demo'
         set((x) => ({
@@ -32,11 +32,15 @@ export const useAuth = create(
         }))
       },
       logOut: (id?: string) => {
-        if (!id) id = get().id!
-        set((x) => ({ id: undefined, token: undefined, logins: x.logins.filter((x) => x.id !== id) }))
+        if (!id) id = get().id
+        const isCurrent = id === get().id
+        set((x) => ({
+          ...(isCurrent ? { id: undefined, token: undefined } : {}),
+          logins: x.logins.filter((x) => x.id !== id),
+        }))
       },
       setProvider: (provider: Provider) => {
-        const user = Object.values(get().logins).find((x) => x?.provider === provider)
+        const user = get().logins.find((x) => x?.provider === provider)
         set(() => ({ provider, id: user?.id, token: user?.token }))
       },
     }),
