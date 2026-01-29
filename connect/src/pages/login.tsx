@@ -101,12 +101,12 @@ const ProviderLogin = () => {
 
 export const Component = () => {
   return (
-    <div className="flex min-h-screen gap-10 flex-col items-center justify-center p-6 bg-background text-foreground">
+    <div className="flex min-h-screen gap-10 flex-col items-center justify-center py-20 px-6 bg-background text-foreground">
       <div className="flex flex-col items-center gap-3">
         <div className="w-24 h-24 rounded-3xl bg-white flex items-center justify-center shadow-2xl border border-white/5">
           <Logo provider={'asius'} className="text-black h-16 w-16" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome to Asius connect</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-center">Welcome to Asius connect</h1>
       </div>
 
       <div className="w-full flex flex-col md:flex-row items- gap-10 justify-center">
