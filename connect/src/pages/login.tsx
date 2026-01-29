@@ -33,7 +33,7 @@ const SavedAccounts = () => {
               <span className="text-xs text-white/40 capitalize">{account.provider}</span>
             </div>
             <button
-              className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+              className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors md:opacity-0 group-hover:opacity-100"
               onClick={(e) => {
                 e.stopPropagation()
                 logOut(account.id)

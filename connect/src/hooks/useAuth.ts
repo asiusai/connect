@@ -23,12 +23,11 @@ export const useAuth = create(
       logins: [],
       logIn: ({ provider, id, name, token }) => {
         if (!provider) provider = get().provider
-        const isDemo = id === 'demo'
         set((x) => ({
           provider,
           token,
           id,
-          logins: isDemo ? x.logins : [...x.logins.filter((x) => x.id !== id), { provider, token, name, id }],
+          logins: [...x.logins.filter((x) => x.id !== id), { provider, token, name, id }],
         }))
       },
       logOut: (id?: string) => {
