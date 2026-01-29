@@ -32,7 +32,7 @@ const AccountSwitcher = ({ user }: { user: User }) => {
       {open && (
         <>
           <div className="absolute inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-full left-0 right-0 z-50 bg-surface rounded-xl shadow-2xl border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+          <div className="absolute bottom-full left-0 right-0 z-50 bg-background rounded-xl shadow-2xl border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
             <div className="flex flex-col p-2">
               {logins.map((account) => (
                 <div
@@ -121,7 +121,7 @@ export const Sidebar = () => {
             {showDeviceList && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowDeviceList(false)} />
-                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-surface rounded-xl shadow-2xl border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-background rounded-xl shadow-2xl border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                   <Devices close={() => setShowDeviceList(false)} isDropdown />
                 </div>
               </>

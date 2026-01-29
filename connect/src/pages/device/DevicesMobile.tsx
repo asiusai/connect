@@ -55,7 +55,7 @@ export const DevicesMobile = () => {
       {open &&
         createPortal(
           <div className="fixed inset-0 z-999999 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="absolute top-0 left-0 w-full bg-surface rounded-b-3xl shadow-2xl overflow-hidden">
+            <div className="absolute top-0 left-0 w-full bg-background rounded-b-3xl shadow-2xl overflow-hidden">
               <Devices close={() => setOpen(false)} />
             </div>
             <div className="absolute inset-0 z-[-1]" onClick={() => setOpen(false)} />
