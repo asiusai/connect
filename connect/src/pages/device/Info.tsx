@@ -1,7 +1,7 @@
 import { api } from '../../api'
 import { DetailRow } from '../../components/DetailRow'
 import { useRouteParams } from '../../hooks'
-import { useStorage } from '../../utils/storage'
+import { useSettings } from '../../hooks/useSettings'
 import { env } from '../../../../shared/env'
 import { cn } from '../../../../shared/helpers'
 
@@ -11,7 +11,7 @@ export const Info = ({ className }: { className?: string }) => {
   const route = routes?.[0]
 
   // Automatically toggle if using correct fork
-  const { usingAsiusPilot, set } = useStorage()
+  const { usingAsiusPilot, set } = useSettings()
   if (usingAsiusPilot === undefined && route?.git_remote?.includes(env.FORK)) set({ usingAsiusPilot: true })
   if (!route) return null
   return (

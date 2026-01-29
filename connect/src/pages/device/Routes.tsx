@@ -9,7 +9,7 @@ import { Route, RouteSegment } from '../../../../shared/types'
 import { Link } from 'react-router-dom'
 import { getStartEndPlaceName } from '../../utils/map'
 import { useRouteParams } from '../../hooks'
-import { useStorage } from '../../utils/storage'
+import { useSettings } from '../../hooks/useSettings'
 import { getRouteStats, getTimelineEvents, RouteStats, TimelineEvent } from '../../utils/derived'
 import { cn, getRouteUrl } from '../../../../shared/helpers'
 
@@ -305,7 +305,7 @@ const Preserved = () => {
 }
 
 export const Routes = ({ className }: { className: string }) => {
-  const { routesType, set } = useStorage()
+  const { routesType, set } = useSettings()
 
   return (
     <div className={cn('relative flex flex-col', className)}>

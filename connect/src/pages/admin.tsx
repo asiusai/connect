@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { TopAppBar } from '../components/TopAppBar'
 import { BackButton } from '../components/BackButton'
-import { isSignedIn } from '../utils/helpers'
 import { Loading } from '../components/Loading'
 import {
   CheckIcon,
@@ -21,7 +20,8 @@ import {
 } from 'lucide-react'
 import { api, invalidate } from '../api'
 import { cn } from '../../../shared/helpers'
-import { useProvider } from '../utils/useProvider'
+import { useAuth } from '../hooks/useAuth'
+import { getProviderInfo } from '../../../shared/provider'
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return '0 B'
@@ -431,7 +431,8 @@ const SortHeader = ({
 }
 
 const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterChange: (f: FilesFilter) => void }) => {
-  const [provider] = useProvider()
+  const { provider } = useAuth()
+  const info = getProviderInfo(provider)
   const [filesData, { refetch }] = api.admin.files.useQuery({
     query: {
       limit: PAGE_SIZE,
@@ -458,7 +459,7 @@ const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterC
     error: 'bg-red-500/20 text-red-400',
   }
 
-  const getFileUrl = (key: string, sig: string) => `${provider.apiUrl}/connectdata/${key}?sig=${sig}`
+  const getFileUrl = (key: string, sig: string) => `${info.apiUrl}/connectdata/${key}?sig=${sig}`
 
   const handleDelete = async (key: string) => {
     if (!confirm(`Delete file ${key}? This cannot be undone.`)) return
@@ -1110,7 +1111,8 @@ const buildSearchParams = (
 }
 
 export const Component = () => {
-  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
+  const { token } = useAuth()
+  const [profile] = api.auth.me.useQuery({ enabled: !!token })
   const [searchParams, setSearchParams] = useSearchParams()
 
   const { tab: activeTab, usersFilter, devicesFilter, routesFilter, segmentsFilter, filesFilter } = parseSearchParams(searchParams)

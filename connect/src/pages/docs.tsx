@@ -2,8 +2,8 @@ import SwaggerUI from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
 import { generateOpenApi } from '@ts-rest/open-api'
 import { contract } from '../../../shared/contract'
-import { accessToken } from '../utils/helpers'
 import { Provider, PROVIDERS } from '../../../shared/provider'
+import { useAuth } from '../hooks/useAuth'
 
 const openApiDoc = generateOpenApi(
   contract,
@@ -122,7 +122,7 @@ const darkStyles = `
 `
 
 export const Component = () => {
-  const token = accessToken() ?? ''
+  const { token } = useAuth()
 
   return (
     <>

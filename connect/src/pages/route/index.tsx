@@ -12,7 +12,7 @@ import { Stats } from './Stats'
 import { Actions } from './Actions'
 import { formatDate, formatTime } from '../../utils/format'
 import { Info } from './Info'
-import { useStorage } from '../../utils/storage'
+import { useSettings } from '../../hooks/useSettings'
 import { PreviewProps } from '../../../../shared/types'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { useAthena } from '../../hooks/useAthena'
@@ -28,7 +28,7 @@ export const usePreviewProps = () => {
   const { routeName } = useRouteParams()
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [files] = useFiles(routeName, route)
-  const { largeCameraType, smallCameraType, logType, unitFormat, showPath } = useStorage()
+  const { largeCameraType, smallCameraType, logType, unitFormat, showPath } = useSettings()
 
   const props = useMemo<PreviewProps>(
     () => ({

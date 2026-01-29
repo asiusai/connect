@@ -14,7 +14,7 @@ type SavedAccount = {
 }
 
 const MOCK_SAVED_ACCOUNTS: SavedAccount[] = []
-
+console.log('helloss')
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
 const SavedAccounts = () => {

@@ -1,10 +1,9 @@
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../../../shared/types'
 import { Action } from '../pages/device/ActionBar'
 import { DEVICE_PARAMS, ParamType } from '../utils/params'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { create } from 'zustand'
 import { ZustandType } from '../../../shared/helpers'
-import { DEFAULT_PROVIDER, Provider } from '../../../shared/provider'
 
 const getDefaultUnitFormat = () => {
   if (typeof navigator === 'undefined') return 'metric'
@@ -18,9 +17,7 @@ const getDefaultTimeFormat = () => {
   return options.hourCycle?.startsWith('h1') ? '12h' : ('24h' satisfies TimeFormat)
 }
 
-type Login = { provider: Provider; token: string }
-
-const STORAGES = {
+const init = {
   actions: [
     { type: 'toggle', icon: 'power_settings_new', title: DEVICE_PARAMS.DoShutdown.label, toggleKey: 'DoShutdown', toggleType: ParamType.BOOL },
     { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: ParamType.BOOL },
@@ -28,7 +25,6 @@ const STORAGES = {
   ] satisfies Action[],
   usingAsiusPilot: undefined as boolean | undefined,
   playbackRate: 1 as number | undefined,
-  accessToken: undefined as string | undefined,
   lastDongleId: undefined as string | undefined,
   largeCameraType: 'qcameras' as CameraType,
   smallCameraType: undefined as CameraType | undefined,
@@ -42,8 +38,13 @@ const STORAGES = {
   joystickEnabled: false,
   unitFormat: getDefaultUnitFormat(),
   timeFormat: getDefaultTimeFormat(),
-  provider: DEFAULT_PROVIDER as Provider,
-  logins: [] as Login[],
 }
 
-export const useStorage = create(persist<ZustandType<typeof STORAGES>>((set) => ({ ...STORAGES, set }), { name: 'idk' }))
+export const useSettings = create(
+  persist<ZustandType<typeof init>>((set) => ({ ...init, set }), {
+    name: 'settings',
+    storage: createJSONStorage(() => localStorage),
+  }),
+)
+
+console.log(useSettings)

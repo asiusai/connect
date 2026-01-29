@@ -1,4 +1,4 @@
-import { useStorage } from '../../utils/storage'
+import { useSettings } from '../../hooks/useSettings'
 import { env } from '../../../../shared/env'
 import { cn } from '../../../../shared/helpers'
 
@@ -12,7 +12,7 @@ const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boole
 )
 
 export const Preferences = () => {
-  const { unitFormat, timeFormat, usingAsiusPilot, set } = useStorage()
+  const { unitFormat, timeFormat, usingAsiusPilot, set } = useSettings()
 
   return (
     <div className="flex flex-col gap-4">

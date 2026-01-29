@@ -1,11 +1,12 @@
 import { api } from '../api'
-import { isSignedIn } from '../utils/helpers'
 import { ButtonBase } from '../components/ButtonBase'
 import { CameraIcon, InfoIcon, PlusIcon } from 'lucide-react'
 import { TopAppBar } from '../components/TopAppBar'
+import { useAuth } from '../hooks/useAuth'
 
 export const Component = () => {
-  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
+  const { token } = useAuth()
+  const [profile] = api.auth.me.useQuery({ enabled: !!token })
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <TopAppBar>Welcome</TopAppBar>

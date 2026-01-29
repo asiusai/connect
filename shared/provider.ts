@@ -91,4 +91,4 @@ const asius: ProviderInfo = {
 
 export const PROVIDERS = { comma, konik, asius }
 
-export const getProvider = (mode: Provider = DEFAULT_PROVIDER) => PROVIDERS[mode]
+export const getProviderInfo = (mode: Provider) => PROVIDERS[mode]

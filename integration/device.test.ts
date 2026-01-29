@@ -3,13 +3,13 @@ import { join, dirname } from 'path'
 import jwt from 'jsonwebtoken'
 import { generateKeyPairSync } from 'crypto'
 import { describe, test, expect, beforeAll } from 'bun:test'
-import { getProvider, DEFAULT_PROVIDER } from '../shared/provider'
+import { getProviderInfo, DEFAULT_PROVIDER } from '../shared/provider'
 
 const EXAMPLE_DATA_DIR = join(dirname(import.meta.path), '../example-data')
 const ROUTE_ID = '0000002c--d68dde99ca'
 const SEGMENTS_COUNT = 3
 
-const provider = getProvider(DEFAULT_PROVIDER)
+const provider = getProviderInfo(DEFAULT_PROVIDER)
 
 const isKonik = provider.name === 'konik'
 

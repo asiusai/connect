@@ -1,4 +1,4 @@
-import { getProvider, Provider, PROVIDERS } from './provider'
+import { getProviderInfo, Provider, PROVIDERS } from './provider'
 import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles } from './types'
 import { twMerge } from 'tailwind-merge'
 
@@ -18,7 +18,7 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
 
 export const getQCameraUrl = (routeName: string, signature: RouteShareSignature, provider: Provider): string =>
-  `${getProvider(provider).apiUrl}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
+  `${getProviderInfo(provider).apiUrl}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
 
 export const findFile = (files: Files, type: FileType, segment: number) => files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
 

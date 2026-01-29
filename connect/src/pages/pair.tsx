@@ -7,7 +7,7 @@ import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
 import { Logo } from '../../../shared/components/Logo'
 import { Provider, PROVIDERS } from '../../../shared/provider'
-import { useProvider } from '../utils/useProvider'
+import { useAuth } from '../hooks/useAuth'
 
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -102,7 +102,7 @@ const Pairing = ({ token }: { token: string }) => {
 }
 const Err = ({ error }: { error: string }) => {
   const navigate = useNavigate()
-  const [provider, setProvider] = useProvider()
+  const { provider, setProvider } = useAuth()
   return (
     <div className="min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center p-4">
       <div className="bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full text-center">
@@ -118,11 +118,11 @@ const Err = ({ error }: { error: string }) => {
         </ButtonBase>
         <div className="flex flex-col gap-2 w-full">
           <p className="text-sm text-white/60">
-            Are you sure it was a <span className="text-error">{provider.name}</span> device? Try other providers:
+            Are you sure it was a <span className="text-error">{provider}</span> device? Try other providers:
           </p>
           <div className="flex gap-2 justify-center">
             {Provider.options
-              .filter((x) => x !== provider.name)
+              .filter((x) => x !== provider)
               .map((x) => (
                 <Button
                   key={x}

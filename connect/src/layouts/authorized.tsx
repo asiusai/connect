@@ -3,14 +3,14 @@ import { useLocation } from 'react-router-dom'
 import { api } from '../api'
 import { useRouteParams } from '../hooks'
 import { Sidebar } from '../components/Sidebar'
-import { useStorage } from '../utils/storage'
+import { useSettings } from '../hooks/useSettings'
 import { useEffect, useRef } from 'react'
-import { isSignedIn, signOut } from '../utils/helpers'
 import { useOffline } from '../hooks/useOffline'
+import { useAuth } from '../hooks/useAuth'
 
 const RedirectFromHome = () => {
   const [devices] = api.devices.devices.useQuery({})
-  const { lastDongleId, set } = useStorage()
+  const { lastDongleId, set } = useSettings()
 
   // Wait for the devices to load
   if (!devices) return null
@@ -28,9 +28,10 @@ const RedirectFromHome = () => {
 
 export const Component = () => {
   const location = useLocation()
-  const [_, { error, refetch }] = api.auth.me.useQuery({ enabled: isSignedIn() })
+  const { token, logOut } = useAuth()
+  const [_, { error, refetch }] = api.auth.me.useQuery({ enabled: !!token })
   const { dongleId } = useRouteParams()
-  const { lastDongleId, set } = useStorage()
+  const { lastDongleId, set } = useSettings()
   const errorCount = useRef(0)
 
   useEffect(() => {
@@ -43,11 +44,11 @@ export const Component = () => {
     if (!error || !isOnline) return
 
     errorCount.current++
-    if (errorCount.current >= 2) signOut()
+    if (errorCount.current >= 2) logOut()
     else refetch()
   }, [error, refetch, isOnline])
 
-  if (!isSignedIn()) return <Navigate to="/login" />
+  if (!token) return <Navigate to="/login" />
 
   // We never want them to be at /
   if (location.pathname.replace('/', '') === '') return <RedirectFromHome />

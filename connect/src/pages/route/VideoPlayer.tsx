@@ -28,7 +28,7 @@ import {
   XIcon,
 } from 'lucide-react'
 import { getTimelineEvents, TimelineEvent } from '../../utils/derived'
-import { useStorage } from '../../utils/storage'
+import { useSettings } from '../../hooks/useSettings'
 import { Route } from '../../../../shared/types'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
 
@@ -139,7 +139,7 @@ const SettingsMenu = () => {
 
   const title = view ? TITLES[view] : undefined
 
-  const { largeCameraType, smallCameraType, logType, playbackRate, showPath, set } = useStorage()
+  const { largeCameraType, smallCameraType, logType, playbackRate, showPath, set } = useSettings()
 
   return (
     <div className="absolute bottom-[120%] right-0 w-64 bg-[#1e1e1e]/95 backdrop-blur-sm border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 text-white animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -633,7 +633,7 @@ export const RouteVideoPlayer = ({ className, props }: { className?: string; pro
   const fullscreen = usePlayerStore((x) => x.fullscreen)
   const { start } = useRouteParams()
   const duration = getRouteDurationMs(route)! / 1000
-  const playbackRate = useStorage((x) => x.playbackRate)
+  const playbackRate = useSettings((x) => x.playbackRate)
 
   return (
     <div

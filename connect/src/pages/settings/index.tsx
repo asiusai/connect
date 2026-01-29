@@ -6,16 +6,17 @@ import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
 import { api } from '../../api'
-import { isSignedIn } from '../../utils/helpers'
 import { Button } from '../../components/Button'
 import { LogOutIcon } from 'lucide-react'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
-import { useProvider } from '../../utils/useProvider'
+import { useAuth } from '../../hooks/useAuth'
+import { getProviderInfo } from '../../../../shared/provider'
 
 export const Component = () => {
-  const [provider] = useProvider()
+  const { provider, token } = useAuth()
+  const info = getProviderInfo(provider)
   const { dongleId } = useRouteParams()
-  const [profile] = api.auth.me.useQuery({ enabled: isSignedIn() })
+  const [profile] = api.auth.me.useQuery({ enabled: !!token })
   const isOwner = useIsDeviceOwner()
 
   return (
@@ -25,7 +26,7 @@ export const Component = () => {
         {isOwner && <Device />}
         <Preferences />
         {isOwner && <Users />}
-        {!!provider.billingUrl && isOwner && <Prime />}
+        {!!info.billingUrl && isOwner && <Prime />}
 
         {profile && (
           <div className="flex flex-col gap-4">

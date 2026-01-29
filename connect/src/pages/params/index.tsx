@@ -1,6 +1,6 @@
 import { BackButton } from '../../components/BackButton'
 import { TopAppBar } from '../../components/TopAppBar'
-import { useStorage } from '../../utils/storage'
+import { useSettings } from '../../hooks/useSettings'
 import { useDevice } from '../../hooks/useDevice'
 import { Setting, Settings } from './Settings'
 import { SettingCategory, DeviceParam, DEVICE_PARAMS, DeviceParamKey, getParamType } from '../../utils/params'
@@ -31,7 +31,7 @@ const SectionHeader = ({ label, isOpen, onClick, count }: { label: string; isOpe
 export const Component = () => {
   const { dongleId } = useRouteParams()
   const { isError, get, saved } = useDevice()
-  const { togglesOpenTab, set: setOpenSection } = useStorage()
+  const { togglesOpenTab, set: setOpenSection } = useSettings()
 
   const settingsByCategory = useMemo(() => {
     if (!Object.keys(saved).length) return null

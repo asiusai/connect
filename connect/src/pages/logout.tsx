@@ -1,7 +1,8 @@
 import { Navigate } from 'react-router-dom'
-import { signOut } from '../utils/helpers'
+import { useAuth } from '../hooks/useAuth'
 
 export const Component = () => {
-  signOut()
+  const { logOut } = useAuth()
+  logOut()
   return <Navigate to="/login" />
 }

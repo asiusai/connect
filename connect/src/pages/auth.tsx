@@ -3,17 +3,17 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
 import { api } from '../api'
-import { setAccessToken } from '../utils/helpers'
 import { Logo } from '../../../shared/components/Logo'
-import { useProvider } from '../utils/useProvider'
+import { useAuth } from '../hooks/useAuth'
 
 export const Component = () => {
-  const [provider] = useProvider()
+  const { provider, logIn } = useAuth()
   const navigate = useNavigate()
   const [params] = useSearchParams()
+
   const { mutate, error } = api.auth.auth.useMutation({
     onSuccess: (data) => {
-      setAccessToken(data.access_token)
+      logIn(data.access_token)
       navigate('/')
     },
   })
@@ -30,8 +30,8 @@ export const Component = () => {
   return (
     <div className="flex min-h-screen max-w-lg flex-col gap-8 items-center mx-auto justify-center p-6">
       <div className="flex flex-col gap-4 items-center">
-        <Logo provider={provider.name} className="h-24 w-24" />
-        <h1 className="text-2xl">{provider.title}</h1>
+        <Logo provider={provider} className="h-24 w-24" />
+        <h1 className="text-2xl">{provider} connect</h1>
       </div>
       {error ? (
         <>
