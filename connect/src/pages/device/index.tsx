@@ -7,7 +7,7 @@ import { Info } from './Info'
 import { ActionBar } from './ActionBar'
 import { Navigation } from './Navigation'
 import { useRouteParams, useScroll } from '../../hooks'
-import { DevicesMobile } from './DevicesMobile'
+import { AccountSwitcherMobile, DevicesMobile } from './DevicesMobile'
 import { Navigate } from 'react-router-dom'
 
 export const Component = () => {
@@ -28,6 +28,7 @@ export const Component = () => {
         <div className="absolute z-999 top-0 w-full p-4 md:hidden">
           <div className="flex justify-between items-start gap-2 w-full">
             <DevicesMobile />
+            <AccountSwitcherMobile />
           </div>
         </div>
         <div className="pointer-events-none absolute inset-0 bg-background z-999" style={{ opacity: scroll / height }} />

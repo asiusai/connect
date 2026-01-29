@@ -5,18 +5,14 @@ import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
-import { api } from '../../api'
-import { Button } from '../../components/Button'
-import { LogOutIcon } from 'lucide-react'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { useAuth } from '../../hooks/useAuth'
 import { getProviderInfo } from '../../../../shared/provider'
 
 export const Component = () => {
-  const { provider, token } = useAuth()
+  const { provider } = useAuth()
   const info = getProviderInfo(provider)
   const { dongleId } = useRouteParams()
-  const [profile] = api.auth.me.useQuery({ enabled: !!token })
   const isOwner = useIsDeviceOwner()
 
   return (
@@ -27,21 +23,6 @@ export const Component = () => {
         <Preferences />
         {isOwner && <Users />}
         {!!info.billingUrl && isOwner && <Prime />}
-
-        {profile && (
-          <div className="flex flex-col gap-4">
-            <h2 className="text-xl font-bold px-2">Account</h2>
-            <div className="bg-background-alt rounded-xl p-4 flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="font-medium">{profile.email ?? profile.id}</span>
-                <span className="text-xs text-white/60">Signed in</span>
-              </div>
-              <Button href="/logout" color="error" leading={<LogOutIcon />}>
-                Log out
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
