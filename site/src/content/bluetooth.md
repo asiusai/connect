@@ -181,7 +181,7 @@ sudo btattach -B /dev/ttyHS1 -S 115200 &
 sleep 2
 
 # Start the BLE server
-python3 /data/openpilot/system/athena/ble_server.py
+python3 /data/openpilot/system/athena/ble.py
 ```
 
 Output:
@@ -207,7 +207,7 @@ Requires=bluetooth.service
 [Service]
 Type=simple
 ExecStartPre=/usr/bin/btattach -B /dev/ttyHS1 -S 115200
-ExecStart=/usr/bin/python3 /data/openpilot/system/athena/ble_server.py
+ExecStart=/usr/bin/python3 /data/openpilot/system/athena/ble.py
 Restart=on-failure
 RestartSec=5
 
@@ -371,7 +371,7 @@ Use `hcitool scan` instead of `bluetoothctl scan` - it uses classic BR/EDR disco
 - `agnos-kernel-sdm845/arch/arm64/boot/dts/qcom/comma_common.dtsi` - Bluetooth UART enable
 
 ### openpilot Changes
-- `system/athena/ble_server.py` - BLE GATT server for remote control
+- `system/athena/ble.py` - BLE GATT server for remote control
 
 ### Connect Site
 - `public/ble-test.html` - Web Bluetooth test page

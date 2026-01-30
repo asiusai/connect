@@ -9,8 +9,8 @@
     "jsxImportSource": "react",
     "allowJs": true,
     "noEmit": true,
+    "types": ["bun", "web-bluetooth"],
     "strict": true,
-    "types": ["bun"],
     "skipLibCheck": true,
     "incremental": true
   },

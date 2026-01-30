@@ -13,6 +13,7 @@
         "@types/react": "19.2.3",
         "@types/react-dom": "19.2.3",
         "@types/ssh2": "^1.15.5",
+        "@types/web-bluetooth": "^0.0.21",
         "jsonwebtoken": "^9.0.3",
         "playwright": "^1.57.0",
         "react": "19.2.3",
@@ -92,6 +93,7 @@
         "@types/geojson": "^7946.0.16",
         "@types/leaflet": "^1.9.21",
         "@types/mapbox__polyline": "^1.0.5",
+        "@types/web-bluetooth": "^0.0.21",
         "@vite-pwa/assets-generator": "^1.0.0",
         "@vitest/browser": "^3.1.1",
         "autoprefixer": "^10.4.21",
@@ -1311,6 +1313,8 @@
     "@types/unist": ["@types/unist@3.0.3", "", {}, "sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q=="],
 
     "@types/use-sync-external-store": ["@types/use-sync-external-store@0.0.6", "", {}, "sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg=="],
+
+    "@types/web-bluetooth": ["@types/web-bluetooth@0.0.21", "", {}, "sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA=="],
 
     "@types/ws": ["@types/ws@8.18.1", "", { "dependencies": { "@types/node": "*" } }, "sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg=="],
 
