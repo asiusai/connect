@@ -16,7 +16,7 @@ export class Bluetooth {
   responseChar?: BluetoothRemoteGATTCharacteristic
   responseBuffer = ''
   requestId = 0
-  response?: string
+  pendingRequests = new Map<number, (value: any) => void>()
 
   connect = async () => {
     if (!navigator.bluetooth) {
@@ -47,23 +47,7 @@ export class Bluetooth {
       log('Starting notifications...')
       await this.responseChar.startNotifications()
 
-      const handleResponse = (event: Event) => {
-        const target = event.target as BluetoothRemoteGATTCharacteristic
-        const decoder = new TextDecoder('utf-8')
-        const chunk = decoder.decode(target.value)
-
-        this.responseBuffer += chunk
-
-        try {
-          const response = JSON.parse(this.responseBuffer)
-          log('Response received')
-          this.response = JSON.stringify(response, null, 2)
-          this.responseBuffer = ''
-        } catch {
-          // Incomplete JSON, wait for more
-        }
-      }
-      this.responseChar.addEventListener('characteristicvaluechanged', handleResponse)
+      this.responseChar.addEventListener('characteristicvaluechanged', this.handleResponse)
 
       log('Connected!')
       this.status = 'connected'
@@ -72,7 +56,27 @@ export class Bluetooth {
       console.error(e)
     }
   }
+  handleResponse = (event: Event) => {
+    const target = event.target as BluetoothRemoteGATTCharacteristic
+    const decoder = new TextDecoder('utf-8')
+    const chunk = decoder.decode(target.value)
 
+    this.responseBuffer += chunk
+
+    try {
+      const response = JSON.parse(this.responseBuffer)
+      log('Response received')
+      this.responseBuffer = ''
+
+      const resolve = this.pendingRequests.get(response.id)
+      if (resolve) {
+        resolve(response.result)
+        this.pendingRequests.delete(response.id)
+      }
+    } catch {
+      // Incomplete JSON, wait for more
+    }
+  }
   disconnect = async () => {
     if (this.device?.gatt?.connected) this.device.gatt.disconnect()
 
@@ -96,6 +100,10 @@ export class Bluetooth {
     const json = JSON.stringify(request)
     log(`Calling ${method}...`)
 
+    const responsePromise = new Promise<AthenaResponse<T>>((resolve) => {
+      this.pendingRequests.set(this.requestId, resolve)
+    })
+
     try {
       const encoder = new TextEncoder()
       const data = encoder.encode(json)
@@ -105,8 +113,11 @@ export class Bluetooth {
         const chunk = data.slice(i, i + MTU)
         await this.requestChar.writeValue(chunk)
       }
+
+      return await responsePromise
     } catch (error) {
       log(`Error: ${(error as Error).message}`)
+      this.pendingRequests.delete(this.requestId)
     }
   }
 }
@@ -127,10 +138,11 @@ export const Component = () => {
   const call: typeof ble.call = async (method, params) => {
     const res = await ble.call(method, params)
     console.log(res)
-    setResponse(JSON.stringify(res))
+    setResponse(JSON.stringify(res, null, 2))
     return res
   }
 
+  const isConnected = status === 'connected'
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-white p-5">
       <div className="max-w-150 mx-auto">
@@ -141,14 +153,14 @@ export const Component = () => {
         <div className="mb-5">
           <button
             onClick={connect}
-            disabled={status !== 'disconnected'}
+            disabled={isConnected}
             className="bg-[#4ade80] text-black border-none px-6 py-3 text-base rounded-lg cursor-pointer m-1.5 hover:bg-[#22c55e] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
           >
             New Device
           </button>
           <button
             onClick={disconnect}
-            disabled={status === 'disconnected'}
+            disabled={!isConnected}
             className="bg-[#4ade80] text-black border-none px-6 py-3 text-base rounded-lg cursor-pointer m-1.5 hover:bg-[#22c55e] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
           >
             Disconnect
@@ -160,24 +172,28 @@ export const Component = () => {
           <button
             className="bg-[#3b82f6] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#2563eb] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
             onClick={() => call('getVersion', undefined)}
+            disabled={!isConnected}
           >
             getVersion
           </button>
           <button
             className="bg-[#3b82f6] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#2563eb] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
             onClick={() => call('getNetworkType', undefined)}
+            disabled={!isConnected}
           >
             getNetworkType
           </button>
           <button
             className="bg-[#3b82f6] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#2563eb] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
             onClick={() => call('getNetworkMetered', undefined)}
+            disabled={!isConnected}
           >
             getNetworkMetered
           </button>
           <button
             className="bg-[#3b82f6] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#2563eb] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
             onClick={() => call('getNetworks', undefined)}
+            disabled={!isConnected}
           >
             getNetworks
           </button>
@@ -188,18 +204,21 @@ export const Component = () => {
           <button
             className="bg-[#3b82f6] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#2563eb] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
             onClick={() => call('getPublicKey', undefined)}
+            disabled={!isConnected}
           >
             getPublicKey
           </button>
           <button
             className="bg-[#3b82f6] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#2563eb] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
             onClick={() => call('getGithubUsername', undefined)}
+            disabled={!isConnected}
           >
             getGithubUsername
           </button>
           <button
             className="bg-[#3b82f6] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#2563eb] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
             onClick={() => call('getSimInfo', undefined)}
+            disabled={!isConnected}
           >
             getSimInfo
           </button>
@@ -210,6 +229,7 @@ export const Component = () => {
           <button
             className="bg-[#3b82f6] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#2563eb] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
             onClick={() => call('getAllParams', undefined)}
+            disabled={!isConnected}
           >
             getAllParams
           </button>
