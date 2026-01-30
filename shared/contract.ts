@@ -93,6 +93,7 @@ const devices = c.router({
       serial: z.string(),
       public_key: z.string(),
       register_token: z.string(),
+      device_type: z.string().optional(),
     }),
     body: c.noBody(),
     responses: {
