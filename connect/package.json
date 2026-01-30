@@ -15,12 +15,18 @@
     "templates:dev": "remotion studio src/templates/index.ts",
     "templates:build": "remotion bundle src/templates/index.ts",
     "templates:render": "bun render.ts",
-    "api": "bun run api/index.ts"
+    "api": "bun run api/index.ts",
+    "android:sync": "bunx cap sync android",
+    "android:build": "cd android && ./gradlew assembleDebug",
+    "android:run": "cd android && ./gradlew installDebug"
   },
   "packageManager": "bun@1.2.9",
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "2.2.3",
+    "@capacitor/android": "^8.0.2",
+    "@capacitor/cli": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
     "@types/bun": "^1.2.9",
     "@types/debug": "^4.1.12",
     "@types/geojson": "^7946.0.16",
