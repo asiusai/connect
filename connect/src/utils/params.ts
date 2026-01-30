@@ -489,14 +489,6 @@ export const DEVICE_PARAMS = {
     icon: 'flash_on',
     type: ParamType.INT,
   },
-  TeslaCoopSteering: {
-    label: 'Tesla Coop Steering',
-    description: 'Allow driver steering input',
-    category: 'steering',
-    icon: 'pan_tool',
-    advanced: true,
-    type: ParamType.BOOL,
-  },
   LiveTorqueParameters: {
     label: 'Live Torque Params',
     description: 'Current torque parameters',

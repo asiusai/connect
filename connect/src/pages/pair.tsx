@@ -1,4 +1,4 @@
-import QrScanner from 'qr-scanner'
+import { BarcodeDetector } from 'barcode-detector/ponyfill'
 
 import { ButtonBase } from '../components/ButtonBase'
 import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
@@ -14,25 +14,75 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 
 const Scanning = () => {
-  let videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const navigate = useNavigate()
+  const scanningRef = useRef(false)
+  const streamRef = useRef<MediaStream | undefined>(undefined)
+  const detectorRef = useRef<BarcodeDetector | undefined>(undefined)
+  const scanFrameIdRef = useRef<number | undefined>(undefined)
 
   useEffect(() => {
-    if (!videoRef.current) return
-    const qrScanner = new QrScanner(
-      videoRef.current,
-      (result) => {
-        const token = new URL(result.data).searchParams.get('pair')
-        navigate(`/pair?pair=${token}`)
-      },
-      {},
-    )
-    void qrScanner.start().catch((reason) => {
-      console.error('Error starting QR scanner', reason)
-      navigate(`/pair?error=QR code scanner failed`)
-    })
-    return () => qrScanner.destroy()
-  }, [videoRef.current])
+    const startScanning = async () => {
+      if (!videoRef.current) return
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+        })
+        streamRef.current = stream
+        videoRef.current.srcObject = stream
+
+        const detector = new BarcodeDetector({ formats: ['qr_code'] })
+        detectorRef.current = detector
+        scanningRef.current = true
+
+        const scanFrame = async () => {
+          if (!scanningRef.current || !videoRef.current || !detectorRef.current) return
+
+          try {
+            const results = await detectorRef.current.detect(videoRef.current)
+            if (results.length > 0) {
+              const token = new URL(results[0].rawValue).searchParams.get('pair')
+              navigate(`/pair?pair=${token}`)
+              return
+            }
+          } catch (e) {
+            console.warn(e)
+            // Ignore detection errors, continue scanning
+          }
+
+          scanFrameIdRef.current = requestAnimationFrame(scanFrame)
+        }
+
+        // Wait for video to be ready before starting detection
+        await videoRef.current.play()
+        scanFrame()
+      } catch (error) {
+        console.error('Error starting QR scanner', error)
+        if ((error as Error).name === 'NotAllowedError') {
+          navigate(`/pair?error=Camera permission denied`)
+        } else if ((error as Error).name === 'NotFoundError') {
+          navigate(`/pair?error=No camera found`)
+        } else if ((error as Error).name === 'NotReadableError') {
+          navigate(`/pair?error=Camera is in use by another application`)
+        } else {
+          navigate(`/pair?error=QR code scanner failed`)
+        }
+      }
+    }
+
+    startScanning()
+
+    return () => {
+      scanningRef.current = false
+      if (scanFrameIdRef.current !== undefined) {
+        cancelAnimationFrame(scanFrameIdRef.current)
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+      }
+    }
+  }, [])
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 gap-8">
