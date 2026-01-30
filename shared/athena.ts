@@ -144,7 +144,7 @@ export const ATHENA_METHODS = {
     result: z.object({ success: z.number() }),
   },
   getAllParams: {
-    params: z.object({}),
+    params: z.void(),
     result: z.record(z.any()),
   },
   saveParams: {

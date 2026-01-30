@@ -28,7 +28,7 @@ export const useDevice = () => {
     if (initialized) return
     set({ isLoading: true, isError: false, initialized: true })
 
-    const res = await athena('getAllParams', {})
+    const res = await athena('getAllParams', undefined)
     if (res?.error || !res?.result) return set({ saved: {}, isLoading: false, isError: true })
     set({
       saved: res.result,
