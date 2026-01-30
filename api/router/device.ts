@@ -102,9 +102,6 @@ export const device = tsr.routerWithMiddleware(contract.device)<{ userId?: strin
       },
     }
   }),
-  firehoseStats: deviceMiddleware(async () => {
-    return { status: 200, body: { firehose: 0 } }
-  }),
 
   // OWNER
   set: deviceMiddleware(async ({ body }, { device, permission, identity }) => {

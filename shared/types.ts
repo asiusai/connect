@@ -29,7 +29,7 @@ export const DeviceLocation = z.object({
 
 const NAMES: Record<string, string> = {
   four: 'comma four',
-  mici: 'comma 3',
+  mici: 'comma four',
 
   threex: 'comma 3X',
   tizi: 'comma 3X',

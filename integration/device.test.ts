@@ -126,12 +126,6 @@ describe(`Device Integration (${provider.name})`, () => {
       expect(res.data?.alias).toBe(`Test ${dongleId}`)
     })
 
-    test.skipIf(isKonik)('firehose stats', async () => {
-      const res = await apiGet(`/v1/devices/${dongleId}/firehose_stats`, deviceToken)
-      expect(res.status).toBe(200)
-      expect(typeof res.data?.firehose).toBe('number')
-    })
-
     test.skipIf(isKonik)('location', async () => {
       const res = await apiGet(`/v1/devices/${dongleId}/location`, deviceToken)
       expect(res.status).toBe(200)

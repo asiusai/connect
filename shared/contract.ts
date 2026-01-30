@@ -171,14 +171,6 @@ const device = c.router({
       200: z.string().array(),
     },
   },
-  firehoseStats: {
-    method: 'GET',
-    path: '/v1/devices/:dongleId/firehose_stats',
-    pathParams: z.object({ dongleId: z.string() }),
-    responses: {
-      200: z.object({ firehose: z.number() }),
-    },
-  },
   uploadFiles: {
     method: 'POST',
     path: '/v1/:dongleId/upload_urls/',
