@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AthenaParams, AthenaRequest, AthenaResponse } from '../../../shared/athena'
 
 const SERVICE_UUID = 'a51a5a10-0001-4c0d-b8e6-a51a5a100001'
@@ -29,6 +29,29 @@ export class Bluetooth {
   clientId = getClientId()
   isPaired = false
 
+  autoConnect = async () => {
+    if (!navigator.bluetooth) {
+      this.status = 'not-supported'
+      return
+    }
+
+    try {
+      const devices = await navigator.bluetooth.getDevices()
+      const device = devices.find((d) => d.name?.startsWith('comma-'))
+
+      if (!device) {
+        log('No paired device found')
+        return
+      }
+
+      this.device = device
+      await this.connectToDevice()
+    } catch (e) {
+      log('Auto-connect failed, use "New Device" button')
+      console.error(e)
+    }
+  }
+
   connect = async () => {
     if (!navigator.bluetooth) {
       this.status = 'not-supported'
@@ -42,11 +65,24 @@ export class Bluetooth {
         optionalServices: [SERVICE_UUID],
       })
 
+      await this.connectToDevice()
+    } catch (e) {
+      this.status = 'disconnected'
+      console.error(e)
+    }
+  }
+
+  connectToDevice = async () => {
+    if (!this.device) return
+
+    try {
+      this.status = 'connecting'
+
       this.device.addEventListener('gattserverdisconnected', () => {
         this.status = 'disconnected'
       })
 
-      this.server = await this.device!.gatt!.connect()
+      this.server = await this.device.gatt!.connect()
 
       log('Getting Athena service...')
       const service = await this.server.getPrimaryService(SERVICE_UUID)
@@ -62,6 +98,7 @@ export class Bluetooth {
 
       log('Connected!')
       this.status = 'connected'
+      this.isPaired = true
     } catch (e) {
       this.status = 'disconnected'
       console.error(e)
@@ -165,6 +202,14 @@ export const Component = () => {
   const [response, setResponse] = useState('-')
   const [pairingCode, setPairingCode] = useState('')
   const [showPairing, setShowPairing] = useState(false)
+
+  useEffect(() => {
+    const init = async () => {
+      await ble.autoConnect()
+      setStatus(ble.status)
+    }
+    init()
+  }, [])
 
   const connect = async () => {
     await ble.connect()
