@@ -153,6 +153,42 @@ const REQUESTS = {
     }),
     result: z.record(z.string()),
   },
+  connectBluetoothPAN: {
+    params: z.object({
+      phone_mac: z.string(),
+    }),
+    result: z.object({
+      success: z.boolean(),
+      interface: z.string().optional(),
+      ip: z.string().optional(),
+      error: z.string().optional(),
+    }),
+  },
+  disconnectBluetoothPAN: {
+    params: z.void(),
+    result: z.object({
+      success: z.boolean(),
+    }),
+  },
+  getBluetoothPANStatus: {
+    params: z.void(),
+    result: z.object({
+      connected: z.boolean(),
+      interface: z.string().optional(),
+      ip: z.string().optional(),
+      phone_mac: z.string().optional(),
+    }),
+  },
+  connectToWifi: {
+    params: z.object({
+      ssid: z.string(),
+      password: z.string(),
+    }),
+    result: z.object({
+      success: z.boolean(),
+      error: z.string().optional(),
+    }),
+  },
 }
 
 export type AthenaRequest = keyof typeof REQUESTS

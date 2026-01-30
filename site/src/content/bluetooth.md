@@ -8,7 +8,8 @@ description: Bluetooth connectivity for comma devices
 This guide covers Bluetooth connectivity on comma 3X devices running AGNOS, including:
 1. Building a Bluetooth-enabled kernel
 2. BLE GATT server for remote control without network
-3. Bluetooth gamepad support
+3. Network sharing over Bluetooth (PAN + WiFi)
+4. Bluetooth gamepad support
 
 ## Overview
 
@@ -172,6 +173,10 @@ The BLE GATT server exposes device control over Bluetooth Low Energy, allowing y
 | `getNetworkType` | Get current network type |
 | `reboot` | Reboot the device |
 | `shutdown` | Shutdown the device |
+| `connectBluetoothPAN` | Connect to phone's BT tethering |
+| `disconnectBluetoothPAN` | Disconnect from BT PAN |
+| `getBluetoothPANStatus` | Check BT PAN connection status |
+| `connectToWifi` | Connect to WiFi network/hotspot |
 
 ### Starting the BLE Server
 
@@ -269,7 +274,144 @@ await requestChar.writeValue(new TextEncoder().encode(request));
 
 ---
 
-## Part 6: Bluetooth Gamepad (PS5 DualSense)
+## Part 6: Network Sharing over Bluetooth
+
+Share your phone's internet with the comma device over Bluetooth, no WiFi hotspot needed.
+
+### Option A: Bluetooth PAN (Recommended)
+
+Uses classic Bluetooth PAN profile (BNEP) — the kernel already has `CONFIG_BT_BNEP=y`.
+
+**Phone setup (one-time):**
+1. Go to Android Settings > Connections > Mobile Hotspot and Tethering
+2. Enable **Bluetooth tethering**
+3. Note your phone's Bluetooth MAC address (Settings > About phone > Bluetooth address)
+
+**Device side — add to `ble.py`:**
+
+```python
+import subprocess
+import dbus
+
+def handle_connect_bluetooth_pan(params):
+    """Connect to phone's Bluetooth PAN for internet sharing."""
+    phone_mac = params["phone_mac"]
+    device_path = f"/org/bluez/hci0/dev_{phone_mac.replace(':', '_')}"
+
+    bus = dbus.SystemBus()
+
+    # Trust and pair with the phone
+    device = dbus.Interface(
+        bus.get_object("org.bluez", device_path),
+        "org.bluez.Device1",
+    )
+    props = dbus.Interface(
+        bus.get_object("org.bluez", device_path),
+        "org.freedesktop.DBus.Properties",
+    )
+    props.Set("org.bluez.Device1", "Trusted", dbus.Boolean(True))
+
+    try:
+        device.Pair()
+    except dbus.exceptions.DBusException as e:
+        if "AlreadyExists" not in str(e):
+            return {"success": False, "error": str(e)}
+
+    # Connect to Network Access Point profile
+    network = dbus.Interface(
+        bus.get_object("org.bluez", device_path),
+        "org.bluez.Network1",
+    )
+    interface = str(network.Connect("nap"))  # returns "bnep0"
+
+    # Get IP via DHCP
+    subprocess.run(["sudo", "dhclient", interface], timeout=15, check=True)
+
+    # Read assigned IP
+    result = subprocess.run(
+        ["ip", "-4", "addr", "show", interface],
+        capture_output=True, text=True,
+    )
+    ip = ""
+    for line in result.stdout.split("\n"):
+        if "inet " in line:
+            ip = line.strip().split()[1].split("/")[0]
+
+    return {"success": True, "interface": interface, "ip": ip}
+
+
+def handle_disconnect_bluetooth_pan(_params):
+    """Disconnect from Bluetooth PAN."""
+    subprocess.run(["sudo", "ip", "link", "set", "bnep0", "down"], check=False)
+    subprocess.run(["sudo", "dhclient", "-r", "bnep0"], check=False)
+    return {"success": True}
+
+
+def handle_get_bluetooth_pan_status(_params):
+    """Check Bluetooth PAN connection status."""
+    result = subprocess.run(
+        ["ip", "-4", "addr", "show", "bnep0"],
+        capture_output=True, text=True,
+    )
+    connected = result.returncode == 0 and "inet " in result.stdout
+    ip = ""
+    if connected:
+        for line in result.stdout.split("\n"):
+            if "inet " in line:
+                ip = line.strip().split()[1].split("/")[0]
+    return {"connected": connected, "interface": "bnep0" if connected else None, "ip": ip or None}
+```
+
+Register these handlers in your BLE RPC dispatch:
+```python
+METHOD_HANDLERS = {
+    # ... existing handlers ...
+    "connectBluetoothPAN": handle_connect_bluetooth_pan,
+    "disconnectBluetoothPAN": handle_disconnect_bluetooth_pan,
+    "getBluetoothPANStatus": handle_get_bluetooth_pan_status,
+}
+```
+
+### Option B: WiFi Credential Sharing via BLE
+
+Send hotspot credentials over BLE and the device connects to your WiFi hotspot.
+
+**Device side — add to `ble.py`:**
+
+```python
+import subprocess
+
+def handle_connect_to_wifi(params):
+    """Connect to a WiFi network using NetworkManager."""
+    ssid = params["ssid"]
+    password = params["password"]
+
+    # Delete existing connection with same SSID if any
+    subprocess.run(
+        ["sudo", "nmcli", "connection", "delete", ssid],
+        capture_output=True, check=False,
+    )
+
+    result = subprocess.run(
+        ["sudo", "nmcli", "device", "wifi", "connect", ssid, "password", password],
+        capture_output=True, text=True,
+    )
+
+    if result.returncode == 0:
+        return {"success": True}
+    return {"success": False, "error": result.stderr.strip()}
+```
+
+### Usage from BLE Web Interface
+
+1. Connect to your comma device via BLE
+2. Under **Network Sharing**, click:
+   - **Connect BT PAN** — enter your phone's Bluetooth MAC, device connects to your phone's BT tethering
+   - **Connect WiFi** — enter hotspot SSID/password, device connects to your phone's WiFi hotspot
+
+---
+
+## Part 7: Bluetooth Gamepad (PS5 DualSense)
 
 ### Pairing the Controller
 

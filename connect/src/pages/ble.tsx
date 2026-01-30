@@ -4,6 +4,9 @@ const SERVICE_UUID = 'a51a5a10-0001-4c0d-b8e6-a51a5a100001'
 const RPC_REQUEST_UUID = 'a51a5a10-0002-4c0d-b8e6-a51a5a100001'
 const RPC_RESPONSE_UUID = 'a51a5a10-0003-4c0d-b8e6-a51a5a100001'
 
+const LS_PHONE_MAC_KEY = 'ble_phone_mac'
+const LS_HOTSPOT_SSID_KEY = 'ble_hotspot_ssid'
+
 type ConnectionStatus = 'disconnected' | 'connecting' | 'connected'
 
 export const Component = () => {
@@ -234,6 +237,24 @@ export const Component = () => {
     }
   }, [])
 
+  const connectBluetoothPAN = () => {
+    const saved = localStorage.getItem(LS_PHONE_MAC_KEY) || ''
+    const mac = prompt('Phone Bluetooth MAC address:', saved)
+    if (!mac) return
+    localStorage.setItem(LS_PHONE_MAC_KEY, mac)
+    callMethod('connectBluetoothPAN', { phone_mac: mac })
+  }
+
+  const connectToWifi = () => {
+    const savedSsid = localStorage.getItem(LS_HOTSPOT_SSID_KEY) || ''
+    const ssid = prompt('WiFi / Hotspot SSID:', savedSsid)
+    if (!ssid) return
+    localStorage.setItem(LS_HOTSPOT_SSID_KEY, ssid)
+    const password = prompt('Password:')
+    if (password === null) return
+    callMethod('connectToWifi', { ssid, password })
+  }
+
   const isConnected = status === 'connected'
   const isBluetoothSupported = !!navigator.bluetooth
 
@@ -295,6 +316,38 @@ export const Component = () => {
             disabled={!isConnected}
           >
             getNetworks
+          </button>
+        </div>
+
+        <div className="my-5">
+          <h3 className="mt-5 mb-2.5">Network Sharing</h3>
+          <button
+            className="bg-[#a855f7] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#9333ea] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
+            onClick={connectBluetoothPAN}
+            disabled={!isConnected}
+          >
+            Connect BT PAN
+          </button>
+          <button
+            className="bg-[#a855f7] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#9333ea] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
+            onClick={() => callMethod('getBluetoothPANStatus', {})}
+            disabled={!isConnected}
+          >
+            PAN Status
+          </button>
+          <button
+            className="bg-[#a855f7] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#9333ea] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
+            onClick={() => callMethod('disconnectBluetoothPAN', {})}
+            disabled={!isConnected}
+          >
+            Disconnect PAN
+          </button>
+          <button
+            className="bg-[#a855f7] text-white border-none px-4 py-2 text-sm rounded-lg cursor-pointer m-1 hover:bg-[#9333ea] disabled:bg-[#666] disabled:text-[#999] disabled:cursor-not-allowed"
+            onClick={connectToWifi}
+            disabled={!isConnected}
+          >
+            Connect WiFi
           </button>
         </div>
 
