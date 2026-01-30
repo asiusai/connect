@@ -5,6 +5,7 @@ import { Prime } from './Prime'
 import { Preferences } from './Preferences'
 import { Users } from './Users'
 import { Device } from './Device'
+import { ClearCache } from './ClearCache'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { useAuth } from '../../hooks/useAuth'
 import { getProviderInfo } from '../../../../shared/provider'
@@ -23,6 +24,7 @@ export const Component = () => {
         <Preferences />
         {isOwner && <Users />}
         {!!info.billingUrl && isOwner && <Prime />}
+        <ClearCache />
       </div>
     </div>
   )

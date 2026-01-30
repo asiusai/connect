@@ -8,7 +8,7 @@ export const Users = () => {
   const { dongleId } = useRouteParams()
 
   let [users, { refetch }] = api.users.get.useQuery({ params: { dongleId } })
-  console.log(users)
+
   // needed for Konik API
   if (users && typeof users === 'object' && 'users' in users) users = users.users as any
 
