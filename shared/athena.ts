@@ -24,7 +24,7 @@ export const UploadQueueItem = z.object({
 })
 export type UploadQueueItem = z.infer<typeof UploadQueueItem>
 
-const REQUESTS = {
+export const ATHENA_METHODS = {
   echo: {
     params: z.object({ s: z.string() }),
     result: z.string(),
@@ -155,27 +155,27 @@ const REQUESTS = {
   },
 }
 
-export type AthenaRequest = keyof typeof REQUESTS
-export type AthenaParams<T extends AthenaRequest> = z.infer<(typeof REQUESTS)[T]['params']>
-export type AthenaResult<T extends AthenaRequest> = z.infer<(typeof REQUESTS)[T]['result']>
+export type AthenaRequest = keyof typeof ATHENA_METHODS
+export type AthenaParams<T extends AthenaRequest> = z.infer<(typeof ATHENA_METHODS)[T]['params']>
+export type AthenaResult<T extends AthenaRequest> = z.infer<(typeof ATHENA_METHODS)[T]['result']>
 export type AthenaResponse<T extends AthenaRequest> = { error?: AthenaError; result?: AthenaResult<T> }
 
-export const callAthena = async <T extends AthenaRequest>({
-  type,
+export const fetchAthena = async <T extends AthenaRequest>({
+  method,
   params,
   dongleId,
   expiry,
   token,
   provider,
 }: {
-  type: T
+  method: T
   params: AthenaParams<T>
   dongleId: string
   expiry?: number
   token: string | undefined
   provider: Provider
 }): Promise<AthenaResponse<T> | undefined> => {
-  const parse = REQUESTS[type].params.safeParse(params)
+  const parse = ATHENA_METHODS[method].params.safeParse(params)
   if (!parse.success) console.error(parse.error)
 
   const providerInfo = getProviderInfo(provider)
@@ -186,7 +186,7 @@ export const callAthena = async <T extends AthenaRequest>({
     body: JSON.stringify({
       id: 0,
       jsonrpc: '2.0',
-      method: type,
+      method: method,
       params,
       expiry,
     }),
@@ -206,7 +206,7 @@ export const callAthena = async <T extends AthenaRequest>({
     return z
       .object({
         error: AthenaError.optional(),
-        result: REQUESTS[type].result.optional(),
+        result: ATHENA_METHODS[method].result.optional(),
       })
       .parse(await res.json())
 }

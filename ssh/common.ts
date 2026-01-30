@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { decryptToken } from '../shared/encryption'
-import { callAthena } from '../shared/athena'
+import { fetchAthena } from '../shared/athena'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222
 export const INTERNAL_HOST = '127.0.0.1'
@@ -46,18 +46,18 @@ export const parseUsername = (username: string): Auth | undefined => {
 export const randomId = () => crypto.randomUUID()
 
 export const startLocalProxy = async (auth: Auth, sessionId: string) => {
-  const res = await callAthena({
+  const res = await fetchAthena({
     ...auth,
-    type: 'startLocalProxy',
+    method: 'startLocalProxy',
     params: { remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`, local_port: 22 },
   })
   return res?.result
 }
 
 export const getAuthorizedKeys = async (auth: Auth) => {
-  const res = await callAthena({
+  const res = await fetchAthena({
     ...auth,
-    type: 'getSshAuthorizedKeys',
+    method: 'getSshAuthorizedKeys',
     params: undefined,
   })
   return res?.result?.trim().split('\n').filter(Boolean)
