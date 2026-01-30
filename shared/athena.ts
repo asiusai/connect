@@ -153,6 +153,13 @@ export const ATHENA_METHODS = {
     }),
     result: z.record(z.string()),
   },
+  blePair: {
+    params: z.object({
+      code: z.string(),
+      client_id: z.string(),
+    }),
+    result: z.object({ success: z.boolean() }),
+  },
 }
 
 export type AthenaRequest = keyof typeof ATHENA_METHODS
