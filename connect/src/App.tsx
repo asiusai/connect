@@ -42,11 +42,6 @@ const router = createBrowserRouter([
     lazy: () => import('./pages/docs'),
     errorElement: <ErrorPage />,
   },
-  {
-    path: 'ble',
-    lazy: () => import('./pages/ble'),
-    errorElement: <ErrorPage />,
-  },
 
   // Route pages
   {
@@ -121,6 +116,10 @@ const router = createBrowserRouter([
           {
             path: 'analyze',
             lazy: () => import('./pages/analyze'),
+          },
+          {
+            path: 'ble',
+            lazy: () => import('./pages/device/ble'),
           },
           {
             path: '',

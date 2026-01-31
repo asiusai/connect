@@ -156,9 +156,9 @@ export const ATHENA_METHODS = {
   blePair: {
     params: z.object({
       code: z.string(),
-      client_id: z.string(),
+      dongleId: z.string(),
     }),
-    result: z.object({ success: z.boolean() }),
+    result: z.object({ token: z.string() }),
   },
 }
 

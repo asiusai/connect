@@ -3,7 +3,7 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { useRouteParams } from '../../hooks'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { useSettings } from '../../hooks/useSettings'
-import { BarChart3Icon, CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
+import { BarChart3Icon, BluetoothIcon, CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
 
 export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
@@ -37,6 +37,14 @@ export const Navigation = ({ className }: { className?: string }) => {
       icon: ToggleLeftIcon,
       href: `/${dongleId}/params`,
       color: 'text-purple-400',
+      hide: !usingAsiusPilot,
+      disabled: !isOwner,
+    },
+    {
+      title: 'BLE',
+      icon: BluetoothIcon,
+      href: `/${dongleId}/ble`,
+      color: 'text-indigo-400',
       hide: !usingAsiusPilot,
       disabled: !isOwner,
     },
