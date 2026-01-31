@@ -29,6 +29,7 @@ class BluetoothConnection {
   token: string | null = null
   dongleId: string
   onStatusChange?: (status: ConnectionStatus) => void
+  onDeviceChange?: (deviceName: string | undefined) => void
 
   constructor(dongleId: string) {
     this.dongleId = dongleId
@@ -38,6 +39,11 @@ class BluetoothConnection {
   private setStatus(status: ConnectionStatus) {
     this.status = status
     this.onStatusChange?.(status)
+  }
+
+  private setDevice(device: BluetoothDevice | undefined) {
+    this.device = device
+    this.onDeviceChange?.(device?.name)
   }
 
   autoConnect = async () => {
@@ -56,7 +62,7 @@ class BluetoothConnection {
         return
       }
 
-      this.device = device
+      this.setDevice(device)
       await this.connectToDevice()
     } catch (e) {
       console.error('Auto-connect failed', e)
@@ -72,11 +78,12 @@ class BluetoothConnection {
 
     try {
       this.setStatus('connecting')
-      this.device = await navigator.bluetooth.requestDevice({
+      const device = await navigator.bluetooth.requestDevice({
         filters: [{ services: [SERVICE_UUID] }, { namePrefix: 'comma-' }],
         optionalServices: [SERVICE_UUID],
       })
 
+      this.setDevice(device)
       await this.connectToDevice()
     } catch (e) {
       this.setStatus('disconnected')
@@ -126,9 +133,13 @@ class BluetoothConnection {
       const response = JSON.parse(this.responseBuffer)
       this.responseBuffer = ''
 
+      console.log('BLE raw response:', response)
+
       const resolve = this.pendingRequests.get(response.id)
       if (resolve) {
-        resolve(response.error ? { error: response.error } : { result: response.result })
+        const result = response.error ? { error: response.error } : { result: response.result }
+        console.log('BLE resolved result:', result)
+        resolve(result)
         this.pendingRequests.delete(response.id)
       }
     } catch {
@@ -138,8 +149,13 @@ class BluetoothConnection {
 
   disconnect = async () => {
     if (this.device?.gatt?.connected) this.device.gatt.disconnect()
-    this.device = undefined
+    this.setDevice(undefined)
     this.setStatus('disconnected')
+  }
+
+  reconnect = async () => {
+    if (!this.device) return
+    await this.connectToDevice()
   }
 
   call = async <T extends AthenaRequest>(method: T, params: AthenaParams<T>): Promise<AthenaResponse<T> | undefined> => {
@@ -185,18 +201,25 @@ class BluetoothConnection {
     }
   }
 
-  pair = async (code: string): Promise<boolean> => {
+  pair = async (code: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const result = await this.call('blePair', { code, dongleId: this.dongleId })
+      console.log('blePair result:', result)
       if (result?.result?.token) {
         this.token = result.result.token
         setToken(this.dongleId, result.result.token)
         this.setStatus('connected')
-        return true
+        return { success: true }
       }
-      return false
-    } catch {
-      return false
+      if (result?.error) {
+        console.log('blePair error:', result.error)
+        const errorMsg = (result.error as any).data?.message || result.error.message || String(result.error)
+        return { success: false, error: errorMsg }
+      }
+      return { success: false, error: 'Unknown error' }
+    } catch (error) {
+      console.error('blePair exception:', error)
+      return { success: false, error: (error as Error).message }
     }
   }
 }
@@ -205,24 +228,18 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const [ble] = useState(() => new BluetoothConnection(dongleId))
   const [status, setStatus] = useState<ConnectionStatus>('disconnected')
+  const [deviceName, setDeviceName] = useState<string | undefined>(undefined)
   const [pairingCode, setPairingCode] = useState('')
   const [response, setResponse] = useState('-')
 
   useEffect(() => {
     ble.onStatusChange = setStatus
+    ble.onDeviceChange = setDeviceName
     const init = async () => {
       await ble.autoConnect()
     }
     init()
   }, [ble])
-
-  const connect = async () => {
-    await ble.connect()
-  }
-
-  const disconnect = async () => {
-    await ble.disconnect()
-  }
 
   const call: typeof ble.call = async (method, params) => {
     try {
@@ -238,11 +255,14 @@ export const Component = () => {
   }
 
   const pair = async () => {
-    const success = await ble.pair(pairingCode)
-    if (success) {
+    const result = await ble.pair(pairingCode)
+    console.log('Pair result:', result)
+    if (result.success) {
       setPairingCode('')
     } else {
-      alert('Invalid pairing code')
+      const errorMsg = result.error || 'Pairing failed'
+      console.log('Showing error:', errorMsg)
+      alert(errorMsg)
     }
   }
 
@@ -256,25 +276,36 @@ export const Component = () => {
         <p className="text-white/60">Connect to your device via Bluetooth Low Energy</p>
       </div>
 
-      <div className="bg-background-alt rounded-lg p-4">
-        <div className="text-sm text-white/60 mb-2">Status</div>
-        <div className="flex items-center gap-2">
-          {status === 'connecting' && <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
-          <div className="text-lg font-medium">
-            {status === 'connecting' && 'Connecting...'}
-            {status === 'connected' && 'Connected'}
-            {status === 'disconnected' && 'Disconnected'}
-            {status === 'unauthorized' && 'Connected - Pairing Required'}
-            {status === 'not-supported' && 'Bluetooth Not Supported'}
+      <div className="bg-background-alt rounded-lg p-4 space-y-3">
+        <div>
+          <div className="text-sm text-white/60 mb-2">Status</div>
+          <div className="flex items-center gap-2">
+            {status === 'connecting' && <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
+            <div className="text-lg font-medium">
+              {status === 'connecting' && 'Connecting...'}
+              {status === 'connected' && 'Connected'}
+              {status === 'disconnected' && 'Disconnected'}
+              {status === 'unauthorized' && 'Connected - Pairing Required'}
+              {status === 'not-supported' && 'Bluetooth Not Supported'}
+            </div>
           </div>
         </div>
+        {deviceName && (
+          <div>
+            <div className="text-sm text-white/60 mb-1">Device</div>
+            <div className="text-base font-mono">{deviceName}</div>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2">
-        <Button onClick={connect} disabled={isConnected}>
+        <Button onClick={ble.connect} disabled={isConnected}>
           New Device
         </Button>
-        <Button onClick={disconnect} disabled={!isConnected} color="secondary">
+        <Button onClick={ble.reconnect} disabled={!deviceName || status === 'connecting'} color="secondary">
+          Reconnect
+        </Button>
+        <Button onClick={ble.disconnect} disabled={!isConnected} color="secondary">
           Disconnect
         </Button>
       </div>
