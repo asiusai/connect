@@ -27,12 +27,10 @@ class BluetoothConnection {
   requestId = 0
   pendingRequests = new Map<number, (value: any) => void>()
   token: string | null = null
-  dongleId: string
   onStatusChange?: (status: ConnectionStatus) => void
   onDeviceChange?: (deviceName: string | undefined) => void
 
-  constructor(dongleId: string) {
-    this.dongleId = dongleId
+  constructor(public dongleId: string) {
     this.token = getToken(dongleId)
   }
 
@@ -55,7 +53,7 @@ class BluetoothConnection {
     try {
       this.setStatus('connecting')
       const devices = await navigator.bluetooth.getDevices()
-      const device = devices.find((d) => d.name?.startsWith('comma-'))
+      const device = devices.find((d) => d.name?.startsWith(`comma-${this.dongleId}`))
 
       if (!device) {
         this.setStatus('disconnected')
@@ -79,7 +77,7 @@ class BluetoothConnection {
     try {
       this.setStatus('connecting')
       const device = await navigator.bluetooth.requestDevice({
-        filters: [{ services: [SERVICE_UUID] }, { namePrefix: 'comma-' }],
+        filters: [{ services: [SERVICE_UUID], namePrefix: `comma-${this.dongleId}` }],
         optionalServices: [SERVICE_UUID],
       })
 
@@ -159,7 +157,10 @@ class BluetoothConnection {
   }
 
   call = async <T extends AthenaRequest>(method: T, params: AthenaParams<T>): Promise<AthenaResponse<T> | undefined> => {
-    if (!this.requestChar) return
+    if (!this.requestChar) {
+      console.error('No request characteristic available')
+      return undefined
+    }
 
     this.requestId++
     const paramsWithToken = typeof params === 'object' && params !== null ? { ...params, token: this.token } : { token: this.token }
