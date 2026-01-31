@@ -160,6 +160,43 @@ export const ATHENA_METHODS = {
     }),
     result: z.object({ token: z.string() }),
   },
+  getWifiNetworks: {
+    params: z.void(),
+    result: z
+      .object({
+        ssid: z.string(),
+        strength: z.number(),
+        security: z.string(),
+        connected: z.boolean(),
+        saved: z.boolean(),
+      })
+      .array(),
+  },
+  connectWifi: {
+    params: z.object({ ssid: z.string(), password: z.string().optional() }),
+    result: z.object({ status: z.string() }),
+  },
+  forgetWifi: {
+    params: z.object({ ssid: z.string() }),
+    result: z.object({ status: z.string() }),
+  },
+  setTethering: {
+    params: z.object({ enabled: z.boolean() }),
+    result: z.object({ status: z.string() }),
+  },
+  setTetheringPassword: {
+    params: z.object({ password: z.string() }),
+    result: z.object({ status: z.string() }),
+  },
+  getNetworkStatus: {
+    params: z.void(),
+    result: z.object({
+      ip_address: z.string(),
+      tethering_active: z.boolean(),
+      tethering_password: z.string(),
+      metered: z.number(),
+    }),
+  },
 }
 
 export type AthenaRequest = keyof typeof ATHENA_METHODS

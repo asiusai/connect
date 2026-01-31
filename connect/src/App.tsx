@@ -118,10 +118,6 @@ const router = createBrowserRouter([
             lazy: () => import('./pages/analyze'),
           },
           {
-            path: 'ble',
-            lazy: () => import('./pages/device/ble'),
-          },
-          {
             path: '',
             lazy: () => import('./pages/device/index'),
           },
