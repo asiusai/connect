@@ -4,7 +4,7 @@ import * as hcloud from '@pulumi/hcloud'
 import * as command from '@pulumi/command'
 import { getSubdomain } from './Site'
 
-const RSYNC_EXCLUDES = ['.env*', 'node_modules', 'dist', '.git', 'openpilot', 'sunnypilot', '.turbo', '.next', 'connect-data', 'screenshots']
+const RSYNC_EXCLUDES = ['.env*', 'node_modules', 'dist', '.git', 'openpilot', '.turbo', '.next', 'connect-data', 'screenshots']
 
 type ServiceArgs = Record<string, Record<string, string | string[] | { [key: string]: pulumi.Input<string> }>>
 type ServerArgs = {

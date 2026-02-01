@@ -108,7 +108,7 @@ const FRONTENDS: [string, string][] = [
 ]
 const getFrontends = () => Promise.all(FRONTENDS.map(async ([name, url]) => ({ name, ...(await checkUrl(url)) })))
 
-const CI_REPOS = ['asiusai', 'openpilot', 'sunnypilot']
+const CI_REPOS = ['asiusai', 'openpilot']
 let ciCache: { data: { name: string; status: 'ok' | 'error' | 'pending'; error?: string }[]; time: number } | null = null
 
 const getCI = async () => {
