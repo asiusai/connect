@@ -50,6 +50,8 @@ export const Component = () => {
   const sshConfig = `Host ${provider}-*
   HostName localhost
   User comma
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
   ProxyCommand ssh -W %h:%p %n-${encToken}@ssh.asius.ai -p 2222`
 
   return (
@@ -122,7 +124,9 @@ export const Component = () => {
               <p className="text-xs md:text-sm text-white/50">One-line command to connect instantly</p>
             </div>
           </div>
-          <Copy value={`ssh -o ProxyCommand="ssh -W %h:%p ${provider}-${dongleId}-${encToken}@ssh.asius.ai -p 2222" comma@localhost`} />
+          <Copy
+            value={`ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p ${provider}-${dongleId}-${encToken}@ssh.asius.ai -p 2222" comma@localhost`}
+          />
         </div>
 
         <div className="bg-background-alt rounded-xl p-4 md:p-5 flex flex-col gap-3 md:gap-4">

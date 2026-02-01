@@ -142,13 +142,17 @@ export const server = new Server({ hostKeys: [SSH_PRIVATE_KEY] }, (client) => {
       channel.on('shell', (accept) => {
         const stream = accept?.()
         stream?.write(`SSH Proxy for ${auth.provider}-${auth.dongleId}\r\n\r\n`)
-        stream?.write(`Use: ssh -J ${auth.provider}-${auth.dongleId}@ssh.asius.ai:2222 comma@localhost\r\n\r\n`)
+        stream?.write(
+          `Use: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -J ${auth.provider}-${auth.dongleId}@ssh.asius.ai:2222 comma@localhost\r\n\r\n`,
+        )
         stream?.exit(0)
         stream?.close()
       })
       channel.on('exec', (accept) => {
         const stream = accept?.()
-        stream?.write(`Use: ssh -J ${auth.provider}-${auth.dongleId}@ssh.asius.ai:2222 comma@localhost\r\n`)
+        stream?.write(
+          `Use: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -J ${auth.provider}-${auth.dongleId}@ssh.asius.ai:2222 comma@localhost\r\n`,
+        )
         stream?.exit(0)
         stream?.close()
       })
