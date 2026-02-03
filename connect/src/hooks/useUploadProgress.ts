@@ -4,7 +4,7 @@ import { ZustandType } from '../../../shared/helpers'
 import { UploadQueueItem } from '../../../shared/athena'
 import { useRouteParams } from '.'
 import { useIsDeviceOwner } from './useIsDeviceOwner'
-import { useAthena } from './useAthena'
+import { useDevice } from './useDevice'
 
 const initial = {
   queue: [] as UploadQueueItem[],
@@ -18,7 +18,7 @@ const useUploadProgressStore = create<ZustandType<typeof initial>>((set) => ({ .
 export const useUploadProgress = (onComplete?: () => void, enabled = true) => {
   const { dongleId, routeId } = useRouteParams()
   const { queue, isLoading, set } = useUploadProgressStore()
-  const athena = useAthena()
+  const { call } = useDevice()
   const isOwner = useIsDeviceOwner()
   const onCompleteRef = useRef(onComplete)
   onCompleteRef.current = onComplete
@@ -34,21 +34,21 @@ export const useUploadProgress = (onComplete?: () => void, enabled = true) => {
     const fetchQueue = async () => {
       set({ isLoading: true })
       try {
-        const result = await athena('listUploadQueue', undefined)
-        if (result?.result) {
-          const routeItems = result.result.filter((item) => item.path.includes(routeId))
-          const currentIds = new Set(routeItems.map((item) => item.id))
+        const res = await call('listUploadQueue', undefined)
+        if (!res) return
 
-          const prev = useUploadProgressStore.getState().prevQueueIds
-          if (prev.size > 0) {
-            const completedIds = [...prev].filter((id) => !currentIds.has(id))
-            if (completedIds.length > 0 && onCompleteRef.current) {
-              setTimeout(onCompleteRef.current, 500)
-            }
+        const routeItems = res.filter((item) => item.path.includes(routeId))
+        const currentIds = new Set(routeItems.map((item) => item.id))
+
+        const prev = useUploadProgressStore.getState().prevQueueIds
+        if (prev.size > 0) {
+          const completedIds = [...prev].filter((id) => !currentIds.has(id))
+          if (completedIds.length > 0 && onCompleteRef.current) {
+            setTimeout(onCompleteRef.current, 500)
           }
-
-          set({ queue: routeItems, prevQueueIds: currentIds })
         }
+
+        set({ queue: routeItems, prevQueueIds: currentIds })
       } catch (error) {
         console.error('Failed to fetch upload queue:', error)
       } finally {
@@ -69,7 +69,7 @@ export const useUploadProgress = (onComplete?: () => void, enabled = true) => {
       set({ subscribers: current - 1 })
       if (interval) clearInterval(interval)
     }
-  }, [dongleId, routeId, enabled, isOwner, athena, set])
+  }, [dongleId, routeId, enabled, isOwner, call, set])
 
   const refetch = () => fetchQueueRef.current?.()
 

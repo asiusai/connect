@@ -14,7 +14,7 @@ import { Info } from './Info'
 import { useSettings } from '../../hooks/useSettings'
 import { PreviewProps } from '../../../../shared/types'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
-import { useAthena } from '../../hooks/useAthena'
+import { useDevice } from '../../hooks/useDevice'
 
 const getLocationText = ({ start, end }: { start?: string; end?: string }) => {
   if (!start && !end) return 'Drive Details'
@@ -50,13 +50,14 @@ export const Component = () => {
   const [location, setLocation] = useState<{ start?: string; end?: string }>()
   const previewProps = usePreviewProps()
   const isOwner = useIsDeviceOwner()
-  const athena = useAthena()
+  const { call } = useDevice()
+
   useEffect(() => {
     if (route) getStartEndPlaceName(route).then(setLocation)
   }, [route])
 
   useEffect(() => {
-    if (isOwner) athena('setRouteViewed', { route: routeId })
+    if (isOwner) call('setRouteViewed', { route: routeId })
   }, [routeId, dongleId, isOwner])
 
   if (!route) return null

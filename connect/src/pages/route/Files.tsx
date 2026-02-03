@@ -13,11 +13,10 @@ import { CloudUploadIcon, ExternalLinkIcon, FileIcon, FilmIcon, LucideIcon, Refr
 import { useUploadProgress } from '../../hooks/useUploadProgress'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
-import { useAthena } from '../../hooks/useAthena'
+import { useDevice } from '../../hooks/useDevice'
 import { useAuth } from '../../hooks/useAuth'
 
 const PRIORITY = 1 // Higher number is lower priority
-const EXPIRES_IN_SECONDS = 60 * 60 * 24 * 7 // Uploads expire after 1 week if device remains offline
 
 const FileAction = ({
   Icon,
@@ -61,7 +60,7 @@ const FileAction = ({
 
 const Upload = ({ type, files, route, segment }: { type: FileType; files: SegmentFiles; route: Route; segment: number }) => {
   const isOwner = useIsDeviceOwner()
-  const athena = useAthena()
+  const { call } = useDevice()
   const disabled = segment === -1 ? files[type].every(Boolean) : !!files[type][segment]
   const uploadProgress = useUploadProgress()
   if (disabled) return null
@@ -95,18 +94,14 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Segmen
         if (presignedUrls.status !== 200) throw new Error()
 
         if (paths.length === 0) return []
-        await athena(
-          'uploadFilesToUrls',
-          {
-            files_data: paths.map((fn, i) => ({
-              allow_cellular: false,
-              fn,
-              priority: PRIORITY,
-              ...presignedUrls.body[i],
-            })),
-          },
-          Math.floor(Date.now() / 1000) + EXPIRES_IN_SECONDS,
-        )
+        await call('uploadFilesToUrls', {
+          files_data: paths.map((fn, i) => ({
+            allow_cellular: false,
+            fn,
+            priority: PRIORITY,
+            ...presignedUrls.body[i],
+          })),
+        })
         // Trigger a refetch of the upload queue
         uploadProgress.refetch()
       }}

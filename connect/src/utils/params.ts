@@ -1416,23 +1416,6 @@ export const DEVICE_PARAMS = {
     advanced: true,
     type: ParamType.BOOL,
   },
-  EnableRemoteParams: {
-    label: 'Enable Remote Params',
-    description: 'Allow remote parameter editing',
-    category: 'developer',
-    icon: 'settings',
-    advanced: true,
-    type: ParamType.BOOL,
-  },
-  APIHost: { label: 'API Host', description: 'API server URL (requires reboot)', category: 'developer', icon: 'dns', advanced: true, type: ParamType.STRING },
-  AthenaHost: {
-    label: 'Athena Host',
-    description: 'Athena WebSocket URL (requires reboot)',
-    category: 'developer',
-    icon: 'cloud',
-    advanced: true,
-    type: ParamType.STRING,
-  },
   ModelManager_LastSyncTime: {
     label: 'Model Sync Time',
     description: 'Last model list sync',

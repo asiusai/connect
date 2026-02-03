@@ -19,7 +19,7 @@ import { useSettings } from '../hooks/useSettings'
 import { cn } from '../../../shared/helpers'
 import { TopAppBar } from '../components/TopAppBar'
 import { IconButton } from '../components/IconButton'
-import { useAthena } from '../hooks/useAthena'
+import { useDevice } from '../hooks/useDevice'
 
 export const ControlButton = ({
   onClick,
@@ -82,7 +82,7 @@ const LiveView = ({
   const [joystickPosition, setJoystickPosition] = useState({ x: 0, y: 0 })
   const [joystickSensitivity, setJoystickSensitivity] = useState(0.25)
   const [stats, setStats] = useState<{ fps: number; latency: number } | null>(null)
-  const athena = useAthena()
+  const { call } = useDevice()
 
   const rtcConnection = useRef<RTCPeerConnection | null>(null)
   const localAudioTrack = useRef<MediaStreamTrack | null>(null)
@@ -209,21 +209,17 @@ const LiveView = ({
       setStatus('Sending offer via Athena...')
       const sdp = pc.localDescription?.sdp
 
-      const resp = await athena('webrtc', {
+      const res = await call('webrtc', {
         sdp: sdp!,
         cameras: ['driver', 'wideRoad'],
         bridge_services_in: ['testJoystick'],
         bridge_services_out: [],
       })
 
-      if (!resp || resp.error) throw new Error(resp?.error?.data?.message ?? resp?.error?.message ?? 'Unknown error from Athena')
+      if (!res) throw new Error('Athena failed')
+      if (!res.sdp || !res.type) throw new Error('Invalid response from webrtcd')
 
-      const answerSdp = resp.result?.sdp
-      const answerType = resp.result?.type
-
-      if (!answerSdp || !answerType) throw new Error('Invalid response from webrtcd')
-
-      await pc.setRemoteDescription(new RTCSessionDescription({ type: answerType as any, sdp: answerSdp }))
+      await pc.setRemoteDescription(new RTCSessionDescription({ type: res.type as any, sdp: res.sdp }))
 
       setStatus(null)
       setReconnecting(false)

@@ -46,12 +46,11 @@ export const parseUsername = (username: string): Auth | undefined => {
 export const randomId = () => crypto.randomUUID()
 
 export const startLocalProxy = async (auth: Auth, sessionId: string) => {
-  const res = await fetchAthena({
+  return await fetchAthena({
     ...auth,
     method: 'startLocalProxy',
     params: { remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`, local_port: 22 },
   })
-  return res?.result
 }
 
 export const getAuthorizedKeys = async (auth: Auth) => {
@@ -60,7 +59,7 @@ export const getAuthorizedKeys = async (auth: Auth) => {
     method: 'getSshAuthorizedKeys',
     params: undefined,
   })
-  return res?.result?.trim().split('\n').filter(Boolean)
+  return res?.trim().split('\n').filter(Boolean)
 }
 
 const parseOpenSSHKey = (keyLine: string) => {

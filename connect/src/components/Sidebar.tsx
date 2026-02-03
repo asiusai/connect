@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { ApertureIcon, ChevronDownIcon, PlusIcon, RadioIcon, Settings2Icon, ShieldIcon, XIcon } from 'lucide-react'
+import { ApertureIcon, ChevronDownIcon, PlusIcon, RadioIcon, ShieldIcon, XIcon } from 'lucide-react'
 import { User } from '../../../shared/types'
 import { useState } from 'react'
 import { DeviceSelector } from '../pages/device/Devices'
@@ -37,14 +37,14 @@ export const Navigation = ({ className }: { className?: string }) => {
       hide: !usingAsiusPilot,
       disabled: !isOwner,
     },
-    {
-      title: 'Controls',
-      icon: Settings2Icon,
-      href: `/${dongleId}/controls`,
-      color: 'text-green-400',
-      hide: !usingAsiusPilot,
-      disabled: !isOwner,
-    },
+    // {
+    //   title: 'Controls',
+    //   icon: Settings2Icon,
+    //   href: `/${dongleId}/controls`,
+    //   color: 'text-green-400',
+    //   hide: !usingAsiusPilot,
+    //   disabled: !isOwner,
+    // },
     {
       title: 'Snapshot',
       icon: ApertureIcon,

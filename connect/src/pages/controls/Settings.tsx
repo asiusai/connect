@@ -91,11 +91,12 @@ const SettingInput = ({ setting, value, onChange, disabled }: { disabled?: boole
 }
 
 export const Settings = ({ settings }: { settings: Setting[] }) => {
-  const { save, get } = useDevice()
+  const { saveParams, params } = useDevice()
   const editable = settings.filter((x) => !x.readonly)
   const readonly = settings.filter((x) => x.readonly)
 
   if (!editable.length && !readonly.length) return null
+  if (!params) return null
 
   return (
     <div className="flex flex-col gap-4">
@@ -126,7 +127,7 @@ export const Settings = ({ settings }: { settings: Setting[] }) => {
                     </div>
                     {x.description && <span className="text-xs opacity-60">{x.description}</span>}
                   </div>
-                  <SettingInput disabled={readonly} setting={x} value={get(x.key as DeviceParamKey) ?? null} onChange={(v) => save({ [x.key]: v })} />
+                  <SettingInput disabled={readonly} setting={x} value={params[x.key as DeviceParamKey] ?? null} onChange={(v) => saveParams({ [x.key]: v })} />
                 </div>
               )
             })}
