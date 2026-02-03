@@ -5,7 +5,6 @@ import { api } from '../../api'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouteParams } from '../../hooks'
 import { TopAppBar } from '../../components/TopAppBar'
-import { BackButton } from '../../components/BackButton'
 import { getStartEndPlaceName } from '../../utils/map'
 import { DynamicMap } from './Map'
 import { Stats } from './Stats'
@@ -64,7 +63,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton href={`/${route.dongle_id}`} />}>
+      <TopAppBar>
         <span>{location ? getLocationText(location) : 'Drive details'}</span>
         {route.start_time && (
           <span className="text-xs md:text-sm font-medium text-white/60">

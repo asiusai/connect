@@ -6,7 +6,6 @@ import { useAsyncEffect, useRouteParams } from '../hooks'
 import { CircleAlertIcon } from 'lucide-react'
 import { TopAppBar } from '../components/TopAppBar'
 import { Select } from '../components/Select'
-import { BackButton } from '../components/BackButton'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { Toggle } from '../components/Toggle'
 import { capitalize, FILE_INFO } from '../../../shared/helpers'
@@ -14,7 +13,7 @@ import { Service } from '../../../shared/types'
 import { SyntaxHighlightedJson } from '../components/SyntaxHighlightedJson'
 
 export const Component = () => {
-  const { routeName, dongleId, routeId } = useRouteParams()
+  const { routeName } = useRouteParams()
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const type: 'qlogs' | 'logs' = location.pathname.includes('qlogs') ? 'qlogs' : 'logs'
@@ -66,7 +65,7 @@ export const Component = () => {
   if (!files) return null
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton href={`/${dongleId}/${routeId}`} />}>
+      <TopAppBar>
         <span className="capitalize">{FILE_INFO[type].label}</span>
       </TopAppBar>
 

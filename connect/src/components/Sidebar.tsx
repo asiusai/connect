@@ -4,13 +4,93 @@ import { ChevronDownIcon, PlusIcon, ShieldIcon, XIcon } from 'lucide-react'
 import { getDeviceName, User } from '../../../shared/types'
 import { useState } from 'react'
 import { Active, Devices } from '../pages/device/Devices'
-import { Navigation } from '../pages/device/Navigation'
 import { ActionBar } from '../pages/device/ActionBar'
 import { useRouteParams } from '../hooks'
 import { Voltage } from '../pages/device/DevicesMobile'
 import { Logo } from '../../../shared/components/Logo'
-import { cn, getUserName } from '../../../shared/helpers'
+import { cn, getUserName, ZustandType } from '../../../shared/helpers'
 import { useAuth } from '../hooks/useAuth'
+import { create } from 'zustand'
+import { ButtonBase } from './ButtonBase'
+import { useIsDeviceOwner } from '../hooks/useIsDeviceOwner'
+import { useSettings } from '../hooks/useSettings'
+import { CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
+
+export const Navigation = ({ className }: { className?: string }) => {
+  const { dongleId } = useRouteParams()
+  const isOwner = useIsDeviceOwner()
+  const { usingAsiusPilot } = useSettings()
+  const { set } = useSidebar()
+
+  const items: { title: string; icon: LucideIcon; href: string; color: string; disabled?: boolean; hide?: boolean }[] = [
+    {
+      title: 'Home',
+      icon: HomeIcon,
+      href: `/${dongleId}`,
+      color: 'text-blue-400',
+    },
+    {
+      title: 'Snapshot',
+      icon: CameraIcon,
+      href: `/${dongleId}/snapshot`,
+      color: 'text-orange-400',
+      hide: usingAsiusPilot,
+      disabled: !isOwner,
+    },
+    {
+      title: 'Live',
+      icon: VideoIcon,
+      href: `/${dongleId}/live`,
+      color: 'text-red-400',
+      hide: !usingAsiusPilot,
+      disabled: !isOwner,
+    },
+    {
+      title: 'Params',
+      icon: ToggleLeftIcon,
+      href: `/${dongleId}/params`,
+      color: 'text-purple-400',
+      hide: !usingAsiusPilot,
+      disabled: !isOwner,
+    },
+    {
+      title: 'SSH',
+      icon: TerminalIcon,
+      href: `/${dongleId}/ssh`,
+      color: 'text-cyan-400',
+      disabled: !isOwner,
+    },
+    {
+      title: 'Settings',
+      icon: SettingsIcon,
+      href: `/${dongleId}/settings`,
+      color: 'text-yellow-400',
+    },
+  ]
+  return (
+    <div className={cn('grid grid-cols-1 gap-0', className)}>
+      {items
+        .filter((x) => !x.hide)
+        .map(({ title, href, icon: Icon, color, disabled }, i, arr) => (
+          <ButtonBase
+            key={title}
+            href={disabled ? undefined : href}
+            onClick={() => set({ open: false })}
+            disabled={disabled || !href}
+            title={'You must be the owner to access this'}
+            className={cn(
+              'flex flex-row bg-transparent items-center p-4 gap-3 px-3 py-3  rounded-lg transition-colors font-medium',
+              disabled ? 'opacity-50 cursor-not-allowed' : href && 'hover:bg-white/10 text-white',
+              i === arr.length - 1 && i % 2 !== 0 && 'col-span-1 justify-start',
+            )}
+          >
+            <Icon className={cn('text-2xl', color)} />
+            <span>{title}</span>
+          </ButtonBase>
+        ))}
+    </div>
+  )
+}
 
 const AccountSwitcher = ({ user }: { user: User }) => {
   const navigate = useNavigate()
@@ -81,19 +161,33 @@ const AccountSwitcher = ({ user }: { user: User }) => {
     </div>
   )
 }
+const init = { open: false }
+export const useSidebar = create<ZustandType<typeof init>>((set) => ({ set, ...init }))
 
 export const Sidebar = () => {
   const { token } = useAuth()
+  const { open, set } = useSidebar()
   const { dongleId } = useRouteParams()
   const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const [user] = api.auth.me.useQuery({ enabled: !!token })
   const [showDeviceList, setShowDeviceList] = useState(false)
 
   return (
-    <div className="hidden md:flex w-64 h-full relative">
-      <div className="flex flex-col w-64 h-screen top-0 border-r border-b border-white/5 bg-background shrink-0 fixed">
+    <div
+      className={cn('w-full md:w-64 h-full fixed md:relative flex md:flex backdrop-blur-xs -z-10 md:z-99', open && 'z-99')}
+      onClick={() => {
+        set({ open: false })
+      }}
+    >
+      <div
+        className={cn(
+          'flex flex-col w-64 h-screen top-0 border-r border-b border-white/5 bg-background shrink-0 fixed -translate-x-full md:translate-0 duration-200',
+          open && 'translate-0',
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="p-6">
-          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link to="/" onClick={() => set({ open: false })} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <Logo provider="asius" className="h-8 w-8" />
             <span className="text-xl font-bold tracking-tight">connect</span>
           </Link>

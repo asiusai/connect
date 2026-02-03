@@ -1,6 +1,6 @@
 import { CSSProperties } from 'react'
 
-export type IconProps = { className?: string; style?: CSSProperties }
+export type IconProps = { className?: string; style?: CSSProperties; onClick?: () => void }
 
 export const CommaLogo = (props: IconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="45 27 41 74" fill="currentColor" {...props}>

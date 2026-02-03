@@ -3,7 +3,6 @@ import { BarcodeDetector } from 'barcode-detector/ponyfill'
 import { ButtonBase } from '../components/ButtonBase'
 import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
 import { TopAppBar } from '../components/TopAppBar'
-import { BackButton } from '../components/BackButton'
 import { Button } from '../components/Button'
 import { Logo } from '../../../shared/components/Logo'
 import { Provider } from '../../../shared/provider'
@@ -199,7 +198,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton href="/" />}>Pair Device</TopAppBar>
+      <TopAppBar>Pair Device</TopAppBar>
       {error ? <Err error={error} /> : token ? <Pairing token={token} /> : <Scanning />}
     </div>
   )

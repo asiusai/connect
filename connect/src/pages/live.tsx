@@ -18,7 +18,6 @@ import {
 import { useSettings } from '../hooks/useSettings'
 import { cn } from '../../../shared/helpers'
 import { TopAppBar } from '../components/TopAppBar'
-import { BackButton } from '../components/BackButton'
 import { IconButton } from '../components/IconButton'
 import { useAthena } from '../hooks/useAthena'
 
@@ -521,14 +520,12 @@ const LiveView = ({
 }
 
 export const Component = () => {
-  const { dongleId } = useRouteParams()
   const [reconnecting, setReconnecting] = useState(false)
   const setupRTCConnectionRef = useRef<(() => Promise<void>) | null>(null)
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
       <TopAppBar
-        leading={<BackButton href={`/${dongleId}`} />}
         trailing={
           <IconButton
             icon={RefreshCwIcon}

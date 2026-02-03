@@ -9,7 +9,6 @@ import { cn, saveFile } from '../../../shared/helpers'
 import { ControlButton } from './live'
 import { useSettings } from '../hooks/useSettings'
 import { TopAppBar } from '../components/TopAppBar'
-import { BackButton } from '../components/BackButton'
 import { useAthena } from '../hooks/useAthena'
 
 const toB64 = (x?: string | null) => (x ? `data:image/jpeg;base64,${x}` : undefined)
@@ -88,11 +87,9 @@ const SnapshotView = () => {
 }
 
 export const Component = () => {
-  const { dongleId } = useRouteParams()
-
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
-      <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>Snapshot</TopAppBar>
+      <TopAppBar>Snapshot</TopAppBar>
 
       <SnapshotView />
     </div>

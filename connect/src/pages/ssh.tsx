@@ -1,6 +1,5 @@
 import { ReactNode, useMemo } from 'react'
 import { TopAppBar } from '../components/TopAppBar'
-import { BackButton } from '../components/BackButton'
 import { useRouteParams } from '../hooks'
 import { encryptToken } from '../../../shared/encryption'
 import { CheckIcon, CopyIcon, ExternalLinkIcon, InfoIcon, SettingsIcon, TerminalIcon, TriangleAlertIcon, ZapIcon } from 'lucide-react'
@@ -56,7 +55,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton href={`/${dongleId}`} />}>SSH Access</TopAppBar>
+      <TopAppBar>SSH Access</TopAppBar>
       <div className="flex flex-col gap-6 px-4 py-6 pb-20 max-w-2xl mx-auto w-full">
         <div className="flex flex-col gap-2 text-center">
           <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto">

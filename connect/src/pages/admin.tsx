@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
-import { TopAppBar } from '../components/TopAppBar'
-import { BackButton } from '../components/BackButton'
 import { Loading } from '../components/Loading'
 import {
   CheckIcon,
@@ -1146,7 +1144,6 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <TopAppBar leading={<BackButton href="/" />}>Admin</TopAppBar>
       <div className="flex flex-col gap-6 px-4 py-6 pb-20 max-w-6xl mx-auto w-full">
         <div className="flex gap-2">
           <TabButton tab="users" activeTab={activeTab} onClick={() => setActiveTab('users')}>

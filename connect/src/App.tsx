@@ -114,10 +114,6 @@ const router = createBrowserRouter([
             lazy: () => import('./pages/settings/index'),
           },
           {
-            path: 'analyze',
-            lazy: () => import('./pages/analyze'),
-          },
-          {
             path: '',
             lazy: () => import('./pages/device/index'),
           },

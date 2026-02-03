@@ -4,7 +4,6 @@ import { Terminal as XTerm } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import { TopAppBar } from '../components/TopAppBar'
-import { BackButton } from '../components/BackButton'
 import { IconButton } from '../components/IconButton'
 import { useRouteParams } from '../hooks'
 import { encryptToken } from '../../../shared/encryption'
@@ -100,12 +99,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <TopAppBar
-        leading={<BackButton href={`/${dongleId}/ssh`} />}
-        trailing={<IconButton icon={RefreshCwIcon} title="Reconnect" onClick={() => setKey((k) => k + 1)} />}
-      >
-        SSH Terminal
-      </TopAppBar>
+      <TopAppBar trailing={<IconButton icon={RefreshCwIcon} title="Reconnect" onClick={() => setKey((k) => k + 1)} />}>SSH Terminal</TopAppBar>
       <div className="flex-1 p-2">
         <Terminal key={key} wsUrl={wsUrl} onClose={() => navigate(`/${dongleId}/ssh`)} />
       </div>

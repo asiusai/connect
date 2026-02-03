@@ -1,9 +1,7 @@
-import { BackButton } from '../../components/BackButton'
 import { TopAppBar } from '../../components/TopAppBar'
 import { useDevice } from '../../hooks/useDevice'
 import { SettingCategory, DeviceParam, DEVICE_PARAMS, DeviceParamKey, ParamType, getParamType } from '../../utils/params'
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useRouteParams } from '../../hooks'
 import { cn } from '../../../../shared/helpers'
 import { BluetoothIcon, WifiIcon as WifiLucideIcon } from 'lucide-react'
 import { Button } from '../../components/Button'
@@ -132,7 +130,6 @@ const ParamInput = ({ param, value, onChange, disabled }: { param: DeviceParam; 
 }
 
 export const Component = () => {
-  const { dongleId } = useRouteParams()
   const { isError, get, saved, save: athenaSave, set: setDeviceStore } = useDevice()
   const ble = useBle()
 
@@ -308,7 +305,7 @@ export const Component = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-transparent text-foreground gap-4">
-      <TopAppBar leading={<BackButton href={`/${dongleId}`} />} className="z-10 bg-transparent">
+      <TopAppBar className="z-10 bg-transparent">
         <div className="flex items-center gap-3 w-full">
           <span>Settings</span>
         </div>
