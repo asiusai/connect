@@ -109,7 +109,7 @@ export const Component = () => {
         <h1 className="text-3xl font-bold tracking-tight text-center">Welcome to Asius connect</h1>
       </div>
 
-      <div className="w-full flex flex-col md:flex-row items- gap-10 justify-center">
+      <div className="w-full flex flex-col md:flex-row items-center md:items-start gap-10 justify-center">
         <ProviderLogin />
 
         <SavedAccounts />
