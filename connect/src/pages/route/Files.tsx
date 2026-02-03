@@ -190,7 +190,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
           setProgress(0)
 
           const blob = await tsFilesToMp4([file], (loaded, total) => setProgress(loaded / total))
-          saveFile(blob, `${routeName}--${segment}--${FILE_INFO[type].name.replace('.hevc', '.mp4')}`)
+          saveFile(blob, `${routeName}--${segment}--${FILE_INFO[type].name.replace('.ts', '.mp4')}`)
           setProgress(1)
         }}
       />

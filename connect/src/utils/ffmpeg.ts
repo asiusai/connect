@@ -1,4 +1,5 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { Input, Output, Conversion, BufferSource, BufferTarget, Mp4OutputFormat, MPEG_TS } from 'mediabunny'
 
 export let ffmpeg: FFmpeg
 
@@ -87,29 +88,29 @@ export const hevcBinsToMp4 = async (bins: Uint8Array[]) => {
 }
 
 export const tsFilesToMp4 = async (urls: (string | undefined)[], onProgress?: (loaded: number, total: number) => void) => {
-  await init()
-
   let loaded = 0
 
-  const inputs = await Promise.all(
-    urls.map(async (url, i) => {
+  const bins = await Promise.all(
+    urls.map(async (url) => {
       const bin = await downloadFile(url!, (p) => onProgress?.(loaded + p.loaded, urls.length * p.length))
       loaded += bin.length
-      return [`input_${i}.ts`, bin] as const
+      return bin
     }),
   )
-  for (const [name, bin] of inputs) await ffmpeg.writeFile(name, bin)
 
-  await ffmpeg.writeFile('concat.txt', inputs.map(([f]) => `file '${f}'`).join('\n'))
+  const totalLength = bins.reduce((sum, b) => sum + b.length, 0)
+  const concatenated = new Uint8Array(totalLength)
+  let offset = 0
+  for (const bin of bins) {
+    concatenated.set(bin, offset)
+    offset += bin.length
+  }
 
-  const output = randomName('mp4')
-  await ffmpeg.exec(['-f', 'concat', '-safe', '0', '-i', 'concat.txt', '-c', 'copy', output])
+  const input = new Input({ source: new BufferSource(concatenated), formats: [MPEG_TS] })
+  const output = new Output({ format: new Mp4OutputFormat({ fastStart: 'in-memory' }), target: new BufferTarget() })
 
-  const data = await ffmpeg.readFile(output)
+  const conversion = await Conversion.init({ input, output, audio: { discard: true } })
+  await conversion.execute()
 
-  for (const [name] of inputs) await ffmpeg.deleteFile(name)
-  await ffmpeg.deleteFile('concat.txt')
-  await ffmpeg.deleteFile(output)
-
-  return new Blob([(data as any).buffer], { type: 'video/mp4' })
+  return new Blob([output.target.buffer!], { type: 'video/mp4' })
 }
