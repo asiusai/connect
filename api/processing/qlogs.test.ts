@@ -209,7 +209,7 @@ describe('qlogs - strict 1:1 comparison with comma API', () => {
           expect(metadata?.version, 'version').toBe(routeJson.version)
           expect(metadata?.gitCommit, 'git_commit').toBe(routeJson.git_commit)
           expect(metadata?.gitBranch, 'git_branch').toBe(routeJson.git_branch)
-          expect(metadata?.gitRemote?.replace('https://', '').replace('.git', ''), 'git_remote').toBe(routeJson.git_remote)
+          expect(metadata?.gitRemote, 'git_remote').toBe(routeJson.git_remote)
           expect(metadata?.gitCommitDate, 'git_commit_date').toBe(routeJson.git_commit_date)
           expect(metadata?.gitDirty, 'git_dirty').toBe(routeJson.git_dirty)
           expect(metadata?.carFingerprint, 'platform').toBe(routeJson.platform)

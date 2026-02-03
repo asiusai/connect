@@ -1,5 +1,4 @@
 import { useSettings } from '../../hooks/useSettings'
-import { env } from '../../../../shared/env'
 import { cn } from '../../../../shared/helpers'
 
 const ToggleSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
