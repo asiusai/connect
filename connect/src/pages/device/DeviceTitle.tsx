@@ -9,7 +9,7 @@ import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { useAthena } from '../../hooks/useAthena'
 import { useSidebar } from '../../components/Sidebar'
 
-export const Voltage = () => {
+const Voltage = () => {
   const [voltage, setVoltage] = useState<string>()
   const isOwner = useIsDeviceOwner()
   const athena = useAthena()
@@ -34,13 +34,13 @@ export const Voltage = () => {
   )
 }
 
-export const DevicesMobile = () => {
+export const DeviceTitle = () => {
   const { dongleId } = useRouteParams()
   const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const { set } = useSidebar()
   if (!device) return
   return (
-    <div className="absolute z-999 top-0 w-full p-4 md:hidden">
+    <div className="absolute z-999 top-0 w-full p-4">
       <div className="flex items-center justify-start gap-4 w-full" onClick={() => set({ open: true })}>
         <div className="flex flex-col items-start">
           <h1 className="text-2xl font-bold">{getDeviceName(device)}</h1>

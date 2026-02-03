@@ -1,12 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { ChevronDownIcon, PlusIcon, ShieldIcon, XIcon } from 'lucide-react'
-import { getDeviceName, User } from '../../../shared/types'
+import { ApertureIcon, ChevronDownIcon, PlusIcon, RadioIcon, Settings2Icon, ShieldIcon, XIcon } from 'lucide-react'
+import { User } from '../../../shared/types'
 import { useState } from 'react'
-import { Active, Devices } from '../pages/device/Devices'
+import { DeviceSelector } from '../pages/device/Devices'
 import { ActionBar } from '../pages/device/ActionBar'
 import { useRouteParams } from '../hooks'
-import { Voltage } from '../pages/device/DevicesMobile'
 import { Logo } from '../../../shared/components/Logo'
 import { cn, getUserName, ZustandType } from '../../../shared/helpers'
 import { useAuth } from '../hooks/useAuth'
@@ -14,7 +13,7 @@ import { create } from 'zustand'
 import { ButtonBase } from './ButtonBase'
 import { useIsDeviceOwner } from '../hooks/useIsDeviceOwner'
 import { useSettings } from '../hooks/useSettings'
-import { CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
+import { HomeIcon, LucideIcon, SettingsIcon, TerminalIcon } from 'lucide-react'
 
 export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
@@ -29,28 +28,28 @@ export const Navigation = ({ className }: { className?: string }) => {
       href: `/${dongleId}`,
       color: 'text-blue-400',
     },
-    {
-      title: 'Snapshot',
-      icon: CameraIcon,
-      href: `/${dongleId}/snapshot`,
-      color: 'text-orange-400',
-      hide: usingAsiusPilot,
-      disabled: !isOwner,
-    },
+
     {
       title: 'Live',
-      icon: VideoIcon,
+      icon: RadioIcon,
       href: `/${dongleId}/live`,
       color: 'text-red-400',
       hide: !usingAsiusPilot,
       disabled: !isOwner,
     },
     {
-      title: 'Params',
-      icon: ToggleLeftIcon,
-      href: `/${dongleId}/params`,
-      color: 'text-purple-400',
+      title: 'Controls',
+      icon: Settings2Icon,
+      href: `/${dongleId}/controls`,
+      color: 'text-green-400',
       hide: !usingAsiusPilot,
+      disabled: !isOwner,
+    },
+    {
+      title: 'Snapshot',
+      icon: ApertureIcon,
+      href: `/${dongleId}/snapshot`,
+      color: 'text-orange-400',
       disabled: !isOwner,
     },
     {
@@ -170,7 +169,6 @@ export const Sidebar = () => {
   const { dongleId } = useRouteParams()
   const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const [user] = api.auth.me.useQuery({ enabled: !!token })
-  const [showDeviceList, setShowDeviceList] = useState(false)
 
   return (
     <div
@@ -193,35 +191,7 @@ export const Sidebar = () => {
           </div>
         </div>
 
-        {/* Device Selector */}
-        <div className="px-4 pb-6">
-          <div className="relative">
-            <div
-              className="flex items-center justify-between p-3 rounded-xl bg-background-alt hover:bg-white/5 cursor-pointer transition-colors border border-white/5 group"
-              onClick={() => setShowDeviceList(!showDeviceList)}
-            >
-              <div className="flex flex-col min-w-0">
-                <span className="font-bold text-lg truncate">{device ? getDeviceName(device) : 'Select Device'}</span>
-                {device && (
-                  <div className="flex items-center gap-3 text-sm font-medium opacity-90">
-                    <Active device={device} />
-                    <Voltage />
-                  </div>
-                )}
-              </div>
-              <ChevronDownIcon className={cn('text-white/60 group-hover:text-white transition-colors duration-200', showDeviceList && 'rotate-180')} />
-            </div>
-
-            {showDeviceList && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowDeviceList(false)} />
-                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-background rounded-xl shadow-2xl border border-white/10 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-                  <Devices close={() => setShowDeviceList(false)} isDropdown />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        <DeviceSelector />
 
         {device && (
           <div className="px-4 flex flex-col gap-1">
