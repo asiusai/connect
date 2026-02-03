@@ -14,7 +14,7 @@ export const Component = () => {
   const isOwner = useIsDeviceOwner()
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <>
       <TopAppBar>Settings</TopAppBar>
       <div className="flex flex-col gap-8 px-4 py-6 pb-20 max-w-2xl mx-auto w-full">
         {isOwner && <Device />}
@@ -23,6 +23,6 @@ export const Component = () => {
         {!!info.billingUrl && isOwner && <Prime />}
         <ClearCache />
       </div>
-    </div>
+    </>
   )
 }

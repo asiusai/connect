@@ -187,10 +187,10 @@ export const Sidebar = () => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6">
-          <Link to="/" onClick={() => set({ open: false })} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <div onClick={() => set({ open: false })} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <Logo provider="asius" className="h-8 w-8" />
             <span className="text-xl font-bold tracking-tight">connect</span>
-          </Link>
+          </div>
         </div>
 
         {/* Device Selector */}

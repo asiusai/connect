@@ -62,7 +62,7 @@ export const Component = () => {
   if (!route) return null
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <>
       <TopAppBar>
         <span>{location ? getLocationText(location) : 'Drive details'}</span>
         {route.start_time && (
@@ -72,7 +72,7 @@ export const Component = () => {
         )}
       </TopAppBar>
 
-      <div className="grid md:grid-cols-3 gap-3 md:gap-4 p-4 max-w-7xl mx-auto">
+      <div className="grid md:grid-cols-3 gap-3 md:gap-4 p-4 max-w-7xl mx-auto w-full">
         <RouteVideoPlayer className="md:col-span-2 md:order-1" props={previewProps} />
         <VideoControls className="md:col-span-2 md:order-3" />
         <Stats route={route} className="md:order-6" />
@@ -81,6 +81,6 @@ export const Component = () => {
         <DynamicMap route={route} className="md:order-2" />
         <Info route={route} className="md:order-7" />
       </div>
-    </div>
+    </>
   )
 }

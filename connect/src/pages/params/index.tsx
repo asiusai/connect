@@ -304,7 +304,7 @@ export const Component = () => {
   const needsPairing = ble.status === 'unauthorized'
 
   return (
-    <div className="flex flex-col min-h-screen bg-transparent text-foreground gap-4">
+    <>
       <TopAppBar className="z-10 bg-transparent">
         <div className="flex items-center gap-3 w-full">
           <span>Settings</span>
@@ -592,7 +592,7 @@ export const Component = () => {
           </>
         )}
       </div>
-    </div>
+    </>
   )
 }
 

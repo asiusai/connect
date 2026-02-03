@@ -54,7 +54,7 @@ export const Component = () => {
   ProxyCommand ssh -W %h:%p %n-${encToken}@ssh.asius.ai -p 2222`
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <>
       <TopAppBar>SSH Access</TopAppBar>
       <div className="flex flex-col gap-6 px-4 py-6 pb-20 max-w-2xl mx-auto w-full">
         <div className="flex flex-col gap-2 text-center">
@@ -146,6 +146,6 @@ export const Component = () => {
           <Copy value={`ssh ${provider}-${dongleId}`} />
         </div>
       </div>
-    </div>
+    </>
   )
 }

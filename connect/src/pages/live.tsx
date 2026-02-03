@@ -524,7 +524,7 @@ export const Component = () => {
   const setupRTCConnectionRef = useRef<(() => Promise<void>) | null>(null)
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+    <>
       <TopAppBar
         trailing={
           <IconButton
@@ -540,6 +540,6 @@ export const Component = () => {
       </TopAppBar>
 
       <LiveView setReconnecting={setReconnecting} setupRTCConnectionRef={setupRTCConnectionRef} />
-    </div>
+    </>
   )
 }

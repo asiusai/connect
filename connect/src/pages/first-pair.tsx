@@ -8,7 +8,7 @@ export const Component = () => {
   const { token } = useAuth()
   const [profile] = api.auth.me.useQuery({ enabled: !!token })
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <>
       <TopAppBar>Welcome</TopAppBar>
 
       <div className="flex-1 flex items-center justify-center p-4">
@@ -54,6 +54,6 @@ export const Component = () => {
           </div>
         </section>
       </div>
-    </div>
+    </>
   )
 }

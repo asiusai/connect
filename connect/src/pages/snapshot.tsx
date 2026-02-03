@@ -88,10 +88,10 @@ const SnapshotView = () => {
 
 export const Component = () => {
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+    <>
       <TopAppBar>Snapshot</TopAppBar>
 
       <SnapshotView />
-    </div>
+    </>
   )
 }

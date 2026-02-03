@@ -64,7 +64,7 @@ export const Component = () => {
 
   if (!files) return null
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <>
       <TopAppBar>
         <span className="capitalize">{FILE_INFO[type].label}</span>
       </TopAppBar>
@@ -128,6 +128,6 @@ export const Component = () => {
           )}
         </div>
       </div>
-    </div>
+    </>
   )
 }

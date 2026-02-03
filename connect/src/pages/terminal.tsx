@@ -98,11 +98,11 @@ export const Component = () => {
   const wsUrl = `wss://ssh.asius.ai/browser/${provider}-${dongleId}-${encToken}`
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <>
       <TopAppBar trailing={<IconButton icon={RefreshCwIcon} title="Reconnect" onClick={() => setKey((k) => k + 1)} />}>SSH Terminal</TopAppBar>
       <div className="flex-1 p-2">
         <Terminal key={key} wsUrl={wsUrl} onClose={() => navigate(`/${dongleId}/ssh`)} />
       </div>
-    </div>
+    </>
   )
 }
