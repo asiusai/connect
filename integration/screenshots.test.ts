@@ -15,11 +15,11 @@ const DEVICES = {
 
 const deviceList = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
 
-for (const mode of Provider.options) {
-  const provider = getProviderInfo(mode)
-  const BASE_URL = provider.connectUrl
-  const DONGLE_ID = provider.demoDongleId
-  const ROUTE_ID = provider.demoRouteId
+for (const provider of Provider.options) {
+  const info = getProviderInfo(provider)
+  const BASE_URL = info.connectUrl
+  const DONGLE_ID = info.demoDongleId
+  const ROUTE_ID = info.demoRouteId
 
   const PAGES = {
     login: 'login',
@@ -36,17 +36,17 @@ for (const mode of Provider.options) {
   }
   for (const device of deviceList) {
     test.concurrent(
-      `${mode} ${device} screenshots`,
+      `${provider} ${device} screenshots`,
       async () => {
         const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
 
         const context = await browser.newContext(DEVICES[device])
         const page = await context.newPage()
 
-        await page.goto(`${BASE_URL}/demo`, { waitUntil: 'networkidle' })
+        await page.goto(`${BASE_URL}/demo?provider=${provider}`, { waitUntil: 'networkidle' })
 
         for (const [name, route] of Object.entries(PAGES)) {
-          const path = `${FOLDER}/${mode}/${device}/${name}.png`
+          const path = `${FOLDER}/${provider}/${device}/${name}.png`
           await page.goto(`${BASE_URL}/${route}`, { waitUntil: 'networkidle', timeout: 120_000 })
 
           await page.screenshot({ path, fullPage: true })
