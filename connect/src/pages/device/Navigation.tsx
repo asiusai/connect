@@ -3,7 +3,7 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { useRouteParams } from '../../hooks'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { useSettings } from '../../hooks/useSettings'
-import { BarChart3Icon, CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
+import { CameraIcon, HomeIcon, LucideIcon, SettingsIcon, TerminalIcon, ToggleLeftIcon, VideoIcon } from 'lucide-react'
 
 export const Navigation = ({ className }: { className?: string }) => {
   const { dongleId } = useRouteParams()
