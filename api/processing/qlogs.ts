@@ -197,7 +197,7 @@ export const processQlogStreaming = async (
             metadata.version = init.Version
             metadata.gitCommit = init.GitCommit
             metadata.gitBranch = init.GitBranch
-            metadata.gitRemote = init.GitRemote
+            metadata.gitRemote = init.GitRemote?.replace('https://', '').replace('.git', '')
             if (init.GitCommitDate) {
               const match = init.GitCommitDate.match(/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2}) ([+-])(\d{2})(\d{2})/)
               if (match) {

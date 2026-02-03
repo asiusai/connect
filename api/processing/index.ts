@@ -136,7 +136,7 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
       git_commit: data?.metadata?.gitCommit ?? null,
       git_commit_date: data?.metadata?.gitCommitDate ?? null,
       git_dirty: data?.metadata?.gitDirty ?? null,
-      git_remote: data?.metadata?.gitRemote?.replace('https://', '').replace('.git', '') ?? null,
+      git_remote: data?.metadata?.gitRemote ?? null,
       platform: data?.metadata?.carFingerprint ?? null,
       vin: data?.metadata?.vin ?? null,
     }
