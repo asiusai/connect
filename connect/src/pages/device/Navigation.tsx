@@ -22,6 +22,7 @@ export const Navigation = ({ className }: { className?: string }) => {
       icon: CameraIcon,
       href: `/${dongleId}/snapshot`,
       color: 'text-orange-400',
+      hide: usingAsiusPilot,
       disabled: !isOwner,
     },
     {
@@ -38,13 +39,6 @@ export const Navigation = ({ className }: { className?: string }) => {
       href: `/${dongleId}/params`,
       color: 'text-purple-400',
       hide: !usingAsiusPilot,
-      disabled: !isOwner,
-    },
-    {
-      title: 'Analyze',
-      icon: BarChart3Icon,
-      href: `/${dongleId}/analyze`,
-      color: 'text-green-500',
       disabled: !isOwner,
     },
     {
