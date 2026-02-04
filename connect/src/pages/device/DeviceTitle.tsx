@@ -6,6 +6,7 @@ import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, WifiIcon, Bluetooth
 import { cn } from '../../../../shared/helpers'
 import { useSidebar } from '../../components/Sidebar'
 import { useDevice } from '../../hooks/useDevice'
+import { useSettings } from '../../hooks/useSettings'
 
 const Voltage = ({ voltage }: { voltage: string }) => {
   const v = (Number(voltage) / 1000).toFixed(1)
@@ -24,6 +25,7 @@ export const DeviceTitle = () => {
   const { dongleId } = useRouteParams()
   const [device] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const { set } = useSidebar()
+  const usingAsiusPilot = useSettings((x) => x.usingAsiusPilot)
   const { voltage, ble, athena } = useDevice()
 
   if (!device) return
@@ -36,18 +38,20 @@ export const DeviceTitle = () => {
           <div className="flex items-center gap-3 text-sm font-medium opacity-90">
             <Active device={device} />
             <div className="w-1 h-1 rounded-full bg-white/40" />
-            <WifiIcon className={cn('text-lg', athena.status === 'connected' ? 'text-green-400' : 'text-white/30')} />
-            <BluetoothIcon
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation()
-                if (ble.status === 'disconnected' || ble.status === 'not-supported') ble.connect()
-                else if (ble.status === 'connected') ble.disconnect()
-              }}
-              className={cn(
-                'text-lg cursor-pointer',
-                ble.status === 'connected' ? 'text-indigo-400' : ble.status === 'connecting' ? 'text-indigo-400 animate-pulse' : 'text-white/30',
-              )}
-            />
+            <WifiIcon className={cn('text-lg', athena.status === 'connected' ? 'text-green-500' : 'text-white/30')} />
+            {usingAsiusPilot && (
+              <BluetoothIcon
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation()
+                  if (ble.status === 'connected') ble.disconnect()
+                  else ble.connect()
+                }}
+                className={cn(
+                  'text-lg cursor-pointer',
+                  ble.status === 'connected' ? 'text-indigo-500' : ble.status === 'connecting' ? 'text-indigo-400 animate-pulse' : 'text-white/30',
+                )}
+              />
+            )}
             {voltage && (
               <>
                 <div className="w-1 h-1 rounded-full bg-white/40" />

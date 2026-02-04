@@ -35,6 +35,7 @@ export const useAthena = () => {
     if (!res) return
 
     set({ voltage: res.peripheralState.voltage, status: 'connected' })
+    console.log(`Athena connected, voltage: ${res.peripheralState.voltage}`)
   }, [call, isOwner])
 
   const disconnect = useCallback(() => {
