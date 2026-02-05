@@ -37,13 +37,13 @@ const Copy = ({ value, children }: { value: string; children?: ReactNode }) => {
 export const Component = () => {
   const { provider, token } = useAuth()
   const { dongleId } = useRouteParams()
-  const { get } = useDevice()
+  const { params } = useDevice()
 
   const encToken = useMemo(() => encryptToken(token!, env.ENCRYPTION_KEY), [token])
 
   if (!dongleId || !encToken) return null
 
-  const githubUsername = get('GithubUsername')
+  const githubUsername = params?.GithubUsername
   const isSharedKey = githubUsername === env.SSH_USERNAME
 
   const sshConfig = `Host ${provider}-*

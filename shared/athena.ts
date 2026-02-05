@@ -24,145 +24,91 @@ export const UploadQueueItem = z.object({
 })
 export type UploadQueueItem = z.infer<typeof UploadQueueItem>
 
+export const TransportType = z.enum(['athena', 'ble'])
+export type TransportType = z.infer<typeof TransportType>
+
+const req = <Params, Result>(params: Params, result: Result, ...types: TransportType[]) => ({
+  params,
+  result,
+  types: types.length ? types : (['athena', 'ble'] as const),
+})
+
 export const ATHENA_METHODS = {
-  echo: {
-    params: z.object({ s: z.string() }),
-    result: z.string(),
-  },
-  getNetworkMetered: {
-    params: z.void(),
-    result: z.boolean(),
-  },
-  setRouteViewed: {
-    params: z.object({ route: z.string() }),
-    result: z.object({ success: z.number() }),
-  },
-  takeSnapshot: {
-    params: z.void(),
-    result: z.object({ jpegFront: z.string().nullable(), jpegBack: z.string().nullable() }).or(z.null()),
-  },
-  listUploadQueue: {
-    params: z.void(),
-    result: UploadQueueItem.array(),
-  },
-  uploadFilesToUrls: {
-    params: z.object({
-      files_data: DataFile.array(),
-    }),
-    result: z.object({
+  // Athena only
+  setRouteViewed: req(z.object({ route: z.string() }), z.object({ success: z.number() }), 'athena'),
+  listUploadQueue: req(z.void(), UploadQueueItem.array(), 'athena'),
+  uploadFilesToUrls: req(
+    z.object({ files_data: DataFile.array() }),
+    z.object({
       enqueued: z.number(),
       failed: z.string().array().optional(),
       items: UploadQueueItem.array(),
     }),
-  },
-  cancelUpload: {
-    params: z.object({
-      upload_id: z.string().or(z.string().array()),
-    }),
-    result: z.record(z.string(), z.number().or(z.string())),
-  },
-  getMessage: {
-    params: z.object({ service: Service, timeout: z.number().optional() }),
-    result: z.any(),
-  },
-  uploadFileToUrl: {
-    params: z.object({
+    'athena',
+  ),
+  cancelUpload: req(z.object({ upload_id: z.string().or(z.string().array()) }), z.record(z.string(), z.number().or(z.string())), 'athena'),
+  uploadFileToUrl: req(
+    z.object({
       fn: z.string(),
       url: z.string(),
       headers: z.record(z.string()),
     }),
-    result: z.object({
+    z.object({
       enqueued: z.number(),
       failed: z.string().array().optional(),
       items: UploadQueueItem.array(),
     }),
-  },
-  getVersion: {
-    params: z.void(),
-    result: z.object({
+    'athena',
+  ),
+
+  // All
+  echo: req(z.object({ s: z.string() }), z.string()),
+  getNetworkMetered: req(z.void(), z.boolean()),
+  takeSnapshot: req(z.void(), z.object({ jpegFront: z.string().nullable(), jpegBack: z.string().nullable() }).or(z.null())),
+  getMessage: req(z.object({ service: Service, timeout: z.number().optional() }), z.any()),
+
+  getVersion: req(
+    z.void(),
+    z.object({
       version: z.string(),
       remote: z.string(),
       branch: z.string(),
       commit: z.string(),
     }),
-  },
-  listDataDirectory: {
-    params: z.object({ prefix: z.string().optional() }),
-    result: z.string().array(),
-  },
-  getPublicKey: {
-    params: z.void(),
-    result: z.string().nullable(),
-  },
-  getSshAuthorizedKeys: {
-    params: z.void(),
-    result: z.string(),
-  },
-  getGithubUsername: {
-    params: z.void(),
-    result: z.string(),
-  },
-  getSimInfo: {
-    params: z.void(),
-    result: z.object({
+  ),
+  listDataDirectory: req(z.object({ prefix: z.string().optional() }), z.string().array()),
+  getPublicKey: req(z.void(), z.string().nullable()),
+  getSshAuthorizedKeys: req(z.void(), z.string()),
+  getGithubUsername: req(z.void(), z.string()),
+  getSimInfo: req(
+    z.void(),
+    z.object({
       sim_id: z.string().optional(),
       imei: z.string().optional(),
       network_type: z.number().optional(),
     }),
-  },
-  getNetworkType: {
-    params: z.void(),
-    result: z.number(),
-  },
-  getNetworks: {
-    params: z.void(),
-    result: z
-      .object({
-        type: z.number(),
-        strength: z.number(),
-        metered: z.boolean(),
-      })
-      .array(),
-  },
-  webrtc: {
-    params: z.object({
+  ),
+  getNetworks: req(z.void(), z.object({ type: z.number(), strength: z.number(), metered: z.boolean() }).array()),
+  getNetworkType: req(z.void(), z.number()),
+  webrtc: req(
+    z.object({
       sdp: z.string(),
       cameras: z.string().array(),
       bridge_services_in: z.string().array(),
       bridge_services_out: z.string().array(),
     }),
-    result: z.object({
-      sdp: z.string(),
-      type: z.string(),
-    }),
-  },
-  startLocalProxy: {
-    params: z.object({
-      remote_ws_uri: z.string(),
-      local_port: z.number(),
-    }),
-    result: z.object({ success: z.number() }),
-  },
-  getAllParams: {
-    params: z.void(),
-    result: z.record(z.any()),
-  },
-  saveParams: {
-    params: z.object({
-      params_to_update: z.record(z.string().nullable()),
-    }),
-    result: z.record(z.string()),
-  },
-  blePair: {
-    params: z.object({
-      code: z.string(),
-      dongleId: z.string(),
-    }),
-    result: z.object({ token: z.string() }),
-  },
-  getWifiNetworks: {
-    params: z.void(),
-    result: z
+    z.object({ sdp: z.string(), type: z.string() }),
+  ),
+  startLocalProxy: req(z.object({ remote_ws_uri: z.string(), local_port: z.number() }), z.object({ success: z.number() })),
+  getAllParams: req(z.object({}), z.record(z.any())),
+  saveParams: req(z.object({ params_to_update: z.record(z.any()) }), z.record(z.string())),
+
+  // BLE only
+  blePair: req(z.object({ code: z.string(), dongleId: z.string() }), z.object({ token: z.string() }), 'ble'),
+  bleRevoke: req(z.object({}), z.object({ status: z.literal('ok') }), 'ble'),
+  getWifiNetworks: req(
+    z.void(),
+    z
       .object({
         ssid: z.string(),
         strength: z.number(),
@@ -171,38 +117,28 @@ export const ATHENA_METHODS = {
         saved: z.boolean(),
       })
       .array(),
-  },
-  connectWifi: {
-    params: z.object({ ssid: z.string(), password: z.string().optional() }),
-    result: z.object({ status: z.string() }),
-  },
-  forgetWifi: {
-    params: z.object({ ssid: z.string() }),
-    result: z.object({ status: z.string() }),
-  },
-  setTethering: {
-    params: z.object({ enabled: z.boolean() }),
-    result: z.object({ status: z.string() }),
-  },
-  setTetheringPassword: {
-    params: z.object({ password: z.string() }),
-    result: z.object({ status: z.string() }),
-  },
-  getNetworkStatus: {
-    params: z.void(),
-    result: z.object({
+    'ble',
+  ),
+  connectWifi: req(z.object({ ssid: z.string(), password: z.string().optional() }), z.object({ status: z.string() }), 'ble'),
+  forgetWifi: req(z.object({ ssid: z.string() }), z.object({ status: z.string() }), 'ble'),
+  setTethering: req(z.object({ enabled: z.boolean() }), z.object({ status: z.string() }), 'ble'),
+  setTetheringPassword: req(z.object({ password: z.string() }), z.object({ status: z.string() }), 'ble'),
+  getNetworkStatus: req(
+    z.void(),
+    z.object({
       ip_address: z.string(),
       tethering_active: z.boolean(),
       tethering_password: z.string(),
       metered: z.number(),
     }),
-  },
+    'ble',
+  ),
 }
 
 export type AthenaRequest = keyof typeof ATHENA_METHODS
 export type AthenaParams<T extends AthenaRequest> = z.infer<(typeof ATHENA_METHODS)[T]['params']>
 export type AthenaResult<T extends AthenaRequest> = z.infer<(typeof ATHENA_METHODS)[T]['result']>
-export type AthenaResponse<T extends AthenaRequest> = { error?: AthenaError; result?: AthenaResult<T> }
+export type AthenaResponse<T extends AthenaRequest> = AthenaResult<T>
 
 export const fetchAthena = async <T extends AthenaRequest>({
   method,
@@ -241,16 +177,16 @@ export const fetchAthena = async <T extends AthenaRequest>({
   })
   if (!res.ok) return
 
-  if (res.status === 202) {
-    console.warn(await res.text())
-    return
-  }
+  if (res.status === 202) return console.warn(await res.text())
 
-  if (res.status === 200)
-    return z
-      .object({
-        error: AthenaError.optional(),
-        result: ATHENA_METHODS[method].result.optional(),
-      })
-      .parse(await res.json())
+  const parsed = z
+    .object({
+      error: AthenaError.optional(),
+      result: ATHENA_METHODS[method].result.optional(),
+    })
+    .safeParse(await res.json())
+  if (!parsed.success) return console.warn(`Parse failed: ${parsed.error}`)
+  if (parsed.data.error) return console.error(`Request failed with: ${parsed.data.error}`)
+
+  return parsed.data.result
 }

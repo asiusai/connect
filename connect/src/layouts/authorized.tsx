@@ -24,7 +24,7 @@ const RedirectFromHome = () => {
       set({ lastDongleId: firstDongleId })
       navigate(`/${firstDongleId}`)
     }
-  }, [devices, lastDongleId])
+  }, [devices, lastDongleId, navigate, set])
 
   return null
 }
@@ -39,7 +39,7 @@ export const Component = () => {
 
   useEffect(() => {
     if (dongleId && dongleId !== lastDongleId) set({ lastDongleId: dongleId })
-  }, [dongleId, lastDongleId])
+  }, [dongleId, lastDongleId, set])
 
   const isOnline = useOffline((s) => s.isOnline)
 
@@ -49,7 +49,7 @@ export const Component = () => {
     errorCount.current++
     if (errorCount.current >= 2) logOut()
     else refetch()
-  }, [error, refetch, isOnline])
+  }, [error, refetch, isOnline, logOut])
 
   if (!token) return <Navigate to="/login" />
 
@@ -58,7 +58,9 @@ export const Component = () => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
+      <div className="hidden md:flex">
+        <Sidebar />
+      </div>
       <div className="flex-1 flex flex-col min-w-0">
         <Outlet />
       </div>

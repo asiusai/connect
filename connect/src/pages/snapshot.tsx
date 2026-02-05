@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useRouteParams } from '../hooks'
 import { AthenaResponse } from '../../../shared/athena'
 import { toast } from 'sonner'
 import { HEIGHT, WIDTH } from '../templates/shared'
@@ -9,28 +8,29 @@ import { cn, saveFile } from '../../../shared/helpers'
 import { ControlButton } from './live'
 import { useSettings } from '../hooks/useSettings'
 import { TopAppBar } from '../components/TopAppBar'
-import { useAthena } from '../hooks/useAthena'
+import { useDevice } from '../hooks/useDevice'
 
 const toB64 = (x?: string | null) => (x ? `data:image/jpeg;base64,${x}` : undefined)
 
 const SnapshotView = () => {
   const { cameraView, set } = useSettings()
-  const { dongleId } = useRouteParams()
-  const [images, setImages] = useState<AthenaResponse<'takeSnapshot'>['result']>()
+  const [images, setImages] = useState<AthenaResponse<'takeSnapshot'>>()
   const [isLoading, setIsLoading] = useState(false)
-  const athena = useAthena()
+  const { call } = useDevice()
+
   const shot = useCallback(async () => {
+    if (!call) return
     setIsLoading(true)
     setImages(undefined)
-    const res = await athena('takeSnapshot', undefined)
-    if (res?.result) setImages(res.result)
-    else toast.error('Failed taking a picture')
+    const res = await call('takeSnapshot', undefined)
+    if (!res) toast.error('Failed taking a picture')
+    else setImages(res)
     setIsLoading(false)
-  }, [dongleId])
+  }, [call])
 
   useEffect(() => {
     if (!images && !isLoading) shot()
-  }, [])
+  }, [images, isLoading, shot])
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">

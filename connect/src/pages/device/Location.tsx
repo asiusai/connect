@@ -3,12 +3,11 @@ import { useEffect } from 'react'
 import { getTileUrl } from '../../utils/map'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
-import { IconButton } from '../../components/IconButton'
 import { usePosition, useRouteParams } from '../../hooks'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '../../../../shared/helpers'
 import { api } from '../../api'
-import { CarIcon, UserIcon, LucideIcon, LocateFixedIcon } from 'lucide-react'
+import { CarIcon, UserIcon, LucideIcon } from 'lucide-react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 
@@ -38,7 +37,7 @@ const FitBounds = ({ markers }: { markers: MarkerType[] }) => {
 
 export const Location = ({ className, device }: { className?: string; device?: Device }) => {
   const { dongleId } = useRouteParams()
-  const { position, requestPosition } = usePosition()
+  const { position } = usePosition()
   const navigate = useNavigate()
 
   const isOwner = useIsDeviceOwner()
@@ -97,14 +96,6 @@ export const Location = ({ className, device }: { className?: string; device?: D
         <FitBounds markers={markers} />
       </MapContainer>
 
-      {!position && (
-        <IconButton
-          icon={LocateFixedIcon}
-          title="Request location"
-          className="absolute bottom-4 text-xl right-6 bg-background p-2 z-999 rounded-full"
-          onClick={() => requestPosition()}
-        />
-      )}
       {!markers.length && (
         <div className="absolute left-1/2 top-1/2 z-5000 flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-background-alt px-4 py-2 shadow">
           <div className="mr-2 size-4 animate-spin rounded-full border-2 border-background-alt-x border-t-transparent" />

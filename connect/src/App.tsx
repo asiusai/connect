@@ -93,10 +93,10 @@ const router = createBrowserRouter([
             path: 'snapshot',
             lazy: () => import('./pages/snapshot'),
           },
-          {
-            path: 'controls',
-            lazy: () => import('./pages/controls/index'),
-          },
+          // {
+          //   path: 'controls',
+          //   lazy: () => import('./pages/controls/index'),
+          // },
           {
             path: 'settings',
             lazy: () => import('./pages/settings'),

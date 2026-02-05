@@ -25,7 +25,7 @@ const RenderingVideo = ({ files }: { files: PreviewFiles }) => {
       setSrc(URL.createObjectURL(blob))
       continueRender(handle)
     })
-  }, [files.files])
+  }, [files.files, continueRender, delayRender])
 
   if (!src) return null
   return <Video src={src} className="h-full w-full" showInTimeline={false} />

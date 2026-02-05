@@ -9,6 +9,6 @@ export const useFiles = (routeName: string, route: Route | undefined, refetchInt
     query: {},
     refetchInterval,
   })
-  const files2 = useMemo(() => (files ? toSegmentFiles(files, route ? route.maxqlog + 1 : undefined) : undefined), [files])
+  const files2 = useMemo(() => (files ? toSegmentFiles(files, route ? route.maxqlog + 1 : undefined) : undefined), [files, route])
   return [files2, res] as const
 }

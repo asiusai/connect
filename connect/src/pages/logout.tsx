@@ -4,6 +4,6 @@ import { useEffect } from 'react'
 
 export const Component = () => {
   const { logOut } = useAuth()
-  useEffect(() => logOut(), [])
+  useEffect(() => logOut(), [logOut])
   return <Navigate to="/login" />
 }

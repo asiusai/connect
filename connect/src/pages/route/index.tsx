@@ -13,8 +13,7 @@ import { formatDate, formatTime } from '../../utils/format'
 import { Info } from './Info'
 import { useSettings } from '../../hooks/useSettings'
 import { PreviewProps } from '../../../../shared/types'
-import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
-import { useAthena } from '../../hooks/useAthena'
+import { useDevice } from '../../hooks/useDevice'
 
 const getLocationText = ({ start, end }: { start?: string; end?: string }) => {
   if (!start && !end) return 'Drive Details'
@@ -39,25 +38,25 @@ export const usePreviewProps = () => {
       unitFormat,
       showPath,
     }),
-    [largeCameraType, smallCameraType, logType, files, route, showPath],
+    [largeCameraType, smallCameraType, logType, files, route, showPath, routeName, unitFormat],
   )
   return props
 }
 
 export const Component = () => {
-  const { routeName, dongleId, routeId } = useRouteParams()
+  const { routeName, routeId } = useRouteParams()
   const [route] = api.route.get.useQuery({ params: { routeName: routeName.replace('/', '|') }, query: {} })
   const [location, setLocation] = useState<{ start?: string; end?: string }>()
   const previewProps = usePreviewProps()
-  const isOwner = useIsDeviceOwner()
-  const athena = useAthena()
+  const { call } = useDevice()
+
   useEffect(() => {
     if (route) getStartEndPlaceName(route).then(setLocation)
   }, [route])
 
   useEffect(() => {
-    if (isOwner) athena('setRouteViewed', { route: routeId })
-  }, [routeId, dongleId, isOwner])
+    call?.('setRouteViewed', { route: routeId })
+  }, [routeId, call])
 
   if (!route) return null
 

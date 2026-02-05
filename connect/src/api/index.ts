@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useSyncExternalStore } from 'react'
+import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react'
 import { AppRoute, AppRouter, ClientInferRequest, ClientInferResponses } from '@ts-rest/core'
 import { contract } from '../../../shared/contract'
 import { createClient } from '../../../shared/api'
@@ -59,16 +59,18 @@ const createUseQuery = <T extends AppRoute>(routePath: string, fetcher: (args: R
     const token = useAuth.getState().token
     const key = routePath + ':' + token + ':' + JSON.stringify(args)
 
-    const entry = useSyncExternalStore(
-      (cb) => {
-        listeners.add(cb)
-        return () => listeners.delete(cb)
-      },
-      () => getCache(key),
-    )
+    const subscribe = useCallback((cb: () => void) => {
+      listeners.add(cb)
+      return () => listeners.delete(cb)
+    }, [])
 
+    const entry = useSyncExternalStore(subscribe, () => getCache(key))
+
+    const callbacksRef = useRef({ onSuccess, onError })
+    callbacksRef.current = { onSuccess, onError }
+
+    // biome-ignore lint/correctness/useExhaustiveDependencies: args
     const fetchData = useCallback(async () => {
-      if (!enabled) return
       if (inflight.has(key)) return inflight.get(key)
       setCache(key, { loading: true, error: undefined })
       const promise = (async () => {
@@ -76,29 +78,31 @@ const createUseQuery = <T extends AppRoute>(routePath: string, fetcher: (args: R
           const res = await fetcher(args as Req<T>)
           if (res.status >= 400) throw new Error(typeof res.body === 'string' ? res.body : `Request failed: ${res.status}`)
           setCache(key, { data: res.body, loading: false, timestamp: Date.now() })
-          onSuccess?.(res.body)
+          callbacksRef.current.onSuccess?.(res.body)
         } catch (e) {
           const error = e instanceof Error ? e.message : 'Unknown error'
           setCache(key, { error, loading: false })
-          onError?.(error)
+          callbacksRef.current.onError?.(error)
         } finally {
           inflight.delete(key)
         }
       })()
       inflight.set(key, promise)
       return promise
-    }, [key, enabled])
+    }, [key, fetcher])
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: entry in deps causes infinite loop, key covers fetchData
     useEffect(() => {
       if (!enabled) return
-      if (!entry.data && !entry.loading && !entry.error) fetchData()
-    }, [key, enabled, fetchData, entry])
+      if (entry.data || entry.loading) return
+      fetchData()
+    }, [key, enabled])
 
     useEffect(() => {
       if (!refetchInterval || !enabled) return
       const id = setInterval(fetchData, refetchInterval)
       return () => clearInterval(id)
-    }, [key, refetchInterval, enabled])
+    }, [refetchInterval, enabled, fetchData])
 
     return [
       entry.data as Res<T> | undefined,
@@ -120,6 +124,9 @@ const createUseMutation = <T extends AppRoute>(mutator: (args: Req<T>) => Promis
       loading: false,
     })
 
+    const callbacksRef = useRef({ onSuccess: options?.onSuccess, onError: options?.onError })
+    callbacksRef.current = { onSuccess: options?.onSuccess, onError: options?.onError }
+
     const mutate = useCallback(
       async (args: Req<T>) => {
         setState({ data: undefined, error: undefined, loading: true })
@@ -127,16 +134,16 @@ const createUseMutation = <T extends AppRoute>(mutator: (args: Req<T>) => Promis
           const res = await mutator(args)
           if (res.status >= 400) throw new Error(typeof res.body === 'string' ? res.body : `Request failed: ${res.status}`)
           setState({ data: res.body, error: undefined, loading: false })
-          options?.onSuccess?.(res.body)
+          callbacksRef.current.onSuccess?.(res.body)
           return res.body
         } catch (e) {
           const error = e instanceof Error ? e.message : 'Unknown error'
           setState({ data: undefined, error, loading: false })
-          options?.onError?.(error)
+          callbacksRef.current.onError?.(error)
           return undefined
         }
       },
-      [options?.onSuccess, options?.onError],
+      [mutator],
     )
 
     return {
