@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { AthenaParams, AthenaRequest, AthenaResponse } from '../../../../shared/athena'
 import { useRouteParams } from '../index'
 import { AthenaStatus, UseAthenaType } from './useAthena'
@@ -20,71 +20,73 @@ const bleInit = {
   requestChar: undefined as undefined | BluetoothRemoteGATTCharacteristic,
   requestId: 0,
   pendingRequests: new Map<number, (value: any) => void>(),
-  initialized: false,
+  dongleId: undefined as string | undefined,
 }
 const useBleState = create<ZustandType<typeof bleInit>>((set) => ({ set, ...bleInit }))
 
 export const useBle = (): UseAthenaType => {
   const { dongleId } = useRouteParams()
   const usingAsiusPilot = useSettings((x) => x.usingAsiusPilot)
-  const { status, voltage, set, initialized } = useBleState()
+  const { status, voltage, set } = useBleState()
 
-  const pair = async () => {
+  const call = useCallback(
+    async <T extends AthenaRequest>(method: T, params: AthenaParams<T>): Promise<AthenaResponse<T> | undefined> => {
+      const requestChar = useBleState.getState().requestChar
+      if (!requestChar) return undefined
+
+      const { requestId, pendingRequests } = useBleState.getState()
+      const id = requestId + 1
+      set({ requestId: id })
+
+      const token = getToken(dongleId)
+      const paramsWithToken = typeof params === 'object' && params !== null ? { ...params, token } : { token }
+
+      const request = {
+        jsonrpc: '2.0',
+        method,
+        params: paramsWithToken,
+        id,
+      }
+
+      const responsePromise = new Promise<AthenaResponse<T>>((resolve, reject) => {
+        pendingRequests.set(id, (response: any) => {
+          if (response?.error?.code === -32001) {
+            set({ status: 'unauthorized' })
+            reject(new Error('Unauthorized: pair with device first'))
+          } else {
+            resolve(response)
+          }
+        })
+      })
+
+      try {
+        const encoder = new TextEncoder()
+        const data = encoder.encode(JSON.stringify(request))
+        const MTU = 512
+        for (let i = 0; i < data.length; i += MTU) {
+          const chunk = data.slice(i, i + MTU)
+          await requestChar.writeValue(chunk)
+        }
+        return await responsePromise
+      } catch (error) {
+        pendingRequests.delete(id)
+        if ((error as Error).message.includes('Unauthorized')) throw error
+      }
+    },
+    [dongleId, set],
+  )
+
+  const pair = useCallback(async () => {
     set({ status: 'unauthorized' })
     const code = window.prompt('Insert pairing code')
     if (!code) throw new Error("User didn't insert code")
 
     const res = await call('blePair', { code, dongleId })
-    console.log({ res })
     if (!res) throw new Error(`Pairing failed, ${code}, ${dongleId}`)
 
     setToken(dongleId, res.token)
     set({ status: 'connected' })
-  }
-
-  const call = useCallback(async <T extends AthenaRequest>(method: T, params: AthenaParams<T>): Promise<AthenaResponse<T> | undefined> => {
-    const requestChar = useBleState.getState().requestChar
-    if (!requestChar) return undefined
-
-    const { requestId, pendingRequests } = useBleState.getState()
-    const id = requestId + 1
-    set({ requestId: id })
-
-    const token = getToken(dongleId)
-    const paramsWithToken = typeof params === 'object' && params !== null ? { ...params, token } : { token }
-
-    const request = {
-      jsonrpc: '2.0',
-      method,
-      params: paramsWithToken,
-      id,
-    }
-
-    const responsePromise = new Promise<AthenaResponse<T>>((resolve, reject) => {
-      pendingRequests.set(id, (response: any) => {
-        if (response?.error?.code === -32001) {
-          set({ status: 'unauthorized' })
-          reject(new Error('Unauthorized: pair with device first'))
-        } else {
-          resolve(response)
-        }
-      })
-    })
-
-    try {
-      const encoder = new TextEncoder()
-      const data = encoder.encode(JSON.stringify(request))
-      const MTU = 512
-      for (let i = 0; i < data.length; i += MTU) {
-        const chunk = data.slice(i, i + MTU)
-        await requestChar.writeValue(chunk)
-      }
-      return await responsePromise
-    } catch (error) {
-      pendingRequests.delete(id)
-      if ((error as Error).message.includes('Unauthorized')) throw error
-    }
-  }, [])
+  }, [dongleId, call, set])
 
   const connectToDevice = useCallback(async () => {
     const device = useBleState.getState().device
@@ -144,10 +146,9 @@ export const useBle = (): UseAthenaType => {
       set({ status: 'disconnected' })
       console.error(e)
     }
-  }, [])
+  }, [call, dongleId, pair, set])
 
   const autoConnect = useCallback(async () => {
-    if (!navigator.bluetooth) return set({ status: 'not-supported' })
     try {
       set({ status: 'connecting' })
       const devices = await navigator.bluetooth.getDevices()
@@ -177,10 +178,9 @@ export const useBle = (): UseAthenaType => {
       console.error('Auto-connect failed', e)
       set({ status: 'disconnected' })
     }
-  }, [dongleId])
+  }, [dongleId, connectToDevice, set])
 
   const connect = useCallback(async () => {
-    if (!navigator.bluetooth) return set({ status: 'not-supported' })
     try {
       set({ status: 'connecting' })
       const device = await navigator.bluetooth.requestDevice({
@@ -193,28 +193,35 @@ export const useBle = (): UseAthenaType => {
       set({ status: 'disconnected' })
       console.error(e)
     }
-  }, [dongleId])
+  }, [dongleId, connectToDevice, set])
 
   const disconnect = useCallback(async () => {
     const device = useBleState.getState().device
     if (device?.gatt?.connected) device.gatt.disconnect()
 
-    set({ status: 'disconnected', device: undefined, initialized: false })
-  }, [])
-
-  // const reconnect = useCallback(async () => {
-  //   if (!device) return
-  //   await connectToDevice()
-  // }, [device])
-
-  const init = useCallback(async () => {
-    set({ initialized: true })
-    autoConnect()
-  }, [dongleId, autoConnect])
+    set({ status: 'disconnected', device: undefined, dongleId: undefined })
+  }, [set])
 
   useEffect(() => {
-    if (!initialized && usingAsiusPilot) init()
-  }, [])
+    if (!navigator.bluetooth) return set({ status: 'not-supported' })
+    if (!usingAsiusPilot) return
+    if (useBleState.getState().dongleId === dongleId) return
 
-  return { type: 'ble', status, init, call, connect, disconnect, voltage }
+    set({ dongleId })
+    autoConnect()
+  }, [usingAsiusPilot, autoConnect, set, dongleId])
+
+  return useMemo(
+    () => ({
+      type: 'ble',
+      status,
+      init: autoConnect,
+      call: status === 'connected' ? call : undefined,
+      connect,
+      disconnect,
+      voltage,
+      connected: status === 'connected',
+    }),
+    [status, autoConnect, call, connect, disconnect, voltage],
+  )
 }

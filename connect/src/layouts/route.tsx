@@ -51,7 +51,7 @@ export const Component = () => {
     if (dongleId && dongleId !== lastDongleId) {
       set({ lastDongleId: dongleId })
     }
-  }, [dongleId, lastDongleId])
+  }, [dongleId, lastDongleId, set])
 
   if (loading) return <Loading className="h-screen w-screen" />
 

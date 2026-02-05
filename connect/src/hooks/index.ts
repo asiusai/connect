@@ -27,6 +27,7 @@ export const useRouteParams = () => {
 }
 
 export const useAsyncEffect = (fn: () => Promise<any>, args: any[]) => {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fn
   useEffect(() => {
     fn()
   }, [...args])

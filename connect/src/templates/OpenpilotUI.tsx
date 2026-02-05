@@ -113,7 +113,7 @@ export const OpenpilotUI = ({
     if (targetTimeMs - frameTimeMs > 2000) return undefined
 
     return logData.frames[frameTimeMs]
-  }, [sortedTimeOffsets, targetTimeMs, logData])
+  }, [sortedTimeOffsets, targetTimeMs, logData, i])
 
   if (!frame) return null
 

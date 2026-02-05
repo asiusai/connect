@@ -1,6 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { useRouteParams } from '../hooks'
-import { toast } from 'sonner'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { HEIGHT, WIDTH } from '../templates/shared'
 import {
   CarIcon,
@@ -19,7 +17,7 @@ import { useSettings } from '../hooks/useSettings'
 import { cn } from '../../../shared/helpers'
 import { TopAppBar } from '../components/TopAppBar'
 import { IconButton } from '../components/IconButton'
-import { useDevice } from '../hooks/useDevice'
+import { useWebRTC } from '../hooks/useWebRTC'
 
 export const ControlButton = ({
   onClick,
@@ -67,241 +65,31 @@ export const ControlButton = ({
   </button>
 )
 
-const LiveView = ({
-  setReconnecting,
-  setupRTCConnectionRef,
-}: {
-  setReconnecting: (v: boolean) => void
-  setupRTCConnectionRef: React.RefObject<(() => Promise<void>) | null>
-}) => {
-  const { dongleId } = useRouteParams()
-  const [status, setStatus] = useState<string | null>(null)
+export const Component = () => {
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const { cameraView, joystickEnabled, set } = useSettings()
   const [joystickPosition, setJoystickPosition] = useState({ x: 0, y: 0 })
   const [joystickSensitivity, setJoystickSensitivity] = useState(0.25)
-  const [stats, setStats] = useState<{ fps: number; latency: number } | null>(null)
-  const { call } = useDevice()
 
-  const rtcConnection = useRef<RTCPeerConnection | null>(null)
-  const localAudioTrack = useRef<MediaStreamTrack | null>(null)
-  const remoteAudioRef = useRef<HTMLAudioElement | null>(null)
-  const driverRef = useRef<HTMLVideoElement | null>(null)
-  const roadRef = useRef<HTMLVideoElement | null>(null)
-  const dataChannelRef = useRef<RTCDataChannel | null>(null)
-  const joystickIntervalRef = useRef<number | null>(null)
+  const { status, stats, driverRef, roadRef, remoteAudioRef, startMic, stopMic, sendDataChannel, connect } = useWebRTC({
+    audio: true,
+    dataChannels: ['data'],
+    bridgeServicesIn: ['testJoystick'],
+  })
+
   const joystickBaseRef = useRef<HTMLDivElement | null>(null)
   const isDraggingRef = useRef(false)
-  const audioSenderRef = useRef<RTCRtpSender | null>(null)
-
-  const disconnectRTCConnection = () => {
-    if (rtcConnection.current) {
-      rtcConnection.current.close()
-      rtcConnection.current = null
-    }
-    if (localAudioTrack.current) {
-      localAudioTrack.current.stop()
-      localAudioTrack.current = null
-    }
-    audioSenderRef.current = null
-    if (driverRef.current) driverRef.current.srcObject = null
-    if (roadRef.current) roadRef.current.srcObject = null
-    setIsSpeaking(false)
-  }
-
-  const setupRTCConnection = async () => {
-    if (!dongleId) return
-
-    disconnectRTCConnection()
-    setReconnecting(true)
-    setStatus('Initiating connection...')
-
-    try {
-      const audioContext = new AudioContext()
-      const oscillator = audioContext.createOscillator()
-      const destination = audioContext.createMediaStreamDestination()
-      oscillator.connect(destination)
-      oscillator.start()
-      const silentTrack = destination.stream.getAudioTracks()[0]
-      silentTrack.enabled = false
-
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          {
-            urls: 'turn:85.190.241.173:3478',
-            username: 'testuser',
-            credential: 'testpass',
-          },
-          {
-            urls: ['stun:85.190.241.173:3478', 'stun:stun.l.google.com:19302'],
-          },
-        ],
-        iceTransportPolicy: 'all',
-      })
-      rtcConnection.current = pc
-
-      const dataChannel = pc.createDataChannel('data', { ordered: true })
-      dataChannel.onopen = () => {
-        dataChannelRef.current = dataChannel
-      }
-      dataChannel.onclose = () => {
-        dataChannelRef.current = null
-      }
-
-      pc.addTransceiver('video', { direction: 'recvonly' })
-      pc.addTransceiver('video', { direction: 'recvonly' })
-
-      const audioTransceiver = pc.addTransceiver('audio', { direction: 'sendrecv' })
-      audioTransceiver.sender.replaceTrack(silentTrack)
-      audioSenderRef.current = audioTransceiver.sender
-
-      let videoTrackCount = 0
-      pc.ontrack = (event) => {
-        const newTrack = event.track
-        const newStream = new MediaStream([newTrack])
-
-        if (newTrack.kind === 'audio') {
-          if (remoteAudioRef.current) {
-            remoteAudioRef.current.srcObject = newStream
-          }
-        } else {
-          videoTrackCount++
-          if (videoTrackCount === 1 && driverRef.current) {
-            driverRef.current.srcObject = newStream
-          } else if (videoTrackCount === 2 && roadRef.current) {
-            roadRef.current.srcObject = newStream
-          }
-        }
-      }
-
-      pc.oniceconnectionstatechange = () => {
-        const state = pc.iceConnectionState
-        console.log('ICE State:', state)
-        if (['connected', 'completed'].includes(state)) {
-          setStatus(null)
-        } else if (['failed', 'disconnected'].includes(state)) {
-          toast.error('Connection failed')
-        }
-      }
-
-      setStatus('Creating offer...')
-      const offer = await pc.createOffer()
-      await pc.setLocalDescription(offer)
-
-      await new Promise<void>((resolve) => {
-        if (pc.iceGatheringState === 'complete') resolve()
-        else {
-          const checkState = () => {
-            if (pc.iceGatheringState === 'complete') {
-              pc.removeEventListener('icegatheringstatechange', checkState)
-              resolve()
-            }
-          }
-          pc.addEventListener('icegatheringstatechange', checkState)
-          setTimeout(() => {
-            pc.removeEventListener('icegatheringstatechange', checkState)
-            resolve()
-          }, 2000)
-        }
-      })
-
-      setStatus('Sending offer via Athena...')
-      const sdp = pc.localDescription?.sdp
-
-      const res = await call('webrtc', {
-        sdp: sdp!,
-        cameras: ['driver', 'wideRoad'],
-        bridge_services_in: ['testJoystick'],
-        bridge_services_out: [],
-      })
-
-      if (!res) throw new Error('Athena failed')
-      if (!res.sdp || !res.type) throw new Error('Invalid response from webrtcd')
-
-      await pc.setRemoteDescription(new RTCSessionDescription({ type: res.type as any, sdp: res.sdp }))
-
-      setStatus(null)
-      setReconnecting(false)
-    } catch (err) {
-      console.error(err)
-      toast.error('Failed to connect: ' + String(err))
-      setReconnecting(false)
-    }
-  }
-
-  useEffect(() => {
-    setupRTCConnectionRef.current = setupRTCConnection
-  }, [dongleId])
-
-  useEffect(() => {
-    setupRTCConnection()
-    return () => disconnectRTCConnection()
-  }, [dongleId])
-
-  useEffect(() => {
-    let prevFrames = 0
-    let prevTimestamp = 0
-
-    const interval = setInterval(async () => {
-      if (!rtcConnection.current) return
-
-      const statsReport = await rtcConnection.current.getStats()
-      let fps = 0
-      let latency = 0
-
-      statsReport.forEach((report) => {
-        if (report.type === 'inbound-rtp' && report.kind === 'video') {
-          const frames = report.framesDecoded || 0
-          const timestamp = report.timestamp || 0
-          if (prevTimestamp > 0 && timestamp > prevTimestamp) {
-            const elapsed = (timestamp - prevTimestamp) / 1000
-            const newFps = Math.round((frames - prevFrames) / elapsed)
-            if (newFps > 0 && newFps < 120) {
-              fps = newFps
-            }
-          }
-          prevFrames = frames
-          prevTimestamp = timestamp
-        }
-        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-          latency = Math.round(report.currentRoundTripTime * 1000) || 0
-        }
-      })
-
-      if (fps > 0 || latency > 0) {
-        setStats((prev) => ({
-          fps: fps > 0 ? fps : prev?.fps || 0,
-          latency: latency > 0 ? latency : prev?.latency || 0,
-        }))
-      }
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [])
+  const joystickIntervalRef = useRef<number | null>(null)
+  const keysPressed = useRef<Set<string>>(new Set())
 
   const handleStartSpeaking = async () => {
-    if (!localAudioTrack.current) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        localAudioTrack.current = stream.getAudioTracks()[0]
-        if (audioSenderRef.current) {
-          await audioSenderRef.current.replaceTrack(localAudioTrack.current)
-        }
-      } catch (e) {
-        console.warn('Failed to get user media', e)
-        toast.error('Microphone access denied')
-        return
-      }
-    }
-    localAudioTrack.current.enabled = true
+    await startMic()
     setIsSpeaking(true)
   }
 
   const handleStopSpeaking = () => {
-    if (localAudioTrack.current) {
-      localAudioTrack.current.enabled = false
-    }
+    stopMic()
     setIsSpeaking(false)
   }
 
@@ -315,17 +103,18 @@ const LiveView = ({
     })
   }
 
-  const sendJoystickMessage = (x: number, y: number) => {
-    if (dataChannelRef.current?.readyState === 'open') {
-      const message = JSON.stringify({
-        type: 'testJoystick',
-        data: { axes: [y * joystickSensitivity, -x * joystickSensitivity], buttons: [false] },
-      })
-      dataChannelRef.current.send(message)
-    }
-  }
-
-  const keysPressed = useRef<Set<string>>(new Set())
+  const sendJoystickMessage = useCallback(
+    (x: number, y: number) => {
+      sendDataChannel(
+        'data',
+        JSON.stringify({
+          type: 'testJoystick',
+          data: { axes: [y * joystickSensitivity, -x * joystickSensitivity], buttons: [false] },
+        }),
+      )
+    },
+    [joystickSensitivity, sendDataChannel],
+  )
 
   useEffect(() => {
     if (!joystickEnabled) return
@@ -376,7 +165,7 @@ const LiveView = ({
     return () => {
       if (joystickIntervalRef.current) clearInterval(joystickIntervalRef.current)
     }
-  }, [joystickEnabled, joystickPosition])
+  }, [joystickEnabled, joystickPosition, sendJoystickMessage])
 
   const handleJoystickStart = (e: React.PointerEvent) => {
     if (!joystickBaseRef.current) return
@@ -418,124 +207,115 @@ const LiveView = ({
   }
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
-      <audio ref={remoteAudioRef} autoPlay muted={isMuted} />
-
-      <div className="h-full flex flex-col gap-4 p-4 relative overflow-hidden items-center justify-between">
-        <div className={cn(' overflow-hidden flex gap-4 flex-col md:flex-row')}>
-          {[
-            { videoRef: driverRef, hidden: cameraView === 'road' },
-            { videoRef: roadRef, hidden: cameraView === 'driver' },
-          ].map(({ videoRef, hidden }, i) => (
-            <div
-              key={i}
-              className={cn('relative rounded-xl overflow-hidden border border-white/5 bg-background-alt', hidden && 'hidden')}
-              style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }}
-            >
-              <video autoPlay playsInline muted ref={videoRef} className=" object-contain" style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }} />
-              {status && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background-alt/80 backdrop-blur-sm">
-                  <div className="flex items-center gap-3">
-                    <LoaderIcon className="animate-spin text-2xl text-white/40" />
-                    <span className="text-sm text-white/60">{status}</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {joystickEnabled && (
-          <div className="flex flex-col items-center gap-4">
-            <div
-              className="touch-none cursor-pointer"
-              onPointerDown={handleJoystickStart}
-              onPointerMove={handleJoystickMove}
-              onPointerUp={handleJoystickEnd}
-              onPointerLeave={handleJoystickEnd}
-              onPointerCancel={handleJoystickEnd}
-            >
-              <div ref={joystickBaseRef} className="w-32 h-32 rounded-full bg-white/5 border border-white/10 relative">
-                <div
-                  className="w-14 h-14 rounded-full bg-white/20 absolute top-1/2 left-1/2 pointer-events-none"
-                  style={{
-                    transform: `translate(calc(-50% + ${joystickPosition.x * 36}px), calc(-50% + ${-joystickPosition.y * 36}px))`,
-                  }}
-                />
-              </div>
-            </div>
-
-            <input
-              type="range"
-              min="0.1"
-              max="1"
-              step="0.05"
-              value={joystickSensitivity}
-              onChange={(e) => setJoystickSensitivity(Number(e.target.value))}
-              className="w-28 h-2 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
-              style={{ writingMode: 'horizontal-tb', direction: 'ltr' }}
-            />
-          </div>
-        )}
-
-        {stats && (
-          <div className="absolute right-4 bottom-2 flex gap-4 text-right">
-            <div>
-              <div className="text-[10px] text-white/40">Latency</div>
-              <div className="text-sm text-cyan-400 font-medium">{stats.latency}ms</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-white/40">FPS</div>
-              <div className="text-sm text-green-400 font-medium">{stats.fps}</div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
-        <ControlButton
-          onClick={() => set({ cameraView: cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both' })}
-          icon={cameraView === 'both' ? LayoutGridIcon : cameraView === 'driver' ? UserIcon : CarIcon}
-          label={cameraView === 'both' ? 'Both' : cameraView === 'driver' ? 'Driver' : 'Road'}
-        />
-        <ControlButton onClick={toggleMute} active={isMuted} icon={isMuted ? VolumeOffIcon : Volume2Icon} label="Audio" />
-        <ControlButton
-          onClick={undefined}
-          onPointerDown={handleStartSpeaking}
-          onPointerUp={handleStopSpeaking}
-          onPointerLeave={handleStopSpeaking}
-          active={isSpeaking}
-          icon={isSpeaking ? MicIcon : MicOffIcon}
-          label={isSpeaking ? 'Speaking' : 'Hold'}
-          primary
-        />
-        <ControlButton onClick={() => set({ joystickEnabled: !joystickEnabled })} active={joystickEnabled} icon={GamepadIcon} label="Joystick" />
-      </div>
-    </div>
-  )
-}
-
-export const Component = () => {
-  const [reconnecting, setReconnecting] = useState(false)
-  const setupRTCConnectionRef = useRef<(() => Promise<void>) | null>(null)
-
-  return (
     <>
       <TopAppBar
         trailing={
           <IconButton
             icon={RefreshCwIcon}
             title="Refresh connection"
-            className={cn('p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5', reconnecting && 'animate-spin')}
-            onClick={() => setupRTCConnectionRef.current?.()}
-            disabled={reconnecting}
+            className={cn('p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5', !!status && 'animate-spin')}
+            onClick={connect}
+            disabled={!!status}
           />
         }
       >
         Live
       </TopAppBar>
 
-      <LiveView setReconnecting={setReconnecting} setupRTCConnectionRef={setupRTCConnectionRef} />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <audio ref={remoteAudioRef} autoPlay muted={isMuted} />
+
+        <div className="h-full flex flex-col gap-4 p-4 relative overflow-hidden items-center justify-between">
+          <div className={cn(' overflow-hidden flex gap-4 flex-col md:flex-row')}>
+            {[
+              { videoRef: driverRef, hidden: cameraView === 'road' },
+              { videoRef: roadRef, hidden: cameraView === 'driver' },
+            ].map(({ videoRef, hidden }, i) => (
+              <div
+                key={i}
+                className={cn('relative rounded-xl overflow-hidden border border-white/5 bg-background-alt', hidden && 'hidden')}
+                style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }}
+              >
+                <video autoPlay playsInline muted ref={videoRef} className=" object-contain" style={{ aspectRatio: `${WIDTH}/${HEIGHT}` }} />
+                {status && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background-alt/80 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                      <LoaderIcon className="animate-spin text-2xl text-white/40" />
+                      <span className="text-sm text-white/60">{status}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {joystickEnabled && (
+            <div className="flex flex-col items-center gap-4">
+              <div
+                className="touch-none cursor-pointer"
+                onPointerDown={handleJoystickStart}
+                onPointerMove={handleJoystickMove}
+                onPointerUp={handleJoystickEnd}
+                onPointerLeave={handleJoystickEnd}
+                onPointerCancel={handleJoystickEnd}
+              >
+                <div ref={joystickBaseRef} className="w-32 h-32 rounded-full bg-white/5 border border-white/10 relative">
+                  <div
+                    className="w-14 h-14 rounded-full bg-white/20 absolute top-1/2 left-1/2 pointer-events-none"
+                    style={{
+                      transform: `translate(calc(-50% + ${joystickPosition.x * 36}px), calc(-50% + ${-joystickPosition.y * 36}px))`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <input
+                type="range"
+                min="0.1"
+                max="1"
+                step="0.05"
+                value={joystickSensitivity}
+                onChange={(e) => setJoystickSensitivity(Number(e.target.value))}
+                className="w-28 h-2 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                style={{ writingMode: 'horizontal-tb', direction: 'ltr' }}
+              />
+            </div>
+          )}
+
+          {stats && (
+            <div className="absolute right-4 bottom-2 flex gap-4 text-right">
+              <div>
+                <div className="text-[10px] text-white/40">Latency</div>
+                <div className="text-sm text-cyan-400 font-medium">{stats.latency}ms</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-white/40">FPS</div>
+                <div className="text-sm text-green-400 font-medium">{stats.fps}</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-background-alt border-t border-white/5 p-3 flex items-center justify-center gap-2">
+          <ControlButton
+            onClick={() => set({ cameraView: cameraView === 'both' ? 'driver' : cameraView === 'driver' ? 'road' : 'both' })}
+            icon={cameraView === 'both' ? LayoutGridIcon : cameraView === 'driver' ? UserIcon : CarIcon}
+            label={cameraView === 'both' ? 'Both' : cameraView === 'driver' ? 'Driver' : 'Road'}
+          />
+          <ControlButton onClick={toggleMute} active={isMuted} icon={isMuted ? VolumeOffIcon : Volume2Icon} label="Audio" />
+          <ControlButton
+            onClick={undefined}
+            onPointerDown={handleStartSpeaking}
+            onPointerUp={handleStopSpeaking}
+            onPointerLeave={handleStopSpeaking}
+            active={isSpeaking}
+            icon={isSpeaking ? MicIcon : MicOffIcon}
+            label={isSpeaking ? 'Speaking' : 'Hold'}
+            primary
+          />
+          <ControlButton onClick={() => set({ joystickEnabled: !joystickEnabled })} active={joystickEnabled} icon={GamepadIcon} label="Joystick" />
+        </div>
+      </div>
     </>
   )
 }

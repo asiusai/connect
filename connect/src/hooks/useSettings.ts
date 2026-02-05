@@ -1,6 +1,4 @@
 import type { CameraType, LogType, Service, TimeFormat, UnitFormat } from '../../../shared/types'
-import { Action } from '../pages/device/ActionBar'
-import { DEVICE_PARAMS, ParamType } from '../utils/params'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { create } from 'zustand'
 import { ZustandType } from '../../../shared/helpers'
@@ -18,11 +16,6 @@ const getDefaultTimeFormat = () => {
 }
 
 const init = {
-  actions: [
-    { type: 'toggle', icon: 'power_settings_new', title: DEVICE_PARAMS.DoShutdown.label, toggleKey: 'DoShutdown', toggleType: ParamType.BOOL },
-    { type: 'toggle', icon: 'joystick', title: DEVICE_PARAMS.JoystickDebugMode.label, toggleKey: 'JoystickDebugMode', toggleType: ParamType.BOOL },
-    { type: 'redirect', icon: 'camera', title: 'Take snapshot', href: `/{dongleId}/sentry` },
-  ] satisfies Action[],
   usingAsiusPilot: undefined as boolean | undefined,
   playbackRate: 1 as number | undefined,
   lastDongleId: undefined as string | undefined,
@@ -32,9 +25,11 @@ const init = {
   showPath: false,
   statsTime: 'all' as 'all' | 'week',
   routesType: 'all' as 'all' | 'preserved',
+  homeTab: 'drives' as 'drives' | 'controls' | 'device' | 'developer' | 'apps',
   analyzeService: 'peripheralState' as Service,
   togglesOpenTab: 'models' as string | null,
   cameraView: 'both' as 'both' | 'driver' | 'road',
+  liveCamera: 'road' as 'driver' | 'road',
   joystickEnabled: false,
   unitFormat: getDefaultUnitFormat(),
   timeFormat: getDefaultTimeFormat(),

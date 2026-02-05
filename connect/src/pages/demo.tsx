@@ -13,7 +13,7 @@ export const Component = () => {
 
     const token = getProviderInfo(provider).demoAccessToken
     logIn({ token, provider, name: 'Demo account', id: `demo-${provider}` })
-  }, [])
+  }, [logIn, params, provider])
 
   return <Navigate to="/" />
 }

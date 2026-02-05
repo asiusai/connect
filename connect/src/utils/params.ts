@@ -15,9 +15,7 @@ export type DeviceParam = {
   min?: number
   max?: number
   step?: number
-  type: ParamType
 }
-
 export enum ParamType {
   STRING = 0,
   BOOL = 1,
@@ -27,25 +25,321 @@ export enum ParamType {
   JSON = 5,
   BYTES = 6,
 }
-export const getParamType = (value: any): ParamType => {
+
+const zString = () => z.string().nullable().describe(ParamType.STRING.toString())
+const zBool = () => z.boolean().nullable().describe(ParamType.BOOL.toString())
+const zInt = () => z.number().int().nullable().describe(ParamType.INT.toString())
+const zFloat = () => z.number().nullable().describe(ParamType.FLOAT.toString())
+const zTime = () => z.number().nullable().describe(ParamType.TIME.toString())
+const zJSON = () => z.any().nullable().describe(ParamType.JSON.toString())
+const zBytes = () => z.string().nullable().describe(ParamType.BYTES.toString())
+
+export type DeviceParams = z.infer<typeof DeviceParams>
+export type DeviceParamKey = keyof DeviceParams
+
+export const getParamType = (key: DeviceParamKey, value: any): ParamType => {
+  const zodType = DeviceParams.shape[key]?.description
+  if (zodType !== undefined) return Number(zodType)
   if (typeof value === 'boolean') return ParamType.BOOL
   if (typeof value === 'number') return ParamType.FLOAT
   if (typeof value === 'string') return ParamType.STRING
   if (typeof value === 'object') return ParamType.JSON
   throw new Error(`Invalid param ${value}`)
 }
-export type DeviceParamKey = keyof typeof DEVICE_PARAMS
 
-export const DEVICE_PARAMS = {
-  DongleId: { label: 'Dongle ID', description: 'Unique device identifier', category: 'device', icon: 'fingerprint', readonly: true, type: ParamType.STRING },
-  GitCommit: { label: 'Git Commit', description: 'Current software version', category: 'device', icon: 'commit', readonly: true, type: ParamType.STRING },
+export const DeviceParams = z.object({
+  DongleId: zString(),
+  GitCommit: zString(),
+  GithubSshKeys: zString(),
+  GithubUsername: zString(),
+  GsmMetered: zBool(),
+  IsLdwEnabled: zBool(),
+  IsMetric: zBool(),
+  LanguageSetting: zString(),
+  OpenpilotEnabledToggle: zBool(),
+  RecordFront: zBool(),
+  IsRHD: zBool(),
+  Version: zString(),
+  QuietMode: zBool(),
+  MaxTimeOffroad: zInt(),
+  NetworkMetered: zBool(),
+  NetworkType: zString(),
+  BackupManager_CreateBackup: zBool(),
+  DeviceBootMode: zInt(),
+  UpdaterLastFetchTime: zTime(),
+  GitRemote: zString(),
+  GsmRoaming: zBool(),
+  IsRhdDetected: zBool(),
+  GitDiff: zString(),
+  GitBranch: zString(),
+  ForcePowerDown: zBool(),
+  UptimeOffroad: zFloat(),
+  GsmApn: zString(),
+  RecordFrontLock: zBool(),
+  HasAcceptedTerms: zString(),
+  HardwareSerial: zString(),
+  DoReboot: zBool(),
+  DoUninstall: zBool(),
+  RouteCount: zInt(),
+  GitCommitDate: zString(),
+  UptimeOnroad: zFloat(),
+  DoShutdown: zBool(),
+  OffroadMode: zBool(),
+  RecordAudioFeedback: zBool(),
+  BackupManager_RestoreVersion: zString(),
+  RecordAudio: zBool(),
+  DisableLogging: zBool(),
+  DisableOnroadUploads: zBool(),
+  DisablePowerDown: zBool(),
+  DisableUpdates: zBool(),
+  EnableWideCamera: zBool(),
+  SubaruStopAndGoManualParkingBrake: zBool(),
+  DriverTooDistracted: zBool(),
+  AlwaysOnDM: zBool(),
+  SubaruStopAndGo: zBool(),
+  ExperimentalModeConfirmed: zBool(),
+  DisengageOnAccelerator: zBool(),
+  EndToEndLong: zBool(),
+  LongitudinalPersonality: zInt(),
+  LiveTorqueParamsToggle: zBool(),
+  EnforceTorqueControl: zBool(),
+  NeuralNetworkLateralControl: zBool(),
+  MadsSteeringMode: zInt(),
+  MadsMainCruiseAllowed: zBool(),
+  Mads: zBool(),
+  MadsUnifiedEngagementMode: zBool(),
+  HyundaiLongitudinalTuning: zInt(),
+  HkgTuningOverridingCycles: zInt(),
+  HkgTuningAngleActiveTorqueReductionGain: zFloat(),
+  HkgTuningAngleMinTorqueReductionGain: zFloat(),
+  EnableHkgTuningAngleSmoothingFactor: zBool(),
+  LiveTorqueParamsRelaxedToggle: zBool(),
+  LaneTurnValue: zFloat(),
+  TorqueParamsOverrideLatAccelFactor: zFloat(),
+  CustomTorqueParams: zBool(),
+  BlinkerMinLateralControlSpeed: zInt(),
+  TorqueParamsOverrideEnabled: zBool(),
+  BlinkerPauseLateralControl: zInt(),
+  LiveTorqueParameters: zBytes(),
+  LongitudinalManeuverMode: zBool(),
+  LaneTurnDesire: zBool(),
+  DynamicExperimentalControl: zBool(),
+  HkgTuningAngleMaxTorqueReductionGain: zFloat(),
+  TorqueParamsOverrideFriction: zFloat(),
+  ExperimentalMode: zBool(),
+  SmartCruiseControlVision: zBool(),
+  SpeedLimitPolicy: zInt(),
+  SpeedLimitOffsetType: zInt(),
+  SmartCruiseControlMap: zBool(),
+  MapAdvisorySpeedLimit: zFloat(),
+  CustomAccLongPressIncrement: zInt(),
+  CustomAccIncrementsEnabled: zBool(),
+  AutoLaneChangeBsmDelay: zBool(),
+  IntelligentCruiseButtonManagement: zBool(),
+  AlphaLongitudinalEnabled: zBool(),
+  SpeedLimitMode: zInt(),
+  CustomAccShortPressIncrement: zInt(),
+  SpeedLimitValueOffset: zInt(),
+  AutoLaneChangeTimer: zInt(),
+  Brightness: zInt(),
+  BrightnessOff: zInt(),
+  RoadNameToggle: zString(),
+  RoadName: zString(),
+  BlindSpot: zBool(),
+  StandstillTimer: zBool(),
+  RainbowMode: zBool(),
+  OnroadScreenOffTimer: zInt(),
+  OnroadScreenOffControl: zBool(),
+  OnroadScreenOffBrightness: zInt(),
+  InteractivityTimeout: zInt(),
+  GreenLightAlert: zBool(),
+  DevUIInfo: zInt(),
+  ChevronInfo: zInt(),
+  ShowTurnSignals: zBool(),
+  IsDriverViewEnabled: zBool(),
+  HideVEgoUI: zBool(),
+  ShowDebugInfo: zBool(),
+  LeadDepartAlert: zBool(),
+  TrueVEgoUI: zBool(),
+  ApiCache_DriveStats: zJSON(),
+  ApiCache_Device: zString(),
+  ApiCache_NavDestinations: zJSON(),
+  AthenadPid: zInt(),
+  BootCount: zInt(),
+  CalibrationParams: zBytes(),
+  CarBatteryCapacity: zInt(),
+  CarParams: zBytes(),
+  CarParamsCache: zBytes(),
+  CarVin: zString(),
+  CompletedTrainingVersion: zString(),
+  ControlsReady: zBool(),
+  CurrentRoute: zString(),
+  IMEI: zString(),
+  InstallDate: zTime(),
+  IsEngaged: zBool(),
+  IsFcwEnabled: zBool(),
+  IsOffroad: zBool(),
+  IsOnroad: zBool(),
+  IsReleaseBranch: zBool(),
+  IsTestedBranch: zBool(),
+  IsUpdateAvailable: zBool(),
+  LastAthenaPingTime: zInt(),
+  LastGPSPosition: zString(),
+  LastOffroadStatusPacket: zJSON(),
+  LastUpdateException: zString(),
+  LastUpdateTime: zTime(),
+  LiveParameters: zJSON(),
+  Offroad_BadNvme: zJSON(),
+  Offroad_CarUnrecognized: zJSON(),
+  Offroad_ConnectivityNeeded: zJSON(),
+  Offroad_InvalidTime: zJSON(),
+  Offroad_IsTakingSnapshot: zJSON(),
+  Offroad_NeosUpdate: zJSON(),
+  Offroad_NoFirmware: zJSON(),
+  Offroad_StorageMissing: zJSON(),
+  Offroad_TemperatureTooHigh: zJSON(),
+  Offroad_UnofficialHardware: zJSON(),
+  Offroad_UpdateFailed: zJSON(),
+  Passive: zBool(),
+  PrimeRedirected: zBool(),
+  PrimeType: zInt(),
+  SnoozeUpdate: zBool(),
+  SshEnabled: zBool(),
+  TermsVersion: zString(),
+  TrainingVersion: zString(),
+  UpdateAvailable: zBool(),
+  UpdateFailedCount: zInt(),
+  UpdaterAvailableBranches: zString(),
+  UpdaterCurrentDescription: zString(),
+  UpdaterCurrentReleaseNotes: zBytes(),
+  UpdaterFetchAvailable: zBool(),
+  UpdaterNewDescription: zString(),
+  UpdaterNewReleaseNotes: zBytes(),
+  UpdaterState: zString(),
+  UpdaterTargetBranch: zString(),
+  LagdToggleDelay: zFloat(),
+  LagdToggle: zBool(),
+  ModelManager_Favs: zString(),
+  ModelManager_ActiveBundle: zJSON(),
+  ShowAdvancedControls: zBool(),
+  QuickBootToggle: zBool(),
+  ModelManager_ModelsCache: zJSON(),
+  Offroad_TiciSupport: zJSON(),
+  IsReleaseSpBranch: zBool(),
+  SunnylinkEnabled: zBool(),
+  EnableCopyparty: zBool(),
+  CarParamsSPCache: zBytes(),
+  CarParamsSP: zBytes(),
+  ModelRunnerTypeCache: zInt(),
+  OnroadCycleRequested: zBool(),
+  GithubRunnerSufficientVoltage: zBool(),
+  CameraDebugExpGain: zString(),
+  ApiCache_FirehoseStats: zJSON(),
+  JoystickDebugMode: zBool(),
+  EnableWebRTC: zBool(),
+  ModelManager_LastSyncTime: zInt(),
+  IsDevelopmentBranch: zBool(),
+  AthenadUploadQueue: zJSON(),
+  AssistNowToken: zString(),
+  CarParamsPrevRoute: zBytes(),
+  CarPlatformBundle: zJSON(),
+  AdbEnabled: zBool(),
+  ObdMultiplexingChanged: zBool(),
+  EnableSunnylinkUploader: zBool(),
+  CameraDebugExpTime: zString(),
+  FirmwareQueryDone: zBool(),
+  ModelManager_DownloadIndex: zInt(),
+  ModelManager_ClearCache: zBool(),
+  CurrentBootlog: zString(),
+  Offroad_ExcessiveActuation: zJSON(),
+  LastManagerExitReason: zString(),
+  CarParamsSPPersistent: zBytes(),
+  SecOCKey: zString(),
+  LastPowerDropDetected: zString(),
+  OnroadUploads: zBool(),
+  LiveParametersV2: zBytes(),
+  LastUpdateRouteCount: zInt(),
+  LastUpdateUptimeOnroad: zFloat(),
+  LagdValueCache: zFloat(),
+  EnableGithubRunner: zBool(),
+  LiveDelay: zBytes(),
+  LocationFilterInitialState: zBytes(),
+  PandaHeartbeatLost: zBool(),
+  Offroad_ConnectivityNeededPrompt: zJSON(),
+  Offroad_Recalibration: zJSON(),
+  Offroad_UnregisteredHardware: zJSON(),
+  LastGPSPositionLLK: zString(),
+  ObdMultiplexingEnabled: zBool(),
+  Offroad_DriverMonitoringUncertain: zJSON(),
+  PandaSomResetTriggered: zBool(),
+  PandaSignatures: zBytes(),
+  UbloxAvailable: zBool(),
+  CarParamsPersistent: zBytes(),
+  IsTakingSnapshot: zBool(),
+  NavDestination: zString(),
+  NavSettingLeftSide: zBool(),
+  NavSettingTime24h: zBool(),
+  NavdRender: zBool(),
+  OsmStateName: zString(),
+  OsmLocationTitle: zString(),
+  OsmLocationName: zString(),
+  OSMDownloadProgress: zJSON(),
+  OSMDownloadLocations: zJSON(),
+  OsmDownloadedDate: zString(),
+  Offroad_OSMUpdateRequired: zJSON(),
+  MapdVersion: zString(),
+  SunnylinkTempFault: zString(),
+  SunnylinkCache_Users: zString(),
+  SunnylinkCache_Roles: zString(),
+  SunnylinkDongleId: zString(),
+  MapSpeedLimit: zFloat(),
+  OSMDownloadBounds: zString(),
+  OsmDbUpdatesCheck: zBool(),
+  AthenadRecentlyViewedRoutes: zString(),
+  OsmLocationUrl: zString(),
+  AccessToken: zString(),
+  SunnylinkdPid: zInt(),
+  OsmLocal: zBool(),
+  MapTargetVelocities: zString(),
+  OsmWayTest: zString(),
+  NextMapSpeedLimit: zFloat(),
+  OsmStateTitle: zString(),
+  LastSunnylinkPingTime: zInt(),
+  WebRTCOnline: zBool(),
+  LastAgnosPowerMonitorShutdown: zString(),
+  CarList: zString(),
+  BlePairingCode: zString(),
+  EnableBLE: zBool(),
+  BlePid: zInt(),
+  TeslaCoopSteering: zBool(),
+  BleToken: zString(),
+  EnableAsiusAPI: zBool(),
+})
+
+export const DEVICE_PARAMS: Record<DeviceParamKey, DeviceParam> = {
+  DongleId: {
+    label: 'Dongle ID',
+    description: 'Unique device identifier',
+    category: 'device',
+    icon: 'fingerprint',
+    readonly: true,
+    hidden: true,
+  },
+  GitCommit: {
+    label: 'Git Commit',
+    description: 'Current software version',
+    category: 'device',
+    icon: 'commit',
+    readonly: true,
+    hidden: true,
+  },
   GithubSshKeys: {
     label: 'GitHub SSH Keys',
     description: 'SSH keys for GitHub access',
     category: 'device',
     icon: 'vpn_key',
     readonly: true,
-    type: ParamType.STRING,
+    hidden: true,
   },
   GithubUsername: {
     label: 'GitHub Username',
@@ -53,30 +347,29 @@ export const DEVICE_PARAMS = {
     category: 'device',
     icon: 'person',
     readonly: true,
-    type: ParamType.STRING,
+    hidden: true,
   },
-  GsmMetered: { label: 'GSM Metered', description: 'Cellular data metering', category: 'device', icon: 'data_usage', type: ParamType.BOOL },
-  IsLdwEnabled: { label: 'LDW Enabled', description: 'Lane departure warnings', category: 'device', icon: 'warning', type: ParamType.BOOL },
-  IsMetric: { label: 'Metric Units', description: 'Display metric measurements', category: 'device', icon: 'straighten', type: ParamType.BOOL },
-  LanguageSetting: { label: 'Language', description: 'UI language', category: 'device', icon: 'language', type: ParamType.STRING },
+  GsmMetered: { label: 'GSM Metered', description: 'Cellular data metering', category: 'device', icon: 'data_usage' },
+  IsLdwEnabled: { label: 'LDW Enabled', description: 'Lane departure warnings', category: 'device', icon: 'warning', hidden: true },
+  IsMetric: { label: 'Metric Units', description: 'Display metric measurements', category: 'device', icon: 'straighten', hidden: true },
+  LanguageSetting: { label: 'Language', description: 'UI language', category: 'device', icon: 'language' },
   OpenpilotEnabledToggle: {
     label: 'sunnypilot Enabled',
     description: 'Master sunnypilot toggle',
     category: 'device',
     icon: 'toggle_on',
-    type: ParamType.BOOL,
+    hidden: true,
   },
-  RecordFront: { label: 'Record Front', description: 'Front camera recording', category: 'device', icon: 'videocam', type: ParamType.BOOL },
-  IsRHD: { label: 'Right-Hand Drive', description: 'RHD vehicle configuration', category: 'device', icon: 'directions_car', type: ParamType.BOOL },
-  Version: { label: 'Version', description: 'Software version number', category: 'device', icon: 'info', readonly: true, type: ParamType.STRING },
-  QuietMode: { label: 'Quiet Mode', description: 'Minimize sound notifications', category: 'device', icon: 'volume_off', type: ParamType.BOOL },
+  RecordFront: { label: 'Record Front', description: 'Front camera recording', category: 'device', icon: 'videocam', hidden: true },
+  IsRHD: { label: 'Right-Hand Drive', description: 'RHD vehicle configuration', category: 'device', icon: 'directions_car' },
+  Version: { label: 'Version', description: 'Software version number', category: 'device', icon: 'info', readonly: true, hidden: true },
+  QuietMode: { label: 'Quiet Mode', description: 'Minimize sound notifications', category: 'device', icon: 'volume_off' },
   MaxTimeOffroad: {
     label: 'Max Time Offroad',
     description: 'Max idle time before shutdown',
     category: 'device',
     icon: 'timer',
     advanced: true,
-    type: ParamType.INT,
   },
   NetworkMetered: {
     label: 'Network Metered',
@@ -90,7 +383,6 @@ export const DEVICE_PARAMS = {
       { value: 1, label: 'Metered' },
       { value: 2, label: 'Unmetered' },
     ],
-    type: ParamType.BOOL,
   },
   NetworkType: {
     label: 'Network Type',
@@ -100,7 +392,6 @@ export const DEVICE_PARAMS = {
     advanced: true,
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   BackupManager_CreateBackup: {
     label: 'Create Backup',
@@ -108,7 +399,6 @@ export const DEVICE_PARAMS = {
     category: 'device',
     icon: 'backup',
     advanced: true,
-    type: ParamType.BOOL,
   },
   DeviceBootMode: {
     label: 'Boot Mode',
@@ -121,7 +411,6 @@ export const DEVICE_PARAMS = {
       { value: 0, label: 'Standard' },
       { value: 1, label: 'Always Offroad' },
     ],
-    type: ParamType.INT,
   },
   UpdaterLastFetchTime: {
     label: 'Last Update Check',
@@ -130,7 +419,6 @@ export const DEVICE_PARAMS = {
     icon: 'schedule',
     readonly: true,
     hidden: true,
-    type: ParamType.TIME,
   },
   GitRemote: {
     label: 'Git Remote',
@@ -139,9 +427,8 @@ export const DEVICE_PARAMS = {
     icon: 'link',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
-  GsmRoaming: { label: 'GSM Roaming', description: 'Allow cellular roaming', category: 'device', icon: 'cell_tower', type: ParamType.BOOL },
+  GsmRoaming: { label: 'GSM Roaming', description: 'Allow cellular roaming', category: 'device', icon: 'cell_tower' },
   IsRhdDetected: {
     label: 'RHD Detected',
     description: 'System detected RHD status',
@@ -149,7 +436,6 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   GitDiff: {
     label: 'Git Diff',
@@ -158,26 +444,30 @@ export const DEVICE_PARAMS = {
     icon: 'description',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
-  GitBranch: { label: 'Git Branch', description: 'Current git branch', category: 'device', icon: 'commit', readonly: true, type: ParamType.STRING },
+  GitBranch: {
+    label: 'Git Branch',
+    description: 'Current git branch',
+    category: 'device',
+    icon: 'commit',
+    readonly: true,
+    hidden: true,
+  },
   ForcePowerDown: {
     label: 'Force Power Down',
     description: 'Force immediate shutdown',
     category: 'device',
     icon: 'power_settings_new',
     advanced: true,
-    type: ParamType.BOOL,
   },
-  UptimeOffroad: { label: 'Uptime Offroad', description: 'System idle time', category: 'device', icon: 'timer', readonly: true, type: ParamType.FLOAT },
-  GsmApn: { label: 'GSM APN', description: 'Access Point Name', category: 'device', icon: 'sim_card', advanced: true, type: ParamType.STRING },
+  UptimeOffroad: { label: 'Uptime Offroad', description: 'System idle time', category: 'device', icon: 'timer', readonly: true },
+  GsmApn: { label: 'GSM APN', description: 'Access Point Name', category: 'device', icon: 'sim_card', advanced: true },
   RecordFrontLock: {
     label: 'Lock Front Recording',
     description: 'Prevent deleting front recordings',
     category: 'device',
     icon: 'lock',
     advanced: true,
-    type: ParamType.BOOL,
   },
   HasAcceptedTerms: {
     label: 'Accepted Terms',
@@ -186,7 +476,6 @@ export const DEVICE_PARAMS = {
     icon: 'verified_user',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   HardwareSerial: {
     label: 'Hardware Serial',
@@ -194,7 +483,7 @@ export const DEVICE_PARAMS = {
     category: 'device',
     icon: 'memory',
     readonly: true,
-    type: ParamType.STRING,
+    hidden: true,
   },
   DoReboot: {
     label: 'Reboot Device',
@@ -202,7 +491,7 @@ export const DEVICE_PARAMS = {
     category: 'device',
     icon: 'restart_alt',
     advanced: true,
-    type: ParamType.BOOL,
+    hidden: true,
   },
   DoUninstall: {
     label: 'Uninstall Software',
@@ -210,7 +499,6 @@ export const DEVICE_PARAMS = {
     category: 'device',
     icon: 'delete_forever',
     advanced: true,
-    type: ParamType.BOOL,
   },
   RouteCount: {
     label: 'Route Count',
@@ -218,26 +506,24 @@ export const DEVICE_PARAMS = {
     category: 'device',
     icon: 'counter_1',
     readonly: true,
-    type: ParamType.INT,
   },
-  GitCommitDate: { label: 'Commit Date', description: 'Date of current commit', category: 'device', icon: 'schedule', readonly: true, type: ParamType.STRING },
-  UptimeOnroad: { label: 'Uptime Onroad', description: 'Session driving time', category: 'device', icon: 'timer', readonly: true, type: ParamType.FLOAT },
+  GitCommitDate: { label: 'Commit Date', description: 'Date of current commit', category: 'device', icon: 'schedule', readonly: true },
+  UptimeOnroad: { label: 'Uptime Onroad', description: 'Session driving time', category: 'device', icon: 'timer', readonly: true },
   DoShutdown: {
     label: 'Shutdown Device',
     description: 'Power off the device immediately',
     category: 'device',
     icon: 'power_settings_new',
     advanced: true,
-    type: ParamType.BOOL,
+    hidden: true,
   },
-  OffroadMode: { label: 'Force Offroad Mode', description: 'Forced offroad mode', category: 'device', icon: 'directions_car', type: ParamType.BOOL },
+  OffroadMode: { label: 'Force Offroad Mode', description: 'Forced offroad mode', category: 'device', icon: 'directions_car' },
   RecordAudioFeedback: {
     label: 'Record Audio Feedback',
     description: 'Audio feedback status',
     category: 'device',
     icon: 'mic',
     hidden: true,
-    type: ParamType.BOOL,
   },
   BackupManager_RestoreVersion: {
     label: 'Restore Backup',
@@ -245,16 +531,14 @@ export const DEVICE_PARAMS = {
     category: 'device',
     icon: 'backup',
     advanced: true,
-    type: ParamType.STRING,
   },
-  RecordAudio: { label: 'Record Audio', description: 'Record cabin audio', category: 'device', icon: 'mic', type: ParamType.BOOL },
-  DisableLogging: { label: 'Disable Logging', description: 'Stop data logging', category: 'toggles', icon: 'block', advanced: true, type: ParamType.BOOL },
+  RecordAudio: { label: 'Record Audio', description: 'Record cabin audio', category: 'device', icon: 'mic', hidden: true },
+  DisableLogging: { label: 'Disable Logging', description: 'Stop data logging', category: 'toggles', icon: 'block', advanced: true },
   DisableOnroadUploads: {
     label: 'Disable Onroad Uploads',
     description: 'No uploads while driving',
     category: 'toggles',
     icon: 'cloud_off',
-    type: ParamType.BOOL,
   },
   DisablePowerDown: {
     label: 'Disable Power Down',
@@ -262,7 +546,6 @@ export const DEVICE_PARAMS = {
     category: 'toggles',
     icon: 'power_settings_new',
     advanced: true,
-    type: ParamType.BOOL,
   },
   DisableUpdates: {
     label: 'Disable Updates',
@@ -270,7 +553,6 @@ export const DEVICE_PARAMS = {
     category: 'toggles',
     icon: 'update',
     advanced: true,
-    type: ParamType.BOOL,
   },
   EnableWideCamera: {
     label: 'Wide Camera',
@@ -278,7 +560,6 @@ export const DEVICE_PARAMS = {
     category: 'toggles',
     icon: 'wide_angle_camera',
     advanced: true,
-    type: ParamType.BOOL,
   },
   SubaruStopAndGoManualParkingBrake: {
     label: 'Subaru S&G Manual Brake',
@@ -286,7 +567,6 @@ export const DEVICE_PARAMS = {
     category: 'toggles',
     icon: 'pan_tool',
     advanced: true,
-    type: ParamType.BOOL,
   },
   DriverTooDistracted: {
     label: 'Driver is too Distracted',
@@ -295,16 +575,20 @@ export const DEVICE_PARAMS = {
     icon: 'remove_red_eye',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
-  AlwaysOnDM: { label: 'Always On DM', description: 'Always on Driver Monitoring', category: 'toggles', icon: 'visibility', type: ParamType.BOOL },
+  AlwaysOnDM: {
+    label: 'Always On DM',
+    description: 'Always on Driver Monitoring',
+    category: 'toggles',
+    icon: 'visibility',
+    hidden: true,
+  },
   SubaruStopAndGo: {
     label: 'Subaru Stop & Go',
     description: 'Enable Subaru Stop & Go',
     category: 'toggles',
     icon: 'directions_car',
     advanced: true,
-    type: ParamType.BOOL,
   },
   ExperimentalModeConfirmed: {
     label: 'Exp Mode Confirmed',
@@ -313,27 +597,25 @@ export const DEVICE_PARAMS = {
     icon: 'check',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   DisengageOnAccelerator: {
     label: 'Disengage on Gas',
     description: 'Disengage when gas pressed',
     category: 'toggles',
     icon: 'speed',
-    type: ParamType.BOOL,
   },
-  EndToEndLong: { label: 'End-to-End Long', description: 'E2E longitudinal control', category: 'steering', icon: 'trending_up', type: ParamType.BOOL },
+  EndToEndLong: { label: 'End-to-End Long', description: 'E2E longitudinal control', category: 'steering', icon: 'trending_up' },
   LongitudinalPersonality: {
     label: 'Personality',
     description: 'Driving style preference',
     category: 'steering',
     icon: 'psychology',
+    hidden: true,
     options: [
       { value: 0, label: 'Aggressive' },
       { value: 1, label: 'Standard' },
       { value: 2, label: 'Relaxed' },
     ],
-    type: ParamType.INT,
   },
   LiveTorqueParamsToggle: {
     label: 'Live Torque Params',
@@ -341,21 +623,18 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'sync',
     advanced: true,
-    type: ParamType.BOOL,
   },
   EnforceTorqueControl: {
     label: 'Enforce Torque Control',
     description: 'Force torque controller usage',
     category: 'steering',
     icon: 'auto_fix_high',
-    type: ParamType.BOOL,
   },
   NeuralNetworkLateralControl: {
     label: 'NN Lateral Control',
     description: 'Neural network steering control',
     category: 'steering',
     icon: 'model_training',
-    type: ParamType.BOOL,
   },
   MadsSteeringMode: {
     label: 'MADS Steering Mode',
@@ -367,22 +646,19 @@ export const DEVICE_PARAMS = {
       { value: 1, label: 'Pause' },
       { value: 2, label: 'Disengage' },
     ],
-    type: ParamType.INT,
   },
   MadsMainCruiseAllowed: {
     label: 'MADS Cruise Sync',
     description: 'Allow MADS with main cruise',
     category: 'steering',
     icon: 'swap_horiz',
-    type: ParamType.BOOL,
   },
-  Mads: { label: 'Enable MADS', description: 'Modular Automated Driving System', category: 'steering', icon: 'steering', type: ParamType.BOOL },
+  Mads: { label: 'Enable MADS', description: 'Modular Automated Driving System', category: 'steering', icon: 'steering' },
   MadsUnifiedEngagementMode: {
     label: 'Unified Engagement',
     description: 'Engage MADS with Cruise',
     category: 'steering',
     icon: 'sync',
-    type: ParamType.BOOL,
   },
   HyundaiLongitudinalTuning: {
     label: 'Hyundai Long. Tuning',
@@ -395,7 +671,6 @@ export const DEVICE_PARAMS = {
       { value: 1, label: 'Dynamic' },
       { value: 2, label: 'Predictive' },
     ],
-    type: ParamType.INT,
   },
   HkgTuningOverridingCycles: {
     label: 'HKG Override Cycles',
@@ -403,7 +678,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'timeline',
     advanced: true,
-    type: ParamType.INT,
   },
   HkgTuningAngleActiveTorqueReductionGain: {
     label: 'HKG Active Torque Red.',
@@ -411,7 +685,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'slow_motion_video',
     advanced: true,
-    type: ParamType.FLOAT,
   },
   HkgTuningAngleMinTorqueReductionGain: {
     label: 'HKG Min Torque Red.',
@@ -419,7 +692,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'slow_motion_video',
     advanced: true,
-    type: ParamType.FLOAT,
   },
   EnableHkgTuningAngleSmoothingFactor: {
     label: 'HKG Angle Smoothing',
@@ -427,7 +699,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'tune',
     advanced: true,
-    type: ParamType.BOOL,
   },
   LiveTorqueParamsRelaxedToggle: {
     label: 'Relaxed Torque Params',
@@ -435,7 +706,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'sync',
     advanced: true,
-    type: ParamType.BOOL,
   },
   LaneTurnValue: {
     label: 'Lane Turn Value',
@@ -444,7 +714,6 @@ export const DEVICE_PARAMS = {
     icon: 'turn_slight_right',
     readonly: true,
     hidden: true,
-    type: ParamType.FLOAT,
   },
   TorqueParamsOverrideLatAccelFactor: {
     label: 'Override Lat Accel',
@@ -456,7 +725,6 @@ export const DEVICE_PARAMS = {
     min: 0.1,
     max: 5,
     step: 0.1,
-    type: ParamType.FLOAT,
   },
   CustomTorqueParams: {
     label: 'Custom Torque Params',
@@ -464,7 +732,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'tune',
     advanced: true,
-    type: ParamType.BOOL,
   },
   BlinkerMinLateralControlSpeed: {
     label: 'Blinker Min Lat Speed',
@@ -472,7 +739,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'flash_on',
     advanced: true,
-    type: ParamType.INT,
   },
   TorqueParamsOverrideEnabled: {
     label: 'Override Torque Params',
@@ -480,14 +746,12 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'edit',
     advanced: true,
-    type: ParamType.BOOL,
   },
   BlinkerPauseLateralControl: {
     label: 'Pause Lat on Blinker',
     description: 'Pause steering when blinking',
     category: 'steering',
     icon: 'flash_on',
-    type: ParamType.INT,
   },
   LiveTorqueParameters: {
     label: 'Live Torque Params',
@@ -496,7 +760,6 @@ export const DEVICE_PARAMS = {
     icon: 'tune',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   LongitudinalManeuverMode: {
     label: 'Maneuver Mode',
@@ -504,7 +767,7 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'directions_car',
     advanced: true,
-    type: ParamType.BOOL,
+    hidden: true,
   },
   LaneTurnDesire: {
     label: 'Lane Turn Desire',
@@ -513,7 +776,6 @@ export const DEVICE_PARAMS = {
     icon: 'turn_slight_right',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   DynamicExperimentalControl: {
     label: 'Dynamic Experimental',
@@ -521,7 +783,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'science',
     advanced: true,
-    type: ParamType.BOOL,
   },
   HkgTuningAngleMaxTorqueReductionGain: {
     label: 'HKG Max Torque Red.',
@@ -529,7 +790,6 @@ export const DEVICE_PARAMS = {
     category: 'steering',
     icon: 'slow_motion_video',
     advanced: true,
-    type: ParamType.FLOAT,
   },
   TorqueParamsOverrideFriction: {
     label: 'Override Friction',
@@ -540,10 +800,15 @@ export const DEVICE_PARAMS = {
     min: 0,
     max: 1,
     step: 0.01,
-    type: ParamType.FLOAT,
   },
-  ExperimentalMode: { label: 'Experimental Mode', description: 'Enable experimental features', category: 'cruise', icon: 'science', type: ParamType.BOOL },
-  SmartCruiseControlVision: { label: 'SCC-V', description: 'Vision-based smart cruise', category: 'cruise', icon: 'visibility', type: ParamType.BOOL },
+  ExperimentalMode: {
+    label: 'Experimental Mode',
+    description: 'Enable experimental features',
+    category: 'cruise',
+    icon: 'science',
+    hidden: true,
+  },
+  SmartCruiseControlVision: { label: 'SCC-V', description: 'Vision-based smart cruise', category: 'cruise', icon: 'visibility' },
   SpeedLimitPolicy: {
     label: 'Speed Limit Policy',
     description: 'Policy for speed limit handling',
@@ -556,7 +821,6 @@ export const DEVICE_PARAMS = {
       { value: 3, label: 'Map Data Priority' },
       { value: 4, label: 'Combined' },
     ],
-    type: ParamType.INT,
   },
   SpeedLimitOffsetType: {
     label: 'Speed Limit Offset',
@@ -568,15 +832,13 @@ export const DEVICE_PARAMS = {
       { value: 1, label: 'Fixed' },
       { value: 2, label: 'Percentage' },
     ],
-    type: ParamType.INT,
   },
-  SmartCruiseControlMap: { label: 'SCC-M', description: 'Map-based smart cruise', category: 'cruise', icon: 'map', type: ParamType.BOOL },
+  SmartCruiseControlMap: { label: 'SCC-M', description: 'Map-based smart cruise', category: 'cruise', icon: 'map' },
   MapAdvisorySpeedLimit: {
     label: 'Map Advisory Speed',
     description: 'Respect map advisory limits',
     category: 'cruise',
     icon: 'signpost',
-    type: ParamType.FLOAT,
   },
   CustomAccLongPressIncrement: {
     label: 'Long Press Increment',
@@ -586,14 +848,12 @@ export const DEVICE_PARAMS = {
     min: 1,
     max: 10,
     step: 1,
-    type: ParamType.INT,
   },
   CustomAccIncrementsEnabled: {
     label: 'Custom ACC Increments',
     description: 'Enable custom speed steps',
     category: 'cruise',
     icon: 'tune',
-    type: ParamType.BOOL,
   },
   AutoLaneChangeBsmDelay: {
     label: 'BSM Safety Delay',
@@ -601,14 +861,12 @@ export const DEVICE_PARAMS = {
     category: 'cruise',
     icon: 'timer',
     advanced: true,
-    type: ParamType.BOOL,
   },
   IntelligentCruiseButtonManagement: {
     label: 'Intelligent Cruise Btns',
     description: 'Enhanced cruise button logic',
     category: 'cruise',
     icon: 'gamepad',
-    type: ParamType.BOOL,
   },
   AlphaLongitudinalEnabled: {
     label: 'Alpha Longitudinal',
@@ -616,7 +874,7 @@ export const DEVICE_PARAMS = {
     category: 'cruise',
     icon: 'science',
     advanced: true,
-    type: ParamType.BOOL,
+    hidden: true,
   },
   SpeedLimitMode: {
     label: 'Speed Limit Mode',
@@ -629,7 +887,6 @@ export const DEVICE_PARAMS = {
       { value: 2, label: 'Warning' },
       { value: 3, label: 'Assist' },
     ],
-    type: ParamType.INT,
   },
   CustomAccShortPressIncrement: {
     label: 'Short Press Increment',
@@ -639,7 +896,6 @@ export const DEVICE_PARAMS = {
     min: 1,
     max: 10,
     step: 1,
-    type: ParamType.INT,
   },
   SpeedLimitValueOffset: {
     label: 'Speed Offset Value',
@@ -649,7 +905,6 @@ export const DEVICE_PARAMS = {
     min: -30,
     max: 30,
     step: 1,
-    type: ParamType.INT,
   },
   AutoLaneChangeTimer: {
     label: 'Auto Lane Change Delay',
@@ -665,17 +920,15 @@ export const DEVICE_PARAMS = {
       { value: 4, label: '2s' },
       { value: 5, label: '3s' },
     ],
-    type: ParamType.INT,
   },
-  Brightness: { label: 'Brightness', description: 'Screen brightness level', category: 'visuals', icon: 'brightness_6', type: ParamType.INT },
+  Brightness: { label: 'Brightness', description: 'Screen brightness level', category: 'visuals', icon: 'brightness_6' },
   BrightnessOff: {
     label: 'Brightness (Off)',
     description: 'Screen brightness when off',
     category: 'visuals',
     icon: 'brightness_low',
-    type: ParamType.INT,
   },
-  RoadNameToggle: { label: 'Show Road Name', description: 'Display current road name', category: 'visuals', icon: 'signpost', type: ParamType.STRING },
+  RoadNameToggle: { label: 'Show Road Name', description: 'Display current road name', category: 'visuals', icon: 'signpost' },
   RoadName: {
     label: 'Road Name',
     description: 'Current road name',
@@ -683,7 +936,6 @@ export const DEVICE_PARAMS = {
     icon: 'signpost',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   BlindSpot: {
     label: 'Blind Spot',
@@ -691,10 +943,9 @@ export const DEVICE_PARAMS = {
     category: 'visuals',
     icon: 'visibility',
     readonly: true,
-    type: ParamType.BOOL,
   },
-  StandstillTimer: { label: 'Standstill Timer', description: 'Display time spent at standstill', category: 'visuals', icon: 'timer', type: ParamType.BOOL },
-  RainbowMode: { label: 'Rainbow Mode', description: 'Display rainbow road visualization', category: 'visuals', icon: 'star', type: ParamType.BOOL },
+  StandstillTimer: { label: 'Standstill Timer', description: 'Display time spent at standstill', category: 'visuals', icon: 'timer' },
+  RainbowMode: { label: 'Rainbow Mode', description: 'Display rainbow road visualization', category: 'visuals', icon: 'star' },
   OnroadScreenOffTimer: {
     label: 'Screen Off Timer',
     description: 'Time before screen turns off',
@@ -703,14 +954,12 @@ export const DEVICE_PARAMS = {
     min: 0,
     max: 60,
     step: 1,
-    type: ParamType.INT,
   },
   OnroadScreenOffControl: {
     label: 'Screen Off Control',
     description: 'Screen off logic control',
     category: 'visuals',
     icon: 'nightlight',
-    type: ParamType.BOOL,
   },
   OnroadScreenOffBrightness: {
     label: 'Screen Off Brightness',
@@ -720,7 +969,6 @@ export const DEVICE_PARAMS = {
     min: 0,
     max: 100,
     step: 5,
-    type: ParamType.INT,
   },
   InteractivityTimeout: {
     label: 'Interactivity Timeout',
@@ -728,9 +976,8 @@ export const DEVICE_PARAMS = {
     category: 'visuals',
     icon: 'timer',
     advanced: true,
-    type: ParamType.INT,
   },
-  GreenLightAlert: { label: 'Green Light Alert', description: 'Alert on green light', category: 'visuals', icon: 'traffic', type: ParamType.BOOL },
+  GreenLightAlert: { label: 'Green Light Alert', description: 'Alert on green light', category: 'visuals', icon: 'traffic' },
   DevUIInfo: {
     label: 'Dev UI Info',
     description: 'Developer UI overlay data',
@@ -738,7 +985,6 @@ export const DEVICE_PARAMS = {
     icon: 'bug_report',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
   ChevronInfo: {
     label: 'Chevron Info',
@@ -747,27 +993,25 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
-  ShowTurnSignals: { label: 'Show Turn Signals', description: 'Visualize turn signals', category: 'visuals', icon: 'flash_on', type: ParamType.BOOL },
-  IsDriverViewEnabled: { label: 'Driver View', description: 'Show driver monitoring camera', category: 'visuals', icon: 'person', type: ParamType.BOOL },
-  HideVEgoUI: { label: 'Hide Speed UI', description: 'Hide velocity readout', category: 'visuals', icon: 'visibility_off', type: ParamType.BOOL },
+  ShowTurnSignals: { label: 'Show Turn Signals', description: 'Visualize turn signals', category: 'visuals', icon: 'flash_on' },
+  IsDriverViewEnabled: { label: 'Driver View', description: 'Show driver monitoring camera', category: 'visuals', icon: 'person' },
+  HideVEgoUI: { label: 'Hide Speed UI', description: 'Hide velocity readout', category: 'visuals', icon: 'visibility_off' },
   ShowDebugInfo: {
     label: 'Show Debug Info',
     description: 'Display developer metrics',
     category: 'visuals',
     icon: 'bug_report',
     advanced: true,
-    type: ParamType.BOOL,
+    hidden: true,
   },
   LeadDepartAlert: {
     label: 'Lead Depart Alert',
     description: 'Alert when lead car moves',
     category: 'visuals',
     icon: 'departure_board',
-    type: ParamType.BOOL,
   },
-  TrueVEgoUI: { label: 'True Speed UI', description: 'Show raw vehicle speed', category: 'visuals', icon: 'speedometer', type: ParamType.BOOL },
+  TrueVEgoUI: { label: 'True Speed UI', description: 'Show raw vehicle speed', category: 'visuals', icon: 'speedometer' },
   ApiCache_DriveStats: {
     label: 'API Cache: Drive Stats',
     description: 'Drive stats cache',
@@ -776,7 +1020,6 @@ export const DEVICE_PARAMS = {
     advanced: true,
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   ApiCache_Device: {
     label: 'API Cache: Device',
@@ -786,7 +1029,6 @@ export const DEVICE_PARAMS = {
     advanced: true,
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   ApiCache_NavDestinations: {
     label: 'API Cache: Nav Destinations',
@@ -796,7 +1038,6 @@ export const DEVICE_PARAMS = {
     advanced: true,
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   AthenadPid: {
     label: 'Athena PID',
@@ -805,7 +1046,6 @@ export const DEVICE_PARAMS = {
     icon: 'device_hub',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
   BootCount: {
     label: 'Boot Count',
@@ -814,7 +1054,6 @@ export const DEVICE_PARAMS = {
     icon: 'counter_1',
     advanced: true,
     readonly: true,
-    type: ParamType.INT,
   },
   CalibrationParams: {
     label: 'Calibration Params',
@@ -823,7 +1062,6 @@ export const DEVICE_PARAMS = {
     icon: 'camera',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   CarBatteryCapacity: {
     label: 'Car Battery Capacity',
@@ -832,7 +1070,6 @@ export const DEVICE_PARAMS = {
     icon: 'battery_5_bar',
     advanced: true,
     readonly: true,
-    type: ParamType.INT,
   },
   CarParams: {
     label: 'Car Params',
@@ -841,7 +1078,6 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   CarParamsCache: {
     label: 'Car Params Cache',
@@ -850,7 +1086,6 @@ export const DEVICE_PARAMS = {
     icon: 'cached',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   CarVin: {
     label: 'Car VIN',
@@ -859,7 +1094,6 @@ export const DEVICE_PARAMS = {
     icon: 'fingerprint',
     advanced: true,
     readonly: true,
-    type: ParamType.STRING,
   },
   CompletedTrainingVersion: {
     label: 'Training Version',
@@ -868,7 +1102,6 @@ export const DEVICE_PARAMS = {
     icon: 'model_training',
     advanced: true,
     readonly: true,
-    type: ParamType.STRING,
   },
   ControlsReady: {
     label: 'Controls Ready',
@@ -877,7 +1110,6 @@ export const DEVICE_PARAMS = {
     icon: 'check',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   CurrentRoute: {
     label: 'Current Route',
@@ -886,9 +1118,8 @@ export const DEVICE_PARAMS = {
     icon: 'route',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
-  IMEI: { label: 'IMEI', description: 'Cellular modem ID', category: 'developer', icon: 'sim_card', advanced: true, readonly: true, type: ParamType.STRING },
+  IMEI: { label: 'IMEI', description: 'Cellular modem ID', category: 'developer', icon: 'sim_card', advanced: true, readonly: true },
   InstallDate: {
     label: 'Install Date',
     description: 'Installation timestamp',
@@ -896,7 +1127,6 @@ export const DEVICE_PARAMS = {
     icon: 'calendar_today',
     advanced: true,
     readonly: true,
-    type: ParamType.TIME,
   },
   IsEngaged: {
     label: 'Is Engaged',
@@ -905,7 +1135,6 @@ export const DEVICE_PARAMS = {
     icon: 'toggle_on',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   IsFcwEnabled: {
     label: 'FCW Enabled',
@@ -914,7 +1143,6 @@ export const DEVICE_PARAMS = {
     icon: 'car_crash',
     advanced: true,
     readonly: true,
-    type: ParamType.BOOL,
   },
   IsOffroad: {
     label: 'Is Offroad',
@@ -923,7 +1151,6 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   IsOnroad: {
     label: 'Is Onroad',
@@ -932,7 +1159,6 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   IsReleaseBranch: {
     label: 'Is Release Branch',
@@ -941,7 +1167,6 @@ export const DEVICE_PARAMS = {
     icon: 'commit',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   IsTestedBranch: {
     label: 'Is Tested Branch',
@@ -950,7 +1175,6 @@ export const DEVICE_PARAMS = {
     icon: 'commit',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   IsUpdateAvailable: {
     label: 'Update Available',
@@ -959,7 +1183,6 @@ export const DEVICE_PARAMS = {
     icon: 'update',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   LastAthenaPingTime: {
     label: 'Last Athena Ping',
@@ -968,7 +1191,6 @@ export const DEVICE_PARAMS = {
     icon: 'schedule',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
   LastGPSPosition: {
     label: 'Last GPS Position',
@@ -977,7 +1199,6 @@ export const DEVICE_PARAMS = {
     icon: 'gps_fixed',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   LastOffroadStatusPacket: {
     label: 'Last Offroad Packet',
@@ -986,7 +1207,6 @@ export const DEVICE_PARAMS = {
     icon: 'schedule',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   LastUpdateException: {
     label: 'Last Update Exception',
@@ -995,7 +1215,6 @@ export const DEVICE_PARAMS = {
     icon: 'error',
     advanced: true,
     readonly: true,
-    type: ParamType.STRING,
   },
   LastUpdateTime: {
     label: 'Last Update Time',
@@ -1004,7 +1223,6 @@ export const DEVICE_PARAMS = {
     icon: 'schedule',
     advanced: true,
     readonly: true,
-    type: ParamType.TIME,
   },
   LiveParameters: {
     label: 'Live Parameters',
@@ -1013,7 +1231,6 @@ export const DEVICE_PARAMS = {
     icon: 'tune',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_BadNvme: {
     label: 'Offroad: Bad NVMe',
@@ -1022,7 +1239,6 @@ export const DEVICE_PARAMS = {
     icon: 'storage',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_CarUnrecognized: {
     label: 'Offroad: Car Unrecognized',
@@ -1031,7 +1247,6 @@ export const DEVICE_PARAMS = {
     icon: 'help',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_ConnectivityNeeded: {
     label: 'Offroad: Connectivity Needed',
@@ -1040,7 +1255,6 @@ export const DEVICE_PARAMS = {
     icon: 'wifi',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_InvalidTime: {
     label: 'Offroad: Invalid Time',
@@ -1049,7 +1263,6 @@ export const DEVICE_PARAMS = {
     icon: 'schedule',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_IsTakingSnapshot: {
     label: 'Offroad: Taking Snapshot',
@@ -1058,7 +1271,6 @@ export const DEVICE_PARAMS = {
     icon: 'photo_camera',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_NeosUpdate: {
     label: 'Offroad: NEOS Update',
@@ -1067,7 +1279,6 @@ export const DEVICE_PARAMS = {
     icon: 'update',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_NoFirmware: {
     label: 'Offroad: No Firmware',
@@ -1076,7 +1287,6 @@ export const DEVICE_PARAMS = {
     icon: 'error',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_StorageMissing: {
     label: 'Offroad: Storage Missing',
@@ -1085,7 +1295,6 @@ export const DEVICE_PARAMS = {
     icon: 'storage',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_TemperatureTooHigh: {
     label: 'Offroad: Temperature High',
@@ -1094,7 +1303,6 @@ export const DEVICE_PARAMS = {
     icon: 'thermostat',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_UnofficialHardware: {
     label: 'Offroad: Unofficial Hardware',
@@ -1103,7 +1311,6 @@ export const DEVICE_PARAMS = {
     icon: 'hardware',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_UpdateFailed: {
     label: 'Offroad: Update Failed',
@@ -1112,9 +1319,8 @@ export const DEVICE_PARAMS = {
     icon: 'error',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
-  Passive: { label: 'Passive', description: 'Passive mode', category: 'developer', icon: 'toggle_on', readonly: true, hidden: true, type: ParamType.BOOL },
+  Passive: { label: 'Passive', description: 'Passive mode', category: 'developer', icon: 'toggle_on', readonly: true, hidden: true },
   PrimeRedirected: {
     label: 'Prime Redirected',
     description: 'Prime redirect status',
@@ -1122,7 +1328,6 @@ export const DEVICE_PARAMS = {
     icon: 'link',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   PrimeType: {
     label: 'Prime Type',
@@ -1131,7 +1336,6 @@ export const DEVICE_PARAMS = {
     icon: 'star',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
   SnoozeUpdate: {
     label: 'Snooze Update',
@@ -1140,9 +1344,15 @@ export const DEVICE_PARAMS = {
     icon: 'timer',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
-  SshEnabled: { label: 'Enable SSH', description: 'SSH access enabled', category: 'developer', icon: 'terminal', advanced: true, type: ParamType.BOOL },
+  SshEnabled: {
+    label: 'Enable SSH',
+    description: 'SSH access enabled',
+    category: 'developer',
+    icon: 'terminal',
+    advanced: true,
+    hidden: true,
+  },
   TermsVersion: {
     label: 'Terms Version',
     description: 'Accepted terms version',
@@ -1150,7 +1360,6 @@ export const DEVICE_PARAMS = {
     icon: 'description',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   TrainingVersion: {
     label: 'Training Version',
@@ -1159,7 +1368,6 @@ export const DEVICE_PARAMS = {
     icon: 'model_training',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   UpdateAvailable: {
     label: 'Update Available',
@@ -1168,7 +1376,6 @@ export const DEVICE_PARAMS = {
     icon: 'update',
     advanced: true,
     readonly: true,
-    type: ParamType.BOOL,
   },
   UpdateFailedCount: {
     label: 'Update Failed Count',
@@ -1177,7 +1384,6 @@ export const DEVICE_PARAMS = {
     icon: 'error',
     advanced: true,
     readonly: true,
-    type: ParamType.INT,
   },
   UpdaterAvailableBranches: {
     label: 'Available Branches',
@@ -1186,7 +1392,6 @@ export const DEVICE_PARAMS = {
     icon: 'commit',
     advanced: true,
     readonly: true,
-    type: ParamType.STRING,
   },
   UpdaterCurrentDescription: {
     label: 'Current Description',
@@ -1195,7 +1400,6 @@ export const DEVICE_PARAMS = {
     icon: 'description',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   UpdaterCurrentReleaseNotes: {
     label: 'Current Release Notes',
@@ -1204,7 +1408,6 @@ export const DEVICE_PARAMS = {
     icon: 'description',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   UpdaterFetchAvailable: {
     label: 'Updater Fetch Available',
@@ -1213,7 +1416,6 @@ export const DEVICE_PARAMS = {
     icon: 'download',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   UpdaterNewDescription: {
     label: 'New Description',
@@ -1222,7 +1424,6 @@ export const DEVICE_PARAMS = {
     icon: 'description',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   UpdaterNewReleaseNotes: {
     label: 'New Release Notes',
@@ -1231,7 +1432,6 @@ export const DEVICE_PARAMS = {
     icon: 'description',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   UpdaterState: {
     label: 'Updater State',
@@ -1240,7 +1440,6 @@ export const DEVICE_PARAMS = {
     icon: 'update',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   UpdaterTargetBranch: {
     label: 'Target Branch',
@@ -1249,7 +1448,6 @@ export const DEVICE_PARAMS = {
     icon: 'commit',
     advanced: true,
     readonly: true,
-    type: ParamType.STRING,
   },
   LagdToggleDelay: {
     label: 'LAQD Toggle Delay',
@@ -1257,7 +1455,6 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'timer',
     advanced: true,
-    type: ParamType.FLOAT,
   },
   LagdToggle: {
     label: 'LAQD Toggle',
@@ -1265,7 +1462,6 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'toggle_on',
     advanced: true,
-    type: ParamType.BOOL,
   },
   ModelManager_Favs: {
     label: 'Model Favorites',
@@ -1275,7 +1471,6 @@ export const DEVICE_PARAMS = {
     advanced: true,
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   ModelManager_ActiveBundle: {
     label: 'Active Model Bundle',
@@ -1284,7 +1479,6 @@ export const DEVICE_PARAMS = {
     icon: 'model_training',
     advanced: true,
     readonly: true,
-    type: ParamType.JSON,
   },
   ShowAdvancedControls: {
     label: 'Show Advanced Controls',
@@ -1292,9 +1486,8 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'settings',
     advanced: true,
-    type: ParamType.BOOL,
   },
-  QuickBootToggle: { label: 'Quick Boot', description: 'Enable quick boot', category: 'developer', icon: 'bolt', advanced: true, type: ParamType.BOOL },
+  QuickBootToggle: { label: 'Quick Boot', description: 'Enable quick boot', category: 'developer', icon: 'bolt', advanced: true },
   ModelManager_ModelsCache: {
     label: 'Model Cache',
     description: 'Cached model list',
@@ -1302,7 +1495,6 @@ export const DEVICE_PARAMS = {
     icon: 'cached',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_TiciSupport: {
     label: 'TiCi Support',
@@ -1311,7 +1503,6 @@ export const DEVICE_PARAMS = {
     icon: 'hardware',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   IsReleaseSpBranch: {
     label: 'SP Release Branch',
@@ -1320,7 +1511,6 @@ export const DEVICE_PARAMS = {
     icon: 'commit',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   SunnylinkEnabled: {
     label: 'sunnylink Enabled',
@@ -1328,7 +1518,6 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'cloud_sync',
     hidden: true,
-    type: ParamType.BOOL,
   },
   EnableCopyparty: {
     label: 'Enable File Server',
@@ -1336,7 +1525,6 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'folder',
     advanced: true,
-    type: ParamType.BOOL,
   },
   CarParamsSPCache: {
     label: 'SP Car Params Cache',
@@ -1345,7 +1533,6 @@ export const DEVICE_PARAMS = {
     icon: 'cached',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   CarParamsSP: {
     label: 'SP Car Params',
@@ -1354,7 +1541,6 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   ModelRunnerTypeCache: {
     label: 'Model Runner Type',
@@ -1363,7 +1549,6 @@ export const DEVICE_PARAMS = {
     icon: 'model_training',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
   OnroadCycleRequested: {
     label: 'Onroad Cycle',
@@ -1372,7 +1557,6 @@ export const DEVICE_PARAMS = {
     icon: 'autorenew',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   GithubRunnerSufficientVoltage: {
     label: 'Runner Voltage Check',
@@ -1380,7 +1564,6 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'bolt',
     advanced: true,
-    type: ParamType.BOOL,
   },
   CameraDebugExpGain: {
     label: 'Cam Debug Gain',
@@ -1389,7 +1572,6 @@ export const DEVICE_PARAMS = {
     icon: 'camera',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   ApiCache_FirehoseStats: {
     label: 'Firehose Stats',
@@ -1398,7 +1580,6 @@ export const DEVICE_PARAMS = {
     icon: 'cached',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   JoystickDebugMode: {
     label: 'Joystick Debug',
@@ -1406,7 +1587,7 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'joystick',
     advanced: true,
-    type: ParamType.BOOL,
+    hidden: true,
   },
   EnableWebRTC: {
     label: 'Enable WebRTC',
@@ -1414,7 +1595,7 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'live_tv',
     advanced: true,
-    type: ParamType.BOOL,
+    hidden: true,
   },
   ModelManager_LastSyncTime: {
     label: 'Model Sync Time',
@@ -1423,7 +1604,6 @@ export const DEVICE_PARAMS = {
     icon: 'schedule',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
   IsDevelopmentBranch: {
     label: 'Dev Branch',
@@ -1432,7 +1612,6 @@ export const DEVICE_PARAMS = {
     icon: 'commit',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   AthenadUploadQueue: {
     label: 'Upload Queue',
@@ -1441,7 +1620,6 @@ export const DEVICE_PARAMS = {
     icon: 'queue',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   AssistNowToken: {
     label: 'AssistNow Token',
@@ -1450,7 +1628,6 @@ export const DEVICE_PARAMS = {
     icon: 'token',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   CarParamsPrevRoute: {
     label: 'Previous Route Params',
@@ -1459,7 +1636,6 @@ export const DEVICE_PARAMS = {
     icon: 'route',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   CarPlatformBundle: {
     label: 'Car Platform Bundle',
@@ -1468,9 +1644,15 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
-  AdbEnabled: { label: 'ADB Enabled', description: 'Android Debug Bridge', category: 'developer', icon: 'usb', advanced: true, type: ParamType.BOOL },
+  AdbEnabled: {
+    label: 'ADB Enabled',
+    description: 'Android Debug Bridge',
+    category: 'developer',
+    icon: 'usb',
+    advanced: true,
+    hidden: true,
+  },
   ObdMultiplexingChanged: {
     label: 'OBD Multiplex Changed',
     description: 'Multiplexing setting changed',
@@ -1478,14 +1660,12 @@ export const DEVICE_PARAMS = {
     icon: 'cable',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   EnableSunnylinkUploader: {
     label: 'sunnylink Uploader',
     description: 'Upload drives to sunnylink',
     category: 'developer',
     icon: 'cloud_upload',
-    type: ParamType.BOOL,
   },
   CameraDebugExpTime: {
     label: 'Cam Debug Time',
@@ -1494,7 +1674,6 @@ export const DEVICE_PARAMS = {
     icon: 'camera',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   FirmwareQueryDone: {
     label: 'Firmware Query Done',
@@ -1503,7 +1682,6 @@ export const DEVICE_PARAMS = {
     icon: 'check',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   ModelManager_DownloadIndex: {
     label: 'Model Download Index',
@@ -1512,7 +1690,6 @@ export const DEVICE_PARAMS = {
     icon: 'download',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
   ModelManager_ClearCache: {
     label: 'Clear Model Cache',
@@ -1520,7 +1697,6 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'delete',
     advanced: true,
-    type: ParamType.BOOL,
   },
   CurrentBootlog: {
     label: 'Current Bootlog',
@@ -1529,7 +1705,6 @@ export const DEVICE_PARAMS = {
     icon: 'description',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   Offroad_ExcessiveActuation: {
     label: 'Excessive Actuation',
@@ -1538,7 +1713,6 @@ export const DEVICE_PARAMS = {
     icon: 'warning',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   LastManagerExitReason: {
     label: 'Exit Reason',
@@ -1547,7 +1721,6 @@ export const DEVICE_PARAMS = {
     icon: 'exit_to_app',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   CarParamsSPPersistent: {
     label: 'Car Params SP Persist',
@@ -1556,9 +1729,8 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
-  SecOCKey: { label: 'SecOC Key', description: 'Security key', category: 'developer', icon: 'security', readonly: true, hidden: true, type: ParamType.STRING },
+  SecOCKey: { label: 'SecOC Key', description: 'Security key', category: 'developer', icon: 'security', readonly: true, hidden: true },
   LastPowerDropDetected: {
     label: 'Power Drop',
     description: 'Last power drop event',
@@ -1566,7 +1738,6 @@ export const DEVICE_PARAMS = {
     icon: 'bolt',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   OnroadUploads: {
     label: 'Onroad Uploads',
@@ -1575,7 +1746,6 @@ export const DEVICE_PARAMS = {
     icon: 'cloud_upload',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   LiveParametersV2: {
     label: 'Live Parameters V2',
@@ -1584,7 +1754,6 @@ export const DEVICE_PARAMS = {
     icon: 'tune',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   LastUpdateRouteCount: {
     label: 'Last Update Route Count',
@@ -1593,7 +1762,6 @@ export const DEVICE_PARAMS = {
     icon: 'counter_1',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
   LastUpdateUptimeOnroad: {
     label: 'Last Update Uptime',
@@ -1602,7 +1770,6 @@ export const DEVICE_PARAMS = {
     icon: 'timer',
     readonly: true,
     hidden: true,
-    type: ParamType.FLOAT,
   },
   LagdValueCache: {
     label: 'LAQD Value Cache',
@@ -1611,7 +1778,6 @@ export const DEVICE_PARAMS = {
     icon: 'cached',
     readonly: true,
     hidden: true,
-    type: ParamType.FLOAT,
   },
   EnableGithubRunner: {
     label: 'GitHub Runner',
@@ -1619,7 +1785,6 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'build',
     advanced: true,
-    type: ParamType.BOOL,
   },
   LiveDelay: {
     label: 'Live Delay',
@@ -1628,7 +1793,6 @@ export const DEVICE_PARAMS = {
     icon: 'timer',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   LocationFilterInitialState: {
     label: 'Loc Filter Init',
@@ -1637,7 +1801,6 @@ export const DEVICE_PARAMS = {
     icon: 'gps_fixed',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   PandaHeartbeatLost: {
     label: 'Panda Heartbeat Lost',
@@ -1646,7 +1809,6 @@ export const DEVICE_PARAMS = {
     icon: 'error',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   Offroad_ConnectivityNeededPrompt: {
     label: 'Conn Needed Prompt',
@@ -1655,7 +1817,6 @@ export const DEVICE_PARAMS = {
     icon: 'wifi',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_Recalibration: {
     label: 'Recalibration',
@@ -1664,7 +1825,6 @@ export const DEVICE_PARAMS = {
     icon: 'camera',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   Offroad_UnregisteredHardware: {
     label: 'Unregistered',
@@ -1673,7 +1833,6 @@ export const DEVICE_PARAMS = {
     icon: 'error',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   LastGPSPositionLLK: {
     label: 'Last GPS LLK',
@@ -1682,7 +1841,6 @@ export const DEVICE_PARAMS = {
     icon: 'gps_fixed',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   ObdMultiplexingEnabled: {
     label: 'OBD Multiplexing',
@@ -1690,7 +1848,6 @@ export const DEVICE_PARAMS = {
     category: 'developer',
     icon: 'cable',
     advanced: true,
-    type: ParamType.BOOL,
   },
   Offroad_DriverMonitoringUncertain: {
     label: 'DM Uncertain',
@@ -1699,7 +1856,6 @@ export const DEVICE_PARAMS = {
     icon: 'person',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   PandaSomResetTriggered: {
     label: 'Panda Reset Triggered',
@@ -1708,7 +1864,6 @@ export const DEVICE_PARAMS = {
     icon: 'restart_alt',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   PandaSignatures: {
     label: 'Panda Signatures',
@@ -1717,7 +1872,6 @@ export const DEVICE_PARAMS = {
     icon: 'security',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   UbloxAvailable: {
     label: 'Ublox GPS Available',
@@ -1726,7 +1880,6 @@ export const DEVICE_PARAMS = {
     icon: 'gps_fixed',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   CarParamsPersistent: {
     label: 'Car Params Persistent',
@@ -1735,7 +1888,6 @@ export const DEVICE_PARAMS = {
     icon: 'directions_car',
     readonly: true,
     hidden: true,
-    type: ParamType.BYTES,
   },
   IsTakingSnapshot: {
     label: 'Snapshotting',
@@ -1744,7 +1896,6 @@ export const DEVICE_PARAMS = {
     icon: 'photo_camera',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   NavDestination: {
     label: 'Nav Destination',
@@ -1753,7 +1904,6 @@ export const DEVICE_PARAMS = {
     icon: 'place',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   NavSettingLeftSide: {
     label: 'Nav Left Side',
@@ -1762,7 +1912,6 @@ export const DEVICE_PARAMS = {
     icon: 'swap_horiz',
     advanced: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   NavSettingTime24h: {
     label: 'Nav 24h Time',
@@ -1771,7 +1920,6 @@ export const DEVICE_PARAMS = {
     icon: 'schedule',
     advanced: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   NavdRender: {
     label: 'Nav Render',
@@ -1780,7 +1928,6 @@ export const DEVICE_PARAMS = {
     icon: 'map',
     advanced: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   OsmStateName: {
     label: 'State Code',
@@ -1789,7 +1936,6 @@ export const DEVICE_PARAMS = {
     icon: 'place',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   OsmLocationTitle: {
     label: 'Location Title',
@@ -1798,7 +1944,6 @@ export const DEVICE_PARAMS = {
     icon: 'place',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   OsmLocationName: {
     label: 'Location Name',
@@ -1807,7 +1952,6 @@ export const DEVICE_PARAMS = {
     icon: 'place',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   OSMDownloadProgress: {
     label: 'Map Download Progress',
@@ -1816,7 +1960,6 @@ export const DEVICE_PARAMS = {
     icon: 'cloud_download',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   OSMDownloadLocations: {
     label: 'Map Download Locations',
@@ -1825,7 +1968,6 @@ export const DEVICE_PARAMS = {
     icon: 'cloud_download',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   OsmDownloadedDate: {
     label: 'Map Data Date',
@@ -1834,7 +1976,6 @@ export const DEVICE_PARAMS = {
     icon: 'calendar_today',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   Offroad_OSMUpdateRequired: {
     label: 'Map Update Required',
@@ -1843,7 +1984,6 @@ export const DEVICE_PARAMS = {
     icon: 'update',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   MapdVersion: {
     label: 'Mapd Version',
@@ -1852,7 +1992,6 @@ export const DEVICE_PARAMS = {
     icon: 'info',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   SunnylinkTempFault: {
     label: 'sunnylink Fault',
@@ -1861,7 +2000,6 @@ export const DEVICE_PARAMS = {
     icon: 'error',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   SunnylinkCache_Users: {
     label: 'sunnylink User Cache',
@@ -1870,7 +2008,6 @@ export const DEVICE_PARAMS = {
     icon: 'group',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   SunnylinkCache_Roles: {
     label: 'sunnylink Role Cache',
@@ -1879,7 +2016,6 @@ export const DEVICE_PARAMS = {
     icon: 'badge',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   SunnylinkDongleId: {
     label: 'sunnylink ID',
@@ -1887,7 +2023,6 @@ export const DEVICE_PARAMS = {
     category: 'other',
     icon: 'fingerprint',
     readonly: true,
-    type: ParamType.STRING,
   },
   MapSpeedLimit: {
     label: 'Map Speed Limit',
@@ -1896,7 +2031,6 @@ export const DEVICE_PARAMS = {
     icon: 'speed_limit',
     readonly: true,
     hidden: true,
-    type: ParamType.FLOAT,
   },
   OSMDownloadBounds: {
     label: 'Map Download Bounds',
@@ -1905,7 +2039,6 @@ export const DEVICE_PARAMS = {
     icon: 'map',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   OsmDbUpdatesCheck: {
     label: 'Map Updates Check',
@@ -1914,7 +2047,6 @@ export const DEVICE_PARAMS = {
     icon: 'update',
     readonly: true,
     hidden: true,
-    type: ParamType.BOOL,
   },
   AthenadRecentlyViewedRoutes: {
     label: 'Recent Routes',
@@ -1923,7 +2055,6 @@ export const DEVICE_PARAMS = {
     icon: 'route',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   OsmLocationUrl: {
     label: 'Location URL',
@@ -1932,7 +2063,6 @@ export const DEVICE_PARAMS = {
     icon: 'link',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   AccessToken: {
     label: 'Access Token',
@@ -1941,7 +2071,6 @@ export const DEVICE_PARAMS = {
     icon: 'token',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   SunnylinkdPid: {
     label: 'sunnylink PID',
@@ -1950,9 +2079,8 @@ export const DEVICE_PARAMS = {
     icon: 'device_hub',
     readonly: true,
     hidden: true,
-    type: ParamType.INT,
   },
-  OsmLocal: { label: 'Local OSM', description: 'Use local OSM server', category: 'other', icon: 'map', advanced: true, hidden: true, type: ParamType.BOOL },
+  OsmLocal: { label: 'Local OSM', description: 'Use local OSM server', category: 'other', icon: 'map', advanced: true, hidden: true },
   MapTargetVelocities: {
     label: 'Map Target Velocities',
     description: 'Map-based velocity targets',
@@ -1960,7 +2088,6 @@ export const DEVICE_PARAMS = {
     icon: 'speed',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   OsmWayTest: {
     label: 'OSM Way Test',
@@ -1969,7 +2096,6 @@ export const DEVICE_PARAMS = {
     icon: 'bug_report',
     advanced: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   NextMapSpeedLimit: {
     label: 'Next Map Speed',
@@ -1978,7 +2104,6 @@ export const DEVICE_PARAMS = {
     icon: 'speed_limit',
     readonly: true,
     hidden: true,
-    type: ParamType.JSON,
   },
   OsmStateTitle: {
     label: 'State Region',
@@ -1987,7 +2112,6 @@ export const DEVICE_PARAMS = {
     icon: 'place',
     readonly: true,
     hidden: true,
-    type: ParamType.STRING,
   },
   LastSunnylinkPingTime: {
     label: 'LastSunnylinkPingTime',
@@ -1995,9 +2119,26 @@ export const DEVICE_PARAMS = {
     category: 'other',
     icon: 'schedule',
     hidden: true,
-    type: ParamType.INT,
   },
-  WebRTCOnline: { label: '', description: '', category: 'other', icon: 'live_tv', hidden: true, type: ParamType.BOOL },
-  LastAgnosPowerMonitorShutdown: { label: '', description: '', category: 'other', icon: 'power_settings_new', hidden: true, type: ParamType.STRING },
-  CarList: { label: '', description: '', category: 'other', icon: 'directions_car', hidden: true, type: ParamType.JSON },
+  WebRTCOnline: { label: '', description: '', category: 'other', icon: 'live_tv', hidden: true },
+  LastAgnosPowerMonitorShutdown: { label: '', description: '', category: 'other', icon: 'power_settings_new', hidden: true },
+  CarList: { label: '', description: '', category: 'other', icon: 'directions_car', hidden: true },
+  BlePairingCode: {
+    label: 'BLE Pairing Code',
+    description: 'Bluetooth pairing code',
+    category: 'other',
+    icon: 'bluetooth',
+    hidden: true,
+  },
+  EnableBLE: { label: 'Enable BLE', description: 'Bluetooth Low Energy', category: 'other', icon: 'bluetooth', hidden: true },
+  BlePid: { label: 'BLE PID', description: 'Bluetooth manager process ID', category: 'other', icon: 'bluetooth', hidden: true },
+  TeslaCoopSteering: {
+    label: 'Tesla Coop Steering',
+    description: 'Cooperative steering for Tesla',
+    category: 'other',
+    icon: 'directions_car',
+    hidden: true,
+  },
+  BleToken: { label: 'BLE Token', description: 'Bluetooth authentication token', category: 'other', icon: 'bluetooth', hidden: true },
+  EnableAsiusAPI: { label: 'Enable Asius API', description: 'Use Asius API for Connect', category: 'other', icon: 'cloud', hidden: true },
 }

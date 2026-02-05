@@ -11,7 +11,6 @@ import { IconButton } from '../../components/IconButton'
 import { CircularProgress } from '../../components/CircularProgress'
 import { CloudUploadIcon, ExternalLinkIcon, FileIcon, FilmIcon, LucideIcon, RefreshCwIcon, UploadIcon } from 'lucide-react'
 import { useUploadProgress } from '../../hooks/useUploadProgress'
-import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
 import { useDevice } from '../../hooks/useDevice'
 import { useAuth } from '../../hooks/useAuth'
@@ -59,7 +58,6 @@ const FileAction = ({
 }
 
 const Upload = ({ type, files, route, segment }: { type: FileType; files: SegmentFiles; route: Route; segment: number }) => {
-  const isOwner = useIsDeviceOwner()
   const { call } = useDevice()
   const disabled = segment === -1 ? files[type].every(Boolean) : !!files[type][segment]
   const uploadProgress = useUploadProgress()
@@ -78,7 +76,7 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Segmen
       Icon={isCurrentlyUploading ? CloudUploadIcon : UploadIcon}
       isUpload
       loading={avgProgress}
-      disabled={!isOwner}
+      disabled={!call}
       onClick={async () => {
         const { dongleId, routeId } = parseRouteName(route.fullname)
 
@@ -94,7 +92,7 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Segmen
         if (presignedUrls.status !== 200) throw new Error()
 
         if (paths.length === 0) return []
-        await call('uploadFilesToUrls', {
+        await call!('uploadFilesToUrls', {
           files_data: paths.map((fn, i) => ({
             allow_cellular: false,
             fn,

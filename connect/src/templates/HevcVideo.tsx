@@ -60,7 +60,7 @@ export const RawHevcVideo = (props: VideoProps) => {
     getData()
     const interval = setInterval(getData, 200)
     return () => clearInterval(interval)
-  }, [props.src])
+  }, [props.src, continueRender, delayRender])
 
   if (!src) return null
   return <Video {...props} src={src} showInTimeline={false} className="relative" />

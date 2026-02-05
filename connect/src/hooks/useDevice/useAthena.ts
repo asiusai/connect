@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useIsDeviceOwner } from '../useIsDeviceOwner'
 import { AthenaParams, AthenaRequest, fetchAthena, TransportType } from '../../../../shared/athena'
 import { useRouteParams } from '..'
@@ -12,7 +12,7 @@ export type UseAthenaType = ReturnType<typeof useAthena>
 const athenaInit = {
   status: 'disconnected' as AthenaStatus,
   voltage: undefined as string | undefined,
-  initialized: false,
+  dongleId: undefined as string | undefined,
 }
 const useAthenaState = create<ZustandType<typeof athenaInit>>((set) => ({ set, ...athenaInit }))
 
@@ -20,7 +20,7 @@ export const useAthena = () => {
   const { dongleId } = useRouteParams()
   const isOwner = useIsDeviceOwner()
   const { provider, token } = useAuth()
-  const { status, voltage, set, initialized } = useAthenaState()
+  const { status, voltage, set } = useAthenaState()
 
   const call = useCallback(
     <T extends AthenaRequest>(method: T, params: AthenaParams<T>) => fetchAthena({ method, params, dongleId, token, provider }),
@@ -28,23 +28,37 @@ export const useAthena = () => {
   )
 
   const init = useCallback(async () => {
-    if (!isOwner) return set({ status: 'unauthorized' })
-
-    set({ status: 'connecting', initialized: true })
+    set({ status: 'connecting' })
     const res = await call('getMessage', { service: 'peripheralState', timeout: 5000 })
     if (!res) return
 
     set({ voltage: res.peripheralState.voltage, status: 'connected' })
     console.log(`Athena connected, voltage: ${res.peripheralState.voltage}`)
-  }, [call, isOwner])
+  }, [call, set])
 
   const disconnect = useCallback(() => {
-    set({ voltage: undefined, status: 'disconnected', initialized: false })
-  }, [])
+    set({ voltage: undefined, status: 'disconnected', dongleId: undefined })
+  }, [set])
 
   useEffect(() => {
-    if (!initialized) init()
-  }, [])
+    if (!isOwner) return set({ status: 'unauthorized' })
+    if (useAthenaState.getState().dongleId === dongleId) return
 
-  return { type: 'athena' as TransportType, status, voltage, call, init, connect: init, disconnect }
+    set({ dongleId })
+    init()
+  }, [init, isOwner, set, dongleId])
+
+  return useMemo(
+    () => ({
+      type: 'athena' as TransportType,
+      status,
+      voltage,
+      call: status === 'connected' ? call : undefined,
+      init,
+      connect: init,
+      disconnect,
+      connected: status === 'connected',
+    }),
+    [call, disconnect, init, status, voltage],
+  )
 }

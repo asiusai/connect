@@ -28,7 +28,7 @@
       },
       "correctness": {
         "useUniqueElementIds": "off",
-        "useExhaustiveDependencies": "off"
+        "useExhaustiveDependencies": "error"
       },
       "style": "off",
       "suspicious": {

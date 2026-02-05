@@ -101,7 +101,7 @@ export const ATHENA_METHODS = {
   ),
   startLocalProxy: req(z.object({ remote_ws_uri: z.string(), local_port: z.number() }), z.object({ success: z.number() })),
   getAllParams: req(z.object({}), z.record(z.any())),
-  saveParams: req(z.object({ params_to_update: z.record(z.string().nullable()) }), z.record(z.string())),
+  saveParams: req(z.object({ params_to_update: z.record(z.any()) }), z.record(z.string())),
 
   // BLE only
   blePair: req(z.object({ code: z.string(), dongleId: z.string() }), z.object({ token: z.string() }), 'ble'),

@@ -2,7 +2,7 @@ import { ButtonBase } from '../../components/ButtonBase'
 import { CarIcon, GlobeIcon } from 'lucide-react'
 import { formatDate, formatDistance, formatDurationMs, getRouteDurationMs, formatTime, getDateTime } from '../../utils/format'
 import { useEffect, useState, useMemo, useRef, useLayoutEffect } from 'react'
-import { Slider } from '../../components/Slider'
+
 import { Fragment } from 'react'
 import { api } from '../../api'
 import { Route, RouteSegment } from '../../../../shared/types'
@@ -211,9 +211,10 @@ const All = () => {
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-  // Reset state when device changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: allRoutes
   useEffect(() => {
     if (!allRoutes) return
+
     setAllRoutes(undefined)
     setEndTime(Date.now())
     setHasMore(true)
@@ -304,16 +305,8 @@ const Preserved = () => {
   )
 }
 
-export const Routes = ({ className }: { className: string }) => {
-  const { routesType, set } = useSettings()
+export const RoutesTab = () => {
+  const { routesType } = useSettings()
 
-  return (
-    <div className={cn('relative flex flex-col', className)}>
-      <div className="flex items-center justify-between px-2 pb-4">
-        <h2 className="text-xl font-bold tracking-tight">Drives</h2>
-        <Slider options={{ all: 'All', preserved: 'Preserved' }} value={routesType} onChange={(routesType) => set({ routesType })} />
-      </div>
-      {routesType === 'all' ? <All /> : <Preserved />}
-    </div>
-  )
+  return <div className={cn('relative flex flex-col')}>{routesType === 'all' ? <All /> : <Preserved />}</div>
 }

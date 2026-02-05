@@ -27,7 +27,7 @@ export const Component = () => {
   useEffect(() => {
     if (!code || !authProvider) return
     mutate({ body: { code, provider: authProvider } })
-  }, [code, authProvider, navigate])
+  }, [code, authProvider, mutate])
 
   if (!code || !authProvider) return <Navigate to="/login" />
   return (
