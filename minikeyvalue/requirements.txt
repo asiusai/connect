@@ -1,3 +1,0 @@
-requests
-pyarrow
-boto3
