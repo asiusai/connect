@@ -11,6 +11,8 @@ export const Env = z.object({
   ENCRYPTION_KEY: z.string().default('yYwKdXFxqgnX5riNMPJCJtnXpcPvqWXPtn9YoTUw+kM='),
 
   EXAMPLE_ROUTE_NAME: z.string().default('a2a0ccea32023010/2023-07-27--13-01-19'),
+
+  CONNECT_URL: z.string().default('https://connect.asius.ai'),
 })
 
 const sysEnv = typeof process !== 'undefined' ? process.env : import.meta.env

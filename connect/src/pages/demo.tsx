@@ -11,7 +11,7 @@ export const Component = () => {
     const providerParam = Provider.safeParse(params.get('provider'))
     if (providerParam.success) provider = providerParam.data
 
-    const token = getProviderInfo(provider).demoAccessToken
+    const token = getProviderInfo(provider).demoAccessToken!
     logIn({ token, provider, name: 'Demo account', id: `demo-${provider}` })
   }, [logIn, params, provider])
 

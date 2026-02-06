@@ -2,6 +2,7 @@
   "name": "@asiusai/api",
   "private": true,
   "scripts": {
+    "start": "bun run index.ts",
     "dev": "bun run --watch index.ts",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",

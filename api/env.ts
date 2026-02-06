@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Env } from '../shared/env'
 
 const zArray = () =>
   z
@@ -6,7 +7,7 @@ const zArray = () =>
     .or(z.string().array())
     .transform((x) => (typeof x === 'string' ? x.split(',') : x))
 
-export const Environment = z.object({
+export const Environment = Env.extend({
   VOLUME_PATH: z.string().default('/tmp/volume'),
 
   DB_PATH: z.string().default('/tmp/asius.db'),

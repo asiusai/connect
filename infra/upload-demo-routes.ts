@@ -4,6 +4,7 @@ import { execSync } from 'child_process'
 import { createPublicKey } from 'crypto'
 import jwt from 'jsonwebtoken'
 import { getProviderInfo, DEFAULT_PROVIDER } from '../shared/provider'
+import { env } from '../shared/env'
 
 const CONNECT_DATA_DIR = join(dirname(import.meta.path), '../connect-data')
 const JWT_ALGORITHM = 'RS256' as const
@@ -43,9 +44,9 @@ const upload = async (info: UploadInfo, content: ArrayBuffer | string) => {
 const registerOrGetDevice = async (privateKey: string, publicKey: string): Promise<string> => {
   const registerToken = jwt.sign({ register: true }, privateKey, { algorithm: JWT_ALGORITHM, expiresIn: '1h' })
   const params = new URLSearchParams({
-    imei: provider.demoDongleId,
-    imei2: `${provider.demoDongleId}-2`,
-    serial: provider.demoDongleId,
+    imei: provider.demoDongleId!,
+    imei2: `${provider.demoDongleId!}-2`,
+    serial: provider.demoDongleId!,
     public_key: publicKey,
     register_token: registerToken,
   })
@@ -76,7 +77,7 @@ const main = async () => {
     if (dongleId !== provider.demoDongleId) console.error(`Dongle id is ${dongleId}, not ${provider.demoDongleId}`)
   } catch {
     console.log('Registration failed, trying to use existing device...')
-    dongleId = provider.demoDongleId
+    dongleId = provider.demoDongleId!
   }
   console.log(`Dongle ID: ${dongleId}`)
 
@@ -128,7 +129,7 @@ const main = async () => {
   const pairToken = jwt.sign({ identity: dongleId, pair: true }, privateKey, { algorithm: JWT_ALGORITHM, expiresIn: '24h' })
 
   console.log(`\n${'='.repeat(60)}`)
-  console.log(`Pairing URL: ${provider.connectUrl}/pair?pair=${pairToken}`)
+  console.log(`Pairing URL: ${env.CONNECT_URL}/pair?pair=${pairToken}`)
   console.log(`Device ID: ${dongleId}`)
   console.log(`${'='.repeat(60)}\n`)
 }

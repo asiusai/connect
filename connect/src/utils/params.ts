@@ -313,7 +313,7 @@ export const DeviceParams = z.object({
   BlePid: zInt(),
   TeslaCoopSteering: zBool(),
   BleToken: zString(),
-  EnableAsiusAPI: zBool(),
+  AsiusAPIHost: zString(),
 })
 
 export const DEVICE_PARAMS: Record<DeviceParamKey, DeviceParam> = {
@@ -2140,5 +2140,5 @@ export const DEVICE_PARAMS: Record<DeviceParamKey, DeviceParam> = {
     hidden: true,
   },
   BleToken: { label: 'BLE Token', description: 'Bluetooth authentication token', category: 'other', icon: 'bluetooth', hidden: true },
-  EnableAsiusAPI: { label: 'Enable Asius API', description: 'Use Asius API for Connect', category: 'other', icon: 'cloud', hidden: true },
+  AsiusAPIHost: { label: 'Asius API Host', description: 'Use Asius API for Connect', category: 'other', icon: 'cloud', hidden: true },
 }

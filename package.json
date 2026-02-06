@@ -6,6 +6,7 @@
   "packageManager": "bun@1.3.6",
   "scripts": {
     "dev": "concurrently -n api,site,connect bun:dev:*",
+    "self-host": "bun --cwd api start",
     "dev:api": "bun --cwd api dev",
     "dev:site": "bun --cwd site dev",
     "dev:connect": "bun --cwd connect dev",

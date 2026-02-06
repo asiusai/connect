@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { DEFAULT_PROVIDER, Provider } from '../../../shared/provider'
+import { DEFAULT_PROVIDER, DEFAULT_PROVIDERS, Provider, ProviderInfo } from '../../../shared/provider'
 
 type Login = { provider: Provider; token: string; name: string; id: string }
 
@@ -8,6 +8,7 @@ type Store = {
   id: string | undefined
   token: string | undefined
   provider: Provider
+  providers: Record<string, ProviderInfo>
   logins: Login[]
   logIn: (login: Login) => void
   logOut: (id?: string) => void
@@ -18,6 +19,7 @@ export const useAuth = create(
   persist<Store>(
     (set, get) => ({
       provider: DEFAULT_PROVIDER,
+      providers: DEFAULT_PROVIDERS,
       id: undefined,
       token: undefined,
       logins: [],

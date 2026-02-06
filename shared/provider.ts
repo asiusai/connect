@@ -6,10 +6,9 @@ export type Provider = z.infer<typeof Provider>
 const sysEnv = typeof process !== 'undefined' ? process.env : import.meta.env
 
 export const DEFAULT_PROVIDER = Provider.optional().parse(sysEnv.PROVIDER) ?? 'comma'
-export const LOCAL = !!sysEnv.LOCAL
 
 export const ProviderInfo = z.object({
-  name: Provider,
+  name: z.string(),
 
   title: z.string(),
   favicon: z.string(),
@@ -18,19 +17,19 @@ export const ProviderInfo = z.object({
   apiUrl: z.string(),
   authUrl: z.string(),
   billingUrl: z.string().optional(),
-  connectUrl: z.string(),
 
-  demoDongleId: z.string(),
-  demoRouteId: z.string(),
-  demoAccessToken: z.string(),
+  demoDongleId: z.string().optional(),
+  demoRouteId: z.string().optional(),
+  demoAccessToken: z.string().optional(),
 
   googleClientId: z.string().optional(),
   appleClientId: z.string().optional(),
   githubClientId: z.string().optional(),
 
   loginCallbackHostHack: z.string().optional(),
-  storingMP4: z.string().optional(),
+  storingMP4: z.boolean().optional(),
   googleScope: z.string().optional(),
+  deviceHost: z.string(),
 })
 export type ProviderInfo = z.infer<typeof ProviderInfo>
 
@@ -43,7 +42,7 @@ const comma: ProviderInfo = {
   apiUrl: 'https://api.comma.ai',
   authUrl: 'https://api.comma.ai',
   billingUrl: 'https://billing-comma-proxy.asius.ai',
-  connectUrl: 'https://connect.asius.ai',
+  deviceHost: 'api.comma.ai',
 
   demoDongleId: '9748a98e983e0b39',
   demoRouteId: '0000002b--abc7a490ca',
@@ -64,7 +63,7 @@ const konik: ProviderInfo = {
   athenaUrl: 'https://api-konik-proxy.asius.ai/ws',
   apiUrl: 'https://api-konik-proxy.asius.ai',
   authUrl: 'https://api.konik.ai',
-  connectUrl: 'https://connect.asius.ai',
+  deviceHost: 'api.konik.ai',
 
   githubClientId: 'Ov23liy0AI1YCd15pypf',
 
@@ -80,10 +79,10 @@ const asius: ProviderInfo = {
   title: 'asius connect',
   favicon: '/asius-favicon.svg',
 
-  athenaUrl: LOCAL ? 'http://localhost:8080' : 'https://api.asius.ai',
-  apiUrl: LOCAL ? 'http://localhost:8080' : 'https://api.asius.ai',
-  authUrl: LOCAL ? 'http://localhost:8080' : 'https://api.asius.ai',
-  connectUrl: LOCAL ? 'http://localhost:4000' : 'https://connect.asius.ai',
+  athenaUrl: 'https://api.asius.ai',
+  apiUrl: 'https://api.asius.ai',
+  authUrl: 'https://api.asius.ai',
+  deviceHost: 'api.asius.ai',
 
   googleClientId: '888462999677-0kqf5j0rkfvd47j7d34pnjsf29gqr39p.apps.googleusercontent.com',
   githubClientId: 'Ov23li0TAhCMsk5poUJw',
@@ -93,8 +92,9 @@ const asius: ProviderInfo = {
   demoDongleId: '1ce5b966287a55e9',
   demoRouteId: '0000002b--abc7a490ca',
   googleScope: 'user:email',
+  storingMP4: true,
 }
 
-const PROVIDERS = { comma, konik, asius }
+export const DEFAULT_PROVIDERS = { comma, konik, asius }
 
-export const getProviderInfo = (mode: Provider) => PROVIDERS[mode]
+export const getProviderInfo = (mode: Provider) => DEFAULT_PROVIDERS[mode]

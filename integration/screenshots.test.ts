@@ -3,6 +3,7 @@ import { test } from 'bun:test'
 import { chromium, devices as playDevices } from 'playwright'
 import { keys } from '../shared/helpers'
 import { getProviderInfo, Provider } from '../shared/provider'
+import { env } from '../shared/env'
 
 const FOLDER = process.env.FOLDER || 'site/public/screenshots'
 const DEVICE = process.env.DEVICE
@@ -17,7 +18,7 @@ const deviceList = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').incl
 
 for (const provider of Provider.options) {
   const info = getProviderInfo(provider)
-  const BASE_URL = info.connectUrl
+  const BASE_URL = env.CONNECT_URL
   const DONGLE_ID = info.demoDongleId
   const ROUTE_ID = info.demoRouteId
 
