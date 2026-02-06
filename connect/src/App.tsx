@@ -12,6 +12,11 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
+    path: 'add-provider',
+    lazy: () => import('./pages/add-provider'),
+    errorElement: <ErrorPage />,
+  },
+  {
     path: 'demo',
     lazy: () => import('./pages/demo'),
     errorElement: <ErrorPage />,

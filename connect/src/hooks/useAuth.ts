@@ -13,6 +13,8 @@ type Store = {
   logIn: (login: Login) => void
   logOut: (id?: string) => void
   setProvider: (provider: Provider) => void
+  addProvider: (info: ProviderInfo) => void
+  removeProvider: (name: string) => void
 }
 
 export const useAuth = create(
@@ -43,6 +45,15 @@ export const useAuth = create(
       setProvider: (provider: Provider) => {
         const user = get().logins.find((x) => x?.provider === provider)
         set(() => ({ provider, id: user?.id, token: user?.token }))
+      },
+      addProvider: (info: ProviderInfo) => {
+        set((x) => ({ providers: { ...x.providers, [info.name]: info } }))
+      },
+      removeProvider: (name: string) => {
+        set((x) => {
+          const { [name]: _, ...rest } = x.providers
+          return { providers: rest }
+        })
       },
     }),
     {
