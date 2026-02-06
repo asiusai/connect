@@ -14,6 +14,7 @@ import { useUploadProgress } from '../../hooks/useUploadProgress'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
 import { useDevice } from '../../hooks/useDevice'
 import { useAuth } from '../../hooks/useAuth'
+import { getProviderInfo } from '../../../../shared/provider'
 
 const PRIORITY = 1 // Higher number is lower priority
 
@@ -155,9 +156,11 @@ const DownloadSegment = ({ type, files, segment }: { segment: number; type: File
   const { provider } = useAuth()
   const { routeName } = useRouteParams()
   const file = files[type][segment]
+  const info = getProviderInfo(provider)
+
   if (!file) return null
   const name = `${routeName}--${segment}--${FILE_INFO[type].name}`
-  if (provider === 'asius' && ['cameras', 'ecameras', 'dcameras'].includes(type))
+  if (info.storingMP4 && ['cameras', 'ecameras', 'dcameras'].includes(type))
     return <FileAction label={FILE_INFO[type].processed || 'Process'} Icon={FilmIcon} download={name.replace('.hevc', '.mp4')} href={file} />
   return <FileAction label={FILE_INFO[type].raw} Icon={FileIcon} href={file} download={name} />
 }
@@ -167,6 +170,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
   const { dongleId, routeId: date, routeName } = useRouteParams()
   const file = files[type][segment]
   const [progress, setProgress] = useState<number>()
+  const info = getProviderInfo(provider)
 
   if (!file) return null
 
@@ -190,7 +194,7 @@ const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileT
     )
 
   // Asius API returns already mp4 for videos
-  if (provider === 'asius') return null
+  if (info.storingMP4) return null
 
   return (
     <FileAction

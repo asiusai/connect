@@ -29,6 +29,8 @@ export const ProviderInfo = z.object({
   githubClientId: z.string().optional(),
 
   loginCallbackHostHack: z.string().optional(),
+  storingMP4: z.string().optional(),
+  googleScope: z.string().optional(),
 })
 export type ProviderInfo = z.infer<typeof ProviderInfo>
 
@@ -90,6 +92,7 @@ const asius: ProviderInfo = {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6IjYxMDA4MDY1NjcxMjU3YmIiLCJpYXQiOjE3NjgyMjY5MzEsImV4cCI6MTc5OTc2MjkzMX0.9fnF0nu2f7ZJidtyQGCxL60ZcQ1yrdQeiCjQzWaQyyg',
   demoDongleId: '1ce5b966287a55e9',
   demoRouteId: '0000002b--abc7a490ca',
+  googleScope: 'user:email',
 }
 
 const PROVIDERS = { comma, konik, asius }

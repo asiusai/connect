@@ -19,7 +19,7 @@ export const useLoginProviders = () => {
         ? `https://github.com/login/oauth/authorize?${stringify({
             client_id: info.githubClientId,
             redirect_uri: `${info.authUrl}/v2/auth/h/redirect/`,
-            scope: provider === 'asius' ? 'user:email' : 'read:user',
+            scope: info.googleScope ?? 'read:user',
             state,
           })}`
         : undefined,

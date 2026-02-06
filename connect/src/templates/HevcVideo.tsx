@@ -5,12 +5,14 @@ import { createChunker } from '../utils/hevc'
 import { useDelayRender } from 'remotion'
 import { cn } from '../../../shared/helpers'
 import { useAuth } from '../hooks/useAuth'
+import { getProviderInfo } from '../../../shared/provider'
 
 type VideoProps = { src: string; className?: string; style?: CSSProperties }
 
 export const HevcVideo = (props: VideoProps) => {
   const { provider } = useAuth()
-  if (provider === 'asius') return <Video {...props} showInTimeline={false} className={cn('relative', props.className)} />
+  const info = getProviderInfo(provider)
+  if (info.storingMP4) return <Video {...props} showInTimeline={false} className={cn('relative', props.className)} />
   else return <RawHevcVideo {...props} />
 }
 

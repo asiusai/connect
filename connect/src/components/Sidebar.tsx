@@ -50,14 +50,14 @@ export const Navigation = ({ className }: { className?: string }) => {
 
 const AccountSwitcher = ({ user }: { user: User }) => {
   const navigate = useNavigate()
-  const { logins, logIn, logOut, id } = useAuth()
+  const { logins, logIn, logOut, id, provider } = useAuth()
   const [open, setOpen] = useState(false)
 
   return (
     <div className="relative pt-6 border-t border-white/5">
       <div className="flex items-center justify-between px-2 cursor-pointer group" onClick={() => setOpen(!open)}>
         <div className="flex items-center gap-2 min-w-0">
-          <Logo provider={logins.find((l) => l.id === id)?.provider ?? 'asius'} className="w-5 h-5 shrink-0" />
+          <Logo provider={provider} className="w-5 h-5 shrink-0" />
           <span className="text-sm font-medium truncate text-white/90" title={getUserName(user)}>
             {getUserName(user)}
           </span>
