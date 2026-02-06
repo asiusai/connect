@@ -10,13 +10,14 @@ const initial = {
   isLoading: false,
   prevQueueIds: new Set<string>(),
   subscribers: 0,
+  failedFiles: [] as string[],
 }
 
 const useUploadProgressStore = create<ZustandType<typeof initial>>((set) => ({ ...initial, set }))
 
 export const useUploadProgress = (onComplete?: () => void, enabled = true) => {
   const { dongleId, routeId } = useRouteParams()
-  const { queue, isLoading, set } = useUploadProgressStore()
+  const { queue, isLoading, failedFiles, set } = useUploadProgressStore()
   const { call } = useDevice()
 
   const fetchQueue = useCallback(async () => {
@@ -85,6 +86,9 @@ export const useUploadProgress = (onComplete?: () => void, enabled = true) => {
 
   const currentUpload = queue.find((item) => item.current)
 
+  const addFailed = (files: string[]) => set({ failedFiles: [...failedFiles, ...files] })
+  const isFailed = (segment: number, fileName?: string) => failedFiles.some((f) => f.includes(`--${segment}/`) && (!fileName || f.includes(fileName)))
+
   return {
     queue,
     isLoading,
@@ -92,5 +96,7 @@ export const useUploadProgress = (onComplete?: () => void, enabled = true) => {
     isUploading,
     getProgress,
     currentUpload,
+    addFailed,
+    isFailed,
   }
 }

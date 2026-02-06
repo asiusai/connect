@@ -15,6 +15,7 @@ import { usePlayerStore } from '../../hooks/usePlayerStore'
 import { useDevice } from '../../hooks/useDevice'
 import { useAuth } from '../../hooks/useAuth'
 import { getProviderInfo } from '../../../../shared/provider'
+import { toast } from 'sonner'
 
 const PRIORITY = 1 // Higher number is lower priority
 
@@ -93,7 +94,7 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Segmen
         if (presignedUrls.status !== 200) throw new Error()
 
         if (paths.length === 0) return []
-        await call!('uploadFilesToUrls', {
+        const result = await call!('uploadFilesToUrls', {
           files_data: paths.map((fn, i) => ({
             allow_cellular: false,
             fn,
@@ -101,6 +102,10 @@ const Upload = ({ type, files, route, segment }: { type: FileType; files: Segmen
             ...presignedUrls.body[i],
           })),
         })
+        if (result?.failed?.length) {
+          toast.error(`Failed to upload: ${result.failed.join(', ')}`)
+          uploadProgress.addFailed(result.failed)
+        }
         // Trigger a refetch of the upload queue
         uploadProgress.refetch()
       }}
@@ -239,16 +244,24 @@ const SegmentDetails = ({ segment, files, route, setSegment }: { segment: number
                 {Array.from({ length: files.length }).map((_, i) => {
                   const isSegmentUploading = uploadProgress.isUploading(i, fileName)
                   const segmentProgress = uploadProgress.getProgress(i, fileName)
+                  const isSegmentFailed = uploadProgress.isFailed(i, fileName)
                   return (
                     <div
                       key={i}
-                      title={isSegmentUploading ? `Segment ${i} - ${Math.round((segmentProgress ?? 0) * 100)}%` : `Segment ${i}`}
+                      title={
+                        isSegmentFailed
+                          ? `Segment ${i} - Failed`
+                          : isSegmentUploading
+                            ? `Segment ${i} - ${Math.round((segmentProgress ?? 0) * 100)}%`
+                            : `Segment ${i}`
+                      }
                       onClick={() => setSegment(i)}
                       className={cn(
                         'h-full cursor-pointer relative',
                         !files[type][i] ? 'bg-white/80' : type.startsWith('q') ? 'bg-blue-400' : 'bg-green-400',
                         segment !== i ? 'opacity-40' : 'opacity-80',
                         isSegmentUploading && 'animate-upload-pulse bg-yellow-400',
+                        isSegmentFailed && 'bg-red-500',
                       )}
                       style={{ width: `${(1 / files.length) * 100}%` }}
                     />
