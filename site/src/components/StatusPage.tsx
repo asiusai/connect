@@ -8,7 +8,7 @@ type StatusData = {
   status: 'ok' | 'degraded'
   uptime: number
   uptimeHistory?: Heartbeat[]
-  services: { mkv: ServiceStatus; database: ServiceStatus }
+  services: { database: ServiceStatus }
   stats: { users: number; devices: number; routes: number; segments: number; queue: Record<string, number>; totalSize: number }
   frontends: ServiceStatus[]
   ci: ServiceStatus[]
@@ -146,7 +146,6 @@ export const StatusPage = () => {
     <>
       <Card title="API Services">
         <div className="divide-y divide-[#262626]">
-          <ServiceRow name="MKV Storage" service={data.services.mkv} />
           <ServiceRow name="Database" service={data.services.database} />
         </div>
       </Card>

@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm'
 import { db } from '../db/client'
-import { segmentsTable, routesTable } from '../db/schema'
-import { mkv } from '../mkv'
+import { segmentsTable, routesTable, filesTable } from '../db/schema'
+import { fs } from '../fs'
 import { processQlogStreaming, type StreamingQlogResult } from './qlogs'
 import { extractSprite } from './qcamera'
 import { remuxHevcToMp4 } from './hevc'
@@ -13,7 +13,7 @@ type QlogProcessingResult = {
 
 const processSegmentQlogStreaming = async (dongleId: string, routeId: string, segment: number): Promise<QlogProcessingResult | null> => {
   const key = `${dongleId}/${routeId}/${segment}/qlog.zst`
-  const res = await mkv.get(key)
+  const res = await fs.get(key)
   if (!res.ok || !res.body) throw new Error(`File not found: ${key}`)
 
   const contentLength = res.headers.get('content-length')
@@ -61,9 +61,21 @@ const processSegmentQlogStreaming = async (dongleId: string, routeId: string, se
   const eventsBlob = new Blob(eventsChunks as BlobPart[], { type: 'application/json' })
   const coordsBlob = new Blob(coordsChunks as BlobPart[], { type: 'application/json' })
   await Promise.all([
-    mkv.put(`${baseKey}/events.json`, eventsBlob.stream(), { 'Content-Type': 'application/json' }, true),
-    mkv.put(`${baseKey}/coords.json`, coordsBlob.stream(), { 'Content-Type': 'application/json' }, true),
+    fs.put(`${baseKey}/events.json`, eventsBlob.stream(), { 'Content-Type': 'application/json' }, true),
+    fs.put(`${baseKey}/coords.json`, coordsBlob.stream(), { 'Content-Type': 'application/json' }, true),
   ])
+
+  // Track derived files in filesTable
+  const parts = baseKey.split('/')
+  for (const [file, size] of [
+    ['events.json', eventsBlob.size],
+    ['coords.json', coordsBlob.size],
+  ] as const) {
+    db.insert(filesTable)
+      .values({ key: `${baseKey}/${file}`, dongle_id: parts[0], route_id: parts[1], segment: parseInt(parts[2], 10), file, size, processingStatus: 'done' })
+      .onConflictDoUpdate({ target: filesTable.key, set: { size } })
+      .run()
+  }
 
   // Clean up temp file (fire and forget)
   import('fs/promises').then((fs) => fs.unlink(tmpPath)).catch(() => {})
@@ -76,7 +88,7 @@ const processSegmentQlogStreaming = async (dongleId: string, routeId: string, se
 const processSegmentQcamera = async (dongleId: string, routeId: string, segment: number): Promise<void> => {
   const baseKey = `${dongleId}/${routeId}/${segment}`
 
-  const res = await mkv.get(`${baseKey}/qcamera.ts`)
+  const res = await fs.get(`${baseKey}/qcamera.ts`)
   if (!res.ok || !res.body) throw new Error(`File not found: ${baseKey}/qcamera.ts`)
 
   const contentLength = res.headers.get('content-length')
@@ -86,7 +98,22 @@ const processSegmentQcamera = async (dongleId: string, routeId: string, segment:
   if (!sprite) return
 
   const blob = new Blob([sprite as BlobPart], { type: 'image/jpeg' })
-  await mkv.put(`${baseKey}/sprite.jpg`, blob.stream(), { 'Content-Type': 'image/jpeg' }, true)
+  await fs.put(`${baseKey}/sprite.jpg`, blob.stream(), { 'Content-Type': 'image/jpeg' }, true)
+
+  // Track derived file in filesTable
+  const parts = baseKey.split('/')
+  db.insert(filesTable)
+    .values({
+      key: `${baseKey}/sprite.jpg`,
+      dongle_id: parts[0],
+      route_id: parts[1],
+      segment: parseInt(parts[2], 10),
+      file: 'sprite.jpg',
+      size: blob.size,
+      processingStatus: 'done',
+    })
+    .onConflictDoUpdate({ target: filesTable.key, set: { size: blob.size } })
+    .run()
 }
 
 export const processFile = async (dongleId: string, path: string): Promise<void> => {
@@ -166,13 +193,17 @@ export const processFile = async (dongleId: string, path: string): Promise<void>
   // Keep .hevc extension to avoid breaking other things
   if (filename.endsWith('.hevc')) {
     const key = `${dongleId}/${routeId}/${segment}/${filename}`
-    const res = await mkv.get(key)
+    const res = await fs.get(key)
     if (!res.ok || !res.body) throw new Error(`File not found: ${key}`)
 
     const contentLength = res.headers.get('content-length')
     if (contentLength === '0') throw new Error(`Empty file: ${key}`)
 
     const mp4Stream = await remuxHevcToMp4(res.body)
-    await mkv.put(key, mp4Stream, { 'Content-Type': 'video/mp4' }, true)
+    const putRes = await fs.put(key, mp4Stream, { 'Content-Type': 'video/mp4' }, true)
+
+    // Update file size in filesTable after remux
+    const newSize = parseInt(putRes.headers.get('Content-Length') || '0', 10)
+    if (newSize > 0) db.update(filesTable).set({ size: newSize }).where(eq(filesTable.key, key)).run()
   }
 }

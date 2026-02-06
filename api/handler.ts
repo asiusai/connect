@@ -53,7 +53,7 @@ export const handler = async (req: Request, server: Bun.Server<WebSocketData>) =
     return server.upgrade(req, { data: { dongleId, device: identity.device } }) ? undefined : new Response('WS upgrade failed', { status: 400 })
   }
 
-  // MKV
+  // FS
   if (url.pathname.startsWith('/connectdata/')) return await dataHandler(req, identity)
 
   // API routes

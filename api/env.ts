@@ -7,7 +7,7 @@ const zArray = () =>
     .transform((x) => (typeof x === 'string' ? x.split(',') : x))
 
 export const Environment = z.object({
-  MKV_URL: z.string().default('http://localhost:3000'),
+  VOLUME_PATH: z.string().default('/tmp/volume'),
 
   DB_PATH: z.string().default('/tmp/asius.db'),
 

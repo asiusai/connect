@@ -2,13 +2,13 @@ import { eq } from 'drizzle-orm'
 import { db } from '../db/client'
 import { filesTable } from '../db/schema'
 import { env } from '../env'
-import { mkv } from '../mkv'
+import { fs } from '../fs'
 
 const workers: Worker[] = []
 
 export const queueFile = async (key: string): Promise<void> => {
-  const res = await mkv.head(key)
-  const size = parseInt(res.headers.get('Content-Length') || '0', 10)
+  const bunFile = Bun.file(fs.key2path(key))
+  const size = (await bunFile.exists()) ? bunFile.size : 0
 
   const parts = key.split('/')
   const dongle_id = parts[0]

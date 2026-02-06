@@ -1,6 +1,6 @@
-import { z } from 'zod'
 import { decryptToken } from '../shared/encryption'
 import { fetchAthena } from '../shared/athena'
+import { Provider } from '../shared/provider'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222
 export const INTERNAL_HOST = '127.0.0.1'
@@ -14,9 +14,6 @@ if (!SSH_PRIVATE_KEY) throw new Error('No SSH_PRIVATE_KEY')
 
 export const ENCRYPTION_PRIVATE_KEY = process.env.ENCRYPTION_PRIVATE_KEY!
 if (!ENCRYPTION_PRIVATE_KEY) throw new Error('No ENCRYPTION_PRIVATE_KEY')
-
-export const Provider = z.enum(['asius', 'comma', 'konik'])
-export type Provider = z.infer<typeof Provider>
 
 export type Auth = {
   provider: Provider

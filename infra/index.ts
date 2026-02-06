@@ -108,10 +108,8 @@ const R2_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY!
 
 const storageBoxPassword = config.requireSecret('storageBoxPassword')
 
-const STORAGE_BOXES = [
-  { i: 1, user: 'u526268' },
-  { i: 2, user: 'u526270' },
-]
+const STORAGE_BOX_USER = 'u526268'
+
 export const api = new Server('api', {
   allowedPorts: ['22', '80', '443'],
   sshKeyId: sshKey.id,
@@ -119,57 +117,22 @@ export const api = new Server('api', {
   domain: { name: 'api.asius.ai', zoneId },
   sshPrivateKey,
   services: [
-    ...STORAGE_BOXES.map(({ i, user }) => ({
-      name: `asius-mkv${i}`,
-      check: `until nc -z localhost 300${i}; do sleep 0.5; done`,
+    {
+      name: 'asius-volume',
+      check: 'mountpoint -q /data/volume',
       trigger: undefined,
       service: {
         Unit: {
-          Description: `MiniKeyValue Volume ${i}`,
+          Description: 'Storage Box Mount',
           After: 'network.target',
         },
         Service: {
-          Type: 'simple',
-          WorkingDirectory: '/app',
-          Environment: {
-            PORT: `300${i}`,
-            MKV_TMP: `/tmp/mkv${i}_tmp`,
-            MKV_BODY: `/tmp/mkv${i}_body`,
-          },
-          ExecStartPre: [
-            `/bin/bash -c 'umount /data/mkv${i} 2>/dev/null || true'`,
-            `/bin/mount -t cifs //${user}.your-storagebox.de/backup /data/mkv${i} -o username=${user},password=\${STORAGE_BOX_PASSWORD},uid=0,gid=0,file_mode=0660,dir_mode=0770`,
-            `/bin/mkdir -p /tmp/mkv${i}_tmp /tmp/mkv${i}_body`,
-          ],
-          ExecStart: `/app/minikeyvalue/volume /data/mkv${i}/`,
-          ExecStopPost: `/bin/umount /data/mkv${i}`,
-          Restart: 'always',
+          Type: 'oneshot',
+          RemainAfterExit: 'yes',
+          ExecStartPre: `/bin/bash -c 'umount /data/volume 2>/dev/null || true'`,
+          ExecStart: `/bin/mount -t cifs //${STORAGE_BOX_USER}.your-storagebox.de/backup /data/volume -o username=${STORAGE_BOX_USER},password=\${STORAGE_BOX_PASSWORD},uid=0,gid=0,file_mode=0660,dir_mode=0770`,
+          ExecStop: '/bin/umount /data/volume',
           EnvironmentFile: '/etc/storagebox.env',
-        },
-        Install: {
-          WantedBy: 'multi-user.target',
-        },
-      },
-    })),
-    {
-      name: 'asius-mkv',
-      check: 'until nc -z localhost 3000; do sleep 0.5; done',
-      trigger: undefined,
-      service: {
-        Unit: {
-          Description: 'MiniKeyValue Master',
-          After: 'asius-mkv1.service asius-mkv2.service',
-          Requires: 'asius-mkv1.service asius-mkv2.service',
-        },
-        Service: {
-          Type: 'simple',
-          WorkingDirectory: '/app',
-          ExecStartPre: [
-            "/bin/bash -c 'until curl -sf http://localhost:3001/ && curl -sf http://localhost:3002/; do sleep 0.5; done'",
-            "/bin/bash -c 'if [ ! -s /data/mkvdb ]; then /app/minikeyvalue/src/mkv -volumes localhost:3001,localhost:3002 -db /data/mkvdb -replicas 1 rebuild; fi'",
-          ],
-          ExecStart: '/app/minikeyvalue/src/mkv -volumes localhost:3001,localhost:3002 -db /data/mkvdb -replicas 1 --port 3000 server',
-          Restart: 'always',
         },
         Install: {
           WantedBy: 'multi-user.target',
@@ -207,18 +170,17 @@ export const api = new Server('api', {
       service: {
         Unit: {
           Description: 'Asius API',
-          After: 'network.target asius-mkv.service asius-caddy.service',
-          Requires: 'asius-mkv.service',
+          After: 'network.target asius-volume.service asius-caddy.service',
+          Requires: 'asius-volume.service',
         },
         Service: {
           Type: 'simple',
           WorkingDirectory: '/app/api',
-          ExecStartPre: "/bin/bash -c 'until nc -z localhost 3000; do sleep 0.5; done'",
           ExecStart: 'bun run index.ts',
           Restart: 'always',
           Environment: {
             PORT: '8080',
-            MKV_URL: 'http://localhost:3000',
+            VOLUME_PATH: '/data/volume',
             DB_PATH: '/data/asius.db',
             JWT_SECRET: config.requireSecret('jwtSecret'),
             GOOGLE_CLIENT_ID: config.requireSecret('googleClientId'),
@@ -240,7 +202,7 @@ export const api = new Server('api', {
   ],
   createScript: pulumi.interpolate`
 set -e
-apt-get update && apt-get install -y cifs-utils golang-go curl git unzip ffmpeg nginx debian-keyring debian-archive-keyring apt-transport-https
+apt-get update && apt-get install -y cifs-utils curl git unzip ffmpeg debian-keyring debian-archive-keyring apt-transport-https
 
 # Install bun
 curl -fsSL https://bun.sh/install | bash
@@ -251,20 +213,18 @@ curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --batch 
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
 apt-get update && apt-get install -y caddy
 
-# Stop default Caddy and nginx services (we use our own)
+# Stop default Caddy service (we use our own)
 systemctl stop caddy || true
 systemctl disable caddy || true
-systemctl stop nginx || true
-systemctl disable nginx || true
 
 # Create data directories
-mkdir -p /data/mkv1 /data/mkv2 /data/caddy /app
+mkdir -p /data/volume /data/caddy /app
 
 # Setup storage box password
 echo 'STORAGE_BOX_PASSWORD=${storageBoxPassword}' > /etc/storagebox.env
 chmod 600 /etc/storagebox.env
 `,
-  deployScript: `cd /app/minikeyvalue/src && go build -o mkv && cd /app/api && bun install`,
+  deployScript: 'cd /app/api && bun install',
 })
 
 // ------------------------- SSH SERVER -------------------------

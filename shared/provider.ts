@@ -27,6 +27,8 @@ export const ProviderInfo = z.object({
   googleClientId: z.string().optional(),
   appleClientId: z.string().optional(),
   githubClientId: z.string().optional(),
+
+  loginCallbackHostHack: z.string().optional(),
 })
 export type ProviderInfo = z.infer<typeof ProviderInfo>
 
@@ -49,6 +51,7 @@ const comma: ProviderInfo = {
   googleClientId: '45471411055-ornt4svd2miog6dnopve7qtmh5mnu6id.apps.googleusercontent.com',
   appleClientId: 'ai.comma.login',
   githubClientId: '28c4ecb54bb7272cb5a4',
+  loginCallbackHostHack: '613.connect-d5y.pages.dev',
 }
 
 const konik: ProviderInfo = {

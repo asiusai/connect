@@ -5,11 +5,10 @@
   "private": true,
   "packageManager": "bun@1.3.6",
   "scripts": {
-    "dev": "concurrently -n mkv,api,site,connect bun:dev:*",
+    "dev": "concurrently -n api,site,connect bun:dev:*",
     "dev:api": "bun --cwd api dev",
     "dev:site": "bun --cwd site dev",
     "dev:connect": "bun --cwd connect dev",
-    "dev:mkv": "cd minikeyvalue && tools/bringup.sh",
     "build": "concurrently -n site,connect bun:build:*",
     "build:connect": "bun --cwd connect build",
     "build:site": "bun --cwd site build",

@@ -6,9 +6,9 @@ export const cn = twMerge
 
 export type ZustandType<T> = T & { set: (partial: Partial<T> | ((state: T) => Partial<T>)) => void }
 
-export const replacCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', getProviderInfo('konik').apiUrl)
+export const replaceCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', getProviderInfo('konik').apiUrl)
 
-export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${replacCORSUrl(route.url)}/${segment}/${fn}`
+export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${replaceCORSUrl(route.url)}/${segment}/${fn}`
 
 export const parseRouteName = (routeName: string): RouteInfo => {
   const [dongleId, routeId] = routeName.split(/[|/]/)
@@ -95,7 +95,7 @@ export const toSegmentFiles = (files: Files, length: number | undefined): Segmen
   if (!length) length = Math.max(...FileType.options.map((x) => files[x].length))
   const out: SegmentFiles = { length, cameras: [], dcameras: [], ecameras: [], logs: [], qcameras: [], qlogs: [] }
   for (const key of keys(files)) {
-    for (let i = 0; i < length; i++) out[key][i] = replacCORSUrl(findFile(files, key, i))
+    for (let i = 0; i < length; i++) out[key][i] = replaceCORSUrl(findFile(files, key, i))
   }
   return out
 }

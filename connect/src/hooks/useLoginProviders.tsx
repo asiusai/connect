@@ -1,4 +1,3 @@
-import { env } from '../../../shared/env'
 import { getProviderInfo } from '../../../shared/provider'
 import { useAuth } from '../hooks/useAuth'
 
@@ -9,7 +8,7 @@ export const useLoginProviders = () => {
 
   const info = getProviderInfo(provider)
   // When using comma provider and not on localhost, then we need to go through a new-connect proxy
-  const state = `service,${window.location.hostname !== 'localhost' && provider === 'comma' ? env.HACK_LOGIN_CALLBACK_HOST : window.location.host}`
+  const state = `service,${window.location.hostname !== 'localhost' && info.loginCallbackHostHack ? info.loginCallbackHostHack : window.location.host}`
 
   return [
     {

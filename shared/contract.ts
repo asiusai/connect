@@ -513,7 +513,6 @@ const admin = c.router({
         uptime: z.number(),
         uptimeHistory: z.array(z.object({ timestamp: z.number() })),
         services: z.object({
-          mkv: ServiceStatus,
           database: ServiceStatus,
         }),
         stats: z.object({

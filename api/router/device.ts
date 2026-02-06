@@ -8,15 +8,19 @@ import { normalizeDataKey } from '../common'
 import { Device } from '../../shared/types'
 import { Identity } from '../auth'
 import { getOfflineQueue } from '../ws'
-import { mkv } from '../mkv'
 import { createDataSignature } from '../helpers'
+import { filesTable } from '../db/schema'
+import { like } from 'drizzle-orm'
 
 const getLogUrls = async (dongleId: string, type: 'boot' | 'crash', origin: string) => {
-  const files = await mkv.listKeys(`${dongleId}/${type}`)
-  return files.map((f) => {
-    const key = `${dongleId}/${type}/${f.split('/').pop()}`
-    const sig = createDataSignature(key, 'read_access', 24 * 60 * 60)
-    return `${origin}/connectdata/${key}?sig=${sig}`
+  const rows = db
+    .select({ key: filesTable.key })
+    .from(filesTable)
+    .where(like(filesTable.key, `${dongleId}/${type}/%`))
+    .all()
+  return rows.map((r) => {
+    const sig = createDataSignature(r.key, 'read_access', 24 * 60 * 60)
+    return `${origin}/connectdata/${r.key}?sig=${sig}`
   })
 }
 export const deviceDataToDevice = async (device: DeviceData, identity: Identity): Promise<Device> => {

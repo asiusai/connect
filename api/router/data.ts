@@ -6,7 +6,7 @@ import { deviceUsersTable } from '../db/schema'
 import { env } from '../env'
 import { DataSignature } from '../helpers'
 import { queueFile } from '../processing/queue'
-import { mkv } from '../mkv'
+import { fs } from '../fs'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -63,24 +63,18 @@ export const dataHandler = async (req: Request, identity?: Identity): Promise<Re
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 
-  // LIST: ?list query param
-  if (url.searchParams.get('list')) {
-    const res = await mkv.list(key, url.searchParams.get('start'), url.searchParams.get('limit'))
-    return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
-  }
-
   // GET/HEAD: fetch with range support
   if (req.method === 'GET' || req.method === 'HEAD') {
     const headers: HeadersInit = {}
     const range = req.headers.get('Range')
     if (range) headers.Range = range
-    const res = await mkv.get(key, headers)
+    const res = await fs.get(key, headers)
     return new Response(req.method === 'GET' ? res.body : null, { status: res.status, headers: addCors(new Headers(res.headers)) })
   }
 
   // PUT: upload file
   if (req.method === 'PUT') {
-    const res = await mkv.put(key, req.body, { 'Content-Type': req.headers.get('Content-Type') || 'application/octet-stream' }, false)
+    const res = await fs.put(key, req.body, { 'Content-Type': req.headers.get('Content-Type') || 'application/octet-stream' }, false)
 
     if (res.status === 201) await queueFile(key)
 
@@ -89,7 +83,7 @@ export const dataHandler = async (req: Request, identity?: Identity): Promise<Re
 
   // DELETE: remove file
   if (req.method === 'DELETE') {
-    const res = await mkv.delete(key)
+    const res = await fs.delete(key)
     return new Response(res.body, { status: res.status, headers: addCors(new Headers(res.headers)) })
   }
 

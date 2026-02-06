@@ -18,7 +18,7 @@ import { sql, count, countDistinct, desc, eq, asc, and } from 'drizzle-orm'
 import { env } from '../env'
 import { getLastBackupTime } from '../db/backup'
 import { superuserMiddleware } from '../middleware'
-import { mkv } from '../mkv'
+import { fs } from '../fs'
 import { createDataSignature } from '../helpers'
 
 const startTime = Date.now()
@@ -42,17 +42,6 @@ const checkUrl = async (url: string): Promise<ServiceStatus> => {
   try {
     const res = await fetch(url)
     if (!res.ok) return { status: 'error', error: `HTTP ${res.status}` }
-    return { status: 'ok', latency: Date.now() - start }
-  } catch (e) {
-    return { status: 'error', error: String(e) }
-  }
-}
-
-const checkMkv = async (): Promise<ServiceStatus> => {
-  const start = Date.now()
-  try {
-    const res = await fetch(`${env.MKV_URL}/__health_check__`)
-    if (res.status >= 500) return { status: 'error', error: `HTTP ${res.status}` }
     return { status: 'ok', latency: Date.now() - start }
   } catch (e) {
     return { status: 'error', error: String(e) }
@@ -158,21 +147,14 @@ const getUptimeHistory = () => {
 export const admin = tsr.router(contract.admin, {
   health: async () => ({ status: 200 as const, body: { status: 'ok' as const } }),
   status: async () => {
-    const [mkv, database, stats, frontends, ci, lastBackup] = await Promise.all([
-      checkMkv(),
-      checkDb(),
-      getStats(),
-      getFrontends(),
-      getCI(),
-      getLastBackupTime(),
-    ])
+    const [database, stats, frontends, ci, lastBackup] = await Promise.all([checkDb(), getStats(), getFrontends(), getCI(), getLastBackupTime()])
     return {
       status: 200,
       body: {
-        status: (mkv.status === 'ok' && database.status === 'ok' ? 'ok' : 'degraded') as 'ok' | 'degraded',
+        status: (database.status === 'ok' ? 'ok' : 'degraded') as 'ok' | 'degraded',
         uptime: Date.now() - startTime,
         uptimeHistory: getUptimeHistory(),
-        services: { mkv, database },
+        services: { database },
         stats,
         frontends,
         ci,
@@ -471,7 +453,7 @@ export const admin = tsr.router(contract.admin, {
     const file = db.select().from(filesTable).where(eq(filesTable.key, key)).get()
     if (!file) return { status: 404, body: { error: 'File not found' } }
 
-    await mkv.delete(key)
+    await fs.delete(key)
     db.delete(filesTable).where(eq(filesTable.key, key)).run()
 
     return { status: 200, body: { success: true } }
@@ -491,12 +473,8 @@ export const admin = tsr.router(contract.admin, {
 
     const files = db.select({ key: filesTable.key }).from(filesTable).where(eq(filesTable.dongle_id, params.dongleId)).all()
 
-    // Delete all MKV files for this device
-    await Promise.all(files.map((f) => mkv.delete(f.key).catch(() => {})))
-
-    // Also delete the device folder in MKV (for any other files like boot logs)
-    const mkvKeys = await mkv.listKeys(params.dongleId)
-    await Promise.all(mkvKeys.map((k) => mkv.delete(k).catch(() => {})))
+    // Delete all files from volume
+    await Promise.all(files.map((f) => fs.delete(f.key).catch(() => {})))
 
     // Delete all database records
     db.delete(filesTable).where(eq(filesTable.dongle_id, params.dongleId)).run()

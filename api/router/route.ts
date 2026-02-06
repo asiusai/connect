@@ -1,11 +1,11 @@
 import { contract } from '../../shared/contract'
 import { ForbiddenError, tsr } from '../common'
 import { db } from '../db/client'
-import { routesTable } from '../db/schema'
+import { routesTable, filesTable } from '../db/schema'
 import { routeMiddleware } from '../middleware'
 import { Files } from '../../shared/types'
-import { mkv } from '../mkv'
 import { createDataSignature, createRouteSignature } from '../helpers'
+import { like } from 'drizzle-orm'
 
 export const route = tsr.router(contract.route, {
   get: routeMiddleware(async (_, { route }) => {
@@ -62,7 +62,12 @@ export const route = tsr.router(contract.route, {
   files: routeMiddleware(async (_, { route, origin }) => {
     const routeId = route.fullname.split('|')[1]
     const prefix = `${route.dongle_id}/${routeId}`
-    const existingFiles = await mkv.listKeys(prefix)
+    const existingFiles = db
+      .select({ key: filesTable.key })
+      .from(filesTable)
+      .where(like(filesTable.key, `${prefix}/%`))
+      .all()
+      .map((r) => r.key)
 
     const files: Files = {
       cameras: [],
