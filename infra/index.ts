@@ -176,9 +176,10 @@ export const api = new Server('api', {
         Service: {
           Type: 'simple',
           WorkingDirectory: '/app/api',
-          ExecStart: 'SUPERUSERS=nagelkarel@gmail.com bun run index.ts',
+          ExecStart: 'bun run index.ts',
           Restart: 'always',
           Environment: {
+            SUPERUSERS: 'nagelkarel@gmail.com',
             PORT: '8080',
             VOLUME_PATH: '/data/volume',
             DB_PATH: '/data/asius.db',
