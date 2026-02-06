@@ -176,7 +176,7 @@ export const api = new Server('api', {
         Service: {
           Type: 'simple',
           WorkingDirectory: '/app/api',
-          ExecStart: 'bun run index.ts',
+          ExecStart: 'SUPERUSERS=nagelkarel@gmail.com bun run index.ts',
           Restart: 'always',
           Environment: {
             PORT: '8080',

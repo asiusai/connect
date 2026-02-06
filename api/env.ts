@@ -20,7 +20,7 @@ export const Environment = z.object({
   WORKER_COUNT: z.coerce.number().default(2),
   WORKER_POLL_INTERVAL: z.coerce.number().default(5000),
 
-  SUPERUSERS: zArray().default(['nagelkarel@gmail.com']),
+  SUPERUSERS: zArray().default([]),
 
   GITHUB_TOKEN: z.string().optional(),
 
