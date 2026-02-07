@@ -18,7 +18,7 @@
     "api": "bun run api/index.ts",
     "android:sync": "bunx cap sync android",
     "android:build": "cd android && ./gradlew assembleDebug",
-    "android:run": "cd android && ./gradlew installDebug"
+    "android:run": "bun run build && bun run android:sync && cd android && ./gradlew installDebug"
   },
   "packageManager": "bun@1.2.9",
   "type": "module",

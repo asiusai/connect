@@ -74,7 +74,7 @@ export const Component = () => {
   const currentTab = tabDisabled ? TABS[0] : (selectedTab ?? TABS[0])
   const height = 400
   return (
-    <div className="flex flex-col min-h-screen relative">
+    <>
       <DeviceSheet />
       <AccountSheet />
       <div className="w-full sticky top-0" style={{ height }}>
@@ -105,6 +105,6 @@ export const Component = () => {
           {currentTab.key === 'apps' && <AppsTab />}
         </div>
       </div>
-    </div>
+    </>
   )
 }

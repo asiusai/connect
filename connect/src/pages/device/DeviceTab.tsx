@@ -156,6 +156,35 @@ export const DeviceTab = () => {
           </>
         )}
       </Card>
+
+      <SectionLabel>Vehicle Info</SectionLabel>
+      {route && (
+        <Card>
+          <InfoRow icon={CarIcon} iconColor="bg-slate-600" label="Vehicle" value={route.platform || '-'} />
+          <InfoRow icon={GlobeIcon} iconColor="bg-teal-600" label="Repo" value={route.git_remote?.replace(/^https?:\/\/github\.com\//, '') || '-'} />
+          <InfoRow icon={GitBranchIcon} iconColor="bg-orange-600" label="Branch" value={route.git_branch || '-'} />
+          <InfoRow icon={InfoIcon} iconColor="bg-purple-600" label="Commit" value={route.git_commit?.slice(0, 10) || '-'} />
+          <InfoRow icon={TagIcon} iconColor="bg-blue-600" label="Version" value={route.version || '-'} />
+        </Card>
+      )}
+      {currentStats && (
+        <>
+          <div className="flex items-center justify-between mt-2">
+            <h2 className="text-lg font-bold">Statistics</h2>
+            <button
+              onClick={() => set({ statsTime: statsTime === 'week' ? 'all' : 'week' })}
+              className={cn('text-sm font-medium transition-all', statsTime === 'week' ? 'text-white' : 'text-white/30 hover:text-white/50')}
+            >
+              {statsTime === 'week' ? 'Show all' : 'Weekly'}
+            </button>
+          </div>
+          <Card>
+            <InfoRow icon={MapPinIcon} iconColor="bg-green-600" label="Distance" value={formatDistance(currentStats.distance) ?? '-'} />
+            <InfoRow icon={ClockIcon} iconColor="bg-sky-600" label="Time" value={formatDuration(currentStats.minutes) ?? '-'} />
+            <InfoRow icon={CarIcon} iconColor="bg-amber-600" label="Drives" value={currentStats.routes.toString()} />
+          </Card>
+        </>
+      )}
       <SectionLabel>Preferences</SectionLabel>
       <Card>
         {isOwner && device && (
@@ -189,34 +218,6 @@ export const DeviceTab = () => {
           <Toggle value={!!usingAsiusPilot} onChange={(v) => set({ usingAsiusPilot: v })} />
         </Row>
       </Card>
-      <SectionLabel>Vehicle Info</SectionLabel>
-      {route && (
-        <Card>
-          <InfoRow icon={CarIcon} iconColor="bg-slate-600" label="Vehicle" value={route.platform || '-'} />
-          <InfoRow icon={GlobeIcon} iconColor="bg-teal-600" label="Repo" value={route.git_remote?.replace(/^https?:\/\/github\.com\//, '') || '-'} />
-          <InfoRow icon={GitBranchIcon} iconColor="bg-orange-600" label="Branch" value={route.git_branch || '-'} />
-          <InfoRow icon={InfoIcon} iconColor="bg-purple-600" label="Commit" value={route.git_commit?.slice(0, 10) || '-'} />
-          <InfoRow icon={TagIcon} iconColor="bg-blue-600" label="Version" value={route.version || '-'} />
-        </Card>
-      )}
-      {currentStats && (
-        <>
-          <div className="flex items-center justify-between mt-2">
-            <h2 className="text-lg font-bold">Statistics</h2>
-            <button
-              onClick={() => set({ statsTime: statsTime === 'week' ? 'all' : 'week' })}
-              className={cn('text-sm font-medium transition-all', statsTime === 'week' ? 'text-white' : 'text-white/30 hover:text-white/50')}
-            >
-              {statsTime === 'week' ? 'Show all' : 'Weekly'}
-            </button>
-          </div>
-          <Card>
-            <InfoRow icon={MapPinIcon} iconColor="bg-green-600" label="Distance" value={formatDistance(currentStats.distance) ?? '-'} />
-            <InfoRow icon={ClockIcon} iconColor="bg-sky-600" label="Time" value={formatDuration(currentStats.minutes) ?? '-'} />
-            <InfoRow icon={CarIcon} iconColor="bg-amber-600" label="Drives" value={currentStats.routes.toString()} />
-          </Card>
-        </>
-      )}
       {isOwner && (
         <>
           <SectionLabel>Users</SectionLabel>

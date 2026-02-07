@@ -37,8 +37,8 @@ export const DeviceTitle = ({ style }: { style?: CSSProperties }) => {
   if (!device) return
 
   return (
-    <div className="absolute z-999 top-0 w-full p-4" style={style}>
-      <div className="flex items-start justify-between w-full">
+    <div className="absolute z-999 top-0 w-full pt-[env(safe-area-inset-top)]" style={style}>
+      <div className="flex items-start justify-between w-full p-4">
         <div className="flex flex-col items-start gap-1">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setTopMenu({ devices: true })}>
             <h1 className="text-2xl font-bold">{getDeviceName(device)}</h1>
