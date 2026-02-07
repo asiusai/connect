@@ -8,10 +8,8 @@ const isNative = Capacitor.isNativePlatform()
 export const useLoginProviders = () => {
   const info = useProviderInfo()
 
-  // Native app: always use connect.asius.ai for OAuth callback (deep link will catch it)
-  // Web: use loginCallbackHostHack if available, otherwise current host
   const callbackHost = isNative
-    ? 'connect.asius.ai'
+    ? (info.loginCallbackHostHack ?? 'connect.asius.ai')
     : window.location.hostname !== 'localhost' && info.loginCallbackHostHack
       ? info.loginCallbackHostHack
       : window.location.host

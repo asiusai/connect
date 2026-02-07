@@ -80,7 +80,7 @@ export const useNativeBle = (): UseAthenaType => {
 
   const pair = useCallback(async () => {
     set({ status: 'unauthorized' })
-    const code = window.prompt('Insert pairing code')
+    const code = window.prompt('Insert bluetooth pairing code from your device')
     if (!code) throw new Error("User didn't insert code")
 
     const res = await call('blePair', { code, dongleId })
