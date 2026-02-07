@@ -52,6 +52,8 @@
       "name": "@asiusai/asiusai",
       "version": "1.0.0",
       "dependencies": {
+        "@capacitor-community/bluetooth-le": "^8.1.0",
+        "@capacitor/app": "^8.0.0",
         "@ffmpeg/ffmpeg": "^0.12.15",
         "@ffmpeg/util": "^0.12.2",
         "@mapbox/polyline": "^1.2.1",
@@ -479,7 +481,11 @@
 
     "@canvas/image-data": ["@canvas/image-data@1.1.0", "", {}, "sha512-QdObRRjRbcXGmM1tmJ+MrHcaz1MftF2+W7YI+MsphnsCrmtyfS0d5qJbk0MeSbUeyM/jCb0hmnkXPsy026L7dA=="],
 
+    "@capacitor-community/bluetooth-le": ["@capacitor-community/bluetooth-le@8.1.0", "", { "dependencies": { "@types/web-bluetooth": "^0.0.20" }, "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-I1i/6jBGr3LQRKGAMBGvcbVQ+z05bqv9AqMwA6OBS7NOOqwgoh80YLnvqUvJcutsXGZAkzYJmCfV5qY6D9FgrQ=="],
+
     "@capacitor/android": ["@capacitor/android@8.0.2", "", { "peerDependencies": { "@capacitor/core": "^8.0.0" } }, "sha512-0D7j0YvzjnfCMKLvFkAbx8b3Vwx+QfHFG5NzoXpI9sAl3zWiLsfa+NX4x92Fy+k4MGjLSMAfLThCqILYGDDsgw=="],
+
+    "@capacitor/app": ["@capacitor/app@8.0.0", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-OwzIkUs4w433Bu9WWAEbEYngXEfJXZ9Wmdb8eoaqzYBgB0W9/3Ed/mh6sAYPNBAZlpyarmewgP7Nb+d3Vrh+xA=="],
 
     "@capacitor/cli": ["@capacitor/cli@8.0.2", "", { "dependencies": { "@ionic/cli-framework-output": "^2.2.8", "@ionic/utils-subprocess": "^3.0.1", "@ionic/utils-terminal": "^2.3.5", "commander": "^12.1.0", "debug": "^4.4.0", "env-paths": "^2.2.0", "fs-extra": "^11.2.0", "kleur": "^4.1.5", "native-run": "^2.0.3", "open": "^8.4.0", "plist": "^3.1.0", "prompts": "^2.4.2", "rimraf": "^6.0.1", "semver": "^7.6.3", "tar": "^7.5.3", "tslib": "^2.8.1", "xml2js": "^0.6.2" }, "bin": { "cap": "bin/capacitor", "capacitor": "bin/capacitor" } }, "sha512-/8qLYxhytMyUKTHK8i6YU+DMD3AuFiQgSuJCyMltcg9MN3W9En7zqQZSo/WN4eC7qif/oyZACzm7OkAZKani7g=="],
 
@@ -3518,6 +3524,8 @@
     "@babel/template/@babel/parser": ["@babel/parser@7.28.6", "", { "dependencies": { "@babel/types": "^7.28.6" }, "bin": "./bin/babel-parser.js" }, "sha512-TeR9zWR18BvbfPmGbLampPMW+uW1NZnJlRuuHso8i87QZNq2JRF9i6RgxRqtEq+wQGsS19NNTWr2duhnE49mfQ=="],
 
     "@babel/traverse/@babel/parser": ["@babel/parser@7.28.6", "", { "dependencies": { "@babel/types": "^7.28.6" }, "bin": "./bin/babel-parser.js" }, "sha512-TeR9zWR18BvbfPmGbLampPMW+uW1NZnJlRuuHso8i87QZNq2JRF9i6RgxRqtEq+wQGsS19NNTWr2duhnE49mfQ=="],
+
+    "@capacitor-community/bluetooth-le/@types/web-bluetooth": ["@types/web-bluetooth@0.0.20", "", {}, "sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow=="],
 
     "@csstools/cascade-layer-name-parser/@csstools/css-parser-algorithms": ["@csstools/css-parser-algorithms@2.7.1", "", { "peerDependencies": { "@csstools/css-tokenizer": "^2.4.1" } }, "sha512-2SJS42gxmACHgikc1WGesXLIT8d/q2l0UFM7TaEeIzdFCE/FPMtTiizcPGGJtlPo2xuQzY09OhrLTzRxqJqwGw=="],
 

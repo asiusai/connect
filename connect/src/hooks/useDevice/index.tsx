@@ -6,7 +6,9 @@ import { toast } from 'sonner'
 import { ZustandType } from '../../../../shared/helpers'
 import { create } from 'zustand'
 import { useBle } from './useBle'
+import { useNativeBle } from './useNativeBle'
 import { useRouteParams } from '..'
+import { Capacitor } from '@capacitor/core'
 
 const init = {
   params: undefined as Partial<DeviceParams> | undefined,
@@ -14,10 +16,14 @@ const init = {
 }
 const useDeviceState = create<ZustandType<typeof init>>((set) => ({ set, ...init }))
 
+const isNative = Capacitor.isNativePlatform()
+
 export const useDevice = () => {
   const { dongleId } = useRouteParams()
   const athena = useAthena()
-  const ble = useBle()
+  const webBle = useBle()
+  const nativeBle = useNativeBle()
+  const ble = isNative ? nativeBle : webBle
   const { params, set } = useDeviceState()
 
   const call2 = useCallback(
