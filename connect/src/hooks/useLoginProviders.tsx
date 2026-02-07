@@ -1,12 +1,22 @@
+import { Capacitor } from '@capacitor/core'
 import { useProviderInfo } from '../hooks/useAuth'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
+const isNative = Capacitor.isNativePlatform()
+
 export const useLoginProviders = () => {
   const info = useProviderInfo()
 
-  // When using comma provider and not on localhost, then we need to go through a new-connect proxy
-  const state = `service,${window.location.hostname !== 'localhost' && info.loginCallbackHostHack ? info.loginCallbackHostHack : window.location.host}`
+  // Native app: always use connect.asius.ai for OAuth callback (deep link will catch it)
+  // Web: use loginCallbackHostHack if available, otherwise current host
+  const callbackHost = isNative
+    ? 'connect.asius.ai'
+    : window.location.hostname !== 'localhost' && info.loginCallbackHostHack
+      ? info.loginCallbackHostHack
+      : window.location.host
+
+  const state = `service,${callbackHost}`
 
   return [
     {
