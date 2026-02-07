@@ -7,8 +7,8 @@ import { fs } from '../fs'
 const workers: Worker[] = []
 
 export const queueFile = async (key: string): Promise<void> => {
-  const bunFile = Bun.file(fs.key2path(key))
-  const size = (await bunFile.exists()) ? bunFile.size : 0
+  const res = await fs.head(key)
+  const size = res.ok ? Number(res.headers.get('Content-Length')) : 0
 
   const parts = key.split('/')
   const dongle_id = parts[0]

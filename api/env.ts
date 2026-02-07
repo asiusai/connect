@@ -9,6 +9,7 @@ const zArray = () =>
 
 export const Environment = Env.extend({
   STORAGEBOX_URL: z.string().optional(),
+  STORAGE_PATH: z.string().default('/tmp/asius'),
 
   DB_PATH: z.string().default('/tmp/asius.db'),
 
