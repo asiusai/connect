@@ -52,11 +52,12 @@ jobs:
 
       - name: Update latest release
         run: |
+          mv connect/android/app/build/outputs/apk/release/app-release.apk connect.apk
           gh release delete latest --yes 2>/dev/null || true
           git push origin :refs/tags/latest 2>/dev/null || true
           gh release create latest \
             --title "Latest Build" \
             --notes "Built from commit ${{ github.sha }}" \
-            connect/android/app/build/outputs/apk/release/app-release.apk#connect.apk
+            connect.apk
         env:
           GH_TOKEN: ${{ github.token }}
