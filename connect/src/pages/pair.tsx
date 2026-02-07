@@ -5,7 +5,6 @@ import { CircleAlertIcon, LoaderIcon } from 'lucide-react'
 import { TopAppBar } from '../components/TopAppBar'
 import { Button } from '../components/Button'
 import { Logo } from '../../../shared/components/Logo'
-import { Provider } from '../../../shared/provider'
 import { useAuth } from '../hooks/useAuth'
 
 import { useEffect, useRef } from 'react'
@@ -151,7 +150,7 @@ const Pairing = ({ token }: { token: string }) => {
 }
 const Err = ({ error }: { error: string }) => {
   const navigate = useNavigate()
-  const { provider, setProvider } = useAuth()
+  const { provider, setProvider, providers } = useAuth()
   return (
     <div className="min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center p-4">
       <div className="bg-background-alt p-8 rounded-2xl shadow-xl border border-white/5 flex flex-col items-center gap-6 max-w-sm w-full text-center">
@@ -170,7 +169,7 @@ const Err = ({ error }: { error: string }) => {
             Are you sure it was a <span className="text-error">{provider}</span> device? Try other providers:
           </p>
           <div className="flex gap-2 justify-center">
-            {Provider.options
+            {Object.keys(providers)
               .filter((x) => x !== provider)
               .map((x) => (
                 <Button

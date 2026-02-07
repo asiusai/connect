@@ -1,12 +1,12 @@
-import { getProviderInfo, Provider } from './provider'
-import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, RouteShareSignature, SegmentFiles, User } from './types'
+import { DEFAULT_PROVIDERS } from './provider'
+import { DerivedFile, FileName, Files, FileType, Route, RouteInfo, SegmentFiles, User } from './types'
 import { twMerge } from 'tailwind-merge'
 
 export const cn = twMerge
 
 export type ZustandType<T> = T & { set: (partial: Partial<T> | ((state: T) => Partial<T>)) => void }
 
-export const replaceCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', getProviderInfo('konik').apiUrl)
+export const replaceCORSUrl = (url?: string | null) => url?.replace('https://api.konik.ai', DEFAULT_PROVIDERS.konik.apiUrl)
 
 export const getRouteUrl = (route: Route, segment: number, fn: DerivedFile) => `${replaceCORSUrl(route.url)}/${segment}/${fn}`
 
@@ -16,9 +16,6 @@ export const parseRouteName = (routeName: string): RouteInfo => {
 }
 
 export const keys = <T extends {}>(obj: T) => Object.keys(obj) as (keyof T)[]
-
-export const getQCameraUrl = (routeName: string, signature: RouteShareSignature, provider: Provider): string =>
-  `${getProviderInfo(provider).apiUrl}/v1/route/${routeName.replace('/', '|')}/qcamera.m3u8?${new URLSearchParams(signature).toString()}`
 
 export const findFile = (files: Files, type: FileType, segment: number) => files[type].find((x) => x.includes(`/${segment}/${FILE_INFO[type].name}`))
 

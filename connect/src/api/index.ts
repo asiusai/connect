@@ -190,5 +190,8 @@ const wrapRouter = <T extends AppRouter>(router: T, client: any): WrappedRouter<
 
 export const api = wrapRouter(
   contract,
-  createClient(() => useAuth.getState()),
+  createClient(() => {
+    const state = useAuth.getState()
+    return { token: state.token, providerInfo: state.providers[state.provider] }
+  }),
 )

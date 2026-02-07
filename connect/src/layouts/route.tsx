@@ -8,11 +8,10 @@ import { Sidebar } from '../components/Sidebar'
 import { useSettings } from '../hooks/useSettings'
 import { useAuth } from '../hooks/useAuth'
 import { useEffect } from 'react'
-import { Provider } from '../../../shared/provider'
 import { Logo } from '../../../shared/components/Logo'
 
 const RouteNotFound = () => {
-  const { provider, setProvider } = useAuth()
+  const { provider, setProvider, providers } = useAuth()
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-6 bg-background text-background-x">
       <CircleAlertIcon className="text-error text-5xl" />
@@ -23,7 +22,7 @@ const RouteNotFound = () => {
         <p className="text-sm text-secondary-alt-x">Try switching providers</p>
       </div>
       <div className="flex gap-2">
-        {Provider.options.map((x) => (
+        {Object.keys(providers).map((x) => (
           <Button
             key={x}
             color={x === provider ? 'primary' : 'secondary'}

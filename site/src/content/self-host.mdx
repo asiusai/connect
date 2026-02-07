@@ -1,0 +1,58 @@
+---
+title: Self hosting
+description: Self host comma connect API
+---
+
+# Self hosting
+
+```bash
+git clone https://github.com/asiusai/asiusai
+cd asiusai
+bun i
+bun run self-host
+```
+
+## Environment
+
+Create a `.env` file:
+
+```bash
+JWT_SECRET=your-secret-key
+
+# Auth (at least one required)
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+
+# Optional
+PORT=8080
+STORAGE_PATH=/tmp/asius
+DB_PATH=/tmp/asius.db
+SUPERUSERS=user@email.com,another@email.com
+```
+
+## Tailscale (recommended)
+
+Expose your server to the internet without port forwarding:
+
+
+```bash
+# Install tailscale, then:
+tailscale up
+tailscale funnel 8080
+```
+
+Set `TAILSCALE=1` in your `.env` to use the funnel URL automatically.
+
+## Storage
+
+By default files are stored locally at `STORAGE_PATH`.
+
+For remote WebDAV storage (like Hetzner Storage Box):
+
+```bash
+STORAGEBOX_URL=https://user:pass@u123456.your-storagebox.de
+```
+
+

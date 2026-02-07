@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom'
 import { ButtonBase } from '../components/ButtonBase'
 import { XIcon } from 'lucide-react'
 import { Logo } from '../../../shared/components/Logo'
-import { Provider } from '../../../shared/provider'
 import { cn } from '../../../shared/helpers'
 import { useAuth } from '../hooks/useAuth'
 import { useLoginProviders } from '../hooks/useLoginProviders'
@@ -49,10 +48,10 @@ const SavedAccounts = () => {
 }
 
 const ProviderSwitcher = () => {
-  const { provider, setProvider } = useAuth()
+  const { provider, setProvider, providers } = useAuth()
   return (
     <div className="grid grid-cols-3 p-1 rounded-xl bg-white/5 border border-white/10 w-full">
-      {Provider.options.map((p) => (
+      {Object.keys(providers).map((p) => (
         <button
           key={p}
           onClick={() => setProvider(p)}

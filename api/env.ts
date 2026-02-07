@@ -8,6 +8,9 @@ const zArray = () =>
     .transform((x) => (typeof x === 'string' ? x.split(',') : x))
 
 export const Environment = Env.extend({
+  NAME: z.string().default('self-host'),
+  PORT: z.string().default('8080'),
+  TAILSCALE: z.string().optional(),
   STORAGEBOX_URL: z.string().optional(),
   STORAGE_PATH: z.string().default('/tmp/asius'),
 

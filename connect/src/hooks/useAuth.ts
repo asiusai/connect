@@ -1,20 +1,19 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { DEFAULT_PROVIDER, DEFAULT_PROVIDERS, Provider, ProviderInfo } from '../../../shared/provider'
+import { DEFAULT_PROVIDER, DEFAULT_PROVIDERS, ProviderInfo } from '../../../shared/provider'
 
-type Login = { provider: Provider; token: string; name: string; id: string }
+type Login = { provider: string; token: string; name: string; id: string }
 
 type Store = {
   id: string | undefined
   token: string | undefined
-  provider: Provider
+  provider: string
   providers: Record<string, ProviderInfo>
   logins: Login[]
   logIn: (login: Login) => void
   logOut: (id?: string) => void
-  setProvider: (provider: Provider) => void
+  setProvider: (provider: string) => void
   addProvider: (info: ProviderInfo) => void
-  removeProvider: (name: string) => void
 }
 
 export const useAuth = create(
@@ -42,18 +41,12 @@ export const useAuth = create(
           logins: x.logins.filter((x) => x.id !== id),
         }))
       },
-      setProvider: (provider: Provider) => {
+      setProvider: (provider: string) => {
         const user = get().logins.find((x) => x?.provider === provider)
         set(() => ({ provider, id: user?.id, token: user?.token }))
       },
       addProvider: (info: ProviderInfo) => {
-        set((x) => ({ providers: { ...x.providers, [info.name]: info } }))
-      },
-      removeProvider: (name: string) => {
-        set((x) => {
-          const { [name]: _, ...rest } = x.providers
-          return { providers: rest }
-        })
+        set((x) => ({ providers: { ...x.providers, [info.id]: info } }))
       },
     }),
     {
@@ -63,3 +56,9 @@ export const useAuth = create(
     },
   ),
 )
+
+export const useProviderInfo = () => {
+  const provider = useAuth((x) => x.provider)
+  const providers = useAuth((x) => x.providers)
+  return providers[provider]
+}

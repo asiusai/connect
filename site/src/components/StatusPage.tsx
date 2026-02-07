@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '../../../shared/api'
+import { DEFAULT_PROVIDERS } from '../../../shared/provider'
 
 type ServiceStatus = { status: 'ok' | 'error' | 'pending'; name?: string; latency?: number; error?: string }
 type Heartbeat = { timestamp: number }
@@ -112,7 +113,7 @@ export const StatusPage = () => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const client = createClient(() => ({ token: undefined, provider: 'asius' }))
+    const client = createClient(() => ({ token: undefined, providerInfo: DEFAULT_PROVIDERS.asius }))
     const fetchStatus = () =>
       client.admin
         .status()

@@ -2,18 +2,18 @@ import SwaggerUI from 'swagger-ui-react'
 import 'swagger-ui-react/swagger-ui.css'
 import { generateOpenApi } from '@ts-rest/open-api'
 import { contract } from '../../../shared/contract'
-import { getProviderInfo, Provider } from '../../../shared/provider'
+import { DEFAULT_PROVIDERS } from '../../../shared/provider'
 import { useAuth } from '../hooks/useAuth'
 
 const openApiDoc = generateOpenApi(
   contract,
   {
     info: { title: 'Asius API', version: '1.0.0' },
-    servers: Provider.options
+    servers: Object.values(DEFAULT_PROVIDERS)
       .flatMap((provider) => [
-        { url: getProviderInfo(provider).apiUrl, description: `${provider} API` },
-        { url: getProviderInfo(provider).athenaUrl, description: `${provider} athena` },
-        { url: getProviderInfo(provider).billingUrl, description: `${provider} billing` },
+        { url: provider.apiUrl, description: `${provider.id} API` },
+        { url: provider.athenaUrl, description: `${provider.id} athena` },
+        { url: provider.billingUrl, description: `${provider.id} billing` },
       ])
       .filter((x) => x.url),
   },

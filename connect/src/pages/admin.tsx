@@ -18,8 +18,7 @@ import {
 } from 'lucide-react'
 import { api } from '../api'
 import { cn } from '../../../shared/helpers'
-import { useAuth } from '../hooks/useAuth'
-import { getProviderInfo } from '../../../shared/provider'
+import { useAuth, useProviderInfo } from '../hooks/useAuth'
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return '0 B'
@@ -428,8 +427,8 @@ const SortHeader = ({
 }
 
 const FilesTable = ({ filter, onFilterChange }: { filter: FilesFilter; onFilterChange: (f: FilesFilter) => void }) => {
-  const { provider } = useAuth()
-  const info = getProviderInfo(provider)
+  const info = useProviderInfo()
+
   const [filesData, { refetch }] = api.admin.files.useQuery({
     query: {
       limit: PAGE_SIZE,

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { getProviderInfo, Provider } from './provider'
+import { ProviderInfo } from './provider'
 import { AthenaError, Service } from './types'
 
 export const DataFile = z.object({
@@ -146,19 +146,18 @@ export const fetchAthena = async <T extends AthenaRequest>({
   dongleId,
   expiry,
   token,
-  provider,
+  providerInfo,
 }: {
   method: T
   params: AthenaParams<T>
   dongleId: string
   expiry?: number
   token: string | undefined
-  provider: Provider
+  providerInfo: ProviderInfo
 }): Promise<AthenaResponse<T> | undefined> => {
   const parse = ATHENA_METHODS[method].params.safeParse(params)
   if (!parse.success) console.error(parse.error)
 
-  const providerInfo = getProviderInfo(provider)
   if (!token) return void console.error(`Athena called without token`)
 
   const res = await fetch(`${providerInfo.athenaUrl}/${dongleId}`, {

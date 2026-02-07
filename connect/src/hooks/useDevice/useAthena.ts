@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { useIsDeviceOwner } from '../useIsDeviceOwner'
 import { AthenaParams, AthenaRequest, fetchAthena, TransportType } from '../../../../shared/athena'
 import { useRouteParams } from '..'
-import { useAuth } from '../useAuth'
+import { useAuth, useProviderInfo } from '../useAuth'
 import { create } from 'zustand'
 import { ZustandType } from '../../../../shared/helpers'
 
@@ -19,12 +19,13 @@ const useAthenaState = create<ZustandType<typeof athenaInit>>((set) => ({ set, .
 export const useAthena = () => {
   const { dongleId } = useRouteParams()
   const isOwner = useIsDeviceOwner()
-  const { provider, token } = useAuth()
+  const { token } = useAuth()
+  const info = useProviderInfo()
   const { status, voltage, set } = useAthenaState()
 
   const call = useCallback(
-    <T extends AthenaRequest>(method: T, params: AthenaParams<T>) => fetchAthena({ method, params, dongleId, token, provider }),
-    [dongleId, token, provider],
+    <T extends AthenaRequest>(method: T, params: AthenaParams<T>) => fetchAthena({ method, params, dongleId, token, providerInfo: info }),
+    [dongleId, token, info],
   )
 
   const init = useCallback(async () => {

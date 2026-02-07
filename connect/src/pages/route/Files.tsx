@@ -13,8 +13,7 @@ import { CloudUploadIcon, ExternalLinkIcon, FileIcon, FilmIcon, LucideIcon, Refr
 import { useUploadProgress } from '../../hooks/useUploadProgress'
 import { usePlayerStore } from '../../hooks/usePlayerStore'
 import { useDevice } from '../../hooks/useDevice'
-import { useAuth } from '../../hooks/useAuth'
-import { getProviderInfo } from '../../../../shared/provider'
+import { useProviderInfo } from '../../hooks/useAuth'
 import { toast } from 'sonner'
 
 const PRIORITY = 1 // Higher number is lower priority
@@ -158,10 +157,9 @@ const FullRouteDownload = ({ type, files }: { type: FileType; files: SegmentFile
 }
 
 const DownloadSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
-  const { provider } = useAuth()
+  const info = useProviderInfo()
   const { routeName } = useRouteParams()
   const file = files[type][segment]
-  const info = getProviderInfo(provider)
 
   if (!file) return null
   const name = `${routeName}--${segment}--${FILE_INFO[type].name}`
@@ -171,11 +169,10 @@ const DownloadSegment = ({ type, files, segment }: { segment: number; type: File
 }
 
 const ProcessSegment = ({ type, files, segment }: { segment: number; type: FileType; files: SegmentFiles }) => {
-  const { provider } = useAuth()
+  const info = useProviderInfo()
   const { dongleId, routeId: date, routeName } = useRouteParams()
   const file = files[type][segment]
   const [progress, setProgress] = useState<number>()
-  const info = getProviderInfo(provider)
 
   if (!file) return null
 

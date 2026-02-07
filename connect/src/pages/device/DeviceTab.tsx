@@ -28,8 +28,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
-import { useAuth } from '../../hooks/useAuth'
-import { getProviderInfo } from '../../../../shared/provider'
+import { useProviderInfo } from '../../hooks/useAuth'
 import { getDeviceName } from '../../../../shared/types'
 import { Card, Row, InfoRow, SectionLabel, IconBadge } from './ControlsTab'
 import { useDevice } from '../../hooks/useDevice'
@@ -98,8 +97,7 @@ export const DeviceTab = () => {
   const { statsTime, unitFormat, timeFormat, usingAsiusPilot, set } = useSettings()
   const currentStats = stats?.[statsTime ?? 'all']
   const isOwner = useIsDeviceOwner()
-  const { provider } = useAuth()
-  const providerInfo = getProviderInfo(provider)
+  const providerInfo = useProviderInfo()
 
   const [alias, setAlias] = useState('')
   useEffect(() => setAlias(device?.alias || ''), [device?.alias])

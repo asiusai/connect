@@ -44,11 +44,11 @@ export const Component = () => {
     )
   }
 
-  const alreadyExists = providerInfo.name in providers
+  const alreadyExists = providerInfo.id in providers
 
   const handleAdd = () => {
     addProvider(providerInfo)
-    setProvider(providerInfo.name as any)
+    setProvider(providerInfo.id as any)
     navigate('/login')
   }
 
@@ -70,7 +70,7 @@ export const Component = () => {
           </h2>
 
           <div className="flex flex-col">
-            <InfoRow label="Name" value={providerInfo.name} />
+            <InfoRow label="Name" value={providerInfo.id} />
             <InfoRow label="API URL" value={providerInfo.apiUrl} />
             <InfoRow label="Athena URL" value={providerInfo.athenaUrl} />
             <InfoRow label="Auth URL" value={providerInfo.authUrl} />

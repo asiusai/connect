@@ -5,12 +5,10 @@ import { Users } from './Users'
 import { Device } from './Device'
 import { ClearCache } from './ClearCache'
 import { useIsDeviceOwner } from '../../hooks/useIsDeviceOwner'
-import { useAuth } from '../../hooks/useAuth'
-import { getProviderInfo } from '../../../../shared/provider'
+import { useProviderInfo } from '../../hooks/useAuth'
 
 export const Component = () => {
-  const { provider } = useAuth()
-  const info = getProviderInfo(provider)
+  const info = useProviderInfo()
   const isOwner = useIsDeviceOwner()
 
   return (

@@ -1,6 +1,6 @@
 import { decryptToken } from '../shared/encryption'
 import { fetchAthena } from '../shared/athena'
-import { Provider } from '../shared/provider'
+import { DEFAULT_PROVIDERS, DefaultProvider } from '../shared/provider'
 
 export const SSH_PORT = Number(process.env.SSH_PORT) || 2222
 export const INTERNAL_HOST = '127.0.0.1'
@@ -16,7 +16,7 @@ export const ENCRYPTION_PRIVATE_KEY = process.env.ENCRYPTION_PRIVATE_KEY!
 if (!ENCRYPTION_PRIVATE_KEY) throw new Error('No ENCRYPTION_PRIVATE_KEY')
 
 export type Auth = {
-  provider: Provider
+  provider: string
   dongleId: string
   token: string
 }
@@ -31,28 +31,29 @@ export const parseUsername = (username: string): Auth | undefined => {
   const tokenPart = rest.join('-')
   if (!dongleId || !tokenPart) return undefined
 
-  const res = Provider.safeParse(provider)
-  if (!res.success) return undefined
+  if (!DEFAULT_PROVIDERS[provider as DefaultProvider]) return undefined
 
   const token = tokenPart.startsWith('enc.') ? decryptToken(tokenPart, ENCRYPTION_PRIVATE_KEY) : tokenPart
   if (!token) return undefined
 
-  return { provider: res.data, dongleId, token }
+  return { provider, dongleId, token }
 }
 
 export const randomId = () => crypto.randomUUID()
 
-export const startLocalProxy = async (auth: Auth, sessionId: string) => {
+export const startLocalProxy = async ({ provider, ...auth }: Auth, sessionId: string) => {
   return await fetchAthena({
     ...auth,
+    providerInfo: DEFAULT_PROVIDERS[provider as DefaultProvider],
     method: 'startLocalProxy',
     params: { remote_ws_uri: `${WS_ORIGIN}/ssh/${sessionId}`, local_port: 22 },
   })
 }
 
-export const getAuthorizedKeys = async (auth: Auth) => {
+export const getAuthorizedKeys = async ({ provider, ...auth }: Auth) => {
   const res = await fetchAthena({
     ...auth,
+    providerInfo: DEFAULT_PROVIDERS[provider as DefaultProvider],
     method: 'getSshAuthorizedKeys',
     params: undefined,
   })

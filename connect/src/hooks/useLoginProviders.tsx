@@ -1,12 +1,10 @@
-import { getProviderInfo } from '../../../shared/provider'
-import { useAuth } from '../hooks/useAuth'
+import { useProviderInfo } from '../hooks/useAuth'
 
 const stringify = (obj: Record<string, string>) => new URLSearchParams(obj).toString()
 
 export const useLoginProviders = () => {
-  const { provider } = useAuth()
+  const info = useProviderInfo()
 
-  const info = getProviderInfo(provider)
   // When using comma provider and not on localhost, then we need to go through a new-connect proxy
   const state = `service,${window.location.hostname !== 'localhost' && info.loginCallbackHostHack ? info.loginCallbackHostHack : window.location.host}`
 

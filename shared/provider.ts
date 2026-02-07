@@ -1,14 +1,11 @@
 import { z } from 'zod'
 
-export const Provider = z.enum(['comma', 'konik', 'asius'])
-export type Provider = z.infer<typeof Provider>
-
 const sysEnv = typeof process !== 'undefined' ? process.env : import.meta.env
 
-export const DEFAULT_PROVIDER = Provider.optional().parse(sysEnv.PROVIDER) ?? 'comma'
+export const DEFAULT_PROVIDER = (sysEnv.PROVIDER ?? 'comma') as DefaultProvider
 
 export const ProviderInfo = z.object({
-  name: z.string(),
+  id: z.string(),
 
   title: z.string(),
   favicon: z.string(),
@@ -34,7 +31,7 @@ export const ProviderInfo = z.object({
 export type ProviderInfo = z.infer<typeof ProviderInfo>
 
 const comma: ProviderInfo = {
-  name: 'comma',
+  id: 'comma',
   title: 'comma connect',
   favicon: '/comma-favicon.svg',
 
@@ -56,7 +53,7 @@ const comma: ProviderInfo = {
 }
 
 const konik: ProviderInfo = {
-  name: 'konik',
+  id: 'konik',
   title: 'konik connect',
   favicon: '/konik-favicon.svg',
 
@@ -74,7 +71,7 @@ const konik: ProviderInfo = {
 }
 
 const asius: ProviderInfo = {
-  name: 'asius',
+  id: 'asius',
 
   title: 'asius connect',
   favicon: '/asius-favicon.svg',
@@ -96,5 +93,4 @@ const asius: ProviderInfo = {
 }
 
 export const DEFAULT_PROVIDERS = { comma, konik, asius }
-
-export const getProviderInfo = (mode: Provider) => DEFAULT_PROVIDERS[mode]
+export type DefaultProvider = keyof typeof DEFAULT_PROVIDERS

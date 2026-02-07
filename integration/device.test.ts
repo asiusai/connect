@@ -3,15 +3,15 @@ import { join, dirname } from 'path'
 import jwt from 'jsonwebtoken'
 import { generateKeyPairSync } from 'crypto'
 import { describe, test, expect, beforeAll } from 'bun:test'
-import { getProviderInfo, DEFAULT_PROVIDER } from '../shared/provider'
+import { DEFAULT_PROVIDER, DEFAULT_PROVIDERS } from '../shared/provider'
 
 const EXAMPLE_DATA_DIR = join(dirname(import.meta.path), '../example-data')
 const ROUTE_ID = '0000002c--d68dde99ca'
 const SEGMENTS_COUNT = 3
 
-const provider = getProviderInfo(DEFAULT_PROVIDER)
+const provider = DEFAULT_PROVIDERS[DEFAULT_PROVIDER]
 
-const isKonik = provider.name === 'konik'
+const isKonik = provider.id === 'konik'
 
 // RSA keys for device auth
 const { publicKey, privateKey } = generateKeyPairSync('rsa', {
@@ -62,14 +62,14 @@ const apiPatch = async (path: string, body: unknown, token?: string) => {
 }
 
 // Tests
-describe(`Device Integration (${provider.name})`, () => {
+describe(`Device Integration (${provider.id})`, () => {
   // Test state
   let dongleId: string
   let deviceToken: string
   let routeNameEncoded: string
 
   beforeAll(async () => {
-    console.log(`\nTarget: ${provider.name} (${provider.apiUrl})`)
+    console.log(`\nTarget: ${provider.id} (${provider.apiUrl})`)
 
     // Register device
     const params = new URLSearchParams({
@@ -195,7 +195,7 @@ describe(`Device Integration (${provider.name})`, () => {
       const expected = JSON.parse(await readFile(join(EXAMPLE_DATA_DIR, ROUTE_ID, 'route.json'), 'utf-8'))
 
       // Local-only fields
-      if (provider.name === 'asius') {
+      if (provider.id === 'asius') {
         expect(res.data.version).toBe(expected.version)
         expect(res.data.git_dirty).toBe(expected.git_dirty)
         expect(res.data.git_commit_date).toBe(expected.git_commit_date)

@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { test } from 'bun:test'
 import { chromium, devices as playDevices } from 'playwright'
 import { keys } from '../shared/helpers'
-import { getProviderInfo, Provider } from '../shared/provider'
+import { DEFAULT_PROVIDERS } from '../shared/provider'
 import { env } from '../shared/env'
 
 const FOLDER = process.env.FOLDER || 'site/public/screenshots'
@@ -16,8 +16,7 @@ const DEVICES = {
 
 const deviceList = keys(DEVICES).filter((x) => !DEVICE || DEVICE.split(',').includes(x))
 
-for (const provider of Provider.options) {
-  const info = getProviderInfo(provider)
+for (const info of Object.values(DEFAULT_PROVIDERS)) {
   const BASE_URL = env.CONNECT_URL
   const DONGLE_ID = info.demoDongleId
   const ROUTE_ID = info.demoRouteId
@@ -37,17 +36,17 @@ for (const provider of Provider.options) {
   }
   for (const device of deviceList) {
     test.concurrent(
-      `${provider} ${device} screenshots`,
+      `${info.id} ${device} screenshots`,
       async () => {
         const browser = await chromium.launch({ executablePath: fs.existsSync(EXECUTABLE) ? EXECUTABLE : undefined, headless: true })
 
         const context = await browser.newContext(DEVICES[device])
         const page = await context.newPage()
 
-        await page.goto(`${BASE_URL}/demo?provider=${provider}`, { waitUntil: 'networkidle' })
+        await page.goto(`${BASE_URL}/demo?provider=${info.id}`, { waitUntil: 'networkidle' })
 
         for (const [name, route] of Object.entries(PAGES)) {
-          const path = `${FOLDER}/${provider}/${device}/${name}.png`
+          const path = `${FOLDER}/${info.id}/${device}/${name}.png`
           await page.goto(`${BASE_URL}/${route}`, { waitUntil: 'networkidle', timeout: 120_000 })
 
           await page.screenshot({ path, fullPage: true })

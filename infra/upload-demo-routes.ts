@@ -3,7 +3,7 @@ import { join, dirname } from 'path'
 import { execSync } from 'child_process'
 import { createPublicKey } from 'crypto'
 import jwt from 'jsonwebtoken'
-import { getProviderInfo, DEFAULT_PROVIDER } from '../shared/provider'
+import { DEFAULT_PROVIDER, DEFAULT_PROVIDERS } from '../shared/provider'
 import { env } from '../shared/env'
 
 const CONNECT_DATA_DIR = join(dirname(import.meta.path), '../connect-data')
@@ -11,7 +11,7 @@ const JWT_ALGORITHM = 'RS256' as const
 
 type UploadInfo = { url: string; headers?: Record<string, string> }
 
-const provider = getProviderInfo(DEFAULT_PROVIDER)
+const provider = DEFAULT_PROVIDERS[DEFAULT_PROVIDER]
 
 const getPrivateKey = () => {
   const result = execSync('dotenv -- pulumi config get asius:demoDevicePrivateKey', {
@@ -64,7 +64,7 @@ const registerOrGetDevice = async (privateKey: string, publicKey: string): Promi
 }
 
 const main = async () => {
-  console.log(`Target: ${provider.name} (${provider.apiUrl})`)
+  console.log(`Target: ${provider.id} (${provider.apiUrl})`)
 
   console.log('Reading private key from Pulumi config...')
   const privateKey = getPrivateKey()

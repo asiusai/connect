@@ -1,18 +1,18 @@
 import { $ } from 'bun'
 import os from 'os'
-import { ProviderInfo } from '../shared/provider'
 import { restoreFromR2, startBackupSchedule } from './db/backup'
-import { env } from './env'
 import type { WebSocketData } from './ws'
+import type { ProviderInfo } from '../shared/provider'
 await restoreFromR2()
 
 // need to import like this cause otherwise the database get's created on import
 const { handler } = await import('./handler')
 const { websocket } = await import('./ws')
 const { startQueueWorker } = await import('./processing/queue')
+const { env } = await import('./env')
 
 const server = Bun.serve<WebSocketData>({
-  port: Number(process.env.PORT) || 8080,
+  port: env.PORT,
   hostname: '0.0.0.0',
   idleTimeout: 255,
   websocket,
@@ -31,7 +31,7 @@ const ip = getLocalIP()
 let host = `${ip}:${server.port}`
 let url = `http://${host}`
 
-if (process.env.TAILSCALE) {
+if (env.TAILSCALE) {
   await $`pkill -f 'tailscale funnel'`.quiet().nothrow()
 
   const funnel = Bun.spawn(['tailscale', 'funnel', String(server.port)], { stdout: 'inherit', stderr: 'inherit' })
@@ -47,10 +47,9 @@ if (process.env.TAILSCALE) {
   })
 }
 
-const name = process.env.NAME ?? 'self-host'
 const providerInfo: ProviderInfo = {
-  name: name,
-  title: `${name} connect`,
+  id: env.NAME,
+  title: `${env.NAME} connect`,
   favicon: '/asius-favicon.svg',
 
   apiUrl: url,
