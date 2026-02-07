@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
-import { BleClient, numberToUUID } from '@capacitor-community/bluetooth-le'
+import { BleClient } from '@capacitor-community/bluetooth-le'
 import { AthenaParams, AthenaRequest, AthenaResponse } from '../../../../shared/athena'
 import { useRouteParams } from '../index'
 import { AthenaStatus, UseAthenaType } from './useAthena'
