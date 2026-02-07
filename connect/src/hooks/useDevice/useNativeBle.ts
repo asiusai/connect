@@ -13,6 +13,8 @@ const RPC_RESPONSE_UUID = 'a51a5a10-0003-4c0d-b8e6-a51a5a100001'
 
 const getToken = (dongleId: string): string | null => localStorage.getItem(`ble_token_${dongleId}`)
 const setToken = (dongleId: string, token: string) => localStorage.setItem(`ble_token_${dongleId}`, token)
+const getLastDeviceId = (dongleId: string): string | null => localStorage.getItem(`ble_device_${dongleId}`)
+const setLastDeviceId = (dongleId: string, deviceId: string) => localStorage.setItem(`ble_device_${dongleId}`, deviceId)
 
 const nativeBleInit = {
   status: 'disconnected' as AthenaStatus,
@@ -132,6 +134,7 @@ export const useNativeBle = (): UseAthenaType => {
         if (!res) return set({ status: 'disconnected', deviceId: undefined })
 
         console.log(`Native Bluetooth connected, voltage: ${res.peripheralState.voltage}`)
+        setLastDeviceId(dongleId, deviceId)
         set({ status: 'connected', voltage: res.peripheralState.voltage })
       } catch (e) {
         set({ status: 'disconnected', deviceId: undefined })
@@ -143,31 +146,62 @@ export const useNativeBle = (): UseAthenaType => {
 
   const connect = useCallback(async () => {
     try {
-      await BleClient.initialize()
+      await BleClient.initialize({ androidNeverForLocation: true })
       set({ status: 'connecting' })
 
       const device = await BleClient.requestDevice({
         services: [SERVICE_UUID],
-        namePrefix: `comma-${dongleId}`,
       })
 
+      console.log('Selected device:', device.name, device.deviceId)
       await connectToDevice(device.deviceId)
     } catch (e) {
       set({ status: 'disconnected' })
-      console.error(e)
+      console.error('BLE connect error:', e)
     }
-  }, [dongleId, connectToDevice, set])
+  }, [connectToDevice, set])
 
   const autoConnect = useCallback(async () => {
     try {
-      await BleClient.initialize()
+      await BleClient.initialize({ androidNeverForLocation: true })
       set({ status: 'connecting' })
 
+      // First check if we have a saved device ID
+      const savedDeviceId = getLastDeviceId(dongleId)
+      if (savedDeviceId) {
+        console.log('Attempting to reconnect to saved device:', savedDeviceId)
+        try {
+          await connectToDevice(savedDeviceId)
+          return
+        } catch {
+          console.log('Saved device not available, scanning...')
+        }
+      }
+
+      // Then check already connected devices
       const connectedDevices = await BleClient.getConnectedDevices([SERVICE_UUID])
       const device = connectedDevices.find((d) => d.name?.startsWith(`comma-${dongleId}`))
 
       if (device) {
         await connectToDevice(device.deviceId)
+        return
+      }
+
+      // Scan for nearby devices
+      let foundDevice: { deviceId: string; name?: string } | undefined
+      await BleClient.requestLEScan({ services: [SERVICE_UUID] }, (result) => {
+        if (result.device.name?.startsWith(`comma-${dongleId}`)) {
+          foundDevice = result.device
+        }
+      })
+
+      // Wait a bit for scan results
+      await new Promise((r) => setTimeout(r, 3000))
+      await BleClient.stopLEScan()
+
+      if (foundDevice) {
+        console.log('Found device via scan:', foundDevice.name)
+        await connectToDevice(foundDevice.deviceId)
         return
       }
 

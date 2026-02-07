@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="description" content="manage your openpilot experience" />
     <meta property="og:image" content="/apple-touch-icon-180x180.png" />
     <meta name="color-scheme" content="dark">
@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" />
   </head>
-  <body id="root" data-theme="dark" class="w-screen min-h-screen bg-background text-background-x flex flex-col text-foreground">
+  <body id="root" data-theme="dark" class="w-screen min-h-screen bg-background text-background-x flex flex-col text-foreground pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
     <noscript>You need to enable JavaScript to run this app.</noscript>
 
     <script src="/src/index.tsx" type="module"></script>
