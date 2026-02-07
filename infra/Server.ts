@@ -4,7 +4,7 @@ import * as hcloud from '@pulumi/hcloud'
 import * as command from '@pulumi/command'
 import { getSubdomain } from './Site'
 
-const RSYNC_EXCLUDES = ['.env*', 'node_modules', 'dist', '.git', 'openpilot', '.turbo', '.next', 'connect-data', 'screenshots']
+const RSYNC_EXCLUDES = ['.env*', 'node_modules', 'dist', '.git', 'openpilot', 'sunnypilot', '.turbo', '.next', 'connect-data', 'screenshots']
 
 type ServiceArgs = Record<string, Record<string, string | string[] | { [key: string]: pulumi.Input<string> }>>
 type ServerArgs = {
@@ -30,15 +30,7 @@ const generateService = (service: ServiceArgs): pulumi.Output<string> => {
         ? [`${key}=${value}`]
         : Array.isArray(value)
           ? value.map((v) => `${key}=${v}`)
-          : Object.entries(value).map(([k, v]) =>
-              // For multiline values (like SSH keys), escape newlines for systemd
-              pulumi
-                .output(v)
-                .apply((val) => {
-                  const escaped = val.includes('\n') ? `"${val.replace(/\n/g, '\\n')}"` : val
-                  return `${key}=${k}=${escaped}`
-                }),
-            ),
+          : Object.entries(value).map(([k, v]) => pulumi.output(v).apply((val) => `${key}=${k}="${val.replace(/\n/g, '\\n')}"`)),
     ),
     '',
   ])

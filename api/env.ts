@@ -8,7 +8,7 @@ const zArray = () =>
     .transform((x) => (typeof x === 'string' ? x.split(',') : x))
 
 export const Environment = Env.extend({
-  VOLUME_PATH: z.string().default('/tmp/volume'),
+  STORAGEBOX_URL: z.string().optional(),
 
   DB_PATH: z.string().default('/tmp/asius.db'),
 

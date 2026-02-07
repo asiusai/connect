@@ -106,9 +106,7 @@ const sshKey = new hcloud.SshKey('hetzner-ssh-key', { publicKey: sshPublicKey })
 const R2_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID!
 const R2_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY!
 
-const storageBoxPassword = config.requireSecret('storageBoxPassword')
-
-const STORAGE_BOX_USER = 'u526268'
+const STORAGEBOX_URL = pulumi.interpolate`https://u526268:${config.requireSecret('storageBoxPassword')}@u526268.your-storagebox.de`
 
 export const api = new Server('api', {
   allowedPorts: ['22', '80', '443'],
@@ -117,28 +115,6 @@ export const api = new Server('api', {
   domain: { name: 'api.asius.ai', zoneId },
   sshPrivateKey,
   services: [
-    {
-      name: 'asius-volume',
-      check: 'mountpoint -q /data/volume',
-      trigger: undefined,
-      service: {
-        Unit: {
-          Description: 'Storage Box Mount',
-          After: 'network.target',
-        },
-        Service: {
-          Type: 'oneshot',
-          RemainAfterExit: 'yes',
-          ExecStartPre: `/bin/bash -c 'umount /data/volume 2>/dev/null || true'`,
-          ExecStart: `/bin/mount -t cifs //${STORAGE_BOX_USER}.your-storagebox.de/backup /data/volume -o username=${STORAGE_BOX_USER},password=\${STORAGE_BOX_PASSWORD},uid=0,gid=0,file_mode=0660,dir_mode=0770`,
-          ExecStop: '/bin/umount /data/volume',
-          EnvironmentFile: '/etc/storagebox.env',
-        },
-        Install: {
-          WantedBy: 'multi-user.target',
-        },
-      },
-    },
     {
       name: 'asius-caddy',
       check: 'until curl -sf http://localhost:80/health; do sleep 0.5; done',
@@ -170,8 +146,8 @@ export const api = new Server('api', {
       service: {
         Unit: {
           Description: 'Asius API',
-          After: 'network.target asius-volume.service asius-caddy.service',
-          Requires: 'asius-volume.service',
+          After: 'network.target asius-caddy.service',
+          Requires: 'asius-caddy.service',
         },
         Service: {
           Type: 'simple',
@@ -181,7 +157,6 @@ export const api = new Server('api', {
           Environment: {
             SUPERUSERS: 'nagelkarel@gmail.com',
             PORT: '8080',
-            VOLUME_PATH: '/data/volume',
             DB_PATH: '/data/asius.db',
             JWT_SECRET: config.requireSecret('jwtSecret'),
             GOOGLE_CLIENT_ID: config.requireSecret('googleClientId'),
@@ -189,6 +164,7 @@ export const api = new Server('api', {
             GITHUB_CLIENT_ID: config.requireSecret('githubClientId'),
             GITHUB_CLIENT_SECRET: config.requireSecret('githubClientSecret'),
             GITHUB_TOKEN: config.requireSecret('ghToken'),
+            STORAGEBOX_URL,
             R2_BUCKET: dbBackupBucket.name,
             R2_ACCOUNT_ID: accountId,
             R2_ACCESS_KEY_ID,
@@ -203,7 +179,7 @@ export const api = new Server('api', {
   ],
   createScript: pulumi.interpolate`
 set -e
-apt-get update && apt-get install -y cifs-utils curl git unzip ffmpeg debian-keyring debian-archive-keyring apt-transport-https
+apt-get update && apt-get install -y curl git unzip ffmpeg debian-keyring debian-archive-keyring apt-transport-https
 
 # Install bun
 curl -fsSL https://bun.sh/install | bash
@@ -219,11 +195,7 @@ systemctl stop caddy || true
 systemctl disable caddy || true
 
 # Create data directories
-mkdir -p /data/volume /data/caddy /app
-
-# Setup storage box password
-echo 'STORAGE_BOX_PASSWORD=${storageBoxPassword}' > /etc/storagebox.env
-chmod 600 /etc/storagebox.env
+mkdir -p /data/caddy /app
 `,
   deployScript: 'cd /app/api && bun install',
 })
