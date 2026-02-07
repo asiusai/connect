@@ -8,15 +8,13 @@ import { create } from 'zustand'
 import { useBle } from './useBle'
 import { useNativeBle } from './useNativeBle'
 import { useRouteParams } from '..'
-import { Capacitor } from '@capacitor/core'
+import { isNative } from '../../capacitor'
 
 const init = {
   params: undefined as Partial<DeviceParams> | undefined,
   dongleId: undefined as string | undefined,
 }
 const useDeviceState = create<ZustandType<typeof init>>((set) => ({ set, ...init }))
-
-const isNative = Capacitor.isNativePlatform()
 
 export const useDevice = () => {
   const { dongleId } = useRouteParams()

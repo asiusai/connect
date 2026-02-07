@@ -16,7 +16,7 @@ const MobileSheet = ({ open, onClose, children }: { open: boolean; onClose: () =
   if (!open) return null
   return createPortal(
     <div className="fixed inset-0 z-999999 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 md:hidden">
-      <div className="absolute top-0 left-0 w-full bg-background rounded-b-3xl shadow-2xl overflow-hidden">{children}</div>
+      <div className="absolute top-0 left-0 w-full bg-background rounded-b-3xl shadow-2xl overflow-hidden pt-[env(safe-area-inset-top)]">{children}</div>
       <div className="absolute inset-0 z-[-1]" onClick={onClose} />
     </div>,
     document.body,

@@ -5,6 +5,7 @@ import { AthenaStatus, UseAthenaType } from './useAthena'
 import { create } from 'zustand'
 import { ZustandType } from '../../../../shared/helpers'
 import { useSettings } from '../useSettings'
+import { isNative } from '../../capacitor'
 
 const SERVICE_UUID = 'a51a5a10-0001-4c0d-b8e6-a51a5a100001'
 const RPC_REQUEST_UUID = 'a51a5a10-0002-4c0d-b8e6-a51a5a100001'
@@ -203,6 +204,7 @@ export const useBle = (): UseAthenaType => {
   }, [set])
 
   useEffect(() => {
+    if (isNative) return set({ status: 'not-supported' })
     if (!navigator.bluetooth) return set({ status: 'not-supported' })
     if (!usingAsiusPilot) return
     if (useBleState.getState().dongleId === dongleId) return

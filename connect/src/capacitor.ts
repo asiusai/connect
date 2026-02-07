@@ -2,6 +2,8 @@ import { Capacitor } from '@capacitor/core'
 import { App } from '@capacitor/app'
 import { StatusBar, Style } from '@capacitor/status-bar'
 
+export const isNative = Capacitor.isNativePlatform()
+
 export const initCapacitor = async () => {
   if (!Capacitor.isNativePlatform()) return
 
