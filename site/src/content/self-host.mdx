@@ -9,12 +9,12 @@ description: Self host comma connect API
 git clone https://github.com/asiusai/asiusai
 cd asiusai
 bun i
-bun run self-host
+bun run self-host # (or `cd api && bun run start`)
 ```
 
 ## Environment
 
-Create a `.env` file:
+Create a `.env` file in the `api` folder:
 
 ```bash
 JWT_SECRET=your-secret-key
@@ -36,7 +36,6 @@ SUPERUSERS=user@email.com,another@email.com
 
 Expose your server to the internet without port forwarding:
 
-
 ```bash
 # Install tailscale, then:
 tailscale up
@@ -55,4 +54,7 @@ For remote WebDAV storage (like Hetzner Storage Box):
 STORAGEBOX_URL=https://user:pass@u123456.your-storagebox.de
 ```
 
+## Connect
 
+After the server starts it gives you connect URL like this: `https://connect.asius.ai/add-provider?info=ey...`.
+Go to that URL to add this provider to your device.
