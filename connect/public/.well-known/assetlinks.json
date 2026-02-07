@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ai.asius.connect",
+      "sha256_cert_fingerprints": [
+        "1F:4F:48:56:45:EA:D5:82:8D:E0:E1:71:55:37:D2:55:6D:E8:E8:61:30:90:84:C8:0E:C3:E4:08:A5:5B:3C:9C"
+      ]
+    }
+  }
+]
