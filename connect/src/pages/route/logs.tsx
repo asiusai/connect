@@ -1,16 +1,16 @@
 import { useState } from 'react'
-import { LogReader } from '../../../shared/log-reader'
-import { useFiles } from '../api/queries'
-import { api } from '../api'
-import { useAsyncEffect, useRouteParams } from '../hooks'
+import { LogReader } from '../../../../shared/log-reader'
+import { useFiles } from '../../api/queries'
+import { api } from '../../api'
+import { useAsyncEffect, useRouteParams } from '../../hooks'
 import { CircleAlertIcon } from 'lucide-react'
-import { TopAppBar } from '../components/TopAppBar'
-import { Select } from '../components/Select'
+import { TopAppBar } from '../../components/TopAppBar'
+import { Select } from '../../components/Select'
 import { useLocation, useSearchParams } from 'react-router-dom'
-import { Toggle } from '../components/Toggle'
-import { capitalize, FILE_INFO } from '../../../shared/helpers'
-import { Service } from '../../../shared/types'
-import { SyntaxHighlightedJson } from '../components/SyntaxHighlightedJson'
+import { Toggle } from '../../components/Toggle'
+import { capitalize, FILE_INFO } from '../../../../shared/helpers'
+import { Service } from '../../../../shared/types'
+import { SyntaxHighlightedJson } from '../../components/SyntaxHighlightedJson'
 
 export const Component = () => {
   const { routeName } = useRouteParams()
@@ -70,7 +70,7 @@ export const Component = () => {
       </TopAppBar>
 
       {/* Top Controls Bar */}
-      <div className="flex items-center gap-3 p-3 bg-background border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-3 p-3 bg-background border-b border-white/5 shrink-0 no-scrollbar">
         <Select
           value={segment.toString()}
           onChange={(value) => updateParam('segment', value)}

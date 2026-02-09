@@ -60,11 +60,15 @@ const router = createBrowserRouter([
       },
       {
         path: 'logs',
-        lazy: () => import('./pages/logs'),
+        lazy: () => import('./pages/route/logs'),
       },
       {
         path: 'qlogs',
-        lazy: () => import('./pages/logs'),
+        lazy: () => import('./pages/route/logs'),
+      },
+      {
+        path: 'cabana',
+        lazy: () => import('./pages/route/cabana'),
       },
     ],
   },

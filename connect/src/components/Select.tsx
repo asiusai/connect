@@ -43,7 +43,7 @@ export const Select = <T extends string>({
         <ChevronDownIcon className={cn('text-sm! text-white/40 transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 min-w-full bg-background border border-white/10 rounded-lg shadow-xl overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 z-50 min-w-full bg-background border border-white/10 rounded-lg shadow-xl max-h-64 overflow-y-auto overflow-x-clip">
           {options.map((opt) => (
             <button
               key={opt.value}
