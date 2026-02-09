@@ -12,10 +12,12 @@ type UseWebRTCOptions = {
   audio?: boolean
   dataChannels?: string[]
   bridgeServicesIn?: string[]
+  bridgeServicesOut?: string[]
+  cameras?: string[]
 }
 
 export const useWebRTC = (options: UseWebRTCOptions = {}) => {
-  const { audio = false, dataChannels = [], bridgeServicesIn = [] } = options
+  const { audio = false, dataChannels = [], bridgeServicesIn = [], bridgeServicesOut = [], cameras = ['driver', 'wideRoad'] } = options
   const { dongleId } = useRouteParams()
   const { call } = useDevice()
 
@@ -61,8 +63,10 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
         ch.onclose = () => dataChannelRefs.current.delete(name)
       }
 
-      pc.addTransceiver('video', { direction: 'recvonly' })
-      pc.addTransceiver('video', { direction: 'recvonly' })
+      // Add video transceivers based on requested cameras
+      for (let i = 0; i < cameras.length; i++) {
+        pc.addTransceiver('video', { direction: 'recvonly' })
+      }
 
       if (audio) {
         const audioContext = new AudioContext()
@@ -100,6 +104,13 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
         }
       }
 
+      // Handle incoming data channels from device (for bridge_services_out)
+      pc.ondatachannel = (event) => {
+        const channel = event.channel
+        dataChannelRefs.current.set(channel.label, channel)
+        channel.onclose = () => dataChannelRefs.current.delete(channel.label)
+      }
+
       setStatus('Creating offer...')
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
@@ -122,9 +133,9 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       setStatus('Connecting to device...')
       const res = await call('webrtc', {
         sdp: pc.localDescription!.sdp,
-        cameras: ['driver', 'wideRoad'],
+        cameras,
         bridge_services_in: bridgeServicesIn,
-        bridge_services_out: [],
+        bridge_services_out: bridgeServicesOut,
       })
 
       if (!res?.sdp || !res?.type) throw new Error('Device unreachable')
@@ -135,7 +146,7 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       setStatus('Failed to connect')
       toast.error('WebRTC: ' + String(err))
     }
-  }, [audio, bridgeServicesIn, call, dataChannels, disconnect, dongleId])
+  }, [audio, bridgeServicesIn, bridgeServicesOut, call, cameras, dataChannels, disconnect, dongleId])
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: only needs to run once
   useEffect(() => {
@@ -216,5 +227,6 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
     startMic,
     stopMic,
     sendDataChannel,
+    dataChannelRefs,
   }
 }

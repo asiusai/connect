@@ -119,6 +119,10 @@ const router = createBrowserRouter([
             lazy: () => import('./pages/terminal'),
           },
           {
+            path: 'cabana',
+            lazy: () => import('./pages/cabana'),
+          },
+          {
             path: 'prime',
             lazy: () => import('./pages/settings/index'),
           },
