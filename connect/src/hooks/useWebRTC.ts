@@ -131,12 +131,14 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
       })
 
       setStatus('Connecting to device...')
-      const res = await call('webrtc', {
+      const payload = {
         sdp: pc.localDescription!.sdp,
         cameras,
         bridge_services_in: bridgeServicesIn,
         bridge_services_out: bridgeServicesOut,
-      })
+      }
+      console.log('[WebRTC] Calling webrtc RPC with:', { cameras, bridge_services_in: bridgeServicesIn, bridge_services_out: bridgeServicesOut })
+      const res = await call('webrtc', payload)
 
       if (!res?.sdp || !res?.type) throw new Error('Device unreachable')
       await pc.setRemoteDescription(new RTCSessionDescription({ type: res.type as any, sdp: res.sdp }))
@@ -150,9 +152,10 @@ export const useWebRTC = (options: UseWebRTCOptions = {}) => {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: only needs to run once
   useEffect(() => {
+    if (!dongleId || !call) return
     connect()
     return () => disconnect()
-  }, [])
+  }, [call, dongleId])
 
   // Stats polling
   useEffect(() => {

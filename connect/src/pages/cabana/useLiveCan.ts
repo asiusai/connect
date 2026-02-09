@@ -77,7 +77,7 @@ export const useLiveCan = () => {
   const { status, dataChannelRefs } = useWebRTC({
     bridgeServicesOut: ['can'],
     cameras: [],
-    dataChannels: ['data'], // Create the "data" channel for messaging
+    dataChannels: ['data'],
   })
 
   // Reset store on mount
@@ -101,17 +101,12 @@ export const useLiveCan = () => {
   useEffect(() => {
     const checkChannel = () => {
       const channel = dataChannelRefs.current.get('data')
-      if (!channel) {
-        console.log('[LiveCAN] No data channel yet, channels:', [...dataChannelRefs.current.keys()])
-        return false
-      }
+      if (!channel) return false
 
-      console.log('[LiveCAN] Data channel found, state:', channel.readyState)
-
-      channel.onmessage = (e) => {
+      channel.onmessage = async (e) => {
         try {
-          const msg = JSON.parse(e.data)
-          console.log('[LiveCAN] Message received:', msg.type, msg.data?.length || 0)
+          const text = e.data instanceof ArrayBuffer ? new TextDecoder().decode(e.data) : e.data instanceof Blob ? await e.data.text() : e.data
+          const msg = JSON.parse(text)
 
           // Handle car fingerprint
           if (msg.type === 'carParams' && msg.data?.carFingerprint) {
