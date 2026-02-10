@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { ProviderInfo } from './provider'
 import { AthenaError, Service } from './types'
+import { Skill } from './skills'
 
 export const DataFile = z.object({
   allow_cellular: z.boolean(),
@@ -102,6 +103,12 @@ export const ATHENA_METHODS = {
   startLocalProxy: req(z.object({ remote_ws_uri: z.string(), local_port: z.number() }), z.object({ success: z.number() })),
   getAllParams: req(z.object({}), z.record(z.any())),
   saveParams: req(z.object({ params_to_update: z.record(z.any()) }), z.record(z.string())),
+
+  // Skills
+  getSkills: req(z.void(), z.record(Skill)),
+  addSkill: req(Skill, z.object({ skill_id: z.string() })),
+  removeSkill: req(z.object({ skill_id: z.string() }), z.object({ status: z.literal('ok') })),
+  runSkill: req(z.object({ skill_id: z.string() }), z.object({ status: z.literal('ok'), skill: z.string() })),
 
   // BLE only
   blePair: req(z.object({ code: z.string(), dongleId: z.string() }), z.object({ token: z.string() }), 'ble'),
