@@ -12,6 +12,7 @@ const { title, description, className } = Astro.props
 const CONNECT_URL = 'https://connect.asius.ai'
 const GITHUB_URL = 'https://github.com/asiusai/asiusai'
 const X_URL = 'https://x.com/asius_ai'
+const DISCORD_URL = 'https://discord.gg/mhqwHe47VJ'
 ---
 
 <html lang="en">
@@ -44,6 +45,7 @@ const X_URL = 'https://x.com/asius_ai'
           <div class="flex gap-4">
             <a href="/status" class="hover:text-white transition">Status</a>
             <a href={GITHUB_URL} class="hover:text-white transition hidden md:flex" aria-label="GitHub">GitHub</a>
+            <a href={DISCORD_URL} class="hover:text-white transition hidden md:flex" aria-label="Discord">Discord</a>
             <a href={X_URL} class="hover:text-white transition hidden md:flex" aria-label="X">X</a>
           </div>
           <a href={CONNECT_URL} class="bg-white px-4 py-2 rounded-lg hover:bg-white/80 text-black font-medium text-sm">
@@ -66,6 +68,7 @@ const X_URL = 'https://x.com/asius_ai'
           <div class="flex gap-4">
             <a href="/status" class="hover:text-white transition">Status</a>
             <a href={GITHUB_URL} class="hover:text-white transition" aria-label="GitHub">GitHub</a>
+            <a href={DISCORD_URL} class="hover:text-white transition" aria-label="Discord">Discord</a>
             <a href={X_URL} class="hover:text-white transition" aria-label="X">X</a>
             <a href={CONNECT_URL} class="hover:text-white transition">Connect</a>
           </div>
