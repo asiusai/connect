@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { useDevice } from '../../hooks/useDevice'
-import { skills, Skill } from '../../../../shared/skills'
+import { skills, SkillExtended } from '../../../../shared/skills'
 import { cn } from '../../../../shared/helpers'
 import { PlusIcon, PlayIcon, Loader2Icon, TrashIcon, XIcon } from 'lucide-react'
 import { Card, NotConnected, SectionLabel } from './ControlsTab'
 import { api } from '../../api'
 import { useRouteParams } from '../../hooks'
 
-type InstalledSkill = Skill & { skill_id: string }
+type InstalledSkill = SkillExtended & { skill_id: string }
 
-const AddSkillModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (skill: Skill) => void }) => {
+const AddSkillModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (skill: SkillExtended) => void }) => {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [bus, setBus] = useState(1)
@@ -123,7 +123,7 @@ const SkillRow = ({
   onRemove,
   loading,
 }: {
-  skill: Skill
+  skill: SkillExtended
   installed?: InstalledSkill
   onInstall: () => void
   onRun: () => void
@@ -209,9 +209,9 @@ export const AppsTab = ({ className }: { className?: string }) => {
   const installedSkills = (params.Skills ?? {}) as Record<string, Omit<InstalledSkill, 'skill_id'>>
   const installedList = Object.entries(installedSkills).map(([skill_id, skill]) => ({ ...skill, skill_id }))
 
-  const isInstalled = (skill: Skill) => installedList.find((s) => s.name === skill.name && s.msg_id === skill.msg_id && s.data === skill.data)
+  const isInstalled = (skill: SkillExtended) => installedList.find((s) => s.name === skill.name && s.msg_id === skill.msg_id && s.data === skill.data)
 
-  const handleInstall = async (skill: Skill) => {
+  const handleInstall = async (skill: SkillExtended) => {
     setLoading(skill.name)
     await call('addSkill', skill)
     const updated = await call('getSkills', undefined)

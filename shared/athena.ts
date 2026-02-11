@@ -173,7 +173,7 @@ export const fetchAthena = async <T extends AthenaRequest>({
       id: 0,
       jsonrpc: '2.0',
       method: method,
-      params,
+      params: parse.success ? parse.data : params,
       expiry,
     }),
     headers: {
@@ -191,8 +191,8 @@ export const fetchAthena = async <T extends AthenaRequest>({
       result: ATHENA_METHODS[method].result.optional(),
     })
     .safeParse(await res.json())
-  if (!parsed.success) return console.warn(`Parse failed: ${parsed.error}`)
-  if (parsed.data.error) return console.error(`Request failed with: ${parsed.data.error}`)
+  if (!parsed.success) return console.warn(`Parse failed: ${JSON.stringify(parsed.error)}`)
+  if (parsed.data.error) return console.error(`Request failed with: ${JSON.stringify(parsed.data.error)}`)
 
   return parsed.data.result
 }

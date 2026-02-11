@@ -8,11 +8,15 @@ export const Skill = z.object({
   msg_id: z.number(),
   count: z.number(),
   data: z.string(),
-  platforms: z.string().array(),
 })
 export type Skill = z.infer<typeof Skill>
 
-export const skills: Skill[] = [
+export const SkillExtended = Skill.extend({
+  platforms: z.string().array(),
+})
+export type SkillExtended = z.infer<typeof SkillExtended>
+
+export const skills: SkillExtended[] = [
   // Storage
   { skill_type: 'can_msg', name: 'Frunk', description: 'Open frunk', bus: 1, msg_id: 0x273, count: 10, data: '2000000000000000', platforms: ['TESLA_MODEL_3'] },
   { skill_type: 'can_msg', name: 'Trunk', description: 'Open trunk', bus: 1, msg_id: 0x3b3, count: 10, data: '0200000000000000', platforms: ['TESLA_MODEL_3'] },
