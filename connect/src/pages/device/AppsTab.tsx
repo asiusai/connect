@@ -24,7 +24,7 @@ const AddSkillModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (skill:
       name,
       description,
       bus,
-      msg_id: msgId.startsWith('0x') ? parseInt(msgId, 16) : parseInt(msgId),
+      msg_id: msgId.startsWith('0x') ? parseInt(msgId, 16) : parseInt(msgId, 10),
       count,
       data,
       platforms: [],
@@ -62,7 +62,7 @@ const AddSkillModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (skill:
               <input
                 type="number"
                 value={bus}
-                onChange={(e) => setBus(parseInt(e.target.value))}
+                onChange={(e) => setBus(parseInt(e.target.value, 10))}
                 className="w-full bg-background px-3 py-2 rounded-lg border border-white/10 text-sm focus:outline-none focus:border-white/30"
               />
             </div>
@@ -71,7 +71,7 @@ const AddSkillModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (skill:
               <input
                 type="number"
                 value={count}
-                onChange={(e) => setCount(parseInt(e.target.value))}
+                onChange={(e) => setCount(parseInt(e.target.value, 10))}
                 className="w-full bg-background px-3 py-2 rounded-lg border border-white/10 text-sm focus:outline-none focus:border-white/30"
               />
             </div>
