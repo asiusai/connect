@@ -6,6 +6,7 @@ import { ControlsTab } from './ControlsTab'
 import { DeviceTab } from './DeviceTab'
 import { DeveloperTab } from './DeveloperTab'
 import { LiveCamera, useLiveView } from './LiveCamera'
+import { LiveData } from './LiveData'
 import { AppsTab } from './AppsTab'
 import { useRouteParams, useScroll } from '../../hooks'
 import { DeviceTitle } from './DeviceTitle'
@@ -62,7 +63,7 @@ export const Component = () => {
   const { dongleId } = useRouteParams()
   const [device, { loading, error }] = api.device.get.useQuery({ params: { dongleId }, enabled: !!dongleId })
   const { homeTab, routesType, usingAsiusPilot, set } = useSettings()
-  const liveView = useLiveView((x) => x.liveView)
+  const viewMode = useLiveView((x) => x.viewMode)
 
   const scroll = useScroll()
 
@@ -78,7 +79,7 @@ export const Component = () => {
       <DeviceSheet />
       <AccountSheet />
       <div className="w-full sticky top-0" style={{ height }}>
-        {liveView ? <LiveCamera /> : <Location device={device} className="h-full w-full" />}
+        {viewMode === 'camera' ? <LiveCamera /> : viewMode === 'data' ? <LiveData /> : <Location device={device} className="h-full w-full" />}
         <DeviceTitle style={{ opacity: 1 - scroll / height, pointerEvents: scroll >= height ? 'none' : 'auto' }} />
         <div className="pointer-events-none absolute inset-0 bg-background z-999" style={{ opacity: scroll / height }} />
       </div>

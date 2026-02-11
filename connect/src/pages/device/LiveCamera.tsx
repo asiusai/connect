@@ -4,7 +4,8 @@ import { LoaderIcon } from 'lucide-react'
 import { useWebRTC } from '../../hooks/useWebRTC'
 import { create } from 'zustand'
 
-const init = { liveView: false }
+export type ViewMode = 'map' | 'camera' | 'data'
+const init = { liveView: false, viewMode: 'map' as ViewMode }
 export const useLiveView = create<ZustandType<typeof init>>((set) => ({ set, ...init }))
 
 export const LiveCamera = () => {

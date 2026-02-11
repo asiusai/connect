@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react'
+import { PinIcon, PinOffIcon } from 'lucide-react'
 import { cn } from '../../../../../shared/helpers'
 import { DecodedSignal, CanFrame } from './types'
 import { decodeSignal, formatSignalValue, DBCSignal, DBCMessage } from './dbc-parser'
 import { useCabanaStore, useSelectedMessage } from './store'
+import { useSettings } from '../../../hooks/useSettings'
 
 const toHex = (n: number, pad = 3) => '0x' + n.toString(16).toUpperCase().padStart(pad, '0')
 
@@ -74,6 +76,8 @@ type Props = {
 export const MessageDetail = ({ className }: Props) => {
   const message = useSelectedMessage()
   const dbc = useCabanaStore((s) => s.dbc)
+  const pinnedSignals = useSettings((s) => s.pinnedSignals)
+  const setSettings = useSettings((s) => s.set)
 
   const dbcMessage = message ? dbc?.messages.get(message.address) : undefined
   const hasSignals = dbcMessage && dbcMessage.signals.length > 0
@@ -110,6 +114,23 @@ export const MessageDetail = ({ className }: Props) => {
   }, [message, dbcMessage])
 
   const messageName = dbcMessage?.name
+
+  const isPinned = (signalName: string) =>
+    pinnedSignals.some((p) => p.messageAddress === message?.address && p.messageSrc === message?.src && p.signalName === signalName)
+
+  const togglePin = (signalName: string) => {
+    if (!message) return
+    const pinned = isPinned(signalName)
+    if (pinned) {
+      setSettings({
+        pinnedSignals: pinnedSignals.filter((p) => !(p.messageAddress === message.address && p.messageSrc === message.src && p.signalName === signalName)),
+      })
+    } else {
+      setSettings({
+        pinnedSignals: [...pinnedSignals, { messageAddress: message.address, messageSrc: message.src, messageName: messageName ?? '', signalName }],
+      })
+    }
+  }
 
   if (!message)
     return (
@@ -227,8 +248,9 @@ export const MessageDetail = ({ className }: Props) => {
                 <div className="space-y-1">
                   {decodedSignals.map((sig, idx) => {
                     const color = SIGNAL_COLORS[idx % SIGNAL_COLORS.length]
+                    const pinned = isPinned(sig.name)
                     return (
-                      <div key={sig.name} className="flex items-center gap-2 py-0.5">
+                      <div key={sig.name} className="flex items-center gap-2 py-0.5 group">
                         <span className="w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center" style={{ backgroundColor: color.bg }}>
                           {idx + 1}
                         </span>
@@ -237,6 +259,16 @@ export const MessageDetail = ({ className }: Props) => {
                           {sig.formattedValue}
                         </span>
                         {sig.unit && <span className="text-xs text-white/40">{sig.unit}</span>}
+                        <button
+                          onClick={() => togglePin(sig.name)}
+                          className={cn(
+                            'p-1 rounded transition-colors',
+                            pinned ? 'text-green-400 hover:text-green-300' : 'text-white/30 hover:text-white/60 opacity-0 group-hover:opacity-100',
+                          )}
+                          title={pinned ? 'Unpin signal' : 'Pin signal'}
+                        >
+                          {pinned ? <PinOffIcon className="w-3.5 h-3.5" /> : <PinIcon className="w-3.5 h-3.5" />}
+                        </button>
                       </div>
                     )
                   })}

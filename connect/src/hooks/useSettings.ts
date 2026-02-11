@@ -15,6 +15,13 @@ const getDefaultTimeFormat = () => {
   return options.hourCycle?.startsWith('h1') ? '12h' : ('24h' satisfies TimeFormat)
 }
 
+export type PinnedSignal = {
+  messageAddress: number
+  messageSrc: number
+  messageName: string
+  signalName: string
+}
+
 const init = {
   usingAsiusPilot: undefined as boolean | undefined,
   playbackRate: 1 as number | undefined,
@@ -33,6 +40,7 @@ const init = {
   joystickEnabled: false,
   unitFormat: getDefaultUnitFormat(),
   timeFormat: getDefaultTimeFormat(),
+  pinnedSignals: [] as PinnedSignal[],
 }
 
 export const useSettings = create(

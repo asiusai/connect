@@ -2,7 +2,17 @@ import { api } from '../../api'
 import { getDeviceName } from '../../../../shared/types'
 import { useRouteParams } from '../../hooks'
 import { Active } from './Devices'
-import { BatteryFullIcon, BatteryLowIcon, BatteryMediumIcon, WifiIcon, BluetoothIcon, VideoIcon, SwitchCameraIcon, ChevronDownIcon } from 'lucide-react'
+import {
+  BatteryFullIcon,
+  BatteryLowIcon,
+  BatteryMediumIcon,
+  WifiIcon,
+  BluetoothIcon,
+  VideoIcon,
+  SwitchCameraIcon,
+  ChevronDownIcon,
+  ActivityIcon,
+} from 'lucide-react'
 import { cn } from '../../../../shared/helpers'
 import { useDevice } from '../../hooks/useDevice'
 import { useSettings } from '../../hooks/useSettings'
@@ -32,7 +42,7 @@ export const DeviceTitle = ({ style }: { style?: CSSProperties }) => {
   const { voltage, ble, athena, connected } = useDevice()
   const { provider } = useAuth()
   const { set: setTopMenu } = useTopMenu()
-  const { liveView, set: setLiveView } = useLiveView()
+  const { viewMode, set: setLiveView } = useLiveView()
 
   if (!device) return
 
@@ -71,12 +81,18 @@ export const DeviceTitle = ({ style }: { style?: CSSProperties }) => {
               <>
                 <div className="w-1 h-1 rounded-full bg-white/40" />
                 <button
-                  onClick={() => setLiveView({ liveView: !liveView })}
-                  className={cn('flex items-center gap-1 transition-all', liveView ? 'text-red-400' : 'text-white/40')}
+                  onClick={() => setLiveView({ viewMode: viewMode === 'map' ? 'camera' : 'map', liveView: viewMode === 'map' })}
+                  className={cn('flex items-center gap-1 transition-all', viewMode === 'camera' ? 'text-red-400' : 'text-white/40')}
                 >
                   <VideoIcon className="text-lg!" />
                 </button>
-                {liveView && (
+                <button
+                  onClick={() => setLiveView({ viewMode: viewMode === 'data' ? 'map' : 'data', liveView: viewMode !== 'data' })}
+                  className={cn('flex items-center gap-1 transition-all', viewMode === 'data' ? 'text-green-400' : 'text-white/40')}
+                >
+                  <ActivityIcon className="text-lg!" />
+                </button>
+                {viewMode === 'camera' && (
                   <button
                     onClick={() => setSettings({ liveCamera: liveCamera === 'driver' ? 'road' : 'driver' })}
                     className="text-white/60 hover:text-white transition-colors"
