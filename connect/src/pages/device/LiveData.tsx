@@ -150,7 +150,7 @@ export const LiveData = () => {
         </div>
       )}
       <div className={cn('flex-1 p-4 overflow-auto', status && 'opacity-30')}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-20">
           {pinnedSignals.map((pinned) => (
             <SignalCard key={`${pinned.messageAddress}-${pinned.messageSrc}-${pinned.signalName}`} pinned={pinned} onUnpin={() => handleUnpin(pinned)} />
           ))}

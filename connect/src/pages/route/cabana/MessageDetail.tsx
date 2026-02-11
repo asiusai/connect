@@ -263,7 +263,7 @@ export const MessageDetail = ({ className }: Props) => {
                           onClick={() => togglePin(sig.name)}
                           className={cn(
                             'p-1 rounded transition-colors',
-                            pinned ? 'text-green-400 hover:text-green-300' : 'text-white/30 hover:text-white/60 opacity-0 group-hover:opacity-100',
+                            pinned ? 'text-green-400 hover:text-green-300' : 'text-white/30 hover:text-white/60 md:opacity-0 md:group-hover:opacity-100',
                           )}
                           title={pinned ? 'Unpin signal' : 'Pin signal'}
                         >
