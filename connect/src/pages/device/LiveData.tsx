@@ -3,7 +3,6 @@ import { create } from 'zustand'
 import { LoaderIcon, PinOffIcon } from 'lucide-react'
 import { useWebRTC } from '../../hooks/useWebRTC'
 import { useSettings, PinnedSignal } from '../../hooks/useSettings'
-import { useCabanaStore } from '../route/cabana/store'
 import { decodeSignal, formatSignalValue } from '../route/cabana/dbc-parser'
 import { cn, ZustandType } from '../../../../shared/helpers'
 
@@ -84,20 +83,28 @@ const useLiveCanData = () => {
 
 const SignalCard = ({ pinned, onUnpin }: { pinned: PinnedSignal; onUnpin: () => void }) => {
   const signals = useLiveSignals((s) => s.signals)
-  const dbc = useCabanaStore((s) => s.dbc)
 
   const key = `${pinned.messageAddress}-${pinned.messageSrc}`
   const data = signals.get(key)
-  const dbcMessage = dbc?.messages.get(pinned.messageAddress)
-  const dbcSignal = dbcMessage?.signals.find((s) => s.name === pinned.signalName)
 
   let displayValue = '--'
-  let unit = ''
 
-  if (data && dbcSignal) {
+  // Convert PinnedSignal to DBCSignal-compatible object for decoding
+  if (data && pinned.startBit !== undefined) {
+    const dbcSignal = {
+      name: pinned.signalName,
+      startBit: pinned.startBit,
+      size: pinned.size,
+      factor: pinned.factor,
+      offset: pinned.offset,
+      isLittleEndian: pinned.isLittleEndian,
+      isSigned: pinned.isSigned,
+      unit: pinned.unit,
+      min: pinned.min,
+      max: pinned.max,
+    }
     const value = decodeSignal(data.lastData, dbcSignal)
     displayValue = formatSignalValue(value, dbcSignal)
-    unit = dbcSignal.unit
   }
 
   return (
@@ -113,7 +120,7 @@ const SignalCard = ({ pinned, onUnpin }: { pinned: PinnedSignal; onUnpin: () => 
       <div className="text-sm text-white/70">{pinned.signalName}</div>
       <div className="text-2xl font-mono font-bold tabular-nums">
         {displayValue}
-        {unit && !displayValue.includes(unit) && <span className="text-sm text-white/40 ml-1">{unit}</span>}
+        {pinned.unit && !displayValue.includes(pinned.unit) && <span className="text-sm text-white/40 ml-1">{pinned.unit}</span>}
       </div>
     </div>
   )

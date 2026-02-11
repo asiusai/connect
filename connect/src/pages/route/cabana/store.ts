@@ -32,6 +32,16 @@ export const useCabanaStore = create<ZustandType<typeof initial>>((set) => ({ ..
 // Action to select DBC file
 export const selectDbcFile = (name: string) => useCabanaStore.getState().set({ selectedDbcFile: name })
 
+// Action to load custom DBC file from content
+export const loadCustomDbc = (dbc: DBCFile) => {
+  useCabanaStore.getState().set({
+    dbc,
+    selectedDbcFile: dbc.name,
+    dbcLoading: false,
+    dbcError: undefined,
+  })
+}
+
 // Helper selectors
 export const useSelectedMessage = () => {
   const messages = useCabanaStore((s) => s.messages)

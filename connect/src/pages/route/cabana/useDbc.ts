@@ -11,12 +11,16 @@ export const useDbc = () => {
   // Get suggested files based on fingerprint
   const suggestedFiles = carFingerprint ? getDbcFilesForFingerprint(carFingerprint) : []
 
-  // Load DBC file when selected
+  // Load DBC file when selected (skip if already loaded via custom upload)
+  const currentDbc = useCabanaStore((s) => s.dbc)
   useAsyncEffect(async () => {
     if (!selectedDbcFile) {
       set({ dbc: undefined })
       return
     }
+
+    // Skip if DBC already loaded with this name (e.g. from custom upload)
+    if (currentDbc?.name === selectedDbcFile) return
 
     set({ dbcLoading: true, dbcError: undefined })
 
@@ -29,7 +33,7 @@ export const useDbc = () => {
     } finally {
       set({ dbcLoading: false })
     }
-  }, [selectedDbcFile, set])
+  }, [selectedDbcFile, currentDbc?.name, set])
 
   // Auto-select first suggested file if none selected
   useAsyncEffect(async () => {

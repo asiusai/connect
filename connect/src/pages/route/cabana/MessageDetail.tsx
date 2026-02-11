@@ -119,15 +119,34 @@ export const MessageDetail = ({ className }: Props) => {
     pinnedSignals.some((p) => p.messageAddress === message?.address && p.messageSrc === message?.src && p.signalName === signalName)
 
   const togglePin = (signalName: string) => {
-    if (!message) return
+    if (!message || !dbcMessage) return
     const pinned = isPinned(signalName)
     if (pinned) {
       setSettings({
         pinnedSignals: pinnedSignals.filter((p) => !(p.messageAddress === message.address && p.messageSrc === message.src && p.signalName === signalName)),
       })
     } else {
+      const dbcSignal = dbcMessage.signals.find((s) => s.name === signalName)
+      if (!dbcSignal) return
       setSettings({
-        pinnedSignals: [...pinnedSignals, { messageAddress: message.address, messageSrc: message.src, messageName: messageName ?? '', signalName }],
+        pinnedSignals: [
+          ...pinnedSignals,
+          {
+            messageAddress: message.address,
+            messageSrc: message.src,
+            messageName: messageName ?? '',
+            signalName,
+            startBit: dbcSignal.startBit,
+            size: dbcSignal.size,
+            factor: dbcSignal.factor,
+            offset: dbcSignal.offset,
+            isLittleEndian: dbcSignal.isLittleEndian,
+            isSigned: dbcSignal.isSigned,
+            unit: dbcSignal.unit,
+            min: dbcSignal.min,
+            max: dbcSignal.max,
+          },
+        ],
       })
     }
   }

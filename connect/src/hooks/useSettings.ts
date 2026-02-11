@@ -20,6 +20,16 @@ export type PinnedSignal = {
   messageSrc: number
   messageName: string
   signalName: string
+  // Signal decoding parameters (DBC-independent)
+  startBit: number
+  size: number
+  factor: number
+  offset: number
+  isLittleEndian: boolean
+  isSigned: boolean
+  unit: string
+  min: number
+  max: number
 }
 
 const init = {
