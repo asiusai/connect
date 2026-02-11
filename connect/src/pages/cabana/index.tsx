@@ -21,9 +21,9 @@ export const Component = () => {
         {!status && loading && <span className="text-xs text-white/50">Waiting for data...</span>}
         {!status && !loading && <span className="text-xs text-green-400">{messageCount} messages</span>}
       </TopAppBar>
-      <div className="flex-1 grid grid-cols-2 gap-4 p-4 min-h-0">
-        <MessageDetail className="col-start-1" />
-        <MessageList className="col-start-2" />
+      <div className="flex-1 grid md:grid-cols-2 gap-4 p-4 min-h-0">
+        <MessageList className="" />
+        <MessageDetail className="" />
       </div>
     </div>
   )

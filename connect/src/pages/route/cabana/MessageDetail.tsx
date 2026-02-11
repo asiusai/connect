@@ -242,7 +242,7 @@ export const MessageDetail = ({ className }: Props) => {
             </div>
 
             {/* Bottom: Signals list */}
-            <div className="flex-1 min-w-0 overflow-auto">
+            <div className="flex-1 min-w-0">
               <div className="text-xs text-white/40 mb-2">Signals: {decodedSignals.length}</div>
               {hasSignals ? (
                 <div className="space-y-1">
