@@ -21,7 +21,7 @@ curl -fsSL https://bun.sh/install | bash
 ### Clone, install and run
 
 ```bash
-git clone https://github.com/asiusai/asiusai.git
+git clone https://github.com/asiusai/connect.git
 cd asiusai
 bun install
 bun dev

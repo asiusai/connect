@@ -32,7 +32,7 @@ All providers have the same features - the only difference is which backend they
 
 ## Getting Started
 
-1. Go to [connect.asius.ai](https://connect.asius.ai) or [download the Android app](https://github.com/asiusai/asiusai/releases/latest/download/connect.apk)
+1. Go to [connect.asius.ai](https://connect.asius.ai) or [download the Android app](https://github.com/asiusai/connect/releases/latest/download/connect.apk)
 2. Select your provider (Comma, Konik, or Asius)
 3. Log in with your account
 4. Select your device from the list
