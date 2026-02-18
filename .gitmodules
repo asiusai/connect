@@ -1,3 +1,0 @@
-[submodule "openpilot"]
-	path = openpilot
-	url = https://github.com/asiusai/openpilot.git
