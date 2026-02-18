@@ -11,8 +11,9 @@ const SERVICE_UUID = 'a51a5a10-0001-4c0d-b8e6-a51a5a100001'
 const RPC_REQUEST_UUID = 'a51a5a10-0002-4c0d-b8e6-a51a5a100001'
 const RPC_RESPONSE_UUID = 'a51a5a10-0003-4c0d-b8e6-a51a5a100001'
 
-const getToken = (dongleId: string): string | null => localStorage.getItem(`ble_token_${dongleId}`)
-const setToken = (dongleId: string, token: string) => localStorage.setItem(`ble_token_${dongleId}`, token)
+// Map dongleId <-> BLE device name for reconnection
+const getBleDeviceName = (dongleId: string): string | null => localStorage.getItem(`ble_name_${dongleId}`)
+const saveBleDeviceName = (dongleId: string, name: string) => localStorage.setItem(`ble_name_${dongleId}`, name)
 
 const bleInit = {
   status: 'disconnected' as AthenaStatus,
@@ -39,25 +40,15 @@ export const useBle = (): UseAthenaType => {
       const id = requestId + 1
       set({ requestId: id })
 
-      const token = getToken(dongleId)
-      const paramsWithToken = typeof params === 'object' && params !== null ? { ...params, token } : { token }
-
       const request = {
         jsonrpc: '2.0',
         method,
-        params: paramsWithToken,
+        params: params ?? {},
         id,
       }
 
-      const responsePromise = new Promise<AthenaResponse<T>>((resolve, reject) => {
-        pendingRequests.set(id, (response: any) => {
-          if (response?.error?.code === -32001) {
-            set({ status: 'unauthorized' })
-            reject(new Error('Unauthorized: pair with device first'))
-          } else {
-            resolve(response)
-          }
-        })
+      const responsePromise = new Promise<AthenaResponse<T>>((resolve) => {
+        pendingRequests.set(id, resolve)
       })
 
       try {
@@ -71,23 +62,11 @@ export const useBle = (): UseAthenaType => {
         return await responsePromise
       } catch (error) {
         pendingRequests.delete(id)
-        if ((error as Error).message.includes('Unauthorized')) throw error
+        console.error('BLE call error:', error)
       }
     },
-    [dongleId, set],
+    [set],
   )
-
-  const pair = useCallback(async () => {
-    set({ status: 'unauthorized' })
-    const code = window.prompt('Insert bluetooth pairing code from your device')
-    if (!code) throw new Error("User didn't insert code")
-
-    const res = await call('blePair', { code, dongleId })
-    if (!res) throw new Error(`Pairing failed, ${code}, ${dongleId}`)
-
-    setToken(dongleId, res.token)
-    set({ status: 'connected' })
-  }, [dongleId, call, set])
 
   const connectToDevice = useCallback(async () => {
     const device = useBleState.getState().device
@@ -113,10 +92,7 @@ export const useBle = (): UseAthenaType => {
           const resolve = pendingRequests.get(res.id)
           if (resolve) {
             if (res.error) {
-              // unauthorized
-              if (res.error.code === -32001) resolve(-32001)
-
-              console.error(`Ble failed, res:`, res)
+              console.error('BLE error response:', res)
               resolve(undefined)
             } else resolve(res.result)
             pendingRequests.delete(res.id)
@@ -127,33 +103,30 @@ export const useBle = (): UseAthenaType => {
       })
       set({ requestChar })
 
-      const token = getToken(dongleId)
-      if (!token) await pair()
+      const info = await call('getDeviceInfo', undefined as any)
+      if (!info) return set({ status: 'disconnected' })
 
-      let res = await call('getMessage', { service: 'peripheralState', timeout: 1000 })
+      // Save the BLE device name so we can find it again for this dongleId
+      if (device.name) saveBleDeviceName(dongleId, device.name)
 
-      // if unathorized then pair again
-      if (res === -32001) {
-        await pair()
-        res = await call('getMessage', { service: 'peripheralState', timeout: 1000 })
-      }
-
-      if (!res) return set({ status: 'disconnected' })
-
-      console.log(`Bluetooth connected, voltage: ${res.peripheralState.voltage}`)
-
-      set({ status: 'connected', voltage: res.peripheralState.voltage })
+      console.log(`BLE connected: ${device.name}, serial: ${info.serial}, op: ${info.openpilot_installed}`)
+      set({ status: 'connected' })
     } catch (e) {
       set({ status: 'disconnected' })
       console.error(e)
     }
-  }, [call, dongleId, pair, set])
+  }, [call, dongleId, set])
 
   const autoConnect = useCallback(async () => {
     try {
       set({ status: 'connecting' })
       const devices = await navigator.bluetooth.getDevices()
-      const device = devices.find((d) => d.name?.startsWith(`comma-${dongleId}`))
+
+      // Try to find by saved BLE device name, fall back to any comma- device
+      const savedName = getBleDeviceName(dongleId)
+      const device = savedName
+        ? (devices.find((d) => d.name === savedName) ?? devices.find((d) => d.name?.startsWith('comma-')))
+        : devices.find((d) => d.name?.startsWith('comma-'))
       if (!device) return set({ status: 'disconnected' })
 
       set({ device })
@@ -185,7 +158,7 @@ export const useBle = (): UseAthenaType => {
     try {
       set({ status: 'connecting' })
       const device = await navigator.bluetooth.requestDevice({
-        filters: [{ services: [SERVICE_UUID], namePrefix: `comma-${dongleId}` }],
+        filters: [{ services: [SERVICE_UUID], namePrefix: 'comma-' }],
         optionalServices: [SERVICE_UUID],
       })
       set({ device })
@@ -194,7 +167,7 @@ export const useBle = (): UseAthenaType => {
       set({ status: 'disconnected' })
       console.error(e)
     }
-  }, [dongleId, connectToDevice, set])
+  }, [connectToDevice, set])
 
   const disconnect = useCallback(async () => {
     const device = useBleState.getState().device

@@ -18,8 +18,15 @@ import {
   PowerIcon,
   SignalIcon,
   NavigationIcon,
+  RefreshCwIcon,
+  LockIcon,
+  TrashIcon,
+  CheckIcon,
+  LoaderIcon,
   type LucideIcon,
 } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import type { AthenaResponse } from '../../../../shared/athena'
 
 export const Card = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <div className={cn('bg-background-alt rounded-xl divide-y divide-white/5', className)}>{children}</div>
@@ -186,13 +193,7 @@ export const ControlsTab = ({ className }: { className?: string }) => {
           <Toggle value={params.NetworkMetered} onChange={(v) => saveParams({ NetworkMetered: v })} />
         </Row>
       </Card>
-      <Card className="divide-y-0!">
-        <div className="flex flex-col items-center gap-3 py-6">
-          <WifiIcon className="w-8 h-8 text-white/15" />
-          <span className="text-sm text-white/35">WiFi management coming soon</span>
-          <span className="text-xs text-white/20">Scan and connect to networks via BLE</span>
-        </div>
-      </Card>
+      <WifiCard />
       <div className="grid grid-cols-3 gap-2">
         <button
           onClick={async () => {
@@ -241,5 +242,162 @@ export const ControlsTab = ({ className }: { className?: string }) => {
         </button>
       </div>
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// WiFi management card
+// ---------------------------------------------------------------------------
+
+type WifiNetwork = AthenaResponse<'getWifiNetworks'>[number]
+
+const WifiCard = () => {
+  const { ble, call } = useDevice()
+  const [networks, setNetworks] = useState<WifiNetwork[]>([])
+  const [scanning, setScanning] = useState(false)
+  const [connecting, setConnecting] = useState<string | null>(null)
+  const [passwordPrompt, setPasswordPrompt] = useState<{ ssid: string; security: string } | null>(null)
+  const [password, setPassword] = useState('')
+
+  const scan = useCallback(async () => {
+    if (!call) return
+    setScanning(true)
+    try {
+      const res = await call('getWifiNetworks', undefined as any)
+      if (res) setNetworks(res)
+    } finally {
+      setScanning(false)
+    }
+  }, [call])
+
+  const connectToNetwork = useCallback(
+    async (ssid: string, pw?: string) => {
+      if (!call) return
+      setConnecting(ssid)
+      setPasswordPrompt(null)
+      try {
+        await call('connectWifi', { ssid, password: pw })
+        await scan()
+      } finally {
+        setConnecting(null)
+      }
+    },
+    [call, scan],
+  )
+
+  const forget = useCallback(
+    async (ssid: string) => {
+      if (!call) return
+      await call('forgetWifi', { ssid })
+      await scan()
+    },
+    [call, scan],
+  )
+
+  if (!ble.connected) {
+    return (
+      <Card className="divide-y-0!">
+        <div className="flex flex-col items-center gap-3 py-6">
+          <WifiIcon className="w-8 h-8 text-white/15" />
+          <span className="text-sm text-white/35">Connect via BLE to manage WiFi</span>
+          <BleBadge />
+        </div>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <IconBadge icon={WifiIcon} color="bg-blue-600" />
+          <span className="text-[13px] font-medium">WiFi</span>
+        </div>
+        <button onClick={scan} disabled={scanning} className="p-1.5 rounded-lg hover:bg-white/5 transition-colors">
+          <RefreshCwIcon className={cn('w-4 h-4 text-white/50', scanning && 'animate-spin')} />
+        </button>
+      </div>
+
+      {networks.length === 0 && !scanning && (
+        <div className="flex flex-col items-center gap-2 py-6">
+          <span className="text-xs text-white/35">Tap refresh to scan for networks</span>
+        </div>
+      )}
+
+      {scanning && networks.length === 0 && (
+        <div className="flex items-center justify-center gap-2 py-6">
+          <LoaderIcon className="w-4 h-4 text-white/30 animate-spin" />
+          <span className="text-xs text-white/35">Scanning...</span>
+        </div>
+      )}
+
+      {networks.map((net) => (
+        <div key={net.ssid} className="flex items-center gap-3 py-2 px-3">
+          <WifiIcon className={cn('w-4 h-4 shrink-0', net.connected ? 'text-green-400' : 'text-white/25')} />
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] truncate">{net.ssid}</div>
+            <div className="text-[10px] text-white/30 flex items-center gap-1.5">
+              {net.security !== 'open' && <LockIcon className="w-2.5 h-2.5" />}
+              <span>{net.strength}%</span>
+            </div>
+          </div>
+          {connecting === net.ssid ? (
+            <LoaderIcon className="w-4 h-4 text-white/30 animate-spin" />
+          ) : net.connected ? (
+            <div className="flex items-center gap-1">
+              <CheckIcon className="w-4 h-4 text-green-400" />
+              <button onClick={() => forget(net.ssid)} className="p-1 rounded hover:bg-white/5">
+                <TrashIcon className="w-3.5 h-3.5 text-white/20 hover:text-red-400" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                if (net.security === 'open') connectToNetwork(net.ssid)
+                else setPasswordPrompt({ ssid: net.ssid, security: net.security })
+              }}
+              className="text-[11px] text-indigo-400 font-medium px-2 py-1 rounded-lg hover:bg-white/5"
+            >
+              Connect
+            </button>
+          )}
+        </div>
+      ))}
+
+      {passwordPrompt && (
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-white/3">
+          <input
+            autoFocus
+            type="password"
+            placeholder={`Password for ${passwordPrompt.ssid}`}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && password) {
+                connectToNetwork(passwordPrompt.ssid, password)
+                setPassword('')
+              }
+              if (e.key === 'Escape') {
+                setPasswordPrompt(null)
+                setPassword('')
+              }
+            }}
+            className="flex-1 bg-background text-sm px-2.5 py-1.5 rounded-lg border border-white/10 focus:outline-none focus:border-white/30"
+          />
+          <button
+            onClick={() => {
+              if (password) {
+                connectToNetwork(passwordPrompt.ssid, password)
+                setPassword('')
+              }
+            }}
+            disabled={!password}
+            className="text-[11px] text-indigo-400 font-medium px-3 py-1.5 rounded-lg hover:bg-white/5 disabled:opacity-30"
+          >
+            Join
+          </button>
+        </div>
+      )}
+    </Card>
   )
 }

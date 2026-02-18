@@ -12,10 +12,10 @@ const SERVICE_UUID = 'a51a5a10-0001-4c0d-b8e6-a51a5a100001'
 const RPC_REQUEST_UUID = 'a51a5a10-0002-4c0d-b8e6-a51a5a100001'
 const RPC_RESPONSE_UUID = 'a51a5a10-0003-4c0d-b8e6-a51a5a100001'
 
-const getToken = (dongleId: string): string | null => localStorage.getItem(`ble_token_${dongleId}`)
-const setToken = (dongleId: string, token: string) => localStorage.setItem(`ble_token_${dongleId}`, token)
 const getLastDeviceId = (dongleId: string): string | null => localStorage.getItem(`ble_device_${dongleId}`)
 const setLastDeviceId = (dongleId: string, deviceId: string) => localStorage.setItem(`ble_device_${dongleId}`, deviceId)
+const getBleDeviceName = (dongleId: string): string | null => localStorage.getItem(`ble_name_${dongleId}`)
+const saveBleDeviceName = (dongleId: string, name: string) => localStorage.setItem(`ble_name_${dongleId}`, name)
 
 const nativeBleInit = {
   status: 'disconnected' as AthenaStatus,
@@ -41,25 +41,15 @@ export const useNativeBle = (): UseAthenaType => {
       const id = requestId + 1
       set({ requestId: id })
 
-      const token = getToken(dongleId)
-      const paramsWithToken = typeof params === 'object' && params !== null ? { ...params, token } : { token }
-
       const request = {
         jsonrpc: '2.0',
         method,
-        params: paramsWithToken,
+        params: params ?? {},
         id,
       }
 
-      const responsePromise = new Promise<AthenaResponse<T>>((resolve, reject) => {
-        pendingRequests.set(id, (response: any) => {
-          if (response?.error?.code === -32001) {
-            set({ status: 'unauthorized' })
-            reject(new Error('Unauthorized: pair with device first'))
-          } else {
-            resolve(response)
-          }
-        })
+      const responsePromise = new Promise<AthenaResponse<T>>((resolve) => {
+        pendingRequests.set(id, resolve)
       })
 
       try {
@@ -73,26 +63,14 @@ export const useNativeBle = (): UseAthenaType => {
         return await responsePromise
       } catch (error) {
         pendingRequests.delete(id)
-        if ((error as Error).message.includes('Unauthorized')) throw error
+        console.error('Native BLE call error:', error)
       }
     },
-    [dongleId, set],
+    [set],
   )
 
-  const pair = useCallback(async () => {
-    set({ status: 'unauthorized' })
-    const code = window.prompt('Insert bluetooth pairing code from your device')
-    if (!code) throw new Error("User didn't insert code")
-
-    const res = await call('blePair', { code, dongleId })
-    if (!res) throw new Error(`Pairing failed, ${code}, ${dongleId}`)
-
-    setToken(dongleId, res.token)
-    set({ status: 'connected' })
-  }, [dongleId, call, set])
-
   const connectToDevice = useCallback(
-    async (deviceId: string) => {
+    async (deviceId: string, deviceName?: string) => {
       try {
         set({ status: 'connecting', deviceId })
 
@@ -111,8 +89,7 @@ export const useNativeBle = (): UseAthenaType => {
             const resolve = state.pendingRequests.get(res.id)
             if (resolve) {
               if (res.error) {
-                if (res.error.code === -32001) resolve(-32001)
-                console.error(`Native BLE failed, res:`, res)
+                console.error('Native BLE error response:', res)
                 resolve(undefined)
               } else resolve(res.result)
               state.pendingRequests.delete(res.id)
@@ -122,27 +99,20 @@ export const useNativeBle = (): UseAthenaType => {
           }
         })
 
-        const token = getToken(dongleId)
-        if (!token) await pair()
+        // Verify connection with getDeviceInfo (works even without openpilot)
+        const info = await call('getDeviceInfo', undefined as any)
+        if (!info) return set({ status: 'disconnected', deviceId: undefined })
 
-        let res = await call('getMessage', { service: 'peripheralState', timeout: 1000 })
-
-        if (res === -32001) {
-          await pair()
-          res = await call('getMessage', { service: 'peripheralState', timeout: 1000 })
-        }
-
-        if (!res) return set({ status: 'disconnected', deviceId: undefined })
-
-        console.log(`Native Bluetooth connected, voltage: ${res.peripheralState.voltage}`)
+        console.log(`Native BLE connected: serial=${info.serial}, op=${info.openpilot_installed}`)
         setLastDeviceId(dongleId, deviceId)
-        set({ status: 'connected', voltage: res.peripheralState.voltage })
+        if (deviceName) saveBleDeviceName(dongleId, deviceName)
+        set({ status: 'connected' })
       } catch (e) {
         set({ status: 'disconnected', deviceId: undefined })
         console.error(e)
       }
     },
-    [call, dongleId, pair, set],
+    [call, dongleId, set],
   )
 
   const connect = useCallback(async () => {
@@ -155,7 +125,7 @@ export const useNativeBle = (): UseAthenaType => {
       })
 
       console.log('Selected device:', device.name, device.deviceId)
-      await connectToDevice(device.deviceId)
+      await connectToDevice(device.deviceId, device.name)
     } catch (e) {
       set({ status: 'disconnected' })
       console.error('BLE connect error:', e)
@@ -181,28 +151,31 @@ export const useNativeBle = (): UseAthenaType => {
 
       // Then check already connected devices
       const connectedDevices = await BleClient.getConnectedDevices([SERVICE_UUID])
-      const device = connectedDevices.find((d) => d.name?.startsWith(`comma-${dongleId}`))
+      const savedName = getBleDeviceName(dongleId)
+      const device = savedName
+        ? (connectedDevices.find((d) => d.name === savedName) ?? connectedDevices.find((d) => d.name?.startsWith('comma-')))
+        : connectedDevices.find((d) => d.name?.startsWith('comma-'))
 
       if (device) {
-        await connectToDevice(device.deviceId)
+        await connectToDevice(device.deviceId, device.name)
         return
       }
 
       // Scan for nearby devices
       let foundDevice: { deviceId: string; name?: string } | undefined
       await BleClient.requestLEScan({ services: [SERVICE_UUID] }, (result) => {
-        if (result.device.name?.startsWith(`comma-${dongleId}`)) {
+        const name = result.device.name
+        if (name?.startsWith('comma-') && (!savedName || name === savedName)) {
           foundDevice = result.device
         }
       })
 
-      // Wait a bit for scan results
       await new Promise((r) => setTimeout(r, 3000))
       await BleClient.stopLEScan()
 
       if (foundDevice) {
         console.log('Found device via scan:', foundDevice.name)
-        await connectToDevice(foundDevice.deviceId)
+        await connectToDevice(foundDevice.deviceId, foundDevice.name)
         return
       }
 

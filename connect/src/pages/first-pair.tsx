@@ -1,6 +1,6 @@
 import { api } from '../api'
 import { ButtonBase } from '../components/ButtonBase'
-import { CameraIcon, InfoIcon, PlusIcon } from 'lucide-react'
+import { BluetoothIcon, CameraIcon, InfoIcon, PlusIcon } from 'lucide-react'
 import { TopAppBar } from '../components/TopAppBar'
 import { useAuth } from '../hooks/useAuth'
 
@@ -47,6 +47,13 @@ export const Component = () => {
             >
               <CameraIcon />
               Scan QR Code
+            </ButtonBase>
+            <ButtonBase
+              className="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-500 transition-colors flex items-center justify-center gap-2"
+              href="/setup"
+            >
+              <BluetoothIcon />
+              Setup via Bluetooth
             </ButtonBase>
             <ButtonBase className="w-full py-3 rounded-xl bg-white/5 text-white font-medium hover:bg-white/10 transition-colors text-center" href="/logout">
               Sign out

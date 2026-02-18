@@ -111,8 +111,30 @@ export const ATHENA_METHODS = {
   runSkill: req(z.object({ skill_id: z.string() }), z.object({ status: z.literal('ok'), skill: z.string() })),
 
   // BLE only
-  blePair: req(z.object({ code: z.string(), dongleId: z.string() }), z.object({ token: z.string() }), 'ble'),
-  bleRevoke: req(z.object({}), z.object({ status: z.literal('ok') }), 'ble'),
+  getDeviceInfo: req(
+    z.void(),
+    z.object({
+      serial: z.string(),
+      agnos_version: z.string(),
+      openpilot_installed: z.boolean(),
+      ipc_connected: z.boolean(),
+    }),
+    'ble',
+  ),
+  getBleStatus: req(
+    z.void(),
+    z.object({
+      bonded: z.boolean(),
+      bonded_device: z.string().nullable(),
+      connected: z.boolean(),
+      enabled: z.boolean(),
+      advertising: z.boolean(),
+    }),
+    'ble',
+  ),
+  bleUnpair: req(z.void(), z.object({ status: z.literal('ok') }), 'ble'),
+  bleDisable: req(z.void(), z.object({ status: z.literal('disabled') }), 'ble'),
+  bleEnable: req(z.void(), z.object({ status: z.literal('enabled') }), 'ble'),
   getWifiNetworks: req(
     z.void(),
     z
@@ -121,25 +143,29 @@ export const ATHENA_METHODS = {
         strength: z.number(),
         security: z.string(),
         connected: z.boolean(),
-        saved: z.boolean(),
       })
       .array(),
     'ble',
   ),
   connectWifi: req(z.object({ ssid: z.string(), password: z.string().optional() }), z.object({ status: z.string() }), 'ble'),
   forgetWifi: req(z.object({ ssid: z.string() }), z.object({ status: z.string() }), 'ble'),
-  setTethering: req(z.object({ enabled: z.boolean() }), z.object({ status: z.string() }), 'ble'),
-  setTetheringPassword: req(z.object({ password: z.string() }), z.object({ status: z.string() }), 'ble'),
+  getSavedWifi: req(z.void(), z.string().array(), 'ble'),
   getNetworkStatus: req(
     z.void(),
     z.object({
-      ip_address: z.string(),
-      tethering_active: z.boolean(),
-      tethering_password: z.string(),
-      metered: z.number(),
+      wifi_ssid: z.string(),
+      wifi_ip: z.string(),
+      wifi_connected: z.boolean(),
+      has_internet: z.boolean(),
     }),
     'ble',
   ),
+  installOpenpilot: req(
+    z.object({ url: z.string().optional(), branch: z.string().optional() }),
+    z.object({ status: z.string(), url: z.string(), branch: z.string() }),
+    'ble',
+  ),
+  getInstallStatus: req(z.void(), z.object({ state: z.string(), progress: z.string(), error: z.string() }), 'ble'),
 }
 
 export type AthenaRequest = keyof typeof ATHENA_METHODS

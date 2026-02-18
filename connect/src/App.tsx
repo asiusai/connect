@@ -92,6 +92,10 @@ const router = createBrowserRouter([
         lazy: () => import('./pages/first-pair'),
       },
       {
+        path: 'setup',
+        lazy: () => import('./pages/ble-setup'),
+      },
+      {
         path: ':dongleId',
         children: [
           {
