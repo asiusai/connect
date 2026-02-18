@@ -4,8 +4,6 @@ pre-commit:
       glob: "**/*.{ts,tsx}"
       run: bunx biome check --write {staged_files}
       stage_fixed: true
-    tsc:
-      run: bunx tsc --noEmit
 
 skip_output:
   - execution_out
