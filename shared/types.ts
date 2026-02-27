@@ -38,6 +38,7 @@ const NAMES: Record<string, string> = {
 
   neo: 'EON',
   freon: 'freon',
+  asius: 'Asius',
   unknown: 'unknown',
 }
 export const getCommaName = (device: { device_type?: string | null }) => {
