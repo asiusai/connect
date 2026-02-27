@@ -369,6 +369,7 @@ export enum InitData_DeviceType {
   PC,
   TIZI,
   MICI,
+  ASIUS,
 }
 export class InitData_PandaInfo extends __S {
   static readonly _capnp = { displayName: 'PandaInfo', id: 'e673e8725cdff0ad', size: new __O(8, 3) }
