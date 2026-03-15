@@ -1,11 +1,10 @@
 import { DeviceParams } from '../../utils/params'
 import { useCallback, useEffect, useMemo } from 'react'
 import { useAthena } from './useAthena'
-import { ATHENA_METHODS, AthenaParams, AthenaRequest } from '../../../../shared/athena'
+import { AthenaParams, AthenaRequest } from '../../../../shared/athena'
 import { toast } from 'sonner'
 import { ZustandType } from '../../../../shared/helpers'
 import { create } from 'zustand'
-import { useBle } from './useBle'
 import { useNativeBle } from './useNativeBle'
 import { useRouteParams } from '..'
 import { isNative } from '../../capacitor'
@@ -19,19 +18,25 @@ const useDeviceState = create<ZustandType<typeof init>>((set) => ({ set, ...init
 export const useDevice = () => {
   const { dongleId } = useRouteParams()
   const athena = useAthena()
-  const webBle = useBle()
-  const nativeBle = useNativeBle()
-  const ble = isNative ? nativeBle : webBle
+  const ble = isNative
+    ? useNativeBle()
+    : {
+        type: 'ble' as const,
+        status: 'not-supported' as const,
+        call: undefined,
+        connected: false,
+        voltage: undefined,
+        init: async () => {},
+        connect: async () => {},
+        disconnect: async () => {},
+      }
   const { params, set } = useDeviceState()
 
   const call2 = useCallback(
     async <T extends AthenaRequest>(method: T, params: AthenaParams<T>) => {
-      const m = ATHENA_METHODS[method]
-      if (!m.types) return
-
-      if (m.types.includes('ble') && ble.call) return await ble.call(method, params)
-      else if (m.types.includes('athena') && athena.call) return await athena.call(method, params)
-      else toast(`Can't call ${method}, device not connnected`)
+      if (ble.call) return await ble.call(method, params)
+      if (athena.call) return await athena.call(method, params)
+      toast(`Can't call ${method}, device not connected`)
     },
     [athena.call, ble.call],
   )

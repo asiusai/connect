@@ -25,49 +25,13 @@ export const UploadQueueItem = z.object({
 })
 export type UploadQueueItem = z.infer<typeof UploadQueueItem>
 
-export const TransportType = z.enum(['athena', 'ble'])
-export type TransportType = z.infer<typeof TransportType>
-
-const req = <Params, Result>(params: Params, result: Result, ...types: TransportType[]) => ({
-  params,
-  result,
-  types: types.length ? types : (['athena', 'ble'] as const),
-})
+const req = <Params, Result>(params: Params, result: Result) => ({ params, result })
 
 export const ATHENA_METHODS = {
-  // Athena only
-  setRouteViewed: req(z.object({ route: z.string() }), z.object({ success: z.number() }), 'athena'),
-  listUploadQueue: req(z.void(), UploadQueueItem.array(), 'athena'),
-  uploadFilesToUrls: req(
-    z.object({ files_data: DataFile.array() }),
-    z.object({
-      enqueued: z.number(),
-      failed: z.string().array().optional(),
-      items: UploadQueueItem.array(),
-    }),
-    'athena',
-  ),
-  cancelUpload: req(z.object({ upload_id: z.string().or(z.string().array()) }), z.record(z.string(), z.number().or(z.string())), 'athena'),
-  uploadFileToUrl: req(
-    z.object({
-      fn: z.string(),
-      url: z.string(),
-      headers: z.record(z.string()),
-    }),
-    z.object({
-      enqueued: z.number(),
-      failed: z.string().array().optional(),
-      items: UploadQueueItem.array(),
-    }),
-    'athena',
-  ),
-
-  // All
   echo: req(z.object({ s: z.string() }), z.string()),
   getNetworkMetered: req(z.void(), z.boolean()),
   takeSnapshot: req(z.void(), z.object({ jpegFront: z.string().nullable(), jpegBack: z.string().nullable() }).or(z.null())),
   getMessage: req(z.object({ service: Service, timeout: z.number().optional() }), z.any()),
-
   getVersion: req(
     z.void(),
     z.object({
@@ -103,16 +67,31 @@ export const ATHENA_METHODS = {
   startLocalProxy: req(z.object({ remote_ws_uri: z.string(), local_port: z.number() }), z.object({ success: z.number() })),
   getAllParams: req(z.object({}), z.record(z.any())),
   saveParams: req(z.object({ params_to_update: z.record(z.any()) }), z.record(z.string())),
+  setRouteViewed: req(z.object({ route: z.string() }), z.object({ success: z.number() })),
+  listUploadQueue: req(z.void(), UploadQueueItem.array()),
+  uploadFilesToUrls: req(
+    z.object({ files_data: DataFile.array() }),
+    z.object({
+      enqueued: z.number(),
+      failed: z.string().array().optional(),
+      items: UploadQueueItem.array(),
+    }),
+  ),
+  cancelUpload: req(z.object({ upload_id: z.string().or(z.string().array()) }), z.record(z.string(), z.number().or(z.string()))),
+  uploadFileToUrl: req(
+    z.object({
+      fn: z.string(),
+      url: z.string(),
+      headers: z.record(z.string()),
+    }),
+    z.object({
+      enqueued: z.number(),
+      failed: z.string().array().optional(),
+      items: UploadQueueItem.array(),
+    }),
+  ),
 
-  // Skills
-  getSkills: req(z.void(), z.record(Skill)),
-  addSkill: req(Skill, z.object({ skill_id: z.string() })),
-  removeSkill: req(z.object({ skill_id: z.string() }), z.object({ status: z.literal('ok') })),
-  runSkill: req(z.object({ skill_id: z.string() }), z.object({ status: z.literal('ok'), skill: z.string() })),
-
-  // BLE only
-  blePair: req(z.object({ code: z.string(), dongleId: z.string() }), z.object({ token: z.string() }), 'ble'),
-  bleRevoke: req(z.object({}), z.object({ status: z.literal('ok') }), 'ble'),
+  // WiFi
   getWifiNetworks: req(
     z.void(),
     z
@@ -124,12 +103,11 @@ export const ATHENA_METHODS = {
         saved: z.boolean(),
       })
       .array(),
-    'ble',
   ),
-  connectWifi: req(z.object({ ssid: z.string(), password: z.string().optional() }), z.object({ status: z.string() }), 'ble'),
-  forgetWifi: req(z.object({ ssid: z.string() }), z.object({ status: z.string() }), 'ble'),
-  setTethering: req(z.object({ enabled: z.boolean() }), z.object({ status: z.string() }), 'ble'),
-  setTetheringPassword: req(z.object({ password: z.string() }), z.object({ status: z.string() }), 'ble'),
+  connectWifi: req(z.object({ ssid: z.string(), password: z.string().optional() }), z.object({ status: z.string() })),
+  forgetWifi: req(z.object({ ssid: z.string() }), z.object({ status: z.string() })),
+  setTethering: req(z.object({ enabled: z.boolean() }), z.object({ status: z.string() })),
+  setTetheringPassword: req(z.object({ password: z.string() }), z.object({ status: z.string() })),
   getNetworkStatus: req(
     z.void(),
     z.object({
@@ -138,8 +116,13 @@ export const ATHENA_METHODS = {
       tethering_password: z.string(),
       metered: z.number(),
     }),
-    'ble',
   ),
+
+  // Skills
+  getSkills: req(z.void(), z.record(Skill)),
+  addSkill: req(Skill, z.object({ skill_id: z.string() })),
+  removeSkill: req(z.object({ skill_id: z.string() }), z.object({ status: z.literal('ok') })),
+  runSkill: req(z.object({ skill_id: z.string() }), z.object({ status: z.literal('ok'), skill: z.string() })),
 }
 
 export type AthenaRequest = keyof typeof ATHENA_METHODS

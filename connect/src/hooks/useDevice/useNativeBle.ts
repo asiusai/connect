@@ -1,95 +1,138 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { BleClient } from '@capacitor-community/bluetooth-le'
+import { encode, decode } from '@msgpack/msgpack'
 import { AthenaParams, AthenaRequest, AthenaResponse } from '../../../../shared/athena'
 import { useRouteParams } from '../index'
-import { AthenaStatus, UseAthenaType } from './useAthena'
+import { AthenaStatus } from './useAthena'
 import { create } from 'zustand'
 import { ZustandType } from '../../../../shared/helpers'
 import { useSettings } from '../useSettings'
 import { isNative } from '../../capacitor'
 
-const SERVICE_UUID = 'a51a5a10-0001-4c0d-b8e6-a51a5a100001'
-const RPC_REQUEST_UUID = 'a51a5a10-0002-4c0d-b8e6-a51a5a100001'
-const RPC_RESPONSE_UUID = 'a51a5a10-0003-4c0d-b8e6-a51a5a100001'
+const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e'
+const UART_RX_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e' // write to device
+const UART_TX_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e' // notify from device
 
-const getToken = (dongleId: string): string | null => localStorage.getItem(`ble_token_${dongleId}`)
-const setToken = (dongleId: string, token: string) => localStorage.setItem(`ble_token_${dongleId}`, token)
-const getLastDeviceId = (dongleId: string): string | null => localStorage.getItem(`ble_device_${dongleId}`)
-const setLastDeviceId = (dongleId: string, deviceId: string) => localStorage.setItem(`ble_device_${dongleId}`, deviceId)
+const CHUNK_SIZE = 240
+const CHANNEL_SETTINGS = 0x02
+const REQUEST_TIMEOUT = 10000
+
+/** Reassemble chunked Nordic UART messages */
+class ChunkAssembler {
+  private active = new Map<number, { chunks: (Uint8Array | undefined)[]; missing: number; time: number }>()
+
+  feed(data: DataView): { channel: number; payload: Uint8Array } | undefined {
+    if (data.byteLength < 4) return
+
+    const channel = data.getUint8(0)
+    const msgId = data.getUint8(1)
+    const totalSegments = data.getUint8(2)
+    const segIdx = data.getUint8(3)
+    if (totalSegments === 0 || segIdx >= totalSegments) return
+
+    const chunk = new Uint8Array(data.buffer, data.byteOffset + 4, data.byteLength - 4)
+    const key = (channel << 8) | msgId
+
+    let entry = this.active.get(key)
+    if (!entry) {
+      entry = { chunks: new Array(totalSegments).fill(undefined), missing: totalSegments, time: Date.now() }
+      this.active.set(key, entry)
+    }
+    if (entry.chunks.length !== totalSegments) {
+      entry.chunks = new Array(totalSegments).fill(undefined)
+      entry.missing = totalSegments
+    }
+
+    if (entry.chunks[segIdx] === undefined) entry.missing--
+    entry.chunks[segIdx] = chunk
+    entry.time = Date.now()
+
+    if (entry.missing === 0) {
+      const full = new Uint8Array(entry.chunks.reduce((s, c) => s + (c?.length ?? 0), 0))
+      let offset = 0
+      for (const c of entry.chunks) {
+        if (c) {
+          full.set(c, offset)
+          offset += c.length
+        }
+      }
+      this.active.delete(key)
+      return { channel, payload: full }
+    }
+
+    // Cleanup stale entries
+    const now = Date.now()
+    for (const [k, v] of this.active) {
+      if (now - v.time > 1000) this.active.delete(k)
+    }
+  }
+}
 
 const nativeBleInit = {
   status: 'disconnected' as AthenaStatus,
   voltage: undefined as string | undefined,
   deviceId: undefined as string | undefined,
+  uartMsgId: 0,
   requestId: 0,
-  pendingRequests: new Map<number, (value: any) => void>(),
-  responseBuffer: '',
+  pendingRequests: new Map<number, { resolve: (value: any) => void; timer: ReturnType<typeof setTimeout> }>(),
   dongleId: undefined as string | undefined,
+  assembler: new ChunkAssembler(),
+  streamData: undefined as Record<string, unknown> | undefined,
 }
 const useNativeBleState = create<ZustandType<typeof nativeBleInit>>((set) => ({ set, ...nativeBleInit }))
 
-export const useNativeBle = (): UseAthenaType => {
+const getLastDeviceId = (dongleId: string): string | null => localStorage.getItem(`ble_device_${dongleId}`)
+const setLastDeviceId = (dongleId: string, deviceId: string) => localStorage.setItem(`ble_device_${dongleId}`, deviceId)
+
+export const useNativeBle = () => {
   const { dongleId } = useRouteParams()
   const usingAsiusPilot = useSettings((x) => x.usingAsiusPilot)
   const { status, voltage, set } = useNativeBleState()
+
+  const sendUart = useCallback(
+    async (channel: number, data: Record<string, unknown>) => {
+      const { deviceId, uartMsgId } = useNativeBleState.getState()
+      if (!deviceId) return
+
+      const payload = new Uint8Array(encode(data))
+      const id = (uartMsgId % 255) + 1
+      set({ uartMsgId: id })
+
+      const totalSegments = Math.ceil(payload.length / CHUNK_SIZE)
+      for (let i = 0; i < totalSegments; i++) {
+        const offset = i * CHUNK_SIZE
+        const chunk = payload.slice(offset, offset + CHUNK_SIZE)
+        const header = new Uint8Array([channel, id, totalSegments, i])
+        const full = new Uint8Array(4 + chunk.length)
+        full.set(header, 0)
+        full.set(chunk, 4)
+        await BleClient.writeWithoutResponse(deviceId, UART_SERVICE_UUID, UART_RX_UUID, new DataView(full.buffer))
+      }
+    },
+    [set],
+  )
 
   const call = useCallback(
     async <T extends AthenaRequest>(method: T, params: AthenaParams<T>): Promise<AthenaResponse<T> | undefined> => {
       const { deviceId, requestId, pendingRequests } = useNativeBleState.getState()
       if (!deviceId) return undefined
 
-      const id = requestId + 1
+      const id = (requestId % 65535) + 1
       set({ requestId: id })
 
-      const token = getToken(dongleId)
-      const paramsWithToken = typeof params === 'object' && params !== null ? { ...params, token } : { token }
-
-      const request = {
-        jsonrpc: '2.0',
-        method,
-        params: paramsWithToken,
-        id,
-      }
-
-      const responsePromise = new Promise<AthenaResponse<T>>((resolve, reject) => {
-        pendingRequests.set(id, (response: any) => {
-          if (response?.error?.code === -32001) {
-            set({ status: 'unauthorized' })
-            reject(new Error('Unauthorized: pair with device first'))
-          } else {
-            resolve(response)
-          }
-        })
+      const responsePromise = new Promise<AthenaResponse<T> | undefined>((resolve) => {
+        const timer = setTimeout(() => {
+          pendingRequests.delete(id)
+          resolve(undefined)
+        }, REQUEST_TIMEOUT)
+        pendingRequests.set(id, { resolve, timer })
       })
 
-      try {
-        const encoder = new TextEncoder()
-        const data = encoder.encode(JSON.stringify(request))
-        const MTU = 512
-        for (let i = 0; i < data.length; i += MTU) {
-          const chunk = data.slice(i, i + MTU)
-          await BleClient.write(deviceId, SERVICE_UUID, RPC_REQUEST_UUID, new DataView(chunk.buffer))
-        }
-        return await responsePromise
-      } catch (error) {
-        pendingRequests.delete(id)
-        if ((error as Error).message.includes('Unauthorized')) throw error
-      }
+      await sendUart(CHANNEL_SETTINGS, { msgType: method, data: params, id })
+      return await responsePromise
     },
-    [dongleId, set],
+    [set, sendUart],
   )
-
-  const pair = useCallback(async () => {
-    set({ status: 'unauthorized' })
-    const code = window.prompt('Insert bluetooth pairing code from your device')
-    if (!code) throw new Error("User didn't insert code")
-
-    const res = await call('blePair', { code, dongleId })
-    if (!res) throw new Error(`Pairing failed, ${code}, ${dongleId}`)
-
-    setToken(dongleId, res.token)
-    set({ status: 'connected' })
-  }, [dongleId, call, set])
 
   const connectToDevice = useCallback(
     async (deviceId: string) => {
@@ -100,49 +143,41 @@ export const useNativeBle = (): UseAthenaType => {
           set({ status: 'disconnected', deviceId: undefined })
         })
 
-        await BleClient.startNotifications(deviceId, SERVICE_UUID, RPC_RESPONSE_UUID, (value) => {
-          const state = useNativeBleState.getState()
-          const chunk = new TextDecoder('utf-8').decode(value)
-          const buffer = state.responseBuffer + chunk
+        const { assembler } = useNativeBleState.getState()
+
+        await BleClient.startNotifications(deviceId, UART_SERVICE_UUID, UART_TX_UUID, (value) => {
+          const result = assembler.feed(value)
+          if (!result) return
 
           try {
-            const res = JSON.parse(buffer)
-            set({ responseBuffer: '' })
-            const resolve = state.pendingRequests.get(res.id)
-            if (resolve) {
-              if (res.error) {
-                if (res.error.code === -32001) resolve(-32001)
-                console.error(`Native BLE failed, res:`, res)
-                resolve(undefined)
-              } else resolve(res.result)
-              state.pendingRequests.delete(res.id)
+            const msg = decode(result.payload) as Record<string, unknown>
+            console.log(`BLE RX [ch=${result.channel}]:`, msg)
+
+            if (msg.msgType === 'heartbeat') {
+              set({ streamData: msg })
+            } else if (typeof msg.id === 'number') {
+              const { pendingRequests } = useNativeBleState.getState()
+              const pending = pendingRequests.get(msg.id)
+              if (pending) {
+                clearTimeout(pending.timer)
+                pendingRequests.delete(msg.id)
+                pending.resolve(msg.error ? undefined : (msg.data ?? msg))
+              }
             }
-          } catch {
-            set({ responseBuffer: buffer })
+          } catch (e) {
+            console.error('BLE decode error:', e)
           }
         })
 
-        const token = getToken(dongleId)
-        if (!token) await pair()
-
-        let res = await call('getMessage', { service: 'peripheralState', timeout: 1000 })
-
-        if (res === -32001) {
-          await pair()
-          res = await call('getMessage', { service: 'peripheralState', timeout: 1000 })
-        }
-
-        if (!res) return set({ status: 'disconnected', deviceId: undefined })
-
-        console.log(`Native Bluetooth connected, voltage: ${res.peripheralState.voltage}`)
         setLastDeviceId(dongleId, deviceId)
-        set({ status: 'connected', voltage: res.peripheralState.voltage })
+        set({ status: 'connected' })
+        console.log('BLE connected via Nordic UART')
       } catch (e) {
         set({ status: 'disconnected', deviceId: undefined })
         console.error(e)
       }
     },
-    [call, dongleId, pair, set],
+    [dongleId, set],
   )
 
   const connect = useCallback(async () => {
@@ -151,7 +186,7 @@ export const useNativeBle = (): UseAthenaType => {
       set({ status: 'connecting' })
 
       const device = await BleClient.requestDevice({
-        services: [SERVICE_UUID],
+        services: [UART_SERVICE_UUID],
       })
 
       console.log('Selected device:', device.name, device.deviceId)
@@ -167,10 +202,9 @@ export const useNativeBle = (): UseAthenaType => {
       await BleClient.initialize({ androidNeverForLocation: true })
       set({ status: 'connecting' })
 
-      // First check if we have a saved device ID
+      // Try saved device first
       const savedDeviceId = getLastDeviceId(dongleId)
       if (savedDeviceId) {
-        console.log('Attempting to reconnect to saved device:', savedDeviceId)
         try {
           await connectToDevice(savedDeviceId)
           return
@@ -179,10 +213,9 @@ export const useNativeBle = (): UseAthenaType => {
         }
       }
 
-      // Then check already connected devices
-      const connectedDevices = await BleClient.getConnectedDevices([SERVICE_UUID])
-      const device = connectedDevices.find((d) => d.name?.startsWith(`comma-${dongleId}`))
-
+      // Check already connected devices
+      const connectedDevices = await BleClient.getConnectedDevices([UART_SERVICE_UUID])
+      const device = connectedDevices.find((d) => d.name?.startsWith('asius-'))
       if (device) {
         await connectToDevice(device.deviceId)
         return
@@ -190,13 +223,12 @@ export const useNativeBle = (): UseAthenaType => {
 
       // Scan for nearby devices
       let foundDevice: { deviceId: string; name?: string } | undefined
-      await BleClient.requestLEScan({ services: [SERVICE_UUID] }, (result) => {
-        if (result.device.name?.startsWith(`comma-${dongleId}`)) {
+      await BleClient.requestLEScan({ services: [UART_SERVICE_UUID] }, (result) => {
+        if (result.device.name?.startsWith('asius-')) {
           foundDevice = result.device
         }
       })
 
-      // Wait a bit for scan results
       await new Promise((r) => setTimeout(r, 3000))
       await BleClient.stopLEScan()
 
@@ -208,7 +240,7 @@ export const useNativeBle = (): UseAthenaType => {
 
       set({ status: 'disconnected' })
     } catch (e) {
-      console.error('Native auto-connect failed', e)
+      console.error('BLE auto-connect failed', e)
       set({ status: 'disconnected' })
     }
   }, [dongleId, connectToDevice, set])
@@ -222,7 +254,7 @@ export const useNativeBle = (): UseAthenaType => {
         console.error('Disconnect error', e)
       }
     }
-    set({ status: 'disconnected', deviceId: undefined, dongleId: undefined })
+    set({ status: 'disconnected', deviceId: undefined, dongleId: undefined, streamData: undefined })
   }, [set])
 
   useEffect(() => {
@@ -236,7 +268,7 @@ export const useNativeBle = (): UseAthenaType => {
 
   return useMemo(
     () => ({
-      type: 'ble',
+      type: 'ble' as const,
       status,
       init: autoConnect,
       call: status === 'connected' ? call : undefined,

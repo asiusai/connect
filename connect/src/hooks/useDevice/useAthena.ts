@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useIsDeviceOwner } from '../useIsDeviceOwner'
-import { AthenaParams, AthenaRequest, fetchAthena, TransportType } from '../../../../shared/athena'
+import { AthenaParams, AthenaRequest, fetchAthena } from '../../../../shared/athena'
 import { useRouteParams } from '..'
 import { useAuth, useProviderInfo } from '../useAuth'
 import { create } from 'zustand'
 import { ZustandType } from '../../../../shared/helpers'
 
 export type AthenaStatus = 'disconnected' | 'connecting' | 'connected' | 'not-supported' | 'unauthorized'
-export type UseAthenaType = ReturnType<typeof useAthena>
 
 const athenaInit = {
   status: 'disconnected' as AthenaStatus,
@@ -51,7 +50,7 @@ export const useAthena = () => {
 
   return useMemo(
     () => ({
-      type: 'athena' as TransportType,
+      type: 'athena' as const,
       status,
       voltage,
       call: status === 'connected' ? call : undefined,
