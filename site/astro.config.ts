@@ -22,8 +22,6 @@ export default defineConfig({
 
     '/op': 'https://github.com/asiusai/openpilot',
 
-    '/connect': 'https://connect.asius.ai',
-
     '/x': 'https://x.com/asius_ai',
   },
 })
