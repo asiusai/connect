@@ -2,7 +2,7 @@ import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command, Del
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator'
-import { existsSync, mkdirSync } from 'fs'
+import { existsSync, mkdirSync, unlinkSync } from 'fs'
 import { dirname } from 'path'
 import { env } from '../env'
 
@@ -88,15 +88,22 @@ const uploadBackup = async (client: S3Client) => {
   const file = Bun.file(env.DB_PATH)
   if (!(await file.exists())) return
 
+  const tmpPath = `${env.DB_PATH}.backup`
+  const db = new Database(env.DB_PATH, { readonly: true })
+  db.run(`VACUUM INTO '${tmpPath}'`)
+  db.close()
+
   const key = `db/${Date.now()}.db`
-  console.log(`[backup] Uploading to ${key}...`)
+  const backupFile = Bun.file(tmpPath)
+  console.log(`[backup] Uploading to ${key} (${(backupFile.size / 1024 / 1024).toFixed(1)}MB)...`)
   await client.send(
     new PutObjectCommand({
       Bucket: env.R2_BUCKET,
       Key: key,
-      Body: new Uint8Array(await file.arrayBuffer()),
+      Body: new Uint8Array(await backupFile.arrayBuffer()),
     }),
   )
+  unlinkSync(tmpPath)
   console.log('[backup] Done')
 }
 
