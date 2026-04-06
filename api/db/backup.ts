@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } from '@aws-sdk/client-s3'
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator'
@@ -100,13 +100,51 @@ const uploadBackup = async (client: S3Client) => {
   console.log('[backup] Done')
 }
 
+const cleanupOldBackups = async (client: S3Client) => {
+  const res = await client.send(new ListObjectsV2Command({ Bucket: env.R2_BUCKET, Prefix: 'db/' }))
+  if (!res.Contents?.length) return
+
+  const sorted = res.Contents.sort((a, b) => (b.LastModified?.getTime() ?? 0) - (a.LastModified?.getTime() ?? 0))
+
+  const keysToKeep = new Set<string>()
+  const seenDays = new Set<string>()
+  for (const obj of sorted) {
+    if (!obj.LastModified || !obj.Key) continue
+    const day = obj.LastModified.toISOString().slice(0, 10)
+    if (!seenDays.has(day)) {
+      seenDays.add(day)
+      keysToKeep.add(obj.Key)
+    }
+  }
+
+  // Only keep last 30 days
+  const days = [...seenDays].sort().reverse()
+  for (const day of days.slice(30)) {
+    for (const obj of sorted) {
+      if (obj.LastModified?.toISOString().startsWith(day) && obj.Key) keysToKeep.delete(obj.Key)
+    }
+  }
+
+  const toDelete = sorted.filter((obj) => obj.Key && !keysToKeep.has(obj.Key)).map((obj) => ({ Key: obj.Key! }))
+  if (!toDelete.length) return
+
+  for (let i = 0; i < toDelete.length; i += 1000) {
+    await client.send(new DeleteObjectsCommand({ Bucket: env.R2_BUCKET, Delete: { Objects: toDelete.slice(i, i + 1000) } }))
+  }
+  console.log(`[backup] Cleaned up ${toDelete.length} old backups`)
+}
+
 export const startBackupSchedule = () => {
   const client = getR2Client()
   if (!client) return console.log('[backup] R2 not configured, backups disabled')
 
   console.log('[backup] Starting hourly backups')
-  setTimeout(() => uploadBackup(client), 60 * 1000) // first backup after 1 min
-  setInterval(() => uploadBackup(client), BACKUP_INTERVAL)
+  const backupAndCleanup = async () => {
+    await uploadBackup(client)
+    await cleanupOldBackups(client)
+  }
+  setTimeout(() => backupAndCleanup(), 60 * 1000) // first backup after 1 min
+  setInterval(() => backupAndCleanup(), BACKUP_INTERVAL)
 }
 
 export const getLastBackupTime = async (): Promise<number | null> => {
