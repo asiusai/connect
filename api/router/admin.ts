@@ -24,11 +24,15 @@ import { createDataSignature } from '../helpers'
 const startTime = Date.now()
 const HEARTBEAT_INTERVAL = 60 * 1000 // 1 minute
 
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+
 const recordHeartbeat = () => {
   try {
     db.insert(uptimeTable).values({ timestamp: Date.now() }).run()
-    // Keep only last 1000 heartbeats
     db.run(sql`DELETE FROM uptime WHERE id NOT IN (SELECT id FROM uptime ORDER BY timestamp DESC LIMIT 1000)`)
+    const cutoff = Date.now() - THIRTY_DAYS_MS
+    db.delete(logsTable).where(sql`${logsTable.create_time} < ${cutoff}`).run()
+    db.delete(statsTable).where(sql`${statsTable.create_time} < ${cutoff}`).run()
   } catch {}
 }
 
