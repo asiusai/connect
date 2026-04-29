@@ -22,8 +22,8 @@ export const KonikLogo = (props: IconProps) => (
 )
 
 export const AsiusLogo = (props: IconProps) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 151 136" fill="currentColor" {...props}>
-    <path d="M74.881 0L91.2064 29.2778L47.4921 104.833H88.5079L69.3492 136L0 135.73L74.881 0Z" />
-    <path d="M77.5791 63.0079L93.095 32.7857L150.166 136H118.73L77.5791 63.0079Z" />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor" {...props}>
+    <path d="M 8 92 L 26 92 L 48.8 14 L 45.8 14 Z" />
+    <path d="M 74 92 L 92 92 L 54.2 14 L 51.2 14 Z" />
   </svg>
 )

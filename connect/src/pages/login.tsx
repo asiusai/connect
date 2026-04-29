@@ -105,7 +105,9 @@ export const Component = () => {
         <div className="w-24 h-24 rounded-3xl bg-white flex items-center justify-center shadow-2xl border border-white/5">
           <Logo provider={'asius'} className="text-black h-16 w-16" />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-center">Welcome to Asius connect</h1>
+        <h1 className="text-3xl font-bold text-center" style={{ letterSpacing: '-0.045em' }}>
+          Welcome to Asius connect
+        </h1>
       </div>
 
       <div className="w-full flex flex-col md:flex-row items-center md:items-start gap-10 justify-center">

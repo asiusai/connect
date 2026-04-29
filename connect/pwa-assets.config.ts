@@ -10,16 +10,16 @@ export default defineConfig({
     maskable: {
       ...minimal2023Preset.maskable,
       padding: 0.2,
-      resizeOptions: { background: '#131318' },
+      resizeOptions: { background: '#181a23' },
     },
     apple: {
       ...minimal2023Preset.apple,
       padding: 0.2,
-      resizeOptions: { background: '#131318' },
+      resizeOptions: { background: '#181a23' },
     },
     appleSplashScreens: createAppleSplashScreens({
       padding: 0.5,
-      resizeOptions: { fit: 'contain', background: '#131318' },
+      resizeOptions: { fit: 'contain', background: '#181a23' },
       linkMediaOptions: {
         addMediaScreen: true,
         xhtml: true,
